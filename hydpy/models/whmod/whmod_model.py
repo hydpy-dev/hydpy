@@ -9,6 +9,7 @@ from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import precipinterfaces
+from hydpy.interfaces import snowinterfaces
 from hydpy.interfaces import stateinterfaces
 from hydpy.interfaces import tempinterfaces
 from hydpy.cythons import modelutils
@@ -288,66 +289,58 @@ class Calc_LakeEvaporation_V1(modeltools.Method):
             )
 
 
-class Calc_PotentialSnowmelt_V1(modeltools.Method):
-    r"""Calculcate the potential snowmelt with the degree day method.
+class Calc_Snowmelt_SnowModel_V1(modeltools.Method):
+    r"""Let a submodel that follows the |AETModel_V1| submodel interface calculate
+    soil evapotranspiration.
 
     Basic equation:
       .. math::
-        P = \begin{cases}
-        0 &|\ T \leq 0 \\
-        D \cdot T &|\ T > 0
-        \end{cases}
-        \\ \\
-        P = PotentialSnowmelt \\
-        D = DegreeDayFactor \\
-        T = Temperature
+        SoilEvapotranspiration = get\_soilevapotranspiration()
 
-    Examples:
+    Example:
 
-        >>> from hydpy.models.whmod import *
-        >>> parameterstep("1d")
-        >>> simulationstep("1d")
-        >>> nmbzones(3)
-        >>> landtype(GRASS, SEALED, WATER)
-        >>> degreedayfactor(grass=3.0, sealed=4.0)
+        We build an example based on |evap_aet_minhas|:
 
-        >>> inputs.temperature = -2.0
-        >>> model.calc_potentialsnowmelt_v1()
-        >>> fluxes.potentialsnowmelt
-        potentialsnowmelt(0.0, 0.0, 0.0)
+        >>> from hydpy.models.whmod_rural import *
+        >>> parameterstep("1h")
+        >>> area(1.0)
+        >>> nmbzones(5)
+        >>> landtype(GRASS, GRASS, GRASS, GRASS, WATER)
+        >>> soiltype(SAND, SAND, SAND, SAND, NONE)
+        >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
+        >>> availablefieldcapacity(100.0)
+        >>> rootingdepth(1.0)
+        >>> groundwaterdepth(1.0)
+        >>> with model.add_aetmodel_v1("evap_aet_minhas"):
+        ...     dissefactor(5.0)
 
-        >>> inputs.temperature = 0.0
-        >>> model.calc_potentialsnowmelt_v1()
-        >>> fluxes.potentialsnowmelt
-        potentialsnowmelt(0.0, 0.0, 0.0)
+        |Calc_SoilEvapotranspiration_AETModel_V1| stores the flux returned by the
+        submodel without any modifications:
 
-        >>> inputs.temperature = 2.0
-        >>> model.calc_potentialsnowmelt_v1()
-        >>> fluxes.potentialsnowmelt
-        potentialsnowmelt(6.0, 8.0, 0.0)
+        >>> states.soilmoisture = 0.0, 0.0, 50.0, 100.0, 0.0
+        >>> model.aetmodel.sequences.fluxes.potentialinterceptionevaporation = 5.0
+        >>> model.aetmodel.sequences.fluxes.potentialsoilevapotranspiration = 5.0
+        >>> model.aetmodel.sequences.fluxes.interceptionevaporation = 3.0
+        >>> model.calc_soilevapotranspiration_v1()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(0.0, 0.0, 1.717962, 2.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        whmod_control.NmbZones,
-        whmod_control.LandType,
-        whmod_control.DegreeDayFactor,
-    )
-    REQUIREDSEQUENCES = (whmod_inputs.Temperature,)
-    RESULTSEQUENCES = (whmod_fluxes.PotentialSnowmelt,)
+    CONTROLPARAMETERS = (whmod_control.NmbZones,)
+    RESULTSEQUENCES = (whmod_fluxes.Snowmelt,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, /) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: snowinterfaces.SnowModel_V1, /
+    ) -> None:
         con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nmbzones):
-            if (con.landtype[k] == WATER) or (inp.temperature <= 0.0):
-                flu.potentialsnowmelt[k] = 0.0
-            else:
-                flu.potentialsnowmelt[k] = con.degreedayfactor[k] * inp.temperature
+        submodel.determine_release()
+        for k in range(con.nmbhru):
+            flu.snowmelt[k] = submodel.get_release(k)
 
 
-class Calc_Snowmelt_Snowpack_V1(modeltools.Method):
+class Calc_Snowmelt_V1(modeltools.Method):
     r"""Calculatethe actual snowmelt and update the snow's water content.
 
     Basic equations:
@@ -396,35 +389,17 @@ class Calc_Snowmelt_Snowpack_V1(modeltools.Method):
         snowpack(0.0, 1.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (whmod_control.NmbZones, whmod_control.LandType)
-    REQUIREDSEQUENCES = (
-        whmod_inputs.Temperature,
-        whmod_fluxes.Throughfall,
-        whmod_fluxes.PotentialSnowmelt,
-    )
-    UPDATEDSEQUENCES = (whmod_states.Snowpack,)
+    SUBMODELINTERFACES = (snowinterfaces.SnowModel_V1,)
+    SUBMETHODS = (Calc_Snowmelt_SnowModel_V1,)
+    CONTROLPARAMETERS = (whmod_control.NmbZones,)
     RESULTSEQUENCES = (whmod_fluxes.Snowmelt,)
 
     @staticmethod
     def __call__(model: modeltools.Model, /) -> None:
-        con = model.parameters.control.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nmbzones):
-            if con.landtype[k] == WATER:
-                flu.snowmelt[k] = 0.0
-                sta.snowpack[k] = 0.0
-            elif inp.temperature <= 0.0:
-                flu.snowmelt[k] = 0.0
-                sta.snowpack[k] += flu.throughfall[k]
-            elif flu.potentialsnowmelt[k] < sta.snowpack[k]:
-                flu.snowmelt[k] = flu.potentialsnowmelt[k]
-                sta.snowpack[k] -= flu.snowmelt[k]
-            else:
-                flu.snowmelt[k] = sta.snowpack[k]
-                sta.snowpack[k] = 0.0
-
+        if model.snowmodel_typeid == 1:
+            model.calc_snowodel_snowmodel_v1(
+                cast(snowinterfaces.SnowModel_V1, model.snowmodel)
+            )
 
 class Calc_Ponding_V1(modeltools.Method):
     r"""Calculate the (potential) ponding of throughfall and snowmelt of land surfaces.
@@ -1912,6 +1887,7 @@ class Model(modeltools.AdHocModel):
     RECEIVER_METHODS = ()
     ADD_METHODS = (
         Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1,
+        Calc_Snowmelt_SnowModel_V1,
         Calc_LakeEvaporation_AETModel_V1,
         Calc_SoilEvapotranspiration_AETModel_V1,
     )
@@ -1927,8 +1903,7 @@ class Model(modeltools.AdHocModel):
         Calc_Throughfall_InterceptedWater_V1,
         Calc_InterceptionEvaporation_InterceptedWater_V1,
         Calc_LakeEvaporation_V1,
-        Calc_PotentialSnowmelt_V1,
-        Calc_Snowmelt_Snowpack_V1,
+        Calc_Snowmelt_V1,
         Calc_Ponding_V1,
         Calc_SurfaceRunoff_V1,
         Calc_RelativeSoilMoisture_V1,
@@ -2071,6 +2046,92 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         derived.soildepth.update()
         derived.maxsoilwater.update()
         aetmodel.prepare_maxsoilwater(derived.maxsoilwater.values)
+
+
+
+class Main_SnowModel_V1(modeltools.AdHocModel):
+    """Base class for |whmod.DOCNAME.long| models that use submodels that comply with
+    the |SnowModel_V1| interface."""
+
+    snowmodel: modeltools.SubmodelProperty[snowinterfaces.SnowModel_V1]
+    snowmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    snowmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "snowmodel",
+        snowinterfaces.SnowModel_V1,
+        snowinterfaces.SnowModel_V1.prepare_nmbzones,
+        landtype_constants=whmod_constants.LANDTYPE_CONSTANTS,
+        landtype_refindices=whmod_control.LandType,
+        soiltype_constants=whmod_constants.SOILTYPE_CONSTANTS,
+        soiltype_refindices=whmod_control.SoilType,
+        refweights=whmod_control.ZoneArea,
+    )
+    def add_snowmodel_v1(
+        self,
+        snowmodel: snowinterfaces.SnowModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given submodel that follows the |AETModel_V1| interface and
+        is responsible for calculating the different kinds of actual
+        evapotranspiration.
+
+        >>> from hydpy.models.whmod_rural import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> nmbzones(5)
+        >>> area(10.0)
+        >>> landtype(GRASS, DECIDUOUS, CONIFER, WATER, SEALED)
+        >>> zonearea(4.0, 1.0, 1.0, 1.0, 3.0)
+        >>> availablefieldcapacity(200.0)
+        >>> rootingdepth(1.0)
+        >>> groundwaterdepth(1.0)
+        >>> with model.add_snowmodel_v1("snow_dd"):
+        ...     nmbhru
+        ...     water
+        ...     degreedayfactor(grass=1.0, deciduous=2.0, default=3.0)
+        ...     for method, arguments in model.preparemethod2arguments.items():
+        ...         print(method, arguments[0][0], sep=": ")
+        nmbhru(5)
+        area(10.0)
+        water(conifer=False, deciduous=False, grass=False, sealed=False,
+              water=True)
+        interception(conifer=True, deciduous=True, grass=True, sealed=True,
+                     water=False)
+        soil(conifer=True, deciduous=True, grass=True, sealed=False,
+             water=False)
+        prepare_nmbzones: 5
+        prepare_zonetypes: [1 2 4 9 8]
+        prepare_subareas: [4. 1. 1. 1. 3.]
+        prepare_water: [False False False  True False]
+        prepare_interception: [ True  True  True False  True]
+        prepare_soil: [ True  True  True False False]
+        prepare_plant: [ True  True  True False False]
+        prepare_conifer: [False False  True False False]
+        prepare_tree: [False  True  True False False]
+        prepare_maxsoilwater: [200. 200. 200. 200. 200.]
+
+        >>> ddf = model.snowmodel.parameters.control.degreedayfactor
+        >>> ddf
+        degreedayfactor(conifer=3.0, deciduous=2.0, grass=1.0)
+        >>> landtype(DECIDUOUS, GRASS, CONIFER, WATER, SEALED)
+        >>> ddf
+        degreedayfactor(conifer=3.0, deciduous=1.0, grass=2.0)
+        >>> from hydpy import round_
+        >>> round_(ddf.average_values())
+        1.5
+        """
+
+        control = self.parameters.control
+
+        nmbzones = control.nmbzones.value
+        zonetype = control.landtype.values
+
+        snowmodel.prepare_nmbzones(nmbzones)
+        snowmodel.prepare_water(zonetype == WATER)
+
 
 
 class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):

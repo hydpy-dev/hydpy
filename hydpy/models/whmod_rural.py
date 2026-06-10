@@ -108,6 +108,10 @@ the current moisture conditions:
 ...         with model.add_retmodel_v1("evap_ret_io") as retmodel:
 ...             evapotranspirationfactor(1.0)
 
+>>> with model.add_snowmodel_v1("snow_dd") as snowmodel:
+...     degreedayfactor(grass=4.5)
+
+
 We initialise a test function object, which prepares and runs the tests and prints
 their results for the given sequences:
 
@@ -123,10 +127,10 @@ storages:
 
 >>> test.inits = (
 ...     (states.interceptedwater, 0.0),
-...     (states.snowpack, 0.0),
 ...     (states.soilmoisture, 0.0),
 ...     (states.deepwater, 0.0),
 ...     (petmodel.sequences.logs.loggedpotentialevapotranspiration, 0.0),
+...     (snowmodel.sequences.states.snowpack, 0.0),
 ... )
 
 The following meteorological data shows a shift from winter to spring in the form of a
@@ -148,6 +152,7 @@ events:
 ...     0.5, 0.4, 1.3, 0.9, 0.7, 0.7, 1.1, 1.0, 0.8, 0.6, 0.7, 0.7, 0.5, 0.8, 1.0,
 ...     1.2, 0.9, 0.9, 1.2, 1.4, 1.1, 1.1, 0.5, 0.6, 1.5, 2.0, 1.6, 1.6, 1.2, 1.3,
 ...     1.6, 1.9, 0.8, 1.5, 2.7, 1.5, 1.6, 2.0, 2.1, 1.7, 1.7, 0.8, 1.3, 2.5)
+>>> snowmodel.sequences.inputs.airtemperature.series = inputs.temperature.series
 
 .. _whmod_rural_grassland:
 
@@ -668,6 +673,7 @@ from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import aetinterfaces
+from hydpy.interfaces import snowinterfaces
 
 from hydpy.models.whmod import whmod_masks
 from hydpy.models.whmod import whmod_model
@@ -676,6 +682,7 @@ from hydpy.models.whmod.whmod_constants import *
 
 class Model(
     whmod_model.Main_AETModel_V1,
+    whmod_model.Main_SnowModel_V1,
     whmod_model.Sub_TempModel_V1,
     whmod_model.Sub_PrecipModel_V1,
     whmod_model.Sub_IntercModel_V1,
@@ -694,6 +701,7 @@ class Model(
     RECEIVER_METHODS = ()
     ADD_METHODS = (
         whmod_model.Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1,
+        whmod_model.Calc_Snowmelt_SnowModel_V1,
         whmod_model.Calc_LakeEvaporation_AETModel_V1,
         whmod_model.Calc_SoilEvapotranspiration_AETModel_V1,
     )
@@ -709,8 +717,7 @@ class Model(
         whmod_model.Calc_Throughfall_InterceptedWater_V1,
         whmod_model.Calc_InterceptionEvaporation_InterceptedWater_V1,
         whmod_model.Calc_LakeEvaporation_V1,
-        whmod_model.Calc_PotentialSnowmelt_V1,
-        whmod_model.Calc_Snowmelt_Snowpack_V1,
+        whmod_model.Calc_Snowmelt_V1,
         whmod_model.Calc_Ponding_V1,
         whmod_model.Calc_SurfaceRunoff_V1,
         whmod_model.Calc_RelativeSoilMoisture_V1,
@@ -730,10 +737,11 @@ class Model(
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1, snowinterfaces.SnowModel_V1)
     SUBMODELS = ()
 
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
+    snowmodel = modeltools.SubmodelProperty(snowinterfaces.SnowModel_V1)
 
     def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.

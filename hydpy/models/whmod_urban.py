@@ -866,6 +866,7 @@ from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import aetinterfaces
+from hydpy.interfaces import snowinterfaces
 
 from hydpy.models.whmod import whmod_masks
 from hydpy.models.whmod import whmod_model
@@ -907,8 +908,7 @@ class Model(
         whmod_model.Calc_Throughfall_InterceptedWater_V1,
         whmod_model.Calc_InterceptionEvaporation_InterceptedWater_V1,
         whmod_model.Calc_LakeEvaporation_V1,
-        whmod_model.Calc_PotentialSnowmelt_V1,
-        whmod_model.Calc_Snowmelt_Snowpack_V1,
+        whmod_model.Calc_Snowmelt_V1,
         whmod_model.Calc_Ponding_V1,
         whmod_model.Calc_SurfaceRunoff_V1,
         whmod_model.Calc_RelativeSoilMoisture_V1,
@@ -934,7 +934,7 @@ class Model(
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1,)
+    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1, snowinterfaces.SnowModel_V1)
     SUBMODELS = ()
 
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)

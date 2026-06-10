@@ -1,12 +1,16 @@
 # pylint: disable=missing-module-docstring
 
+import contextlib
+
 import inflect
 import numpy
 
+from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
+from hydpy.interfaces import precipinterfaces
 from hydpy.models.snow import snow_control
 from hydpy.models.snow import snow_derived
 from hydpy.models.snow import snow_fixed
@@ -15,6 +19,234 @@ from hydpy.models.snow import snow_factors
 from hydpy.models.snow import snow_fluxes
 from hydpy.models.snow import snow_states
 from hydpy.models.snow import snow_logs
+
+
+class Calc_Precipitation_PrecipModel_V1(modeltools.Method):
+    """Query hydrological response units' air temperature from a main model referenced
+    as a sub-submodel and follows the |TempModel_V1| interface.
+
+    Example:
+
+        We use the combination of |hland_96| and |evap_ret_tw2002| as an example:
+
+        >>> from hydpy.models.whmod_rural import *
+        >>> parameterstep()
+        >>> with model.add_snowmodel_v1("snow_dd"):
+        ...     pass
+        >>> fluxes.throughfall = 2.0, 0.0, 5.0
+        >>> model.snowmodel.calc_precipitation_v1()
+        >>> model.snowmodel.sequences.precipitation
+        precipitation(2.0, 0.0, 5.0)
+    """
+
+    CONTROLPARAMETERS = (snow_control.NmbHRU,)
+    RESULTSEQUENCES = (snow_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: precipinterfaces.PrecipModel_V1
+    ) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            flu.precipitation[k] = submodel.get_precipitation(k)
+
+
+class Calc_Precipitation_PrecipModel_V2(modeltools.Method):
+    """Let a submodel that complies with the |TempModel_V2| interface determine the air
+    temperature of the hydrological response units.
+
+    Example:
+
+        We use the combination of |evap_ret_tw2002| and |meteo_temp_io| as an example:
+
+        >>> from hydpy.models.evap_ret_tw2002 import *
+        >>> parameterstep()
+        >>> nmbhru(3)
+        >>> hruarea(0.5, 0.3, 0.2)
+        >>> with model.add_tempmodel_v2("meteo_temp_io"):
+        ...     temperatureaddend(1.0, 2.0, 4.0)
+        ...     inputs.temperature = 2.0
+        >>> model.calc_airtemperature_v1()
+        >>> factors.airtemperature
+        airtemperature(3.0, 4.0, 6.0)
+    """
+
+    CONTROLPARAMETERS = (snow_control.NmbHRU,)
+    RESULTSEQUENCES = (snow_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: precipinterfaces.PrecipModel_V2
+    ) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        submodel.determine_precipitation()
+        for k in range(con.nmbhru):
+            flu.precipitation[k] = submodel.get_precipitation(k)
+
+
+class Calc_Precipitation_V1(modeltools.Method):
+    """Let a submodel that complies with the |TempModel_V1| or |TempModel_V2| interface
+    determine the air temperature of the individual hydrological response units."""
+
+    SUBMODELINTERFACES = (precipinterfaces.PrecipModel_V1, precipinterfaces.PrecipModel_V2)
+    SUBMETHODS = (Calc_Precipitation_PrecipModel_V1, Calc_Precipitation_PrecipModel_V2)
+    CONTROLPARAMETERS = (snow_control.NmbHRU,)
+    RESULTSEQUENCES = (snow_fluxes.Precipitation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        if model.precipmodel_typeid == 1:
+            model.calc_precipitation_precipmodel_v1(
+                cast(precipinterfaces.PrecipModel_V1, model.precipmodel)
+            )
+        elif model.precipmodel_typeid == 2:
+            model.calc_precipitation_precipmodel_v2(
+                cast(precipinterfaces.PrecipModel_V2, model.precipmodel)
+            )
+        # ToDo:
+        #     else:
+        #         assert_never(model.petmodel)
+
+
+class Calc_PotentialSnowmelt_V1(modeltools.Method):
+    r"""Calculcate the potential snowmelt with the degree day method.
+
+    Basic equation:
+      .. math::
+        P = \begin{cases}
+        0 &|\ T \leq 0 \\
+        D \cdot T &|\ T > 0
+        \end{cases}
+        \\ \\
+        P = PotentialSnowmelt \\
+        D = DegreeDayFactor \\
+        T = AirTemperature
+
+    Examples:
+
+        >>> from hydpy.models.snow import *
+        >>> parameterstep("1d")
+        >>> simulationstep("1d")
+        >>> nmbhru(3)
+        >>> water(False, False, True)
+        >>> degreedayfactor(3.0, 4.0, nan)
+
+        >>> inputs.airtemperature = -2.0
+        >>> model.calc_potentialsnowmelt_v1()
+        >>> fluxes.potentialsnowmelt
+        potentialsnowmelt(0.0, 0.0, 0.0)
+
+        >>> inputs.airtemperature = 0.0
+        >>> model.calc_potentialsnowmelt_v1()
+        >>> fluxes.potentialsnowmelt
+        potentialsnowmelt(0.0, 0.0, 0.0)
+
+        >>> inputs.airtemperature = 2.0
+        >>> model.calc_potentialsnowmelt_v1()
+        >>> fluxes.potentialsnowmelt
+        potentialsnowmelt(6.0, 8.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        snow_control.NmbHRU,
+        snow_control.Water,
+        snow_control.HRUArea,
+        snow_control.DegreeDayFactor,
+    )
+    REQUIREDSEQUENCES = (snow_inputs.AirTemperature,)
+    RESULTSEQUENCES = (snow_fluxes.PotentialSnowmelt,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nmbhru):
+            if con.water[k] or (inp.airtemperature <= 0.0):
+                flu.potentialsnowmelt[k] = 0.0
+            else:
+                flu.potentialsnowmelt[k] = con.degreedayfactor[k] * inp.airtemperature
+
+
+class Calc_Snowmelt_Snowpack_V1(modeltools.Method):
+    r"""Calculatethe actual snowmelt and update the snow's water content.
+
+    Basic equations:
+      .. math::
+        M = \begin{cases}
+        0 &|\ T \leq 0 \\
+        min(P, \, S_{old}) &|\ T > 0
+        \end{cases}
+        \\
+        S_{new} = \begin{cases}
+        S_{old} + F &|\ T \leq 0
+        \\
+        S_{old} - M &|\ T > 0
+        \end{cases}
+        \\ \\
+        M = Snowmelt \\
+        P = PotentialSnowmelt \\
+        S = SnowPack \\
+        T = AirTemperature \\
+        F = Throughfall
+
+    Examples:
+
+        >>> from hydpy.models.snow import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> nmbhru(3)
+        >>> water(False, False, True)
+        >>> fluxes.precipitation = 1.0
+
+        >>> inputs.airtemperature = 0.0
+        >>> states.snowpack = 0.0, 2.0, 0.0
+        >>> model.calc_snowmelt_snowpack_v1()
+        >>> fluxes.snowmelt
+        snowmelt(0.0, 0.0, 0.0)
+        >>> states.snowpack
+        snowpack(1.0, 3.0, 0.0)
+
+        >>> inputs.airtemperature = 1.0
+        >>> states.snowpack = 0.0, 3.0, 0.0
+        >>> fluxes.potentialsnowmelt = 2.0
+        >>> model.calc_snowmelt_snowpack_v1()
+        >>> fluxes.snowmelt
+        snowmelt(0.0, 2.0, 0.0)
+        >>> states.snowpack
+        snowpack(0.0, 1.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (snow_control.NmbHRU, snow_control.Water)
+    REQUIREDSEQUENCES = (
+        snow_inputs.AirTemperature,
+        snow_fluxes.Precipitation,
+        snow_fluxes.PotentialSnowmelt,
+    )
+    UPDATEDSEQUENCES = (snow_states.Snowpack,)
+    RESULTSEQUENCES = (snow_fluxes.Snowmelt,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nmbhru):
+            if con.water[k]:
+                flu.snowmelt[k] = 0.0
+                sta.snowpack[k] = 0.0
+            elif inp.airtemperature <= 0.0:
+                flu.snowmelt[k] = 0.0
+                sta.snowpack[k] += flu.precipitation[k]
+            elif flu.potentialsnowmelt[k] < sta.snowpack[k]:
+                flu.snowmelt[k] = flu.potentialsnowmelt[k]
+                sta.snowpack[k] -= flu.snowmelt[k]
+            else:
+                flu.snowmelt[k] = sta.snowpack[k]
+                sta.snowpack[k] = 0.0
 
 
 class Calc_PLayer_V1(modeltools.Method):
@@ -239,7 +471,7 @@ class Calc_TLayer_V1(modeltools.Method):
         snow_control.GradTMean,
     )
     DERIVEDPARAMETERS = (snow_derived.DOY, snow_derived.ZMean)
-    REQUIREDSEQUENCES = (snow_inputs.T,)
+    REQUIREDSEQUENCES = (snow_inputs.AirTemperature,)
     RESULTSEQUENCES = (snow_factors.TLayer,)
 
     @staticmethod
@@ -678,7 +910,7 @@ class Calc_PotMelt_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (snow_control.NLayers, snow_control.CN2)
     REQUIREDSEQUENCES = (snow_factors.TLayer, snow_states.ETG, snow_states.G)
-    RESULTSEQUENCES = (snow_fluxes.PotMelt,)
+    RESULTSEQUENCES = (snow_fluxes.PotentialSnowmelt,)
 
     @staticmethod
     def __call__(model: modeltools.Model, /) -> None:
@@ -780,7 +1012,7 @@ class Update_GRatio_GLocalMax_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (snow_control.NLayers, snow_control.Hysteresis)
     DERIVEDPARAMETERS = (snow_derived.GThresh,)
-    REQUIREDSEQUENCES = (snow_states.G, snow_fluxes.PotMelt)
+    REQUIREDSEQUENCES = (snow_states.G, snow_fluxes.PotentialSnowmelt)
     UPDATEDSEQUENCES = (snow_states.GRatio, snow_logs.GLocalMax)
 
     @staticmethod
@@ -843,7 +1075,7 @@ class Calc_Melt_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (snow_control.NLayers,)
     FIXEDPARAMETERS = (snow_fixed.MinMelt, snow_fixed.MinG)
-    REQUIREDSEQUENCES = (snow_fluxes.PotMelt, snow_states.GRatio, snow_states.G)
+    REQUIREDSEQUENCES = (snow_fluxes.PotentialSnowmelt, snow_states.GRatio, snow_states.G)
     RESULTSEQUENCES = (snow_fluxes.Melt,)
 
     @staticmethod
@@ -1047,8 +1279,15 @@ class Model(modeltools.AdHocModel):
     INLET_METHODS = ()
     OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
-    ADD_METHODS = (Return_T_V1,)
+    ADD_METHODS = (
+        Calc_Precipitation_PrecipModel_V1,
+        Calc_Precipitation_PrecipModel_V2,
+        Return_T_V1,
+    )
     RUN_METHODS = (
+        Calc_Precipitation_V1,
+        Calc_PotentialSnowmelt_V1,
+        Calc_Snowmelt_Snowpack_V1,
         Calc_PLayer_V1,
         Calc_TLayer_V1,
         Calc_TMinLayer_V1,
@@ -1193,3 +1432,163 @@ value of parameter `nlayers` of element `?` is set to 101.
             else:
                 control.zlayers.values[i1] = hypsodata[int(i0 + adjusted_width / 2.0)]
             i0 = i0 + adjusted_width
+
+
+class Sub_SnowModel(modeltools.AdHocModel):
+
+    @staticmethod
+    @contextlib.contextmanager
+    def share_configuration(
+            sharable_configuration: SharableConfiguration,
+    ) -> Generator[None, None, None]:
+        """Take the `landtype_constants` data to adjust the parameters
+        |evap_control.HRUType| and |evap_control.LandMonthFactor|, the
+        `landtype_refindices` parameter instance to adjust the index references of all
+        parameters inherited from |evap_parameters.ZipParameter1D| and the `refweights`
+        parameter instance to adjust the weight references of all sequences inherited
+        from |evap_sequences.FactorSequence1D| or |evap_sequences.FluxSequence1D|,
+        temporarily:
+
+        >>> from hydpy.core.parametertools import Constants, NameParameter, Parameter
+        >>> consts = Constants(GRASS=1, TREES=3, WATER=2)
+        >>> class LandType(NameParameter):
+        ...     __name__ = "temp.py"
+        ...     constants = consts
+        >>> class Subarea(Parameter):
+        ...     ...
+        >>> from hydpy.models.snow.snow_model import Sub_SnowModel
+        >>> with Sub_SnowModel.share_configuration(
+        ...         {"landtype_constants": consts,
+        ...          "landtype_refindices": LandType,
+        ...          "refweights": Subarea}):
+        ...     from hydpy.models.evap.evap_control import HRUType, LandMonthFactor
+        ...     HRUType.constants
+        ...     LandMonthFactor.rowmin, LandMonthFactor.rownames
+        ...     from hydpy.models.evap.evap_parameters import ZipParameter1D
+        ...     ZipParameter1D.refindices.__name__
+        ...     ZipParameter1D._refweights.__name__
+        ...     from hydpy.models.evap.evap_sequences import FactorSequence1D, \
+FluxSequence1D
+        ...     FactorSequence1D._refweights.__name__
+        ...     FluxSequence1D._refweights.__name__
+        {'GRASS': 1, 'TREES': 3, 'WATER': 2}
+        (1, ('grass', 'water', 'trees'))
+        'LandType'
+        'Subarea'
+        'Subarea'
+        'Subarea'
+        >>> HRUType.constants
+        {'ANY': 0}
+        >>> LandMonthFactor.rowmin, LandMonthFactor.rownames
+        (0, ('ANY',))
+        >>> ZipParameter1D.refindices
+        >>> ZipParameter1D._refweights
+        >>> FactorSequence1D._refweights
+        >>> FluxSequence1D._refweights
+        """
+        with snow_control.HRUType.modify_constants(
+                sharable_configuration["landtype_constants"]
+        ):
+            yield
+
+    @importtools.define_targetparameter(snow_control.NmbHRU)
+    def prepare_nmbzones(self, nmbzones: int) -> None:
+        """Set the number of hydrological response units.
+
+        >>> from hydpy.models.snow_dd import *
+        >>> parameterstep()
+        >>> model.prepare_nmbzones(2)
+        >>> nmbhru
+        nmbhru(2)
+        """
+        self.parameters.control.nmbhru(nmbzones)
+
+    @importtools.define_targetparameter(snow_control.Water)
+    def prepare_water(self, water: VectorInputBool) -> None:
+        """Set the flag indicating whether or not the respective hydrological response
+        units are water areas.
+
+        >>> from hydpy.models.snow_dd import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> model.prepare_water([True, False])
+        >>> water
+        water(True, False)
+        """
+        self.parameters.control.water(water)
+
+
+class Main_PrecipModel(modeltools.AdHocModel, modeltools.SubmodelInterface):
+    """Base class for |evap.DOCNAME.long| models that can use main models as their
+    sub-submodels if they comply with the |PrecipModel_V1| interface."""
+
+    precipmodel: modeltools.SubmodelProperty[
+        precipinterfaces.PrecipModel_V1 | precipinterfaces.PrecipModel_V2
+    ]
+    precipmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    precipmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    def add_mainmodel_as_subsubmodel(self, mainmodel: modeltools.Model) -> bool:
+        """Add the given main model as a submodel if it complies with the
+        |PrecipModel_V1| interface.
+
+        >>> from hydpy import prepare_model
+        >>> evap = prepare_model("evap_pet_hbv96")
+        >>> evap.add_mainmodel_as_subsubmodel(prepare_model("evap_ret_io"))
+        False
+        >>> evap.precipmodel
+        >>> evap.precipmodel_is_mainmodel
+        False
+        >>> evap.precipmodel_typeid
+        0
+
+        >>> hland = prepare_model("hland_96")
+        >>> evap.add_mainmodel_as_subsubmodel(hland)
+        True
+        >>> evap.precipmodel is hland
+        True
+        >>> evap.precipmodel_is_mainmodel
+        True
+        >>> evap.precipmodel_typeid
+        1
+        """
+        if isinstance(mainmodel, precipinterfaces.PrecipModel_V1):
+            self.precipmodel = mainmodel
+            self.precipmodel_is_mainmodel = True
+            self.precipmodel_typeid = precipinterfaces.PrecipModel_V1.typeid
+            super().add_mainmodel_as_subsubmodel(mainmodel)
+            return True
+        return super().add_mainmodel_as_subsubmodel(mainmodel)
+
+    @importtools.prepare_submodel(
+        "precipmodel",
+        precipinterfaces.PrecipModel_V2,
+        precipinterfaces.PrecipModel_V2.prepare_nmbzones,
+        precipinterfaces.PrecipModel_V2.prepare_subareas,
+    )
+    def add_precipmodel_v2(
+        self,
+        precipmodel: precipinterfaces.PrecipModel_V2,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given precipitation model that follows the |PrecipModel_V2|
+        interface and set the number and the subareas of its zones.
+
+        >>> from hydpy.models.evap_pet_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> hruarea(2.0, 8.0)
+        >>> with model.add_precipmodel_v2("meteo_precip_io"):
+        ...     nmbhru
+        ...     hruarea
+        ...     precipitationfactor(1.0, 2.0)
+        nmbhru(2)
+        hruarea(2.0, 8.0)
+        >>> model.precipmodel.parameters.control.precipitationfactor
+        precipitationfactor(1.0, 2.0)
+        """
+        control = self.parameters.control
+        precipmodel.prepare_nmbzones(control.nmbhru.value)
+        precipmodel.prepare_subareas(control.hruarea.value)

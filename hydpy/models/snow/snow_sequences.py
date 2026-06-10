@@ -3,6 +3,31 @@
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.snow import snow_control
+
+
+class Sequence1DNmbHRU(sequencetools.ModelSequence):
+    """Base class for sequences with different values for individual layers."""
+
+    NDIM: Final[Literal[1]] = 1
+
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        if isinstance(p, snow_control.NmbHRU):
+            self.__hydpy__change_shape_if_necessary__((p.value,))
+
+    @property
+    def refweights(self) -> parametertools.Parameter:
+        """Alias for the associated instance of |ToDo| for calculating aggregated
+        values for layer-specific flux sequences."""
+        return self.subseqs.seqs.model.parameters.control.hruarea
+
+
+class FluxSequence1DNmbHRU(Sequence1DNmbHRU, sequencetools.FluxSequence):
+    """ToDo"""
+
+
+class StateSequence1DNmbHRU(Sequence1DNmbHRU, sequencetools.StateSequence):
+    """ToDo"""
 
 
 class Sequence1DNLayers(sequencetools.ModelSequence):

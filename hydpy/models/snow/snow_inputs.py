@@ -11,7 +11,7 @@ class P(sequencetools.InputSequence):
     STANDARD_NAME = sequencetools.StandardInputNames.PRECIPITATION
 
 
-class T(sequencetools.InputSequence):
+class AirTemperature(sequencetools.InputSequence):
     """Mean air temperature [°C]."""
 
     NDIM: Final[Literal[0]] = 0

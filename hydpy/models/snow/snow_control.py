@@ -5,6 +5,38 @@ from hydpy.core.typingtools import *
 from hydpy.models.snow import snow_parameters
 
 
+class NmbHRU(parametertools.NmbParameter):
+    """The number of separately modelled hydrological response units [-]."""
+
+    SPAN = (0, None)
+
+
+class HRUType(parametertools.NameParameter):
+    """Hydrological response unit type [-]."""
+
+    constants = parametertools.Constants(ANY=0)
+
+
+class Water(snow_parameters.ZipParameter1DNmbHRU):
+    """A flag that indicates whether the individual zones are water areas or not."""
+
+    TYPE: Final = bool
+    SPAN = (False, True)
+
+
+class HRUArea(snow_parameters.ZipParameter1DNmbHRU):
+    """The area of each hydrological response unit [km²]."""
+
+    SPAN = (0.0, None)
+
+
+class DegreeDayFactor(snow_parameters.LandParameter1DNmbHRU):
+    """Degree day factor for snow melting [mm/T/K]."""
+
+    TIME = True
+    SPAN = (0.0, None)
+
+
 class NLayers(parametertools.NmbParameter):
     """Number of snow layers  [-]."""
 

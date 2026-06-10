@@ -3,6 +3,12 @@
 from hydpy.models.snow import snow_sequences
 
 
+class Snowpack(snow_sequences.StateSequence1DNmbHRU):
+    """Snow pack [mm]."""
+
+    SPAN = (0.0, None)
+
+
 class G(snow_sequences.State1DNLayers):
     """Snow pack [mm]."""
 

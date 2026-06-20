@@ -2689,7 +2689,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
                 ps.plot(ax=pyplot.gca(), **kwargs)
             pyplot.legend()
             if not focus:
-                pyplot.ylim((0.0, None))
+                pyplot.ylim((0.0, None))  # type: ignore[arg-type]
             if pyplot.get_fignums():
                 pyplot.ylabel(self._ylabel)
             return pyplot.gcf()
@@ -3762,7 +3762,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         lines = [l for l in pyplot.legend().get_lines() if l.get_label() != "None"]
         pyplot.legend(handles=lines)
         if not focus:
-            pyplot.ylim((0.0, None))
+            pyplot.ylim((0.0, None))  # type: ignore[arg-type]
         return pyplot.gcf()
 
     def _query_iosequences(

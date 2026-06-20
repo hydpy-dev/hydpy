@@ -2770,8 +2770,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         ...
         ValueError: While trying to plot the duration curves of the sequences obs and \
 sim of node `dill_assl` for the period `1996-01-01 00:00:00` to `1996-06-01 00:00:00`, \
-the following error occurred: '.' is not a valid value for ls; supported values are \
-'-', '--', '-.', ':', 'None', ' ', '', 'solid', 'dashed', 'dashdot', 'dotted'
+the following error occurred: '.' is not a valid value for ls. Did you mean: '-.'?
         """
 
         t = TypeVar("t", str, int)

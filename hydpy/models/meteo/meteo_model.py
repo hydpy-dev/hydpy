@@ -429,9 +429,9 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
       SunsetHourAngle \cdot sin(LatitudeRad) \cdot sin(SolarDeclination) +
       cos(LatitudeRad) \cdot cos(SolarDeclination) \cdot sin(SunsetHourAngle))`
 
-    Basic equation for (sub)hourly steps (:cite:t:`ref-Allen1998`, eq. 28 to 30):
+    Basic equation for subdaily steps (:cite:t:`ref-Allen1998`, eq. 28 to 30):
       :math:`ExternalTerrestrialRadiation =
-      \frac{12 \cdot SolarConstant}{Pi} \cdot EarthSunDistance \cdot \Big(
+      \frac{12 \cdot SolarConstant}{Pi \cdot Hours} \cdot EarthSunDistance \cdot \Big(
       (\omega_2 - \omega_1) \cdot sin(LatitudeRad) \cdot sin(SolarDeclination) +
       cos(LatitudeRad) \cdot cos(SolarDeclination) \cdot (sin(\omega_2) -
       sin(\omega_1)) \Big)`
@@ -460,9 +460,10 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         time step, still covering the whole day:
 
         >>> import numpy
-        >>> longitude(-20)
-        >>> derived.utclongitude(-20)
-        >>> derived.days(1/24)
+        >>> longitude(-20.0)
+        >>> derived.utclongitude(-20.0)
+        >>> derived.days(1.0 / 24.0)
+        >>> derived.hours(1.0)
         >>> derived.doy.shape = 24
         >>> derived.doy(246)
         >>> derived.sct.shape = 24
@@ -482,7 +483,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         3: 0.0
         4: 0.0
         5: 0.0
-        6: 116.280258
+        6: 119.649822
         7: 431.467206
         8: 713.483659
         9: 943.11066
@@ -493,7 +494,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         14: 933.146907
         15: 700.498642
         16: 416.345834
-        17: 100.053027
+        17: 106.182221
         18: 0.0
         19: 0.0
         20: 0.0
@@ -501,60 +502,42 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         22: 0.0
         23: 0.0
 
-        Note that, even with identical values of the local longitude (|Longitude|) and
-        the one of the time zone (|UTCLongitude|), the calculated radiation values are
-        not symmetrical due to the eccentricity of the Earth"s orbit (see `solar
-        time`_).
+        Note that, even with identical values of the local longitude (|Longitude|) the
+        time zone (|UTCLongitude|), the calculated radiation values are not symmetrical
+        due to the eccentricity of the Earth"s orbit (see `solar time`_).
 
-        There is a slight deviation between the directly calculated daily value and the
-        mean of the hourly values:
+        The daily average of the calculated extraterrestrial radiation should be the
+        same for all simulation step sizes:
 
-        >>> round_(sum_/24)
-        372.077574
+        >>> round_(sum_ / 24.0)
+        372.473355
 
-        For sub-daily simulation time steps, results are most accurate for the shortest
-        step size.  On the other hand, they can be (extremely) inaccurate for timesteps
-        between one hour and one day.  We demonstrate this by comparing the mean
-        sub-daily values of different step sizes with the directly calculated daily
-        value (note the apparent total fail of method
-        |Calc_ExtraterrestrialRadiation_V1| for a step size of 720 minutes):
-
-        >>> for minutes in [1, 5, 15, 30, 60, 90, 120, 144, 160,
-        ...                 180, 240, 288, 360, 480, 720, 1440]:
-        ...     derived.days(minutes/60/24)
-        ...     nmb = int(1440/minutes)
+        >>> for minutes in [1.0, 5.0, 15.0, 30.0, 60.0, 90.0, 120.0, 144.0, 160.0,
+        ...                 180.0, 240.0, 288.0, 360.0, 480.0, 720.0, 1440.0]:
+        ...     derived.days(minutes / 60.0 / 24.0)
+        ...     derived.hours(minutes / 60.0)
+        ...     nmb = int(1440.0 / minutes)
         ...     derived.doy.shape = nmb
         ...     derived.doy(246)
         ...     derived.sct.shape = nmb
-        ...     derived.sct = numpy.linspace(minutes/60/2, 24-minutes/60/2, nmb)
+        ...     derived.sct = numpy.linspace(
+        ...         minutes / 60.0 / 2.0, 24.0 - minutes / 60.0 / 2.0, nmb
+        ...     )
         ...     sum_ = 0.0
         ...     for idx in range(nmb):
         ...         model.idx_sim = idx
         ...         model.calc_solartimeangle_v1()
         ...         model.calc_extraterrestrialradiation_v1()
         ...         sum_ += fluxes.extraterrestrialradiation
-        ...     print(minutes, end=": ")
-        ...     round_(sum_/24 - 372.473355)
-        1: -0.000626
-        5: -0.008549
-        15: -0.100092
-        30: -0.395781
-        60: -0.395781
-        90: -0.395781
-        120: -0.395781
-        144: -14.43193
-        160: -9.539017
-        180: -0.395781
-        240: -44.735212
-        288: -25.486399
-        360: -0.395781
-        480: -44.735212
-        720: -372.473355
-        1440: -356.953632
+        ...     assert round(sum_/nmb, 6) == 372.473355
     """
 
     FIXEDPARAMETERS = (meteo_fixed.Pi, meteo_fixed.SolarConstant)
-    DERIVEDPARAMETERS = (meteo_derived.Days, meteo_derived.LatitudeRad)
+    DERIVEDPARAMETERS = (
+        meteo_derived.Days,
+        meteo_derived.Hours,
+        meteo_derived.LatitudeRad,
+    )
     REQUIREDSEQUENCES = (
         meteo_factors.SolarTimeAngle,
         meteo_factors.EarthSunDistance,
@@ -570,25 +553,28 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         if der.days < 1.0:
-            d_delta = fix.pi * der.days
-            d_omega1 = fac.solartimeangle - d_delta
-            d_omega2 = fac.solartimeangle + d_delta
-            flu.extraterrestrialradiation = max(
-                (12.0 * fix.solarconstant / fix.pi * fac.earthsundistance)
-                * (
+            delta: float = fix.pi * der.days
+            omega1: float = fac.solartimeangle - delta
+            omega2: float = fac.solartimeangle + delta
+            if omega1 > fac.sunsethourangle or omega2 < -fac.sunsethourangle:
+                flu.extraterrestrialradiation = 0.0
+            else:
+                omega1 = max(omega1, -fac.sunsethourangle)
+                omega2 = min(omega2, fac.sunsethourangle)
+                flu.extraterrestrialradiation = (
+                    12.0 * fix.solarconstant / fix.pi / der.hours * fac.earthsundistance
+                ) * (
                     (
-                        (d_omega2 - d_omega1)
+                        (omega2 - omega1)
                         * modelutils.sin(der.latituderad)
                         * modelutils.sin(fac.solardeclination)
                     )
                     + (
                         modelutils.cos(der.latituderad)
                         * modelutils.cos(fac.solardeclination)
-                        * (modelutils.sin(d_omega2) - modelutils.sin(d_omega1))
+                        * (modelutils.sin(omega2) - modelutils.sin(omega1))
                     )
-                ),
-                0.0,
-            )
+                )
         else:
             flu.extraterrestrialradiation = (
                 fix.solarconstant / fix.pi * fac.earthsundistance

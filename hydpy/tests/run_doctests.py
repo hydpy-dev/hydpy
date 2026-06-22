@@ -173,16 +173,6 @@ def main(  # pylint: disable=too-many-branches
                         warnings.filterwarnings(
                             action="ignore",
                             category=DeprecationWarning,
-                            message="`np.bool`",
-                        )
-                        warnings.filterwarnings(
-                            action="ignore",
-                            category=DeprecationWarning,
-                            message="datetime.datetime.utcfromtimestamp",
-                        )
-                        warnings.filterwarnings(
-                            action="ignore",
-                            category=DeprecationWarning,
                             message=(
                                 "Setting the shape on a NumPy array has been "
                                 "deprecated in NumPy 2.5."

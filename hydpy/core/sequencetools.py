@@ -367,7 +367,7 @@ class FastAccessNodeSequence(FastAccessIOSequence):
             self._reset_obsdata = False
 
 
-class InfoArray(NDArrayFloat):
+class InfoArray(numpy.ndarray[Any, numpy.dtype[numpy.float64]]):
     """|numpy| |numpy.ndarray| subclass with an additional attribute describing the
     (potential) aggregation of the handled data.
 

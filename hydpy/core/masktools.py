@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from hydpy.core import parametertools
 
 
-class BaseMask(NDArrayBool):
+class BaseMask(numpy.ndarray[Any, numpy.dtype[numpy.bool_]]):
     """Base class for defining |CustomMask| and |DefaultMask| classes."""
 
     name: str

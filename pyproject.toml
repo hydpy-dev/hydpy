@@ -36,6 +36,7 @@ requires = [
     "pylint==4.0.4",
     "pynsist==2.8",
     "pyparsing==3.3.1",
+    "python-dateutil==2.9.0.post0",
     "pytokens==0.3.0",
     "pytz==2025.2",
     "scipy==1.16.3",

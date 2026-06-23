@@ -164,10 +164,7 @@ class _CurrentDirContext(str):
     def __init__(self, manager: FileManager, property_: _CurrentDirProperty, /) -> None:
         self._manager = manager
         self._property = (property_,)
-        if (value := property_.manager2value.get(manager)) is None:
-            self._old_value = manager.DEFAULTDIR
-        else:
-            self._old_value = value
+        self._old_value = property_.manager2value.get(manager)
         self._new_value = None
         self._is_called = False
         self._is_entered = False
@@ -690,8 +687,8 @@ Attribute projectname of module `pub` is not defined at the moment.
 
     @property
     def filenames(self) -> list[str]:
-        """The names of the files in the current working directory, except those
-        starting with an underscore.
+        """The names of the Python files in the current working directory, except those
+        starting with an underscore (_) or a dot (.).
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
@@ -702,12 +699,16 @@ Attribute projectname of module `pub` is not defined at the moment.
         ...     filemanager.currentdir = "testdir"
         ...     open("projectname/basename/testdir/file1.txt", "w").close()
         ...     open("projectname/basename/testdir/file2.npy", "w").close()
-        ...     open("projectname/basename/testdir/_file1.nc", "w").close()
+        ...     open("projectname/basename/testdir/_file1.py", "w").close()
+        ...     open("projectname/basename/testdir/.file1.py", "w").close()
+        ...     open("projectname/basename/testdir/file3.py", "w").close()
         ...     filemanager.filenames
-        ['file1.txt', 'file2.npy']
+        ['file3.py']
         """
         return sorted(
-            fn for fn in os.listdir(self.currentpath) if not fn.startswith("_")
+            fn
+            for fn in os.listdir(self.currentpath)
+            if not fn.startswith(("_", ".")) and fn.endswith(".py")
         )
 
     @property
@@ -724,11 +725,12 @@ Attribute projectname of module `pub` is not defined at the moment.
         ...     filemanager.currentdir = "testdir"
         ...     open("projectname/basename/testdir/file1.txt", "w").close()
         ...     open("projectname/basename/testdir/file2.npy", "w").close()
-        ...     open("projectname/basename/testdir/_file1.nc", "w").close()
+        ...     open("projectname/basename/testdir/_file1.py", "w").close()
+        ...     open("projectname/basename/testdir/.file1.py", "w").close()
+        ...     open("projectname/basename/testdir/file3.py", "w").close()
         ...     for filepath in filemanager.filepaths:
         ...         repr_(filepath)  # doctest: +ELLIPSIS
-        '...hydpy/tests/iotesting/projectname/basename/testdir/file1.txt'
-        '...hydpy/tests/iotesting/projectname/basename/testdir/file2.npy'
+        '...hydpy/tests/iotesting/projectname/basename/testdir/file3.py'
         """
         path = self.currentpath
         return [os.path.join(path, name) for name in self.filenames]
@@ -742,7 +744,7 @@ Attribute projectname of module `pub` is not defined at the moment.
         possible inconsistencies.
 
         As an example scenario, we prepare a |FileManager| object with the current
-        working directory `folder` containing the files `test1.txt` and `text2.txt`:
+        working directory `folder` containing the files `test1.py` and `text2.py`:
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
@@ -756,10 +758,10 @@ Attribute projectname of module `pub` is not defined at the moment.
         >>> with TestIO():
         ...     os.makedirs(basepath)
         ...     filemanager.currentdir = "folder"
-        ...     open(f"{basepath}/folder/file1.txt", "w").close()
-        ...     open(f"{basepath}/folder/file2.txt", "w").close()
+        ...     open(f"{basepath}/folder/file1.py", "w").close()
+        ...     open(f"{basepath}/folder/file2.py", "w").close()
         ...     filemanager.filenames
-        ['file1.txt', 'file2.txt']
+        ['file1.py', 'file2.py']
 
         The directories under the base path are identical to the ones returned by
         property |FileManager.availabledirs|:
@@ -784,7 +786,7 @@ Attribute projectname of module `pub` is not defined at the moment.
         >>> from zipfile import ZipFile
         >>> with TestIO():
         ...     with ZipFile("projectname/basename/folder.zip", "r") as zp:
-        ...         assert sorted(zp.namelist()) == ["file1.txt", "file2.txt"]
+        ...         assert sorted(zp.namelist()) == ["file1.py", "file2.py"]
 
         The zip file is unpacked again when `folder` becomes the current working
         directory:
@@ -792,7 +794,7 @@ Attribute projectname of module `pub` is not defined at the moment.
         >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
         ...     filemanager.currentdir = "folder"
         ...     assert os.listdir(basepath) == ["folder"]
-        ...     assert sorted(filemanager.filenames) == ["file1.txt", "file2.txt"]
+        ...     assert sorted(filemanager.filenames) == ["file1.py", "file2.py"]
         ...     filemanager.availabledirs
         The zip file ...folder.zip has been extracted to directory ...folder and \
 removed.
@@ -1834,6 +1836,31 @@ not allowed to overwrite the existing file `...`.
     _netcdfreader: netcdftools.NetCDFInterfaceReader | None = None
     _netcdfwriter: netcdftools.NetCDFInterfaceWriter | None = None
     _jitaccesshandler: netcdftools.JITAccessHandler | None = None
+
+    @property
+    def filenames(self) -> list[str]:
+        """The names of valid series files (.nc, .npy, .asc) in the current working
+        directory, except those starting with an underscore (_) or a dot (.).
+
+        >>> from hydpy.core.filetools import SequenceManager
+        >>> sequencemanager = SequenceManager()
+        >>> sequencemanager.BASEDIR = "basename"
+        >>> sequencemanager.projectdir = "projectname"
+        >>> from hydpy import TestIO
+        >>> with TestIO():
+        ...     sequencemanager.currentdir = "testdir"
+        ...     open("projectname/basename/testdir/file1.txt", "w").close()
+        ...     open("projectname/basename/testdir/file2.npy", "w").close()
+        ...     open("projectname/basename/testdir/_file1.nc", "w").close()
+        ...     open("projectname/basename/testdir/.file1.asc", "w").close()
+        ...     sequencemanager.filenames
+        ['file2.npy']
+        """
+        return sorted(
+            fn
+            for fn in os.listdir(self.currentpath)
+            if not fn.startswith(("_", ".")) and fn.endswith((".npy", ".nc", ".asc"))
+        )
 
     def load_file(self, sequence: sequencetools.IOSequence) -> None:
         """Load data from a data file and pass it to the given |IOSequence|."""

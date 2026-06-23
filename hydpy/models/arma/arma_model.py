@@ -63,8 +63,7 @@ class Calc_QPIn_V1(modeltools.Method):
         >>> test = UnitTest(
         ...     model, model.calc_qpin_v1,
         ...     first_example=8, last_example=10,
-        ...                 parseqs=(fluxes.qin,
-        ...                          fluxes.qpin))
+        ...     parseqs=(fluxes.qin, fluxes.qpin))
         >>> test.nexts.qin = -1.0, 0.0, 12.0
         >>> test()
         | ex. |  qin | qpin |

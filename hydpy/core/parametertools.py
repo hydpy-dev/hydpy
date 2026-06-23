@@ -2591,12 +2591,12 @@ class SeasonalParameter(Parameter):
     Pairs of |TOY| objects and |float| values define the seasonal pattern.  One can
     assign them all at once via keyword arguments:
 
-    >>> par(_1=2., _7_1=4., _3_1_0_0_0=5.)
+    >>> par(_1=2.0, _7_1=4.0, _3_1_0_0_0=5.0)
 
     Note that all keywords in the call above are proper |TOY| initialisation arguments.
     Misspelt keywords result in error messages like the following:
 
-    >>> Par(None)(_a=1.)
+    >>> Par(None)(_a=1.0)
     Traceback (most recent call last):
     ...
     ValueError: While trying to define the seasonal parameter value `par` of element \
@@ -2620,7 +2620,7 @@ given for property `month` cannot be converted to `int`.
     >>> par.toy_1_1_0_0_0
     2.0
     >>> del par.toy_1_1_0_0_0
-    >>> par.toy_2_1_0_0_0 = 2.
+    >>> par.toy_2_1_0_0_0 = 2.0
     >>> par
     par(toy_2_1_0_0_0=2.0,
         toy_3_1_0_0_0=5.0,
@@ -2655,7 +2655,7 @@ attribute nor does it handle a "time of year" named `2_1`.
 
     New values are checked to be compatible with the predefined shape:
 
-    >>> par.toy_1_1_0_0_0 = [1., 2.]   # doctest: +ELLIPSIS
+    >>> par.toy_1_1_0_0_0 = [1.0, 2.0]   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     TypeError: While trying to add a new or change an existing toy-value pair for the \
@@ -2664,7 +2664,7 @@ argument must be a string or a... number...
     >>> par = Par(None)
     >>> par.NDIM = 2
     >>> par.shape = (None, 3)
-    >>> par.toy_1_1_0_0_0 = [1., 2.]
+    >>> par.toy_1_1_0_0_0 = [1.0, 2.0]
     Traceback (most recent call last):
     ...
     ValueError: While trying to add a new or change an existing toy-value pair for \
@@ -3159,8 +3159,8 @@ Using the latter without modification might result in inconsistencies.
             self.refresh()
 
     def __repr__(self) -> str:
-        def _assignrepr(value_, prefix_):
-            if self.NDIM == 1:
+        def _assignrepr(value_: float | NDArrayFloat, prefix_: str) -> str:
+            if isinstance(value_, float):
                 return objecttools.assignrepr_value(value_, prefix_)
             return objecttools.assignrepr_list(value_, prefix_, width=79)
 

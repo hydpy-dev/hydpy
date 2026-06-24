@@ -314,9 +314,6 @@ class CalibrationFactors(wq_variables.MixinTrapezesOrSectors, parametertools.Par
         """Always fall back to the default value if the user provides none
         (deprecated).
 
-        >>> import warnings
-        >>> warnings.filterwarnings("error")
-
         >>> from hydpy.models.wq import *
         >>> parameterstep()
         >>> nmbtrapezes(2)

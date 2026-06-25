@@ -5,7 +5,14 @@ component while maintaining the network structure.
 """
 
 from hydpy.exe.modelimports import *
-from hydpy.models.dummy.dummy_model import Model
+from hydpy.models.dummy.dummy_control import NmbZones as _NmbZones
+
+ADDITIONAL_CONTROLPARAMETERS = (_NmbZones,)  # ToDo: Turn into a model member?
+del _NmbZones
+
+from hydpy.models.dummy.dummy_model import (  # pylint: disable=wrong-import-position
+    Model,
+)
 
 tester = Tester()
 cythonizer = Cythonizer()

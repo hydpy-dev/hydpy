@@ -1,0 +1,492 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.optiontools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.optiontools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.optiontools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module implements classes that help to manage global HydPy options.&quot;&quot;&quot;</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">timetools</span>
+
+
+<span class="n">TIn</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;TIn&quot;</span><span class="p">)</span>
+<span class="n">TOut</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;TOut&quot;</span><span class="p">)</span>
+<span class="n">TOrig</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;TOrig&quot;</span><span class="p">)</span>
+<span class="n">TOption</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;TOption&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;_Option&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_Context</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">TOrig</span><span class="p">,</span> <span class="n">TOption</span><span class="p">]):</span>
+
+    <span class="n">_TYPE</span><span class="p">:</span> <span class="n">Type</span>
+    <span class="n">_option</span><span class="p">:</span> <span class="n">TOption</span>
+    <span class="n">_default</span><span class="p">:</span> <span class="n">TOrig</span>
+    <span class="n">_old_value</span><span class="p">:</span> <span class="n">TOrig</span>
+
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="n">option</span><span class="p">:</span> <span class="n">TOption</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">args_</span> <span class="o">=</span> <span class="p">[</span><span class="bp">cls</span><span class="p">,</span> <span class="n">option</span><span class="o">.</span><span class="n">_get_value</span><span class="p">()]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_TYPE</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="o">*</span><span class="n">args_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">option</span><span class="p">:</span> <span class="n">TOption</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_option</span> <span class="o">=</span> <span class="n">option</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_old_value</span> <span class="o">=</span> <span class="n">option</span><span class="o">.</span><span class="n">_value</span>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">,</span>
+        <span class="n">optional</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">option</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_option</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">((</span><span class="n">option</span><span class="o">.</span><span class="n">_get_value</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">optional</span><span class="p">):</span>
+            <span class="n">option</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">option</span><span class="o">.</span><span class="n">ORIGTYPE</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_option</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_old_value</span>
+
+
+<span class="k">class</span> <span class="nc">_IntContext</span><span class="p">(</span>
+    <span class="n">_Context</span><span class="p">[</span>
+        <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;_IntOption&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="nb">int</span><span class="p">,</span>
+<span class="p">):</span>
+
+    <span class="n">_TYPE</span> <span class="o">=</span> <span class="nb">int</span>
+
+
+<span class="k">class</span> <span class="nc">_PeriodContext</span><span class="p">(</span>
+    <span class="n">_Context</span><span class="p">[</span>
+        <span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">,</span>
+        <span class="s2">&quot;_PeriodOption&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">,</span>
+<span class="p">):</span>
+
+    <span class="n">_TYPE</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Period</span>
+
+
+<span class="k">class</span> <span class="nc">_Option</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">TIn</span><span class="p">,</span> <span class="n">TOut</span><span class="p">,</span> <span class="n">TOrig</span><span class="p">]):</span>
+
+    <span class="n">ORIGTYPE</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">TOrig</span><span class="p">]]</span>
+    <span class="n">CONTEXTTYPE</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">TOut</span><span class="p">]]</span>
+    <span class="n">_default</span><span class="p">:</span> <span class="n">TOrig</span>
+    <span class="n">_value</span><span class="p">:</span> <span class="n">TOrig</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">TOrig</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">default</span>
+
+    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">TOption</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="s2">&quot;Options&quot;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TOut</span><span class="p">:</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CONTEXTTYPE</span><span class="p">(</span><span class="n">option</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">context</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__doc__</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">_default</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default</span>
+        <span class="k">return</span> <span class="n">context</span>
+
+    <span class="k">def</span> <span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">TOption</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="s2">&quot;Options&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">TIn</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ORIGTYPE</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__delete__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="s2">&quot;Options&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default</span>
+
+    <span class="k">def</span> <span class="nf">_get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TOrig</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
+
+
+<span class="k">class</span> <span class="nc">_IntOption</span><span class="p">(</span>
+    <span class="n">_Option</span><span class="p">[</span>
+        <span class="nb">int</span><span class="p">,</span>
+        <span class="n">_IntContext</span><span class="p">,</span>
+        <span class="nb">int</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">):</span>
+    <span class="n">ORIGTYPE</span> <span class="o">=</span> <span class="nb">int</span>
+    <span class="n">CONTEXTTYPE</span> <span class="o">=</span> <span class="n">_IntContext</span>
+
+
+<span class="k">class</span> <span class="nc">_BoolOption</span><span class="p">(</span>
+    <span class="n">_Option</span><span class="p">[</span>
+        <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">_IntContext</span><span class="p">,</span>
+        <span class="nb">bool</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">):</span>
+
+    <span class="n">ORIGTYPE</span> <span class="o">=</span> <span class="nb">bool</span>
+    <span class="n">CONTEXTTYPE</span> <span class="o">=</span> <span class="n">_IntContext</span>
+
+
+<span class="k">class</span> <span class="nc">_PeriodOption</span><span class="p">(</span>
+    <span class="n">_Option</span><span class="p">[</span>
+        <span class="n">timetools</span><span class="o">.</span><span class="n">PeriodConstrArg</span><span class="p">,</span>
+        <span class="n">_PeriodContext</span><span class="p">,</span>
+        <span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">):</span>
+
+    <span class="n">ORIGTYPE</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Period</span>
+    <span class="n">CONTEXTTYPE</span> <span class="o">=</span> <span class="n">_PeriodContext</span>
+
+
+<span class="k">class</span> <span class="nc">_Simulationstep</span><span class="p">(</span><span class="n">_PeriodOption</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">stepsize</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_get_value</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="Options"><a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.Options">[docs]</a><span class="k">class</span> <span class="nc">Options</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Singleton class for `global` options placed in module |pub|.</span>
+
+<span class="sd">    Note that Most options are simple True/False or 0/1 flags.</span>
+
+<span class="sd">    You can change all options in two ways.  By using the `with` statement,</span>
+<span class="sd">    you make sure that the change is undone after leaving the corresponding</span>
+<span class="sd">    code block (even if an error occurs):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress = 0</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress</span>
+<span class="sd">    0</span>
+<span class="sd">    &gt;&gt;&gt; with pub.options.printprogress(True):</span>
+<span class="sd">    ...     print(pub.options.printprogress)</span>
+<span class="sd">    1</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress</span>
+<span class="sd">    0</span>
+
+<span class="sd">    Alternatively, you can change all options via simple assignments:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress = True</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress</span>
+<span class="sd">    1</span>
+
+<span class="sd">    But then you might have to keep in mind to undo the change later:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress</span>
+<span class="sd">    1</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress = False</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress</span>
+<span class="sd">    0</span>
+
+<span class="sd">    When using the `with` statement, you can assign |None|, which does not</span>
+<span class="sd">    change the original setting and resets it after leaving the `with` block:</span>
+
+<span class="sd">    &gt;&gt;&gt; with pub.options.printprogress(None):</span>
+<span class="sd">    ...     print(pub.options.printprogress)</span>
+<span class="sd">    ...     pub.options.printprogress = True</span>
+<span class="sd">    ...     print(pub.options.printprogress)</span>
+<span class="sd">    0</span>
+<span class="sd">    1</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress</span>
+<span class="sd">    0</span>
+
+<span class="sd">    The delete attribute restores the respective default setting:</span>
+
+<span class="sd">    &gt;&gt;&gt; del pub.options.printprogress</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress</span>
+<span class="sd">    1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">autocompile</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for enabling/disabling the automatic conversion of </span>
+<span class="sd">    pure Python models to computationally more efficient Cython models </span>
+<span class="sd">    whenever a existing Cython model may be outdated.&quot;&quot;&quot;</span>
+
+    <span class="n">checkseries</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;True/False flag for raising an error when trying to load an input</span>
+<span class="sd">    time series not spanning the whole initialisation period or containing</span>
+<span class="sd">    |numpy.nan| values.&quot;&quot;&quot;</span>
+
+    <span class="n">dirverbose</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for letting the autocompletion textbox include</span>
+<span class="sd">    all members of an object or only the most relevant ones.  So far, this</span>
+<span class="sd">    option affects the behaviour of a few implemented classes only.&quot;&quot;&quot;</span>
+
+    <span class="n">ellipsis</span> <span class="o">=</span> <span class="n">_IntOption</span><span class="p">(</span><span class="o">-</span><span class="mi">999</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;Ellipsis points are used to shorten the string representations of</span>
+<span class="sd">    iterable HydPy objects containing many entries.  Set a value to define</span>
+<span class="sd">    the maximum number of entries before and behind ellipsis points.  Set</span>
+<span class="sd">    it to zero to avoid any ellipsis points.  Set it to -999 to rely on</span>
+<span class="sd">    the default values of the respective iterable objects.&quot;&quot;&quot;</span>
+
+    <span class="n">flattennetcdf</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag relevant when working with NetCDF files that </span>
+<span class="sd">    decides whether to handle multidimensional time series as a larger </span>
+<span class="sd">    number of 1-dimensional time series (True) or to keep the original </span>
+<span class="sd">    shape (False) (see the documentation on module |netcdftools| for </span>
+<span class="sd">    further information).&quot;&quot;&quot;</span>
+
+    <span class="n">forcecompiling</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for enabling that each cythonizable model is</span>
+<span class="sd">    cythonized when imported.&quot;&quot;&quot;</span>
+
+    <span class="n">isolatenetcdf</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag relevant when working with NetCDF files that </span>
+<span class="sd">    decides whether to handle only the time series of a single sequence </span>
+<span class="sd">    type (True) or the time series of multiple sequence types (False)</span>
+<span class="sd">    in individual NetCDF files (see the documentation on module </span>
+<span class="sd">    |netcdftools| for further information).&quot;&quot;&quot;</span>
+
+    <span class="n">parameterstep</span> <span class="o">=</span> <span class="n">_PeriodOption</span><span class="p">(</span><span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">))</span>
+    <span class="sd">&quot;&quot;&quot;The actual parameter time step size.  Change it by passing a |Period| </span>
+<span class="sd">    object or any valid |Period| constructor argument.  The default parameter </span>
+<span class="sd">    step is one day.</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.parameterstep</span>
+<span class="sd">    Period(&quot;1d&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">printprogress</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for printing information about the progress of</span>
+<span class="sd">    some processes to the standard output.&quot;&quot;&quot;</span>
+
+    <span class="n">printincolor</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for printing progress information in colour</span>
+<span class="sd">    eventually.&quot;&quot;&quot;</span>
+
+    <span class="n">reprcomments</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for including comments into string representations.</span>
+<span class="sd">    So far, this option affects the behaviour of a few implemented classes,</span>
+<span class="sd">    only.&quot;&quot;&quot;</span>
+
+    <span class="n">reprdigits</span> <span class="o">=</span> <span class="n">_IntOption</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;Required precision of string representations of floating point</span>
+<span class="sd">    numbers, defined as the minimum number of digits to be reproduced</span>
+<span class="sd">    by the string representation (see function |repr_|).&quot;&quot;&quot;</span>
+
+    <span class="n">simulationstep</span> <span class="o">=</span> <span class="n">_Simulationstep</span><span class="p">(</span><span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">())</span>
+    <span class="sd">&quot;&quot;&quot;The actual simulation time step size.  Change it by passing a |Period| </span>
+<span class="sd">    object or any valid |Period| constructor argument.  *HydPy* does not </span>
+<span class="sd">    define a default simulation step (indicated by an empty |Period| object).  </span>
+<span class="sd">    </span>
+<span class="sd">    Note that you cannot manually define the |Options.simulationstep| whenever </span>
+<span class="sd">    it is already available via attribute |Timegrids.stepsize| of the global  </span>
+<span class="sd">    |Timegrids| object in module |pub| (`pub.timegrids`):</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.simulationstep</span>
+<span class="sd">    Period()</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; pub.options.simulationstep = &quot;1h&quot;</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.simulationstep</span>
+<span class="sd">    Period(&quot;1h&quot;)</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2001-01-01&quot;, &quot;1d&quot;</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.simulationstep</span>
+<span class="sd">    Period(&quot;1d&quot;)</span>
+<span class="sd"> </span>
+<span class="sd">    &gt;&gt;&gt; pub.options.simulationstep = &quot;1s&quot;</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.simulationstep</span>
+<span class="sd">    Period(&quot;1d&quot;)</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; del pub.timegrids</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.simulationstep</span>
+<span class="sd">    Period(&quot;1s&quot;)</span>
+<span class="sd">    </span>
+<span class="sd">    &gt;&gt;&gt; del pub.options.simulationstep</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.simulationstep</span>
+<span class="sd">    Period()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">skipdoctests</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for skipping the automatic execution of</span>
+<span class="sd">    documentation tests.&quot;&quot;&quot;</span>
+
+    <span class="n">timeaxisnetcdf</span> <span class="o">=</span> <span class="n">_IntOption</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;An integer value relevant when working with NetCDF files that </span>
+<span class="sd">    determines the axis of the time variable (see the documentation on </span>
+<span class="sd">    module |netcdftools| for further information).&quot;&quot;&quot;</span>
+
+    <span class="n">trimvariables</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for enabling/disabling function |trim|.  Set it</span>
+<span class="sd">    to |False| only for good reasons.&quot;&quot;&quot;</span>
+
+    <span class="n">usecython</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;TA True/False flag for applying cythonized models if possible,</span>
+<span class="sd">    which are much faster than pure Python models. &quot;&quot;&quot;</span>
+
+    <span class="n">usedefaultvalues</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for initialising parameters with standard values.&quot;&quot;&quot;</span>
+
+    <span class="n">utclongitude</span> <span class="o">=</span> <span class="n">_IntOption</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;Longitude of the centre of the local time zone (see option</span>
+<span class="sd">    |Options.utcoffset|).  Defaults to 15,  which corresponds to the </span>
+<span class="sd">    central meridian of UTC+01:00.&quot;&quot;&quot;</span>
+
+    <span class="n">utcoffset</span> <span class="o">=</span> <span class="n">_IntOption</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;Offset of your local time from UTC in minutes (see option </span>
+<span class="sd">    |Options.utclongitude|.  Defaults to 60, which corresponds to </span>
+<span class="sd">    UTC+01:00.&quot;&quot;&quot;</span>
+
+    <span class="n">warnmissingcontrolfile</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for only raising a warning instead of an exception</span>
+<span class="sd">    when a necessary control file is missing.&quot;&quot;&quot;</span>
+
+    <span class="n">warnmissingobsfile</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for raising a warning when a requested observation</span>
+<span class="sd">    sequence demanded by a node instance is missing.&quot;&quot;&quot;</span>
+
+    <span class="n">warnmissingsimfile</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for raising a warning when a requested simulation</span>
+<span class="sd">    sequence demanded by a node instance is missing.&quot;&quot;&quot;</span>
+
+    <span class="n">warnsimulationstep</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for raising a warning when function |simulationstep|</span>
+<span class="sd">    called for the first time directly by the user.&quot;&quot;&quot;</span>
+
+    <span class="n">warntrim</span> <span class="o">=</span> <span class="n">_BoolOption</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;A True/False flag for raising a warning when a |Variable| object</span>
+<span class="sd">    trims its value(s) in order no not violate certain boundaries.</span>
+<span class="sd">    To cope with the limited precision of floating-point numbers only</span>
+<span class="sd">    those violations beyond a small tolerance value are reported</span>
+<span class="sd">    (see function |trim|). &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">type_</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Options(&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">type_</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">option</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">)</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="n">option</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_prepare_docstrings</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Assign docstrings to the corresponding attributes of class `Options`</span>
+<span class="sd">    to make them available in the interactive mode of Python.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">USEAUTODOC</span><span class="p">:</span>
+        <span class="n">__test__</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">Options</span><span class="p">)</span>
+        <span class="n">docstrings</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&quot;&quot;&#39;</span><span class="p">)[</span><span class="mi">3</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">attributes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">source</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="p">(</span><span class="s2">&quot;_IntOption(&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;_BoolOption(&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;_PeriodOption(&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">docstring</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">attributes</span><span class="p">,</span> <span class="n">docstrings</span><span class="p">):</span>
+            <span class="n">Options</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">attribute</span><span class="p">]</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">docstring</span>
+            <span class="n">__test__</span><span class="p">[</span><span class="n">attribute</span><span class="p">]</span> <span class="o">=</span> <span class="n">docstring</span>
+        <span class="nb">globals</span><span class="p">()[</span><span class="s2">&quot;__test__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">__test__</span>
+
+
+<span class="n">_prepare_docstrings</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.optiontools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

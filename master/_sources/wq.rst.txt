@@ -1,0 +1,37 @@
+.. |BottomWidths| replace:: :class:`~hydpy.models.wq.wq_control.BottomWidths`
+.. |Calc_DischargeDerivatives_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_DischargeDerivatives_V1`
+.. |Calc_Discharges_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_Discharges_V1`
+.. |Calc_SurfaceWidths_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_SurfaceWidths_V1`
+.. |Calc_WaterDepth_V2| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WaterDepth_V2`
+.. |Calc_WettedArea_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedArea_V1`
+.. |Calc_WettedAreas_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedAreas_V1`
+.. |Calc_WettedPerimeterDerivatives_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedPerimeterDerivatives_V1`
+.. |Calc_WettedPerimeters_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedPerimeters_V1`
+.. |CrestHeight| replace:: :class:`~hydpy.models.wq.wq_control.CrestHeight`
+.. |DischargeModel_V2| replace:: :class:`~hydpy.interfaces.dischargeinterfaces.DischargeModel_V2`
+.. |Excess| replace:: :class:`~hydpy.models.wq.wq_aides.Excess`
+.. |Index| replace:: :class:`~hydpy.models.wq.wq_aides.Index`
+.. |NmbSectors| replace:: :class:`~hydpy.models.wq.wq_control.NmbSectors`
+.. |NmbTrapezes| replace:: :class:`~hydpy.models.wq.wq_control.NmbTrapezes`
+.. |NmbWidths| replace:: :class:`~hydpy.models.wq.wq_control.NmbWidths`
+.. |NumericalDifferentiator| replace:: :class:`~hydpy.core.testtools.NumericalDifferentiator`
+.. |Transitions| replace:: :class:`~hydpy.models.wq.wq_control.Transitions`
+.. |Weight| replace:: :class:`~hydpy.models.wq.wq_aides.Weight`
+.. |smoothtools| replace:: :mod:`~hydpy.auxs.smoothtools`
+.. |wq.DOCNAME.complete| replace:: HydPy-WQ (base model)
+.. |wq.DOCNAME.long| replace:: HydPy-WQ
+.. |wq_trapeze| replace:: :mod:`~hydpy.models.wq_trapeze`
+.. |wq_widths_strickler| replace:: :mod:`~hydpy.models.wq_widths_strickler`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |wq_control.FlowWidths| replace:: :class:`~hydpy.models.wq.wq_control.FlowWidths`
+.. |wq_control.TotalWidths| replace:: :class:`~hydpy.models.wq.wq_control.TotalWidths`
+
+.. _wq:
+
+wq
+==
+
+.. automodule:: hydpy.models.wq
+    :members:
+    :show-inheritance:
+    :exclude-members: IO, Container, SupportsAbs, FrozenSet, Buffer, RESULTSEQUENCES, MappingView, ObserverSequences, Union, Annotated, Counter, Deque, evaluate_forward_ref, ValuesView, reveal_type, NoExtraItems, Format, fastaccess_old, Coroutine, get_protocol_members, is_typeddict, subseqs, AsyncIterable, TypedDict, AsyncGenerator, NotRequired, OrderedDict, INTERFACE_METHODS, ItemsView, ChainMap, is_protocol, CapsuleType, SupportsFloat, FIXEDPARAMETERS, disjoint_base, type_repr, Sequence, CLASSES, SupportsComplex, SOLVERPARAMETERS, Dict, Never, Literal, Callable, overload, deprecated, LogSequences, Unpack, Match, NamedTuple, get_type_hints, Sized, override, runtime_checkable, get_annotations, TypeForm, INLET_METHODS, Set, Self, fastaccess, Any, InletSequences, InputSequences, runtime, Tuple, subvars, KeysView, Final, SENDER_METHODS, OBSERVER_METHODS, Optional, TextIO, seqs, no_type_check_decorator, ADD_METHODS, AsyncContextManager, dataclass_transform, TypeGuard, SenderSequences, ContextManager, ParamSpec, MutableSequence, ReceiverSequences, IntVar, Generator, pars, get_original_bases, SUBMODELS, final, Writer, subpars, CONTROLPARAMETERS, ParamSpecKwargs, Text, Sentinel, Doc, fastaccess_new, TypeVar, SupportsIndex, no_type_check, Iterable, PART_ODE_METHODS, SupportsInt, get_args, get_origin, Collection, Type, DefaultDict, TypeAlias, SupportsBytes, OUTLET_METHODS, MutableMapping, AsyncIterator, Iterator, Mapping, Hashable, RECEIVER_METHODS, Concatenate, TypeVarTuple, ByteString, Awaitable, Generic, Reversible, Required, Pattern, get_overloads, RUN_METHODS, BinaryIO, ClassVar, List, AnyStr, ParamSpecArgs, TypeAliasType, ForwardRef, NoReturn, SUBMODELINTERFACES, NewType, MutableSet, UPDATEDSEQUENCES, ReadOnly, NoDefault, assert_never, AbstractSet, TYPE_CHECKING, REQUIREDSEQUENCES, SOLVERSEQUENCES, StateSequences, assert_type, LiteralString, clear_overloads, FULL_ODE_METHODS, Reader, SupportsRound, cast, OutletSequences, TypeIs, SUBMETHODS, Protocol, DERIVEDPARAMETERS

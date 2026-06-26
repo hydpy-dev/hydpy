@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Introduction &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation Instructions" href="install.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="Installation Instructions"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">HydPy 5.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Introduction</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="#">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="#">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="install.html"
+                          title="next chapter">Installation Instructions</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="introduction">
+<span id="hydpy"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h1>
+<p><em>HydPy</em> is an interactive framework for developing and applying
+different types of hydrological models, originally developed
+at the <a class="reference external" href="http://www.hydrology.ruhr-uni-bochum.de/index.html.en">Ruhr-University Bochum</a> for specific research purposes.
+Later it was extended on behalf of the <a class="reference external" href="https://www.bafg.de/EN">German Federal Institute of
+Hydrology</a> to be applicable in practical applications like runoff
+forecasting in large river basins.  Now it is being maintained by
+<a class="reference external" href="https://www.bjoernsen.de/en/bjoernsen-consulting-engineers">Björnsen Consulting Engineers</a>.</p>
+<p><em>HydPy</em> is intended to be a modern open source software, based
+on the programming language <a class="reference external" href="http://www.python.org/">Python</a>, commonly used in many scientific
+fields.  Through using different well-established <a class="reference external" href="http://www.python.org/">Python</a> libraries
+and design principles, we target high quality and transparency standards.
+To avoid writing model cores (like <a class="reference internal" href="lland_v1.html#module-hydpy.models.lland_v1" title="hydpy.models.lland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v1</span></code></a>) in a more native
+programming language, <em>HydPy</em> includes a <a class="reference external" href="http://www.cython.org/">Cython</a> based mechanism
+to automatically translate Python code to C code and to compile it.</p>
+<p><em>HydPy</em> has no graphical user interface. Instead, it is thought to
+be applied by executing Python scripts.  These scripts help to increase
+the reproducibility of studies performed with <em>HydPy</em> because
+they can be easily shared and repeatedly executed.  This approach facilitates
+discussing possible weaknesses of <em>HydPy</em> and its implemented
+models and comparing different methodical approaches (e. g. different
+strategies to calibrate model parameters).  However, if you are not an
+experienced hydrologist with basic programming skills, you may need
+some help to become acquainted with <em>HydPy</em>.</p>
+<p>We host <em>HydPy</em> in a <a class="reference external" href="https://github.com/hydpy-dev/hydpy">GitHub repository</a> and everyone
+is allowed to download, modify, and use it.  However, when passing the
+(possibly modified) code to third parties, one has to be aware that
+the selected <a class="reference external" href="https://www.gnu.org/licenses/lgpl-3.0.en.html">GNU Lesser General Public License 3</a> cannot be changed
+to a “less open source” license.  If you, for example, implement a new
+model into <em>HydPy</em>, you can be sure that all possible further
+developments of your model code are still open source and the mentioned
+third parties are allowed to pass this modified source code to you.</p>
+<p><em>HydPy</em> offers many functionalities to make the implemented
+models as transparent and reliable as possible.  For this reason,
+the online documentation is automatically updated for each new
+<em>HydPy</em> version and includes different <a class="reference external" href="https://docs.python.org/3.6/library/doctest.html">documentation test</a>
+mechanism ensuring that <em>HydPy</em> is working as expected and
+that the documentation is up-to-date with it.</p>
+<p>See for example the documentation of the (very simple) method
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.Calc_NKor_V1" title="hydpy.models.lland.lland_model.Calc_NKor_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_NKor_V1</span></code></a>.  The text describes what the method does
+and what input data it requires.  It is comprehensive but, as in common
+documentations, technical reports and scientific articles, could be
+outdated or be wrong in other ways.  This is not the case for the
+example calculation shown in the green box.  This example is actual
+<a class="reference external" href="http://www.python.org/">Python</a> code that shows how method <a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.Calc_NKor_V1" title="hydpy.models.lland.lland_model.Calc_NKor_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_NKor_V1</span></code></a> can be
+used and how different input values (for variables <a class="reference internal" href="lland.html#hydpy.models.lland.lland_inputs.Nied" title="hydpy.models.lland.lland_inputs.Nied"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nied</span></code></a>
+and <a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.KG" title="hydpy.models.lland.lland_control.KG"><code class="xref py py-class docutils literal notranslate"><span class="pre">KG</span></code></a>) result in different output values (for variable
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_fluxes.NKor" title="hydpy.models.lland.lland_fluxes.NKor"><code class="xref py py-class docutils literal notranslate"><span class="pre">NKor</span></code></a>).  Each time a new <em>HydPy</em> version is pushed
+into the <a class="reference external" href="https://github.com/hydpy-dev/hydpy">GitHub repository</a>, automatic test routines on <a class="reference external" href="https://travis-ci.com/hydpy-dev/hydpy/branches">Travis CI</a> and
+<a class="reference external" href="https://ci.appveyor.com/project/tyralla/hydpy/history">AppVeyor</a>  are trigged.  The new <em>HydPy</em> version is rejected, if the
+actual <a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.Calc_NKor_V1" title="hydpy.models.lland.lland_model.Calc_NKor_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_NKor_V1</span></code></a> method does not result in the exact
+same output values as given in the last line of the example.</p>
+<p>Such basic “unit tests” should provide a good basis for discussing the
+proper implementation of certain hydrological processes.  But they
+are no proof a complete model is actually working well.  Therefore
+<em>HydPy</em> also offers some “integration test” functionalities.</p>
+<p>Each integration test should demonstrate how a certain model could be
+set up meaningfully.  Ideally, the model configuration should be varied
+to show different aspects of its functionality.  See e.g. <a class="reference external" href="https://hydpy-dev.github.io/hydpy/master/dam_v001.html#dam-v001-ex13">example 13</a>
+of the documentation on model <a class="reference internal" href="dam_v001.html#module-hydpy.models.dam_v001" title="hydpy.models.dam_v001"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v001</span></code></a>, which discusses the implemented
+flood retention routine.  Here, example calculations are performed for a
+period of 20 days, and for each day all input and output values, as well
+as all internal states (e.g. the <a class="reference internal" href="dam.html#hydpy.models.dam.dam_states.WaterVolume" title="hydpy.models.dam.dam_states.WaterVolume"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterVolume</span></code></a>), are tabulated.
+Again, <a class="reference external" href="https://travis-ci.com/hydpy-dev/hydpy/branches">Travis CI</a> checks that all of these values are exactly recalculated
+by each new <em>HydPy</em> version.  Additionally, the tabulated values are
+shown in a <a class="reference external" href="https://plotly.com/python/">Plotly</a> plot, which is also updated for each new <em>HydPy</em>
+version automatically.  You can click on the variables and zoom into some
+details you are actually interested in.</p>
+<p>If there were some methodical or technical flaws in the retention routine
+of <a class="reference internal" href="dam_v001.html#module-hydpy.models.dam_v001" title="hydpy.models.dam_v001"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v001</span></code></a>, you would have good chances to find them when reading the
+documentation critically.  You could tell us about your finding via a
+<a class="reference external" href="https://github.com/hydpy-dev/hydpy/issues">GitHub issue</a>, allowing us or others to read (and at best solve) the
+problem.  Or you could try to solve it on your own and offer your solution
+as a <a class="reference external" href="https://github.com/pulls">Pull Request</a>.  You could also add a new test to the documentation
+files to prove that something goes wrong and offer it via a
+<a class="reference external" href="https://github.com/pulls">Pull Request</a>, which would enable <a class="reference external" href="https://travis-ci.com/hydpy-dev/hydpy/branches">Travis CI</a> to reject future
+<em>HydPy</em> versions that still contain this flaw.</p>
+<p>We hope to have made clear that the design of <em>HydPy</em> focusses
+on open collaboration in order to improve existing and to develop
+better models.  The <a class="reference internal" href="development.html#development"><span class="std std-ref">Development</span></a> section offers more information
+on how to actually participate in the further development of <em>HydPy</em>.
+Section <a class="reference internal" href="modelcollection.html#modelcollection"><span class="std std-ref">Model Collection</span></a> lists all models implemented so far.
+Sections <a class="reference internal" href="core.html#core"><span class="std std-ref">Core Tools</span></a> covers the basic functionalities of the
+<em>HydPy</em> framework.</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="install.html" title="Installation Instructions"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">HydPy 5.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Introduction</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

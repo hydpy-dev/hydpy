@@ -1,0 +1,54 @@
+.. |DefaultMask| replace:: :class:`~hydpy.core.masktools.DefaultMask`
+.. |False| replace:: :const:`False`
+.. |InputSequence| replace:: :class:`~hydpy.core.sequencetools.InputSequence`
+.. |Masks| replace:: :class:`~hydpy.core.masktools.Masks`
+.. |ModelSequence| replace:: :class:`~hydpy.core.sequencetools.ModelSequence`
+.. |Model| replace:: :class:`~hydpy.core.modeltools.Model`
+.. |NodeSequence| replace:: :class:`~hydpy.core.sequencetools.NodeSequence`
+.. |None| replace:: :const:`None`
+.. |Options.reprcomments| replace:: :const:`~hydpy.core.optiontools.Options.reprcomments`
+.. |Options.trimvariables| replace:: :const:`~hydpy.core.optiontools.Options.trimvariables`
+.. |Parameters| replace:: :class:`~hydpy.core.parametertools.Parameters`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |RuntimeError| replace:: :class:`RuntimeError`
+.. |Sequence_| replace:: :class:`~hydpy.core.sequencetools.Sequence_`
+.. |Sequences| replace:: :class:`~hydpy.core.sequencetools.Sequences`
+.. |SubParameters| replace:: :class:`~hydpy.core.parametertools.SubParameters`
+.. |SubSequences| replace:: :class:`~hydpy.core.sequencetools.SubSequences`
+.. |SubVariables| replace:: :class:`~hydpy.core.variabletools.SubVariables`
+.. |Variable.availablemasks| replace:: :const:`~hydpy.core.variabletools.Variable.availablemasks`
+.. |Variable.average_values| replace:: :func:`~hydpy.core.variabletools.Variable.average_values`
+.. |Variable.commentrepr| replace:: :const:`~hydpy.core.variabletools.Variable.commentrepr`
+.. |Variable.initinfo| replace:: :const:`~hydpy.core.variabletools.Variable.initinfo`
+.. |Variable.refweights| replace:: :const:`~hydpy.core.variabletools.Variable.refweights`
+.. |Variable.shape| replace:: :const:`~hydpy.core.variabletools.Variable.shape`
+.. |Variable.values| replace:: :const:`~hydpy.core.variabletools.Variable.values`
+.. |Variable.value| replace:: :const:`~hydpy.core.variabletools.Variable.value`
+.. |Variable| replace:: :class:`~hydpy.core.variabletools.Variable`
+.. |bool| replace:: :class:`bool`
+.. |dict| replace:: :class:`dict`
+.. |float| replace:: :class:`float`
+.. |get_tolerance| replace:: :func:`~hydpy.core.variabletools.get_tolerance`
+.. |id| replace:: :func:`id`
+.. |int| replace:: :class:`int`
+.. |len| replace:: :func:`len`
+.. |numpy| replace:: :mod:`~numpy`
+.. |parametertools| replace:: :mod:`~hydpy.core.parametertools`
+.. |sequencetools| replace:: :mod:`~hydpy.core.sequencetools`
+.. |set| replace:: :class:`set`
+.. |sort_variables| replace:: :func:`~hydpy.core.variabletools.sort_variables`
+.. |to_repr| replace:: :func:`~hydpy.core.variabletools.to_repr`
+.. |trim| replace:: :func:`~hydpy.core.variabletools.trim`
+.. |tuple| replace:: :class:`tuple`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |sequencetools.InputSequences| replace:: :class:`~hydpy.core.sequencetools.InputSequences`
+
+.. _variabletools:
+
+variabletools
+=============
+
+.. automodule:: hydpy.core.variabletools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

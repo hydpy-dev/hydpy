@@ -1,0 +1,15 @@
+.. |dummy_snowycanopy.DOCNAME.complete| replace:: HydPy-Dummy-SnowyCanopy (dummy model supplying main models with snow cover degrees in canopies)
+.. |dummy_snowycanopy| replace:: :mod:`~hydpy.models.dummy_snowycanopy`
+.. |evap_aet_morsim| replace:: :mod:`~hydpy.models.evap_aet_morsim`
+.. |lland_knauf| replace:: :mod:`~hydpy.models.lland_knauf`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+
+.. _dummy_snowycanopy:
+
+dummy_snowycanopy
+=================
+
+.. automodule:: hydpy.models.dummy_snowycanopy
+    :members:
+    :show-inheritance:
+    :exclude-members: IO, Container, SupportsAbs, FrozenSet, Buffer, RESULTSEQUENCES, MappingView, ObserverSequences, Union, Annotated, Counter, Deque, evaluate_forward_ref, ValuesView, reveal_type, NoExtraItems, Format, fastaccess_old, Coroutine, get_protocol_members, is_typeddict, subseqs, AsyncIterable, TypedDict, AsyncGenerator, NotRequired, OrderedDict, INTERFACE_METHODS, ItemsView, ChainMap, is_protocol, CapsuleType, SupportsFloat, FluxSequences, FIXEDPARAMETERS, disjoint_base, type_repr, Sequence, CLASSES, SupportsComplex, SOLVERPARAMETERS, Dict, Never, Literal, Callable, overload, deprecated, LogSequences, Unpack, Match, NamedTuple, get_type_hints, Sized, override, runtime_checkable, get_annotations, TypeForm, INLET_METHODS, Set, Self, fastaccess, Any, InletSequences, runtime, Tuple, subvars, KeysView, Final, SENDER_METHODS, OBSERVER_METHODS, Optional, TextIO, seqs, no_type_check_decorator, ADD_METHODS, AsyncContextManager, dataclass_transform, TypeGuard, SenderSequences, ContextManager, ParamSpec, MutableSequence, ReceiverSequences, IntVar, Generator, pars, get_original_bases, SUBMODELS, final, Writer, subpars, CONTROLPARAMETERS, ParamSpecKwargs, Text, Sentinel, Doc, fastaccess_new, TypeVar, SupportsIndex, no_type_check, Iterable, PART_ODE_METHODS, SupportsInt, get_args, get_origin, Collection, Type, DefaultDict, TypeAlias, SupportsBytes, OUTLET_METHODS, MutableMapping, FactorSequences, AsyncIterator, Iterator, Mapping, Hashable, RECEIVER_METHODS, Concatenate, TypeVarTuple, ByteString, Awaitable, Generic, Reversible, Required, Pattern, get_overloads, RUN_METHODS, BinaryIO, ClassVar, List, AnyStr, ParamSpecArgs, TypeAliasType, ForwardRef, NoReturn, SUBMODELINTERFACES, NewType, MutableSet, UPDATEDSEQUENCES, ReadOnly, NoDefault, assert_never, AbstractSet, TYPE_CHECKING, REQUIREDSEQUENCES, SOLVERSEQUENCES, StateSequences, AideSequences, assert_type, LiteralString, clear_overloads, FULL_ODE_METHODS, Reader, SupportsRound, cast, OutletSequences, TypeIs, SUBMETHODS, Protocol, DERIVEDPARAMETERS

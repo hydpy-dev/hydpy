@@ -1,0 +1,903 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.auxs.armatools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.auxs.armatools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.auxs.armatools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module provides additional features for module |iuhtools|,</span>
+<span class="sd">related to Autoregressive-Moving Average (ARMA) models.&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.auxs</span> <span class="kn">import</span> <span class="n">statstools</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span>
+    <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">integrate</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">pyplot</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">OptionalImport</span><span class="p">(</span><span class="s2">&quot;pyplot&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;matplotlib.pyplot&quot;</span><span class="p">],</span> <span class="nb">locals</span><span class="p">())</span>
+    <span class="n">integrate</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">OptionalImport</span><span class="p">(</span>
+        <span class="s2">&quot;integrate&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;scipy.integrate&quot;</span><span class="p">],</span> <span class="nb">locals</span><span class="p">()</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="MA"><a class="viewcode-back" href="../../../armatools.html#hydpy.auxs.armatools.MA">[docs]</a><span class="k">class</span> <span class="nc">MA</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Moving Average Model.</span>
+
+<span class="sd">    The MA coefficients can be set manually:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import MA</span>
+<span class="sd">    &gt;&gt;&gt; ma = MA(coefs=(0.8, 0.2))</span>
+<span class="sd">    &gt;&gt;&gt; ma</span>
+<span class="sd">    MA(coefs=(0.8, 0.2))</span>
+<span class="sd">    &gt;&gt;&gt; ma.coefs = 0.2, 0.8</span>
+<span class="sd">    &gt;&gt;&gt; ma</span>
+<span class="sd">    MA(coefs=(0.2, 0.8))</span>
+
+<span class="sd">    Otherwise they are determined by method |MA.update_coefs|.</span>
+<span class="sd">    But this requires that a integrable function object is given.</span>
+<span class="sd">    Usually, this function object is a |IUH| subclass object, but</span>
+<span class="sd">    (as in the following example) other function objects defining</span>
+<span class="sd">    instantaneuous unit hydrographs are accepted.  However, they</span>
+<span class="sd">    should be well-behaved (e.g. be relatively smooth, unimodal,</span>
+<span class="sd">    strictly positive, unity integral surface in the positive range).</span>
+
+<span class="sd">    For educational purposes, some discontinuous functions are applied in</span>
+<span class="sd">    the following. One can suppress the associated warning messages with</span>
+<span class="sd">    the following commands:</span>
+
+<span class="sd">    &gt;&gt;&gt; import warnings</span>
+<span class="sd">    &gt;&gt;&gt; from scipy import integrate</span>
+<span class="sd">    &gt;&gt;&gt; warnings.filterwarnings(&quot;ignore&quot;, category=integrate.IntegrationWarning)</span>
+
+<span class="sd">    The first example is a simple rectangle impuls:</span>
+
+<span class="sd">    &gt;&gt;&gt; ma = MA(iuh=lambda x: 0.05 if x &lt; 20.0 else 0.0)</span>
+<span class="sd">    &gt;&gt;&gt; ma.iuh.moment1 = 10.0</span>
+<span class="sd">    &gt;&gt;&gt; ma</span>
+<span class="sd">    MA(coefs=(0.025, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,</span>
+<span class="sd">              0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,</span>
+<span class="sd">              0.025))</span>
+
+<span class="sd">    The number of the coefficients can be modified by changing the</span>
+<span class="sd">    class attribute |MA.smallest_coeff|:</span>
+
+<span class="sd">    &gt;&gt;&gt; ma.smallest_coeff = 0.03</span>
+<span class="sd">    &gt;&gt;&gt; ma.update_coefs()</span>
+<span class="sd">    &gt;&gt;&gt; ma</span>
+<span class="sd">    MA(coefs=(0.025641, 0.051282, 0.051282, 0.051282, 0.051282, 0.051282,</span>
+<span class="sd">              0.051282, 0.051282, 0.051282, 0.051282, 0.051282, 0.051282,</span>
+<span class="sd">              0.051282, 0.051282, 0.051282, 0.051282, 0.051282, 0.051282,</span>
+<span class="sd">              0.051282, 0.051282))</span>
+
+
+<span class="sd">    The first two central moments of the time delay are a usefull measure for</span>
+<span class="sd">    describing the operation of a MA model:</span>
+
+<span class="sd">    &gt;&gt;&gt; ma = MA(iuh=lambda x: 1.0 if x &lt; 1.0 else 0.0)</span>
+<span class="sd">    &gt;&gt;&gt; ma.iuh.moment1 = 0.5</span>
+<span class="sd">    &gt;&gt;&gt; ma</span>
+<span class="sd">    MA(coefs=(0.5, 0.5))</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(ma.moments, 6)</span>
+<span class="sd">    0.5, 0.5</span>
+
+<span class="sd">    The first central moment is the weigthed time delay (mean lag time).</span>
+<span class="sd">    The second central moment is the weighted mean deviation from the</span>
+<span class="sd">    mean lag time (diffusion).</span>
+
+<span class="sd">    MA objects can return the turning point in the recession part of their</span>
+<span class="sd">    MA coefficients.  This can be demonstrated for the right side of the</span>
+<span class="sd">    probability density function of the normal distribution with zero</span>
+<span class="sd">    mean and a standard deviation (turning point) of 10:</span>
+
+<span class="sd">    &gt;&gt;&gt; from scipy import stats</span>
+<span class="sd">    &gt;&gt;&gt; ma = MA(iuh=lambda x: 2.0*stats.norm.pdf(x, 0.0, 2.0))</span>
+<span class="sd">    &gt;&gt;&gt; ma.iuh.moment1 = 1.35</span>
+<span class="sd">    &gt;&gt;&gt; ma</span>
+<span class="sd">    MA(coefs=(0.195417, 0.346659, 0.24189, 0.13277, 0.057318, 0.019458,</span>
+<span class="sd">              0.005193, 0.001089, 0.00018, 0.000023, 0.000002, 0.0, 0.0))</span>
+<span class="sd">    &gt;&gt;&gt; round_(ma.turningpoint)</span>
+<span class="sd">    2, 0.24189</span>
+
+<span class="sd">    Note that the first returned value is the index of the the MA coefficient</span>
+<span class="sd">    closest to the turning point, and not a high precision estimate of</span>
+<span class="sd">    the real turning point of the instantaneous unit hydrograph.</span>
+
+<span class="sd">    You can also use the following ploting command to verify the position of</span>
+<span class="sd">    the turning point, which is printed as a red dot.</span>
+
+<span class="sd">    &gt;&gt;&gt; ma.plot(threshold=0.9)</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">        &gt;&gt;&gt; from matplotlib import pyplot</span>
+<span class="sd">        &gt;&gt;&gt; pyplot.close()</span>
+
+<span class="sd">    The turning point detection also works for functions which include</span>
+<span class="sd">    both a rising and a falling limb.  This can be shown shifting the</span>
+<span class="sd">    normal distribution to the right:</span>
+
+<span class="sd">    &gt;&gt;&gt; ma.iuh = lambda x: 1.02328*stats.norm.pdf(x, 4.0, 2.0)</span>
+<span class="sd">    &gt;&gt;&gt; ma.iuh.moment1 = 3.94</span>
+<span class="sd">    &gt;&gt;&gt; ma.update_coefs()</span>
+<span class="sd">    &gt;&gt;&gt; ma</span>
+<span class="sd">    MA(coefs=(0.019322, 0.067931, 0.12376, 0.177364, 0.199966, 0.177364,</span>
+<span class="sd">              0.12376, 0.067931, 0.029326, 0.009956, 0.002657, 0.000557,</span>
+<span class="sd">              0.000092, 0.000012, 0.000001, 0.0, 0.0))</span>
+<span class="sd">    &gt;&gt;&gt; round_(ma.turningpoint)</span>
+<span class="sd">    6, 0.12376</span>
+
+<span class="sd">    When no turning point can be detected, an error is raised:</span>
+
+<span class="sd">    &gt;&gt;&gt; ma.coefs = 1.0, 1.0, 1.0</span>
+<span class="sd">    &gt;&gt;&gt; ma.turningpoint</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: Not able to detect a turning point in the impulse response \</span>
+<span class="sd">defined by the MA coefficients 1.0, 1.0, 1.0.</span>
+
+<span class="sd">    The next example requires reactivating the warning suppressed above:</span>
+
+<span class="sd">    &gt;&gt;&gt; warnings.filterwarnings(&quot;error&quot;, category=integrate.IntegrationWarning)</span>
+
+<span class="sd">    The MA coefficients need to be approximated numerically.  For very</span>
+<span class="sd">    spiky response function, the underlying integration algorithm might</span>
+<span class="sd">    fail.  Then it is assumed that the complete mass of the response</span>
+<span class="sd">    function is placed at a single delay time, defined by the property</span>
+<span class="sd">    `moment1` of the instantaneous unit hydrograph.  Hopefully, this</span>
+<span class="sd">    leads to plausible results.  However, we raise an additional warning</span>
+<span class="sd">    message to allow users to determine the coefficients by a different</span>
+<span class="sd">    approach :</span>
+
+<span class="sd">    &gt;&gt;&gt; ma.iuh = lambda x: 10.0 if 4.2 &lt; x &lt;= 4.3 else 0.0</span>
+<span class="sd">    &gt;&gt;&gt; ma.iuh.moment1 = 4.25</span>
+<span class="sd">    &gt;&gt;&gt; ma.update_coefs()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    UserWarning: During the determination of the MA coefficients \</span>
+<span class="sd">corresponding to the instantaneous unit hydrograph ... a numerical \</span>
+<span class="sd">integration problem occurred.  \</span>
+<span class="sd">Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.</span>
+<span class="sd">    &gt;&gt;&gt; ma</span>
+<span class="sd">    MA(coefs=(0.0, 0.0, 0.0, 0.0, 0.75, 0.25))</span>
+
+<span class="sd">    For very steep response functions, numerical integration might fail:</span>
+
+<span class="sd">    &gt;&gt;&gt; ma = MA(iuh=lambda x: stats.norm.pdf(x, 4.0, 1e-6))</span>
+<span class="sd">    &gt;&gt;&gt; ma.iuh.moment1 = 4.0</span>
+<span class="sd">    &gt;&gt;&gt; ma.update_coefs()   # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: Cannot determine the MA coefficients corresponding to the \</span>
+<span class="sd">instantaneous unit hydrograph `...`.</span>
+
+<span class="sd">    For very fast responses, there should be only one MA coefficient that</span>
+<span class="sd">    has the value 1.  Method |MA.update_coefs| provides a heuristic for</span>
+<span class="sd">    such cases where numerical integration fails.  As we are not sure</span>
+<span class="sd">    that this heuristic works in all possible cases, |MA.update_coefs|</span>
+<span class="sd">    raises the following warning in such cases:</span>
+
+<span class="sd">    &gt;&gt;&gt; ma = MA(iuh=lambda x: 1e6*numpy.exp(-1e6*x))</span>
+<span class="sd">    &gt;&gt;&gt; ma.iuh.moment1 = 6.931e-7</span>
+<span class="sd">    &gt;&gt;&gt; ma # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    UserWarning: During the determination of the MA coefficients \</span>
+<span class="sd">corresponding to the instantaneous unit hydrograph `...` a numerical \</span>
+<span class="sd">integration problem occurred.  Please check the calculated coefficients: 1.0.</span>
+
+<span class="sd">    &gt;&gt;&gt; ma</span>
+<span class="sd">    MA(coefs=(1.0,))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">smallest_coeff</span> <span class="o">=</span> <span class="mf">1e-9</span>
+    <span class="sd">&quot;&quot;&quot;Smalles MA coefficient to be determined at the end of the response.&quot;&quot;&quot;</span>
+
+    <span class="n">_coefs</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iuh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coefs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iuh</span> <span class="o">=</span> <span class="n">iuh</span>
+        <span class="k">if</span> <span class="n">coefs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span> <span class="o">=</span> <span class="n">coefs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;|numpy.ndarray| containing all MA coefficents.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coefs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_coefs</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coefs</span>
+
+    <span class="nd">@coefs</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coefs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="nd">@coefs</span><span class="o">.</span><span class="n">deleter</span>
+    <span class="k">def</span> <span class="nf">coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coefs</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;MA order.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_quad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iuh</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="n">dt</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">t</span> <span class="o">+</span> <span class="n">dt</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<div class="viewcode-block" id="MA.update_coefs"><a class="viewcode-back" href="../../../armatools.html#hydpy.auxs.armatools.MA.update_coefs">[docs]</a>    <span class="k">def</span> <span class="nf">update_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;(Re)calculate the MA coefficients based on the instantaneous</span>
+<span class="sd">        unit hydrograph.&quot;&quot;&quot;</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sum_coefs</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">moment1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iuh</span><span class="o">.</span><span class="n">moment1</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">):</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="p">(</span><span class="n">moment1</span> <span class="o">%</span> <span class="mi">1</span><span class="p">,)</span> <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="n">moment1</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="mf">2.0</span><span class="p">)</span> <span class="k">else</span> <span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">coef</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_quad</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">t</span><span class="p">,),</span> <span class="n">points</span><span class="o">=</span><span class="n">points</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">except</span> <span class="n">integrate</span><span class="o">.</span><span class="n">IntegrationWarning</span><span class="p">:</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">moment1</span><span class="p">)</span>
+                <span class="n">coefs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">weight</span> <span class="o">=</span> <span class="n">moment1</span> <span class="o">-</span> <span class="n">idx</span>
+                <span class="n">coefs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">weight</span>
+                <span class="n">coefs</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">weight</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span> <span class="o">=</span> <span class="n">coefs</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_raise_integrationwarning</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span>
+                <span class="k">break</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">sum_coefs</span> <span class="o">+=</span> <span class="n">coef</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">sum_coefs</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">t</span> <span class="o">&gt;</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="n">moment1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">moment1</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_raise_integrationwarning</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="p">)</span>
+                    <span class="k">break</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Cannot determine the MA coefficients &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;corresponding to the instantaneous unit &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;hydrograph `</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iuh</span><span class="p">)</span><span class="si">}</span><span class="s2">`.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">sum_coefs</span> <span class="o">&gt;</span> <span class="mf">0.9</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">coef</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">smallest_coeff</span><span class="p">):</span>
+                <span class="n">coefs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span>
+                <span class="n">coefs</span> <span class="o">/=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span> <span class="o">=</span> <span class="n">coefs</span>
+                <span class="k">break</span>
+            <span class="n">coefs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coef</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_raise_integrationwarning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coefs</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;During the determination of the MA coefficients &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;corresponding to the instantaneous unit hydrograph &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iuh</span><span class="p">)</span><span class="si">}</span><span class="s2">` a numerical integration problem &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;occurred.  Please check the calculated coefficients: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_values</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">turningpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Turning point (index and value tuple) in the recession part of the</span>
+<span class="sd">        MA approximation of the instantaneous unit hydrograph.&quot;&quot;&quot;</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span>
+        <span class="n">old_dc</span> <span class="o">=</span> <span class="n">coefs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">coefs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="o">-</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">new_dc</span> <span class="o">=</span> <span class="n">coefs</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">coefs</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">old_dc</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">new_dc</span> <span class="o">&gt;</span> <span class="n">old_dc</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">idx</span><span class="p">,</span> <span class="n">coefs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="n">old_dc</span> <span class="o">=</span> <span class="n">new_dc</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;Not able to detect a turning point in the impulse response &quot;</span>
+            <span class="s2">&quot;defined by the MA coefficients </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">repr_values</span><span class="p">(</span><span class="n">coefs</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">delays</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Time delays related to the individual MA coefficients.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">order</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">moments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The first two time delay weighted statistical moments of the</span>
+<span class="sd">        MA coefficients.&quot;&quot;&quot;</span>
+        <span class="n">moment1</span> <span class="o">=</span> <span class="n">statstools</span><span class="o">.</span><span class="n">calc_mean_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delays</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="p">)</span>
+        <span class="n">moment2</span> <span class="o">=</span> <span class="n">statstools</span><span class="o">.</span><span class="n">calc_mean_time_deviation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delays</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="p">,</span> <span class="n">moment1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">moment1</span><span class="p">,</span> <span class="n">moment2</span><span class="p">])</span>
+
+<div class="viewcode-block" id="MA.plot"><a class="viewcode-back" href="../../../armatools.html#hydpy.auxs.armatools.MA.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Barplot of the MA coefficients.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Works under matplotlib 3.</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delays</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="c1"># Works under matplotlib 2.</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
+                <span class="n">left</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delays</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="n">height</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="p">,</span>
+                <span class="n">width</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;response&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cumsum</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="p">)</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cumsum</span> <span class="o">&gt;</span> <span class="n">threshold</span> <span class="o">*</span> <span class="n">cumsum</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+        <span class="n">idx</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">turningpoint</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="s2">&quot;ro&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coefs</span><span class="p">,</span> <span class="s2">&quot;MA(coefs=&quot;</span><span class="p">,</span> <span class="mi">70</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span></div>
+
+
+<div class="viewcode-block" id="ARMA"><a class="viewcode-back" href="../../../armatools.html#hydpy.auxs.armatools.ARMA">[docs]</a><span class="k">class</span> <span class="nc">ARMA</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Autoregressive-Moving Average model.</span>
+
+<span class="sd">    All ARMA coefficients can be set manually:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import MA, ARMA</span>
+<span class="sd">    &gt;&gt;&gt; arma = ARMA(ar_coefs=(0.5,), ma_coefs=(0.3, 0.2))</span>
+<span class="sd">    &gt;&gt;&gt; arma.coefs</span>
+<span class="sd">    (array([ 0.5]), array([ 0.3,  0.2]))</span>
+<span class="sd">    &gt;&gt;&gt; arma</span>
+<span class="sd">    ARMA(ar_coefs=(0.5,),</span>
+<span class="sd">         ma_coefs=(0.3, 0.2))</span>
+
+<span class="sd">    &gt;&gt;&gt; arma.ar_coefs = ()</span>
+<span class="sd">    &gt;&gt;&gt; arma.ma_coefs = range(20)</span>
+<span class="sd">    &gt;&gt;&gt; arma</span>
+<span class="sd">    ARMA(ar_coefs=(),</span>
+<span class="sd">         ma_coefs=(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0,</span>
+<span class="sd">                   11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0))</span>
+
+<span class="sd">    Otherwise they are determined by method |ARMA.update_coefs|.</span>
+<span class="sd">    But this requires that a |MA| object is given.  Let us use</span>
+<span class="sd">    the MA model based on the shifted normal distribution of the</span>
+<span class="sd">    documentation on class |MA| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from scipy import stats</span>
+<span class="sd">    &gt;&gt;&gt; ma = MA(iuh=lambda x: 1.02328*stats.norm.pdf(x, 4.0, 2.0))</span>
+<span class="sd">    &gt;&gt;&gt; ma.iuh.moment1 = 3.94</span>
+<span class="sd">    &gt;&gt;&gt; arma = ARMA(ma_model=ma)</span>
+<span class="sd">    &gt;&gt;&gt; arma</span>
+<span class="sd">    ARMA(ar_coefs=(0.680483, -0.228511, 0.047283, -0.006022, 0.000377),</span>
+<span class="sd">         ma_coefs=(0.019322, 0.054783, 0.08195, 0.107757, 0.104458,</span>
+<span class="sd">                   0.07637, 0.041095, 0.01581, 0.004132, 0.000663,</span>
+<span class="sd">                   0.00005))</span>
+
+<span class="sd">    To verify that the ARMA model approximates the MA model with</span>
+<span class="sd">    sufficient accuracy, one can query the achieved relative rmse</span>
+<span class="sd">    value (|ARMA.rel_rmse|) or check the central moments of their</span>
+<span class="sd">    responses to the standard delta time impulse:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(arma.rel_rmse)</span>
+<span class="sd">    0.0</span>
+<span class="sd">    &gt;&gt;&gt; round_(ma.moments)</span>
+<span class="sd">    4.110496, 1.926798</span>
+<span class="sd">    &gt;&gt;&gt; round_(arma.moments)</span>
+<span class="sd">    4.110496, 1.926798</span>
+
+<span class="sd">    On can check the accuray of the approximation directly via the</span>
+<span class="sd">    property |ARMA.dev_moments|, which is the sum of the absolute values</span>
+<span class="sd">    of the deviations of both methods:</span>
+
+<span class="sd">    &gt;&gt;&gt; round_(arma.dev_moments)</span>
+<span class="sd">    0.0</span>
+
+<span class="sd">    For the first six digits, there is no difference.  However, the total</span>
+<span class="sd">    number of coefficients is only reduced by one:</span>
+
+<span class="sd">    &gt;&gt;&gt; ma.order</span>
+<span class="sd">    17</span>
+<span class="sd">    &gt;&gt;&gt; arma.order</span>
+<span class="sd">    (5, 11)</span>
+
+<span class="sd">    To reduce the determined number or AR coefficients, one can set a higher</span>
+<span class="sd">    AR-related tolerance value:</span>
+
+<span class="sd">    &gt;&gt;&gt; arma.max_rel_rmse = 1e-3</span>
+<span class="sd">    &gt;&gt;&gt; arma.update_coefs()</span>
+<span class="sd">    &gt;&gt;&gt; arma</span>
+<span class="sd">    ARMA(ar_coefs=(0.788899, -0.256436, 0.034256),</span>
+<span class="sd">         ma_coefs=(0.019322, 0.052688, 0.075125, 0.096488, 0.089453,</span>
+<span class="sd">                   0.060854, 0.029041, 0.008929, 0.001397, 0.000001,</span>
+<span class="sd">                   -0.000004, 0.00001, -0.000008, -0.000009, -0.000004,</span>
+<span class="sd">                   -0.000001))</span>
+
+<span class="sd">    The number of AR coeffcients is actually reduced.  However, there are</span>
+<span class="sd">    now even more MA coefficients, possibly trying to compensate the lower</span>
+<span class="sd">    accuracy of the AR coefficients, and there is a slight decrease in</span>
+<span class="sd">    the precision of the moments:</span>
+
+<span class="sd">    &gt;&gt;&gt; arma.order</span>
+<span class="sd">    (3, 16)</span>
+<span class="sd">    &gt;&gt;&gt; round_(arma.moments)</span>
+<span class="sd">    4.110497, 1.926804</span>
+<span class="sd">    &gt;&gt;&gt; round_(arma.dev_moments)</span>
+<span class="sd">    0.000007</span>
+
+<span class="sd">    To also reduce the number of MA coefficients, one can set a higher</span>
+<span class="sd">    MA-related tolerance value:</span>
+
+<span class="sd">    &gt;&gt;&gt; arma.max_dev_coefs = 1e-3</span>
+<span class="sd">    &gt;&gt;&gt; arma.update_coefs()</span>
+<span class="sd">    &gt;&gt;&gt; arma</span>
+<span class="sd">    ARMA(ar_coefs=(0.788888, -0.256432, 0.034255),</span>
+<span class="sd">         ma_coefs=(0.019321, 0.052687, 0.075124, 0.096486, 0.089452,</span>
+<span class="sd">                   0.060853, 0.02904, 0.008929, 0.001397))</span>
+
+<span class="sd">    Now the total number of coefficients is in fact decreased, and the loss</span>
+<span class="sd">    in accuracy is still small:</span>
+
+<span class="sd">    &gt;&gt;&gt; arma.order</span>
+<span class="sd">    (3, 9)</span>
+<span class="sd">    &gt;&gt;&gt; round_(arma.moments)</span>
+<span class="sd">    4.110794, 1.927625</span>
+<span class="sd">    &gt;&gt;&gt; round_(arma.dev_moments)</span>
+<span class="sd">    0.001125</span>
+
+<span class="sd">    Further relaxing the tolerance values results in even less coefficients,</span>
+<span class="sd">    but also in some slightly negative responses to a standard impulse:</span>
+
+<span class="sd">    &gt;&gt;&gt; arma.max_rel_rmse = 1e-2</span>
+<span class="sd">    &gt;&gt;&gt; arma.max_dev_coefs = 1e-2</span>
+<span class="sd">    &gt;&gt;&gt; arma.update_coefs()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    UserWarning: Note that the smallest response to a standard impulse of the \</span>
+<span class="sd">determined ARMA model is negative (`-0.000316`).</span>
+<span class="sd">    &gt;&gt;&gt; arma</span>
+<span class="sd">    ARMA(ar_coefs=(0.736954, -0.166457),</span>
+<span class="sd">         ma_coefs=(0.01946, 0.05418, 0.077804, 0.098741, 0.091295,</span>
+<span class="sd">                   0.060797, 0.027226))</span>
+<span class="sd">    &gt;&gt;&gt; arma.order</span>
+<span class="sd">    (2, 7)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import print_values</span>
+<span class="sd">    &gt;&gt;&gt; print_values(arma.response)</span>
+<span class="sd">    0.01946, 0.068521, 0.125062, 0.1795, 0.202761, 0.180343, 0.12638,</span>
+<span class="sd">    0.063117, 0.025477, 0.008269, 0.001853, -0.000011, -0.000316,</span>
+<span class="sd">    -0.000231, -0.000118, -0.000048, -0.000016</span>
+
+<span class="sd">    It seems to be hard to find a parameter efficient approximation to the</span>
+<span class="sd">    MA model in the given example. Generally, approximating ARMA models to MA</span>
+<span class="sd">    models is more beneficial when functions with long tails are involved.</span>
+<span class="sd">    The most extreme example would be a simple exponential decline:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy</span>
+<span class="sd">    &gt;&gt;&gt; ma = MA(iuh=lambda x: 0.1*numpy.exp(-0.1*x))</span>
+<span class="sd">    &gt;&gt;&gt; ma.iuh.moment1 = 6.932</span>
+<span class="sd">    &gt;&gt;&gt; arma = ARMA(ma_model=ma)</span>
+
+<span class="sd">    In the given example a number of 185 MA coefficients can be reduced to a</span>
+<span class="sd">    total number of three ARMA coefficients with no relevant loss of accuracy:</span>
+
+<span class="sd">    &gt;&gt;&gt; ma.order</span>
+<span class="sd">    185</span>
+<span class="sd">    &gt;&gt;&gt; arma.order</span>
+<span class="sd">    (1, 2)</span>
+<span class="sd">    &gt;&gt;&gt; round_(arma.dev_moments)</span>
+<span class="sd">    0.0</span>
+
+<span class="sd">    Use the following plotting command to see why 2 MA coeffcients instead of</span>
+<span class="sd">    one are required in the above example:</span>
+
+<span class="sd">    &gt;&gt;&gt; arma.plot(threshold=0.9)</span>
+
+<span class="sd">    Decreasing the tolerance values too much results in the following errors:</span>
+
+<span class="sd">    &gt;&gt;&gt; arma.max_dev_coefs = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; arma.update_coefs()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: Method `update_ma_coefs` is not able to determine the MA \</span>
+<span class="sd">coefficients of the ARMA model with the desired accuracy.  You can set the \</span>
+<span class="sd">tolerance value ´max_dev_coefs` to a higher value.  An accuracy of \</span>
+<span class="sd">`0.000000000925` has been reached using `185` MA coefficients.</span>
+<span class="sd">    &gt;&gt;&gt; arma.max_rel_rmse = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; arma.update_coefs()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: Method `update_ar_coefs` is not able to determine the AR \</span>
+<span class="sd">coefficients of the ARMA model with the desired accuracy.  You can either \</span>
+<span class="sd">set the tolerance value `max_rel_rmse` to a higher value or increase the \</span>
+<span class="sd">allowed `max_ar_order`.  An accuracy of `0.0` has been reached using `10` \</span>
+<span class="sd">coefficients.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">max_ar_order</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="sd">&quot;&quot;&quot;Maximum number of AR coefficients that are to be determined by method</span>
+<span class="sd">    |ARMA.update_coefs|.&quot;&quot;&quot;</span>
+
+    <span class="n">max_rel_rmse</span> <span class="o">=</span> <span class="mf">1e-6</span>
+    <span class="sd">&quot;&quot;&quot;Maximum relative root mean squared error to be accepted by method</span>
+<span class="sd">    |ARMA.update_coefs|.&quot;&quot;&quot;</span>
+
+    <span class="n">max_dev_coefs</span> <span class="o">=</span> <span class="mf">1e-6</span>
+    <span class="sd">&quot;&quot;&quot;Maximum deviation of the sum of all coefficents from one to be accepted</span>
+<span class="sd">    by method |ARMA.update_coefs|.&quot;&quot;&quot;</span>
+
+    <span class="n">_ma_coefs</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_ar_coefs</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ma_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ar_coefs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ma_coefs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ma</span> <span class="o">=</span> <span class="n">ma_model</span>
+        <span class="k">if</span> <span class="n">ar_coefs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ar_coefs</span> <span class="o">=</span> <span class="n">ar_coefs</span>
+        <span class="k">if</span> <span class="n">ma_coefs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ma_coefs</span> <span class="o">=</span> <span class="n">ma_coefs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rel_rmse</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rel_rmse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Relative root mean squared error the last time achieved by method</span>
+<span class="sd">        |ARMA.update_coefs|.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rel_rmse</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ar_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The AR coefficients of the AR model.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ar_coefs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_ar_coefs</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ar_coefs</span>
+
+    <span class="nd">@ar_coefs</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">ar_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ar_coefs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="nd">@ar_coefs</span><span class="o">.</span><span class="n">deleter</span>
+    <span class="k">def</span> <span class="nf">ar_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ar_coefs</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ma_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The MA coefficients of the ARMA model.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ma_coefs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_ma_coefs</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ma_coefs</span>
+
+    <span class="nd">@ma_coefs</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">ma_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ma_coefs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="nd">@ma_coefs</span><span class="o">.</span><span class="n">deleter</span>
+    <span class="k">def</span> <span class="nf">ma_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ma_coefs</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Tuple containing both the AR and the MA coefficients.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ar_coefs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ma_coefs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ar_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of AR coefficients.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ar_coefs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ma_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of MA coefficients&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ma_coefs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of both the AR and the MA coefficients.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ar_order</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ma_order</span>
+
+<div class="viewcode-block" id="ARMA.update_coefs"><a class="viewcode-back" href="../../../armatools.html#hydpy.auxs.armatools.ARMA.update_coefs">[docs]</a>    <span class="k">def</span> <span class="nf">update_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Determine both the AR and the MA coefficients.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_ar_coefs</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_ma_coefs</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">effective_max_ar_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The maximum number of AR coefficients that shall or can be</span>
+<span class="sd">        determined.</span>
+
+<span class="sd">        It is the minimum of |ARMA.max_ar_order| and the number of</span>
+<span class="sd">        coefficients of the pure |MA| after their turning point.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_ar_order</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">order</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">turningpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ARMA.update_ar_coefs"><a class="viewcode-back" href="../../../armatools.html#hydpy.auxs.armatools.ARMA.update_ar_coefs">[docs]</a>    <span class="k">def</span> <span class="nf">update_ar_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Determine the AR coefficients.</span>
+
+<span class="sd">        The number of AR coefficients is subsequently increased until the</span>
+<span class="sd">        required precision |ARMA.max_rel_rmse| is reached.  Otherwise,</span>
+<span class="sd">        a |RuntimeError| is raised.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">ar_coefs</span>
+        <span class="k">for</span> <span class="n">ar_order</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">effective_max_ar_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calc_all_ar_coefs</span><span class="p">(</span><span class="n">ar_order</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ma</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rel_rmse</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_rel_rmse</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span><span class="p">(</span><span class="mi">12</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Method `update_ar_coefs` is not able to determine &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;the AR coefficients of the ARMA model with the desired &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;accuracy.  You can either set the tolerance value &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;`max_rel_rmse` to a higher value or increase the &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;allowed `max_ar_order`.  An accuracy of `&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rel_rmse</span><span class="p">)</span><span class="si">}</span><span class="s2">` has been reached &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;using `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">effective_max_ar_order</span><span class="si">}</span><span class="s2">` coefficients.&quot;</span>
+                <span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dev_moments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sum of the absolute deviations between the central moments of the</span>
+<span class="sd">        instantaneous unit hydrograph and the ARMA approximation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">moments</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">moments</span><span class="p">))</span>
+
+<div class="viewcode-block" id="ARMA.norm_coefs"><a class="viewcode-back" href="../../../armatools.html#hydpy.auxs.armatools.ARMA.norm_coefs">[docs]</a>    <span class="k">def</span> <span class="nf">norm_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Multiply all coefficients by the same factor, so that their sum</span>
+<span class="sd">        becomes one.&quot;&quot;&quot;</span>
+        <span class="n">sum_coefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sum_coefs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ar_coefs</span> <span class="o">/=</span> <span class="n">sum_coefs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ma_coefs</span> <span class="o">/=</span> <span class="n">sum_coefs</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sum_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The sum of all AR and MA coefficients&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ar_coefs</span><span class="p">)</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ma_coefs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dev_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Absolute deviation of |ARMA.sum_coefs| from one.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sum_coefs</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ARMA.calc_all_ar_coefs"><a class="viewcode-back" href="../../../armatools.html#hydpy.auxs.armatools.ARMA.calc_all_ar_coefs">[docs]</a>    <span class="k">def</span> <span class="nf">calc_all_ar_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ar_order</span><span class="p">,</span> <span class="n">ma_model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Determine the AR coeffcients based on a least squares approach.</span>
+
+<span class="sd">        The argument `ar_order` defines the number of AR coefficients to be</span>
+<span class="sd">        determined.  The argument `ma_order` defines a pure |MA| model.</span>
+<span class="sd">        The least squares approach is applied on all those coefficents of the</span>
+<span class="sd">        pure MA model, which are associated with the part of the recession</span>
+<span class="sd">        curve behind its turning point.</span>
+
+<span class="sd">        The attribute |ARMA.rel_rmse| is updated with the resulting</span>
+<span class="sd">        relative root mean square error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">turning_idx</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ma_model</span><span class="o">.</span><span class="n">turningpoint</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">ma_model</span><span class="o">.</span><span class="n">coefs</span><span class="p">[</span><span class="n">turning_idx</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ar_coefs</span><span class="p">,</span> <span class="n">residuals</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_a</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">ar_order</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_b</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">ar_order</span><span class="p">),</span> <span class="n">rcond</span><span class="o">=-</span><span class="mi">1</span>
+        <span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">residuals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rel_rmse</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">residuals</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rel_rmse</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+<div class="viewcode-block" id="ARMA.get_a"><a class="viewcode-back" href="../../../armatools.html#hydpy.auxs.armatools.ARMA.get_a">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_a</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract the independent variables of the given values and return</span>
+<span class="sd">        them as a matrix with n columns in a form suitable for the least</span>
+<span class="sd">        squares approach applied in method |ARMA.update_ar_coefs|.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="n">n</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+            <span class="n">i0</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">i1</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">i1</span><span class="p">:</span><span class="n">i0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">a</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ARMA.get_b"><a class="viewcode-back" href="../../../armatools.html#hydpy.auxs.armatools.ARMA.get_b">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_b</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract the dependent variables of the values in a vector with n</span>
+<span class="sd">        entries in a form suitable for the least squares approach applied in</span>
+<span class="sd">        method |ARMA.update_ar_coefs|.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">n</span><span class="p">:])</span></div>
+
+<div class="viewcode-block" id="ARMA.update_ma_coefs"><a class="viewcode-back" href="../../../armatools.html#hydpy.auxs.armatools.ARMA.update_ma_coefs">[docs]</a>    <span class="k">def</span> <span class="nf">update_ma_coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Determine the MA coefficients.</span>
+
+<span class="sd">        The number of MA coefficients is subsequently increased until the</span>
+<span class="sd">        required precision |ARMA.max_dev_coefs| is reached.  Otherwise,</span>
+<span class="sd">        a |RuntimeError| is raised.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ma_coefs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ma_order</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calc_next_ma_coef</span><span class="p">(</span><span class="n">ma_order</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ma</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dev_coefs</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_dev_coefs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">norm_coefs</span><span class="p">()</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span><span class="p">(</span><span class="mi">12</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Method `update_ma_coefs` is not able to determine the &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;MA coefficients of the ARMA model with the desired &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;accuracy.  You can set the tolerance value &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;´max_dev_coefs` to a higher value.  An accuracy of &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dev_coefs</span><span class="p">)</span><span class="si">}</span><span class="s2">` has been reached &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;using `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">order</span><span class="si">}</span><span class="s2">` MA coefficients.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Note that the smallest response to a standard impulse of the &quot;</span>
+                <span class="s2">&quot;determined ARMA model is negative (`</span><span class="si">%s</span><span class="s2">`).&quot;</span>
+                <span class="o">%</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">))</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="ARMA.calc_next_ma_coef"><a class="viewcode-back" href="../../../armatools.html#hydpy.auxs.armatools.ARMA.calc_next_ma_coef">[docs]</a>    <span class="k">def</span> <span class="nf">calc_next_ma_coef</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ma_order</span><span class="p">,</span> <span class="n">ma_model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Determine the MA coefficients of the ARMA model based on its</span>
+<span class="sd">        predetermined AR coefficients and the MA ordinates of the given</span>
+<span class="sd">        |MA| model.</span>
+
+<span class="sd">        The MA coefficients are determined one at a time, beginning with the</span>
+<span class="sd">        first one.  Each ARMA MA coefficient in set in a manner that allows</span>
+<span class="sd">        for the exact reproduction of the equivalent pure MA coefficient with</span>
+<span class="sd">        all relevant ARMA coefficients.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">ma_order</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">coef</span> <span class="o">=</span> <span class="n">ma_model</span><span class="o">.</span><span class="n">coefs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">jdx</span><span class="p">,</span> <span class="n">ar_coef</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ar_coefs</span><span class="p">):</span>
+            <span class="n">zdx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">-</span> <span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">zdx</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">coef</span> <span class="o">-=</span> <span class="n">ar_coef</span> <span class="o">*</span> <span class="n">ma_model</span><span class="o">.</span><span class="n">coefs</span><span class="p">[</span><span class="n">zdx</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ma_coefs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">ma_coefs</span><span class="p">,</span> <span class="p">[</span><span class="n">coef</span><span class="p">]))</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">response</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the response to a standard dt impulse.&quot;&quot;&quot;</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sum_values</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">ma_coefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ma_coefs</span>
+        <span class="n">ar_coefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ar_coefs</span>
+        <span class="n">ma_order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ma_order</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">delays</span><span class="p">)):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="n">ma_order</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">+=</span> <span class="n">ma_coefs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">jdx</span><span class="p">,</span> <span class="n">ar_coef</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ar_coefs</span><span class="p">):</span>
+                <span class="n">zdx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">-</span> <span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">zdx</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">+=</span> <span class="n">ar_coef</span> <span class="o">*</span> <span class="n">values</span><span class="p">[</span><span class="n">zdx</span><span class="p">]</span>
+            <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">sum_values</span> <span class="o">+=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">moments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The first two time delay weighted statistical moments of the</span>
+<span class="sd">        ARMA response.&quot;&quot;&quot;</span>
+        <span class="n">timepoints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">delays</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span>
+        <span class="n">moment1</span> <span class="o">=</span> <span class="n">statstools</span><span class="o">.</span><span class="n">calc_mean_time</span><span class="p">(</span><span class="n">timepoints</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+        <span class="n">moment2</span> <span class="o">=</span> <span class="n">statstools</span><span class="o">.</span><span class="n">calc_mean_time_deviation</span><span class="p">(</span><span class="n">timepoints</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">moment1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">moment1</span><span class="p">,</span> <span class="n">moment2</span><span class="p">])</span>
+
+<div class="viewcode-block" id="ARMA.plot"><a class="viewcode-back" href="../../../armatools.html#hydpy.auxs.armatools.ARMA.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Barplot of the ARMA response.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Works under matplotlib 3.</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
+                <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">delays</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="n">height</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">,</span>
+                <span class="n">width</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="c1"># Works under matplotlib 2.</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
+                <span class="n">left</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">delays</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="n">height</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">,</span>
+                <span class="n">width</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;response&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cumsum</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="p">)</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cumsum</span> <span class="o">&gt;</span> <span class="n">threshold</span> <span class="o">*</span> <span class="n">cumsum</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">,</span><span class="se">\n</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ar_coefs</span><span class="p">,</span> <span class="s2">&quot;ARMA(ar_coefs=&quot;</span><span class="p">,</span> <span class="mi">70</span><span class="p">),</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ma_coefs</span><span class="p">,</span> <span class="s2">&quot;     ma_coefs=&quot;</span><span class="p">,</span> <span class="mi">70</span><span class="p">),</span>
+        <span class="p">)</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.auxs.armatools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

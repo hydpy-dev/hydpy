@@ -1,0 +1,617 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>autodoctools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="auxfiletools" href="auxfiletools.html" />
+    <link rel="prev" title="aliastools" href="aliastools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="auxfiletools.html" title="auxfiletools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="aliastools.html" title="aliastools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">autodoctools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="autodoctools">
+<span id="id1"></span><h1>autodoctools<a class="headerlink" href="#autodoctools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.autodoctools"></span><p>This module implements tools for increasing the level of automation and
+standardisation of the online documentation generated with Sphinx.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.autodoctools" title="hydpy.core.autodoctools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">autodoctools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.autodoctools.autodoc_basemodel" title="hydpy.core.autodoctools.autodoc_basemodel"><code class="xref py py-func docutils literal notranslate"><span class="pre">autodoc_basemodel()</span></code></a> Add an exhaustive docstring to the given module of a basemodel.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.autodoctools.autodoc_applicationmodel" title="hydpy.core.autodoctools.autodoc_applicationmodel"><code class="xref py py-func docutils literal notranslate"><span class="pre">autodoc_applicationmodel()</span></code></a> Improves the docstrings of application models when called at the bottom of the respective module.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.autodoctools.Substituter" title="hydpy.core.autodoctools.Substituter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Substituter</span></code></a> Implements a HydPy specific docstring substitution mechanism.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.autodoctools.prepare_mainsubstituter" title="hydpy.core.autodoctools.prepare_mainsubstituter"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_mainsubstituter()</span></code></a> Prepare and return a <a class="reference internal" href="#hydpy.core.autodoctools.Substituter" title="hydpy.core.autodoctools.Substituter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Substituter</span></code></a> object for the main <cite>__init__</cite> file of <em>HydPy</em>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.autodoctools.autodoc_module" title="hydpy.core.autodoctools.autodoc_module"><code class="xref py py-func docutils literal notranslate"><span class="pre">autodoc_module()</span></code></a> Add a short summary of all implemented members to a modules docstring.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.autodoctools.autodoc_tuple2doc" title="hydpy.core.autodoctools.autodoc_tuple2doc"><code class="xref py py-func docutils literal notranslate"><span class="pre">autodoc_tuple2doc()</span></code></a> Include tuples as <cite>CLASSES</cite> of <cite>ControlParameters</cite> and <cite>RUN_METHODS</cite> of <cite>Models</cite> into the respective docstring.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py function">
+<dt id="hydpy.core.autodoctools.autodoc_basemodel">
+<code class="sig-prename descclassname"><span class="pre">hydpy.core.autodoctools.</span></code><code class="sig-name descname"><span class="pre">autodoc_basemodel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#autodoc_basemodel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.autodoc_basemodel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an exhaustive docstring to the given module of a basemodel.</p>
+<p>Works onlye when all modules of the basemodel are named in the
+standard way, e.g. <cite>lland_model</cite>, <cite>lland_control</cite>, <cite>lland_inputs</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="hydpy.core.autodoctools.autodoc_applicationmodel">
+<code class="sig-prename descclassname"><span class="pre">hydpy.core.autodoctools.</span></code><code class="sig-name descname"><span class="pre">autodoc_applicationmodel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#autodoc_applicationmodel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.autodoc_applicationmodel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Improves the docstrings of application models when called
+at the bottom of the respective module.</p>
+<p><a class="reference internal" href="#hydpy.core.autodoctools.autodoc_applicationmodel" title="hydpy.core.autodoctools.autodoc_applicationmodel"><code class="xref py py-func docutils literal notranslate"><span class="pre">autodoc_applicationmodel()</span></code></a> requires, similar to
+<a class="reference internal" href="#hydpy.core.autodoctools.autodoc_basemodel" title="hydpy.core.autodoctools.autodoc_basemodel"><code class="xref py py-func docutils literal notranslate"><span class="pre">autodoc_basemodel()</span></code></a>, that both the application model and its
+base model are defined in the conventional way.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.autodoctools.Substituter">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.autodoctools.</span></code><code class="sig-name descname"><span class="pre">Substituter</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#Substituter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.Substituter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Implements a HydPy specific docstring substitution mechanism.</p>
+<dl class="py method">
+<dt id="hydpy.core.autodoctools.Substituter.consider_member">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">consider_member</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name_member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">member</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">class_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#Substituter.consider_member"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.Substituter.consider_member" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code> if the given member should be added to the
+substitutions. If not return <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<p>Some examples based on the site-package <a class="reference external" href="https://numpy.org/doc/stable/reference/index.html#module-numpy" title="(in NumPy v1.20)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">numpy</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.autodoctools</span> <span class="kn">import</span> <span class="n">Substituter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+</pre></div>
+</div>
+<p>A constant like <code class="xref py py-const docutils literal notranslate"><span class="pre">nan</span></code> should be added:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">consider_member</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">numpy</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Members with a prefixed underscore should not be added:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">consider_member</span><span class="p">(</span><span class="s2">&quot;_NoValue&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">_NoValue</span><span class="p">,</span> <span class="n">numpy</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>Members that are actually imported modules should not be added:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">consider_member</span><span class="p">(</span><span class="s2">&quot;warnings&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">warnings</span><span class="p">,</span> <span class="n">numpy</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>Members that are actually defined in other modules should
+not be added:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">Substituter</span> <span class="o">=</span> <span class="n">Substituter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">consider_member</span><span class="p">(</span><span class="s2">&quot;Substituter&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">Substituter</span><span class="p">,</span> <span class="n">numpy</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">numpy</span><span class="o">.</span><span class="n">Substituter</span>
+</pre></div>
+</div>
+<p>Members that are defined in submodules of a given package
+(either from the standard library or from site-packages)
+should be added…</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">consider_member</span><span class="p">(</span><span class="s2">&quot;clip&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">clip</span><span class="p">,</span> <span class="n">numpy</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>…but not members defined in <em>HydPy</em> submodules:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">consider_member</span><span class="p">(</span><span class="s2">&quot;Node&quot;</span><span class="p">,</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">Node</span><span class="p">,</span> <span class="n">hydpy</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>For descriptor instances (with method <cite>__get__</cite>) being members
+of classes should be added:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.auxs</span> <span class="kn">import</span> <span class="n">anntools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">consider_member</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;shape_neurons&quot;</span><span class="p">,</span> <span class="n">anntools</span><span class="o">.</span><span class="n">ANN</span><span class="o">.</span><span class="n">shape_neurons</span><span class="p">,</span> <span class="n">anntools</span><span class="p">,</span> <span class="n">anntools</span><span class="o">.</span><span class="n">ANN</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>You can decide to ignore certain members:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">consider_member</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;shape_neurons&quot;</span><span class="p">,</span> <span class="n">anntools</span><span class="o">.</span><span class="n">ANN</span><span class="o">.</span><span class="n">shape_neurons</span><span class="p">,</span> <span class="n">anntools</span><span class="p">,</span> <span class="n">anntools</span><span class="o">.</span><span class="n">ANN</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">{</span><span class="s2">&quot;test&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">})</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">consider_member</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;shape_neurons&quot;</span><span class="p">,</span> <span class="n">anntools</span><span class="o">.</span><span class="n">ANN</span><span class="o">.</span><span class="n">shape_neurons</span><span class="p">,</span> <span class="n">anntools</span><span class="p">,</span> <span class="n">anntools</span><span class="o">.</span><span class="n">ANN</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">{</span><span class="s2">&quot;shape_neurons&quot;</span><span class="p">:</span> <span class="n">anntools</span><span class="o">.</span><span class="n">ANN</span><span class="o">.</span><span class="n">shape_neurons</span><span class="p">})</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.autodoctools.Substituter.get_role">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">get_role</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">member</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cython</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#Substituter.get_role"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.Substituter.get_role" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the reStructuredText role <cite>func</cite>, <cite>class</cite>, or <cite>const</cite>
+best describing the given member.</p>
+<p>Some examples based on the site-package <a class="reference external" href="https://numpy.org/doc/stable/reference/index.html#module-numpy" title="(in NumPy v1.20)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">numpy</span></code></a>.  <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.clip.html#numpy.clip" title="(in NumPy v1.20)"><code class="xref py py-func docutils literal notranslate"><span class="pre">clip()</span></code></a>
+is a function:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.autodoctools</span> <span class="kn">import</span> <span class="n">Substituter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">get_role</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">clip</span><span class="p">)</span>
+<span class="go">&#39;func&#39;</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> is a class:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">get_role</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+<span class="go">&#39;class&#39;</span>
+</pre></div>
+</div>
+<p><code class="xref py py-func docutils literal notranslate"><span class="pre">clip()</span></code> is a method, for which also the <cite>function</cite>
+role is returned:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">get_role</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="n">clip</span><span class="p">)</span>
+<span class="go">&#39;func&#39;</span>
+</pre></div>
+</div>
+<p>For everything else the <cite>constant</cite> role is returned:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">get_role</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+<span class="go">&#39;const&#39;</span>
+</pre></div>
+</div>
+<p>When analysing cython extension modules, set the option <cite>cython</cite>
+flag to <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code>.  <code class="xref py py-class docutils literal notranslate"><span class="pre">Double</span></code> is correctly identified as a class:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="kn">import</span> <span class="n">pointerutils</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">get_role</span><span class="p">(</span><span class="n">pointerutils</span><span class="o">.</span><span class="n">Double</span><span class="p">,</span> <span class="n">cython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="go">&#39;class&#39;</span>
+</pre></div>
+</div>
+<p>Only with the <cite>cython</cite> flag beeing <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code>, for everything else
+the <cite>function</cite> text role is returned (doesn’t make sense here,
+but the <a class="reference external" href="https://numpy.org/doc/stable/reference/index.html#module-numpy" title="(in NumPy v1.20)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">numpy</span></code></a> module is not something defined in module
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">pointerutils</span></code> anyway):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Substituter</span><span class="o">.</span><span class="n">get_role</span><span class="p">(</span><span class="n">pointerutils</span><span class="o">.</span><span class="n">numpy</span><span class="p">,</span> <span class="n">cython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="go">&#39;func&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.autodoctools.Substituter.add_substitution">
+<code class="sig-name descname"><span class="pre">add_substitution</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">short</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">medium</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#Substituter.add_substitution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.Substituter.add_substitution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the given substitutions both as a <cite>short2long</cite> and a
+<cite>medium2long</cite> mapping.</p>
+<p>Assume <cite>variable1</cite> is defined in the hydpy module <cite>module1</cite> and the
+short and medium descriptions are <cite>var1</cite> and <cite>mod1.var1</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">types</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">module1</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">(</span><span class="s2">&quot;hydpy.module1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.autodoctools</span> <span class="kn">import</span> <span class="n">Substituter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span> <span class="o">=</span> <span class="n">Substituter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">add_substitution</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;var1&quot;</span><span class="p">,</span> <span class="s2">&quot;mod1.var1&quot;</span><span class="p">,</span> <span class="s2">&quot;module1.variable1&quot;</span><span class="p">,</span> <span class="n">module1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">substituter</span><span class="o">.</span><span class="n">get_commands</span><span class="p">())</span>
+<span class="go">.. var1 replace:: module1.variable1</span>
+<span class="go">.. mod1.var1 replace:: module1.variable1</span>
+</pre></div>
+</div>
+<p>Adding <cite>variable2</cite> of <cite>module2</cite> has no effect on the predefined
+substitutions:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">module2</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">(</span><span class="s2">&quot;hydpy.module2&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">add_substitution</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;var2&quot;</span><span class="p">,</span> <span class="s2">&quot;mod2.var2&quot;</span><span class="p">,</span> <span class="s2">&quot;module2.variable2&quot;</span><span class="p">,</span> <span class="n">module2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">substituter</span><span class="o">.</span><span class="n">get_commands</span><span class="p">())</span>
+<span class="go">.. var1 replace:: module1.variable1</span>
+<span class="go">.. var2 replace:: module2.variable2</span>
+<span class="go">.. mod1.var1 replace:: module1.variable1</span>
+<span class="go">.. mod2.var2 replace:: module2.variable2</span>
+</pre></div>
+</div>
+<p>But when adding <cite>variable1</cite> of <cite>module2</cite>, the <cite>short2long</cite> mapping
+of <cite>variable1</cite> would become inconclusive, which is why the new
+one (related to <cite>module2</cite>) is not stored and the old one (related
+to <cite>module1</cite>) is removed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">add_substitution</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;var1&quot;</span><span class="p">,</span> <span class="s2">&quot;mod2.var1&quot;</span><span class="p">,</span> <span class="s2">&quot;module2.variable1&quot;</span><span class="p">,</span> <span class="n">module2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">substituter</span><span class="o">.</span><span class="n">get_commands</span><span class="p">())</span>
+<span class="go">.. var2 replace:: module2.variable2</span>
+<span class="go">.. mod1.var1 replace:: module1.variable1</span>
+<span class="go">.. mod2.var1 replace:: module2.variable1</span>
+<span class="go">.. mod2.var2 replace:: module2.variable2</span>
+</pre></div>
+</div>
+<p>Adding <cite>variable2</cite> of <cite>module2</cite> accidentally again, does not
+result in any undesired side-effects:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">add_substitution</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;var2&quot;</span><span class="p">,</span> <span class="s2">&quot;mod2.var2&quot;</span><span class="p">,</span> <span class="s2">&quot;module2.variable2&quot;</span><span class="p">,</span> <span class="n">module2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">substituter</span><span class="o">.</span><span class="n">get_commands</span><span class="p">())</span>
+<span class="go">.. var2 replace:: module2.variable2</span>
+<span class="go">.. mod1.var1 replace:: module1.variable1</span>
+<span class="go">.. mod2.var1 replace:: module2.variable1</span>
+<span class="go">.. mod2.var2 replace:: module2.variable2</span>
+</pre></div>
+</div>
+<p>In order to reduce the risk of name conflicts, only the
+<cite>medium2long</cite> mapping is supported for modules not part of the
+<em>HydPy</em> package:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">module3</span> <span class="o">=</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">(</span><span class="s2">&quot;module3&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">add_substitution</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;var3&quot;</span><span class="p">,</span> <span class="s2">&quot;mod3.var3&quot;</span><span class="p">,</span> <span class="s2">&quot;module3.variable3&quot;</span><span class="p">,</span> <span class="n">module3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">substituter</span><span class="o">.</span><span class="n">get_commands</span><span class="p">())</span>
+<span class="go">.. var2 replace:: module2.variable2</span>
+<span class="go">.. mod1.var1 replace:: module1.variable1</span>
+<span class="go">.. mod2.var1 replace:: module2.variable1</span>
+<span class="go">.. mod2.var2 replace:: module2.variable2</span>
+<span class="go">.. mod3.var3 replace:: module3.variable3</span>
+</pre></div>
+</div>
+<p>The only exception to this rule is <a class="reference external" href="https://docs.python.org/3/library/builtins.html#module-builtins" title="(in Python v3.9)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">builtins</span></code></a>, for which only
+the <cite>short2long</cite> mapping is supported (note also, that the
+module name <cite>builtins</cite> is removed from string <cite>long</cite>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">builtins</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">add_substitution</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="s2">&quot;blt.str&quot;</span><span class="p">,</span> <span class="s2">&quot;:func:`~builtins.str`&quot;</span><span class="p">,</span> <span class="n">builtins</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">substituter</span><span class="o">.</span><span class="n">get_commands</span><span class="p">())</span>
+<span class="go">.. str replace:: :func:`str`</span>
+<span class="go">.. var2 replace:: module2.variable2</span>
+<span class="go">.. mod1.var1 replace:: module1.variable1</span>
+<span class="go">.. mod2.var1 replace:: module2.variable1</span>
+<span class="go">.. mod2.var2 replace:: module2.variable2</span>
+<span class="go">.. mod3.var3 replace:: module3.variable3</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.autodoctools.Substituter.add_module">
+<code class="sig-name descname"><span class="pre">add_module</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cython</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#Substituter.add_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.Substituter.add_module" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the given module, its members, and their submembers.</p>
+<p>The first examples are based on the site-package <a class="reference external" href="https://numpy.org/doc/stable/reference/index.html#module-numpy" title="(in NumPy v1.20)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">numpy</span></code></a>: which
+is passed to method <a class="reference internal" href="#hydpy.core.autodoctools.Substituter.add_module" title="hydpy.core.autodoctools.Substituter.add_module"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_module()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.autodoctools</span> <span class="kn">import</span> <span class="n">Substituter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span> <span class="o">=</span> <span class="n">Substituter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">numpy</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>First, the module itself is added:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;|numpy|&quot;</span><span class="p">)</span>
+<span class="go">|numpy| :mod:`~numpy`</span>
+</pre></div>
+</div>
+<p>Second, constants like <code class="xref py py-const docutils literal notranslate"><span class="pre">nan</span></code> are added:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;|numpy.nan|&quot;</span><span class="p">)</span>
+<span class="go">|numpy.nan| :const:`~numpy.nan`</span>
+</pre></div>
+</div>
+<p>Third, functions like <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.clip.html#numpy.clip" title="(in NumPy v1.20)"><code class="xref py py-func docutils literal notranslate"><span class="pre">clip()</span></code></a> are added:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;|numpy.clip|&quot;</span><span class="p">)</span>
+<span class="go">|numpy.clip| :func:`~numpy.clip`</span>
+</pre></div>
+</div>
+<p>Fourth, clases line <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> are added:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;|numpy.ndarray|&quot;</span><span class="p">)</span>
+<span class="go">|numpy.ndarray| :class:`~numpy.ndarray`</span>
+</pre></div>
+</div>
+<p>Method <a class="reference internal" href="#hydpy.core.autodoctools.Substituter.add_module" title="hydpy.core.autodoctools.Substituter.add_module"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_module()</span></code></a> also searches for available
+annotations:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">timetools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">timetools</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;Timegrids.init&quot;</span><span class="p">)</span>
+<span class="go">|Timegrids.initindices| :const:`~hydpy.core.timetools.Timegrids.initindices`</span>
+<span class="go">|Timegrids.init| :attr:`~hydpy.core.timetools.Timegrids.init`</span>
+<span class="go">|timetools.Timegrids.initindices| :const:`~hydpy.core.timetools.Timegrids.initindices`</span>
+<span class="go">|timetools.Timegrids.init| :attr:`~hydpy.core.timetools.Timegrids.init`</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.auxs</span> <span class="kn">import</span> <span class="n">calibtools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">calibtools</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;ReplaceIUH.update_parameters&quot;</span><span class="p">)</span>
+<span class="go">|ReplaceIUH.update_parameters| :attr:`~hydpy.auxs.calibtools.ReplaceIUH.update_parameters`</span>
+<span class="go">|calibtools.ReplaceIUH.update_parameters| :attr:`~hydpy.auxs.calibtools.ReplaceIUH.update_parameters`</span>
+</pre></div>
+</div>
+<p>When adding Cython modules, the <cite>cython</cite> flag should be set <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="kn">import</span> <span class="n">pointerutils</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">pointerutils</span><span class="p">,</span> <span class="n">cython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;set_pointer&quot;</span><span class="p">)</span>
+<span class="go">|PPDouble.set_pointer| :func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`</span>
+<span class="go">|pointerutils.PPDouble.set_pointer| :func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.autodoctools.Substituter.add_modules">
+<code class="sig-name descname"><span class="pre">add_modules</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#Substituter.add_modules"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.Substituter.add_modules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the modules of the given package without their members.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.autodoctools.Substituter.update_masters">
+<code class="sig-name descname"><span class="pre">update_masters</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#Substituter.update_masters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.Substituter.update_masters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update all <cite>master</cite> <a class="reference internal" href="#hydpy.core.autodoctools.Substituter" title="hydpy.core.autodoctools.Substituter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Substituter</span></code></a> objects.</p>
+<p>If a <a class="reference internal" href="#hydpy.core.autodoctools.Substituter" title="hydpy.core.autodoctools.Substituter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Substituter</span></code></a> object is passed to the constructor of another
+<a class="reference internal" href="#hydpy.core.autodoctools.Substituter" title="hydpy.core.autodoctools.Substituter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Substituter</span></code></a> object, they become <cite>master</cite> and <cite>slave</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.autodoctools</span> <span class="kn">import</span> <span class="n">Substituter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub1</span> <span class="o">=</span> <span class="n">Substituter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">devicetools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub1</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">devicetools</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub2</span> <span class="o">=</span> <span class="n">Substituter</span><span class="p">(</span><span class="n">sub1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub3</span> <span class="o">=</span> <span class="n">Substituter</span><span class="p">(</span><span class="n">sub2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub3</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">master</span> <span class="ow">is</span> <span class="n">sub1</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub2</span> <span class="ow">in</span> <span class="n">sub1</span><span class="o">.</span><span class="n">slaves</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>During initialization, all mappings handled by the master object
+are passed to its new slave:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sub3</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;Node|&quot;</span><span class="p">)</span>
+<span class="go">|Node| :class:`~hydpy.core.devicetools.Node`</span>
+<span class="go">|devicetools.Node| :class:`~hydpy.core.devicetools.Node`</span>
+</pre></div>
+</div>
+<p>Updating a slave, does not affect its master directly:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">hydpytools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub3</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">hydpytools</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub3</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;HydPy|&quot;</span><span class="p">)</span>
+<span class="go">|HydPy| :class:`~hydpy.core.hydpytools.HydPy`</span>
+<span class="go">|hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub2</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;HydPy|&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Through calling <a class="reference internal" href="#hydpy.core.autodoctools.Substituter.update_masters" title="hydpy.core.autodoctools.Substituter.update_masters"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_masters()</span></code></a>, the <cite>medium2long</cite>
+mappings are passed from the slave to its master:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sub3</span><span class="o">.</span><span class="n">update_masters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub2</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;HydPy|&quot;</span><span class="p">)</span>
+<span class="go">|hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`</span>
+</pre></div>
+</div>
+<p>Then each master object updates its own master object also:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sub1</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;HydPy|&quot;</span><span class="p">)</span>
+<span class="go">|hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`</span>
+</pre></div>
+</div>
+<p>In reverse, subsequent updates of master objects to not affect
+their slaves directly:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">masktools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub1</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">masktools</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub1</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;Masks|&quot;</span><span class="p">)</span>
+<span class="go">|Masks| :class:`~hydpy.core.masktools.Masks`</span>
+<span class="go">|NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`</span>
+<span class="go">|masktools.Masks| :class:`~hydpy.core.masktools.Masks`</span>
+<span class="go">|masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub2</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;Masks|&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Through calling <a class="reference internal" href="#hydpy.core.autodoctools.Substituter.update_slaves" title="hydpy.core.autodoctools.Substituter.update_slaves"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_slaves()</span></code></a>, the <cite>medium2long</cite>
+mappings are passed the master to all of its slaves:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sub1</span><span class="o">.</span><span class="n">update_slaves</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub2</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;Masks|&quot;</span><span class="p">)</span>
+<span class="go">|masktools.Masks| :class:`~hydpy.core.masktools.Masks`</span>
+<span class="go">|masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sub3</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;Masks|&quot;</span><span class="p">)</span>
+<span class="go">|masktools.Masks| :class:`~hydpy.core.masktools.Masks`</span>
+<span class="go">|masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.autodoctools.Substituter.update_slaves">
+<code class="sig-name descname"><span class="pre">update_slaves</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#Substituter.update_slaves"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.Substituter.update_slaves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update all <cite>slave</cite> <a class="reference internal" href="#hydpy.core.autodoctools.Substituter" title="hydpy.core.autodoctools.Substituter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Substituter</span></code></a> objects.</p>
+<p>See method <a class="reference internal" href="#hydpy.core.autodoctools.Substituter.update_masters" title="hydpy.core.autodoctools.Substituter.update_masters"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_masters()</span></code></a> for further information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.autodoctools.Substituter.get_commands">
+<code class="sig-name descname"><span class="pre">get_commands</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#Substituter.get_commands"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.Substituter.get_commands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a string containing multiple <cite>reStructuredText</cite>
+replacements with the substitutions currently defined.</p>
+<p>Some examples based on the subpackage <a class="reference internal" href="optiontools.html#module-hydpy.core.optiontools" title="hydpy.core.optiontools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optiontools</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.autodoctools</span> <span class="kn">import</span> <span class="n">Substituter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span> <span class="o">=</span> <span class="n">Substituter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">optiontools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">substituter</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">optiontools</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When calling <a class="reference internal" href="#hydpy.core.autodoctools.Substituter.get_commands" title="hydpy.core.autodoctools.Substituter.get_commands"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_commands()</span></code></a> with the <cite>source</cite>
+argument, the complete <cite>short2long</cite> and <cite>medium2long</cite> mappings
+are translated into replacement commands (only a few of them
+are shown):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">substituter</span><span class="o">.</span><span class="n">get_commands</span><span class="p">())</span>   
+<span class="go">.. |Options.autocompile| replace:: :const:`~hydpy.core.optiontools.Options.autocompile`</span>
+<span class="go">.. |Options.checkseries| replace:: :const:`~hydpy.core.optiontools.Options.checkseries`</span>
+<span class="gp">...</span>
+<span class="go">.. |optiontools.Options.autocompile| replace:: :const:`~hydpy.core.optiontools.Options.autocompile`</span>
+<span class="go">.. |optiontools.Options.checkseries| replace:: :const:`~hydpy.core.optiontools.Options.checkseries`</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<p>Through passing a string (usually the source code of a file
+to be documented), only the replacement commands relevant for
+this string are translated:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">inspect</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">source</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getsource</span><span class="p">(</span><span class="n">objecttools</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">substituter</span><span class="o">.</span><span class="n">get_commands</span><span class="p">(</span><span class="n">source</span><span class="p">))</span>
+<span class="go">.. |Options.ellipsis| replace:: :const:`~hydpy.core.optiontools.Options.ellipsis`</span>
+<span class="go">.. |Options.reprdigits| replace:: :const:`~hydpy.core.optiontools.Options.reprdigits`</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.autodoctools.Substituter.find">
+<code class="sig-name descname"><span class="pre">find</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#Substituter.find"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.Substituter.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print all substitutions that include the given text string.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="hydpy.core.autodoctools.prepare_mainsubstituter">
+<code class="sig-prename descclassname"><span class="pre">hydpy.core.autodoctools.</span></code><code class="sig-name descname"><span class="pre">prepare_mainsubstituter</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#prepare_mainsubstituter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.prepare_mainsubstituter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare and return a <a class="reference internal" href="#hydpy.core.autodoctools.Substituter" title="hydpy.core.autodoctools.Substituter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Substituter</span></code></a> object for the main <cite>__init__</cite>
+file of <em>HydPy</em>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="hydpy.core.autodoctools.autodoc_module">
+<code class="sig-prename descclassname"><span class="pre">hydpy.core.autodoctools.</span></code><code class="sig-name descname"><span class="pre">autodoc_module</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#autodoc_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.autodoc_module" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a short summary of all implemented members to a modules docstring.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="hydpy.core.autodoctools.autodoc_tuple2doc">
+<code class="sig-prename descclassname"><span class="pre">hydpy.core.autodoctools.</span></code><code class="sig-name descname"><span class="pre">autodoc_tuple2doc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/autodoctools.html#autodoc_tuple2doc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.autodoctools.autodoc_tuple2doc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Include tuples as <cite>CLASSES</cite> of <cite>ControlParameters</cite> and <cite>RUN_METHODS</cite>
+of <cite>Models</cite> into the respective docstring.</p>
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="aliastools.html"
+                        title="previous chapter">aliastools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="auxfiletools.html"
+                        title="next chapter">auxfiletools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/autodoctools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/autodoctools.html">6</a></li>
+<li><a href="../5.0/autodoctools.html">5.0</a></li>
+<li><a href="../4.0/autodoctools.html">4.0</a></li>
+<li><a href="../master/autodoctools.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="auxfiletools.html" title="auxfiletools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="aliastools.html" title="aliastools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">autodoctools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

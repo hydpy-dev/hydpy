@@ -1,0 +1,696 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.importtools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.importtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.importtools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module implements features related to importing models.</span>
+
+<span class="sd">The implemented tools are primarily designed for hiding model initialisation</span>
+<span class="sd">routines from model users and for allowing writing readable doctests.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">filetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">sequencetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">timetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core.typingtools</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+
+
+<div class="viewcode-block" id="parameterstep"><a class="viewcode-back" href="../../../importtools.html#hydpy.core.importtools.parameterstep">[docs]</a><span class="k">def</span> <span class="nf">parameterstep</span><span class="p">(</span><span class="n">timestep</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">timetools</span><span class="o">.</span><span class="n">PeriodConstrArg</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Define a parameter time step size within a parameter control file.</span>
+
+<span class="sd">    Function |parameterstep| should usually be applied in a line immediately</span>
+<span class="sd">    behind the model import or behind calling function |simulationstep|.</span>
+<span class="sd">    Defining the step size of time-dependent parameters is a prerequisite to</span>
+<span class="sd">    access any model-specific parameter.</span>
+
+<span class="sd">    Note that |parameterstep| implements some namespace magic utilising</span>
+<span class="sd">    the module |inspect|, which makes things a little complicated for</span>
+<span class="sd">    framework developers.  Still it eases the definition of parameter</span>
+<span class="sd">    control files for framework users.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">timestep</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parameterstep</span> <span class="o">=</span> <span class="n">timestep</span>
+    <span class="n">namespace</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span><span class="o">.</span><span class="n">f_back</span><span class="o">.</span><span class="n">f_locals</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">namespace</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;model&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;Model&quot;</span><span class="p">]()</span>
+        <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="k">if</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">usecython</span> <span class="ow">and</span> <span class="s2">&quot;cythonizer&quot;</span> <span class="ow">in</span> <span class="n">namespace</span><span class="p">:</span>
+            <span class="n">cythonizer</span> <span class="o">=</span> <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;cythonizer&quot;</span><span class="p">]</span>
+            <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;cythonmodule&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cythonizer</span><span class="o">.</span><span class="n">cymodule</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">cymodel</span> <span class="o">=</span> <span class="n">cythonizer</span><span class="o">.</span><span class="n">cymodule</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span>
+            <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;cymodel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">cymodel</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">cymodel</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">cythonizer</span><span class="o">.</span><span class="n">cymodule</span><span class="o">.</span><span class="n">Parameters</span><span class="p">()</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">cymodel</span><span class="o">.</span><span class="n">sequences</span> <span class="o">=</span> <span class="n">cythonizer</span><span class="o">.</span><span class="n">cymodule</span><span class="o">.</span><span class="n">Sequences</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">numpars_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;NumConsts&quot;</span><span class="p">,</span> <span class="s2">&quot;NumVars&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cythonizer</span><span class="o">.</span><span class="n">cymodule</span><span class="p">,</span> <span class="n">numpars_name</span><span class="p">):</span>
+                    <span class="n">numpars_new</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cythonizer</span><span class="o">.</span><span class="n">cymodule</span><span class="p">,</span> <span class="n">numpars_name</span><span class="p">)()</span>
+                    <span class="n">numpars_old</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">numpars_name</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                    <span class="k">for</span> <span class="p">(</span><span class="n">name_numpar</span><span class="p">,</span> <span class="n">numpar</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">numpars_old</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="n">numpars_new</span><span class="p">,</span> <span class="n">name_numpar</span><span class="p">,</span> <span class="n">numpar</span><span class="p">)</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">cymodel</span><span class="p">,</span> <span class="n">numpars_name</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">numpars_new</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">cymodel</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">cymodel</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">prepare_parameters</span><span class="p">(</span><span class="n">namespace</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">sequences</span> <span class="o">=</span> <span class="n">prepare_sequences</span><span class="p">(</span><span class="n">namespace</span><span class="p">)</span>
+        <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;parameters&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="k">for</span> <span class="n">pars</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+            <span class="n">namespace</span><span class="p">[</span><span class="n">pars</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">pars</span>
+        <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;sequences&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span>
+        <span class="k">for</span> <span class="n">seqs</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="p">:</span>
+            <span class="n">namespace</span><span class="p">[</span><span class="n">seqs</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">seqs</span>
+        <span class="k">if</span> <span class="s2">&quot;Masks&quot;</span> <span class="ow">in</span> <span class="n">namespace</span><span class="p">:</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">masks</span> <span class="o">=</span> <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;Masks&quot;</span><span class="p">]()</span>
+            <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;masks&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">masks</span>
+        <span class="k">for</span> <span class="n">submodelclass</span> <span class="ow">in</span> <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;Model&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">SUBMODELS</span><span class="p">:</span>
+            <span class="n">submodel</span> <span class="o">=</span> <span class="n">submodelclass</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">submodel</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">submodel</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">namespace</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;CONSTANTS&quot;</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">focus</span> <span class="o">=</span> <span class="n">namespace</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;focus&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">focus</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">par</span> <span class="ow">is</span> <span class="n">focus</span><span class="p">):</span>
+            <span class="n">namespace</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">namespace</span><span class="p">[</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="prepare_parameters"><a class="viewcode-back" href="../../../importtools.html#hydpy.core.importtools.prepare_parameters">[docs]</a><span class="k">def</span> <span class="nf">prepare_parameters</span><span class="p">(</span><span class="n">dict_</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameters</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Prepare a |Parameters| object based on the given dictionary</span>
+<span class="sd">    information and return it.&quot;&quot;&quot;</span>
+    <span class="n">cls_parameters</span> <span class="o">=</span> <span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Parameters&quot;</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameters</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cls_parameters</span><span class="p">(</span><span class="n">dict_</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="prepare_sequences"><a class="viewcode-back" href="../../../importtools.html#hydpy.core.importtools.prepare_sequences">[docs]</a><span class="k">def</span> <span class="nf">prepare_sequences</span><span class="p">(</span><span class="n">dict_</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">Sequences</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Prepare a |Sequences| object based on the given dictionary</span>
+<span class="sd">    information and return it.&quot;&quot;&quot;</span>
+    <span class="n">cls_sequences</span> <span class="o">=</span> <span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Sequences&quot;</span><span class="p">,</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">Sequences</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cls_sequences</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;model&quot;</span><span class="p">),</span>
+        <span class="n">cls_inlets</span><span class="o">=</span><span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;InletSequences&quot;</span><span class="p">),</span>
+        <span class="n">cls_receivers</span><span class="o">=</span><span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ReceiverSequences&quot;</span><span class="p">),</span>
+        <span class="n">cls_inputs</span><span class="o">=</span><span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;InputSequences&quot;</span><span class="p">),</span>
+        <span class="n">cls_fluxes</span><span class="o">=</span><span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;FluxSequences&quot;</span><span class="p">),</span>
+        <span class="n">cls_states</span><span class="o">=</span><span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;StateSequences&quot;</span><span class="p">),</span>
+        <span class="n">cls_logs</span><span class="o">=</span><span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;LogSequences&quot;</span><span class="p">),</span>
+        <span class="n">cls_aides</span><span class="o">=</span><span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;AideSequences&quot;</span><span class="p">),</span>
+        <span class="n">cls_outlets</span><span class="o">=</span><span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;OutletSequences&quot;</span><span class="p">),</span>
+        <span class="n">cls_senders</span><span class="o">=</span><span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SenderSequences&quot;</span><span class="p">),</span>
+        <span class="n">cymodel</span><span class="o">=</span><span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cymodel&quot;</span><span class="p">),</span>
+        <span class="n">cythonmodule</span><span class="o">=</span><span class="n">dict_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cythonmodule&quot;</span><span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="reverse_model_wildcard_import"><a class="viewcode-back" href="../../../importtools.html#hydpy.core.importtools.reverse_model_wildcard_import">[docs]</a><span class="k">def</span> <span class="nf">reverse_model_wildcard_import</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Clear the local namespace from a model wildcard import.</span>
+
+<span class="sd">    Calling this method should remove the critical imports into the local</span>
+<span class="sd">    namespace due to the last wildcard import of a particular application</span>
+<span class="sd">    model. In this manner, it secures the repeated preparation of different</span>
+<span class="sd">    types of models via wildcard imports.  See the following example, on</span>
+<span class="sd">    how it can be applied.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import reverse_model_wildcard_import</span>
+
+<span class="sd">    Assume you import the first version of HydPy-L-Land (|lland_v1|):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.lland_v1 import *</span>
+
+<span class="sd">    This import adds, for example, the collection class for handling control</span>
+<span class="sd">    parameters of `lland_v1` into the local namespace:</span>
+
+<span class="sd">    &gt;&gt;&gt; print(ControlParameters(None).name)</span>
+<span class="sd">    control</span>
+
+<span class="sd">    Calling function |parameterstep| prepares, for example, the control</span>
+<span class="sd">    parameter object of class |lland_control.NHRU|:</span>
+
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nhru</span>
+<span class="sd">    nhru(?)</span>
+
+<span class="sd">    Calling function |reverse_model_wildcard_import| tries to give its</span>
+<span class="sd">    best to clear the local namespace (even from unexpected classes as</span>
+<span class="sd">    the one we define now):</span>
+
+<span class="sd">    &gt;&gt;&gt; class Test:</span>
+<span class="sd">    ...     __module__ = &quot;hydpy.models.lland_v1&quot;</span>
+<span class="sd">    &gt;&gt;&gt; test = Test()</span>
+
+<span class="sd">    &gt;&gt;&gt; reverse_model_wildcard_import()</span>
+
+<span class="sd">    &gt;&gt;&gt; ControlParameters</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    NameError: name &#39;ControlParameters&#39; is not defined</span>
+
+<span class="sd">    &gt;&gt;&gt; nhru</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    NameError: name &#39;nhru&#39; is not defined</span>
+
+<span class="sd">    &gt;&gt;&gt; Test</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    NameError: name &#39;Test&#39; is not defined</span>
+
+<span class="sd">    &gt;&gt;&gt; test</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    NameError: name &#39;test&#39; is not defined</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">namespace</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span><span class="o">.</span><span class="n">f_back</span><span class="o">.</span><span class="n">f_locals</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">namespace</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;model&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">subpars</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">subpars</span><span class="p">:</span>
+                <span class="n">namespace</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">namespace</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">par</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">namespace</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">subpars</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">namespace</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">subpars</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">subseqs</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">subseqs</span><span class="p">:</span>
+                <span class="n">namespace</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">seq</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">namespace</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">namespace</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">subseqs</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">namespace</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">subseqs</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="s2">&quot;parameters&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;sequences&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;masks&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;model&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Parameters&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Sequences&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Masks&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Model&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;cythonizer&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;cymodel&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;cythonmodule&quot;</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">namespace</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">namespace</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">namespace</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">==</span> <span class="n">model</span><span class="o">.</span><span class="vm">__module__</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="n">namespace</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="prepare_model"><a class="viewcode-back" href="../../../importtools.html#hydpy.core.importtools.prepare_model">[docs]</a><span class="k">def</span> <span class="nf">prepare_model</span><span class="p">(</span>
+    <span class="n">module</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">timestep</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">timetools</span><span class="o">.</span><span class="n">PeriodConstrArg</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;modeltools.Model&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Prepare and return the model of the given module.</span>
+
+<span class="sd">    In usual *HydPy* projects, each control file prepares an individual</span>
+<span class="sd">    model instance only, which allows for &quot;polluting&quot; the namespace with</span>
+<span class="sd">    different model attributes.   There is no danger of name conflicts,</span>
+<span class="sd">    as long as we do not perform other (wildcard) imports.</span>
+
+<span class="sd">    However, there are situations where we need to load different models</span>
+<span class="sd">    into the same namespace.  Then it is advisable to use function</span>
+<span class="sd">    |prepare_model|, which returns a reference to the model</span>
+<span class="sd">    and nothing else.</span>
+
+<span class="sd">    See the documentation of |dam_v001| on how to apply function</span>
+<span class="sd">    |prepare_model| properly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">timestep</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parameterstep</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">(</span><span class="n">timestep</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;hydpy.models.</span><span class="si">{</span><span class="n">module</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">usecython</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;cythonizer&quot;</span><span class="p">):</span>
+        <span class="n">cymodule</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">cythonizer</span><span class="o">.</span><span class="n">cymodule</span>
+        <span class="n">cymodel</span> <span class="o">=</span> <span class="n">cymodule</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span>
+        <span class="n">cymodel</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">cymodule</span><span class="o">.</span><span class="n">Parameters</span><span class="p">()</span>
+        <span class="n">cymodel</span><span class="o">.</span><span class="n">sequences</span> <span class="o">=</span> <span class="n">cymodule</span><span class="o">.</span><span class="n">Sequences</span><span class="p">()</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">cymodel</span> <span class="o">=</span> <span class="n">cymodel</span>
+        <span class="k">for</span> <span class="n">numpars_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;NumConsts&quot;</span><span class="p">,</span> <span class="s2">&quot;NumVars&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cymodule</span><span class="p">,</span> <span class="n">numpars_name</span><span class="p">):</span>
+                <span class="n">numpars_new</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cymodule</span><span class="p">,</span> <span class="n">numpars_name</span><span class="p">)()</span>
+                <span class="n">numpars_old</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">numpars_name</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">name_numpar</span><span class="p">,</span> <span class="n">numpar</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">numpars_old</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">numpars_new</span><span class="p">,</span> <span class="n">name_numpar</span><span class="p">,</span> <span class="n">numpar</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">cymodel</span><span class="p">,</span> <span class="n">numpars_name</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">numpars_new</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">cymodel</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cymodel</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+        <span class="n">dict_</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;cythonmodule&quot;</span><span class="p">:</span> <span class="n">cymodule</span><span class="p">,</span> <span class="s2">&quot;cymodel&quot;</span><span class="p">:</span> <span class="n">cymodel</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dict_</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">dict_</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">module</span><span class="p">))</span>
+    <span class="n">dict_</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">prepare_parameters</span><span class="p">(</span><span class="n">dict_</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">sequences</span> <span class="o">=</span> <span class="n">prepare_sequences</span><span class="p">(</span><span class="n">dict_</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;Masks&quot;</span><span class="p">):</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">masks</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">Masks</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">submodelclass</span> <span class="ow">in</span> <span class="n">module</span><span class="o">.</span><span class="n">Model</span><span class="o">.</span><span class="n">SUBMODELS</span><span class="p">:</span>
+        <span class="n">submodel</span> <span class="o">=</span> <span class="n">submodelclass</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">submodel</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">submodel</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span></div>
+
+
+<div class="viewcode-block" id="simulationstep"><a class="viewcode-back" href="../../../importtools.html#hydpy.core.importtools.simulationstep">[docs]</a><span class="k">def</span> <span class="nf">simulationstep</span><span class="p">(</span><span class="n">timestep</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Define a simulation time step size for testing purposes within a</span>
+<span class="sd">    parameter control file.</span>
+
+<span class="sd">    Using |simulationstep| only affects the values of time-dependent</span>
+<span class="sd">    parameters, when `pub.timegrids.stepsize` is not defined.  It thus</span>
+<span class="sd">    does not influence usual *HydPy* simulations at all.  Use it to check</span>
+<span class="sd">    your parameter control files.  Write it in a line immediately behind</span>
+<span class="sd">    the model import.</span>
+
+<span class="sd">    To clarify its purpose, function |simulationstep| raises a warning</span>
+<span class="sd">    when executed from within a control file:</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; del pub.timegrids</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; with pub.options.warnsimulationstep(True):</span>
+<span class="sd">    ...     from hydpy.models.hland_v1 import *</span>
+<span class="sd">    ...     simulationstep(&quot;1h&quot;)</span>
+<span class="sd">    ...     parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    UserWarning: Note that the applied function `simulationstep` is intended \</span>
+<span class="sd">for testing purposes only.  When doing a HydPy simulation, parameter values \</span>
+<span class="sd">are initialised based on the actual simulation time step as defined under \</span>
+<span class="sd">`pub.timegrids.stepsize` and the value given to `simulationstep` is ignored.</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.options.simulationstep</span>
+<span class="sd">    Period(&quot;1h&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnsimulationstep</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Note that the applied function `simulationstep` is intended for &quot;</span>
+            <span class="s2">&quot;testing purposes only.  When doing a HydPy simulation, parameter &quot;</span>
+            <span class="s2">&quot;values are initialised based on the actual simulation time step &quot;</span>
+            <span class="s2">&quot;as defined under `pub.timegrids.stepsize` and the value given &quot;</span>
+            <span class="s2">&quot;to `simulationstep` is ignored.&quot;</span>
+        <span class="p">)</span>
+    <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span> <span class="o">=</span> <span class="n">timestep</span></div>
+
+
+<div class="viewcode-block" id="controlcheck"><a class="viewcode-back" href="../../../importtools.html#hydpy.core.importtools.controlcheck">[docs]</a><span class="k">def</span> <span class="nf">controlcheck</span><span class="p">(</span>
+    <span class="n">controldir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span>
+    <span class="n">projectdir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">controlfile</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">firstdate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">timetools</span><span class="o">.</span><span class="n">DateConstrArg</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">stepsize</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">timetools</span><span class="o">.</span><span class="n">PeriodConstrArg</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Define the corresponding control file within a condition file.</span>
+
+<span class="sd">    Function |controlcheck| serves similar purposes as function</span>
+<span class="sd">    |parameterstep|.  It is the reason why one can interactively</span>
+<span class="sd">    access the state and the log sequences within condition files</span>
+<span class="sd">    as `land_dill.py` of the example project `LahnH`.  It is called</span>
+<span class="sd">    `controlcheck` due to its feature to check for possible inconsistencies</span>
+<span class="sd">    between control and condition files.  The following test, where we</span>
+<span class="sd">    write a number of soil moisture values (|hland_states.SM|) into</span>
+<span class="sd">    condition file `land_dill.py`, which does not agree with the number</span>
+<span class="sd">    of hydrological response units (|hland_control.NmbZones|) defined in</span>
+<span class="sd">    control file `land_dill.py`, verifies that this, in fact, works within</span>
+<span class="sd">    a separate Python process:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.examples import prepare_full_example_1</span>
+<span class="sd">    &gt;&gt;&gt; prepare_full_example_1()</span>
+
+<span class="sd">    &gt;&gt;&gt; import os</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import run_subprocess, TestIO</span>
+<span class="sd">    &gt;&gt;&gt; cwd = os.path.join(&quot;LahnH&quot;, &quot;conditions&quot;, &quot;init_1996_01_01_00_00_00&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():   # doctest: +ELLIPSIS</span>
+<span class="sd">    ...     os.chdir(cwd)</span>
+<span class="sd">    ...     with open(&quot;land_dill.py&quot;) as file_:</span>
+<span class="sd">    ...         lines = file_.readlines()</span>
+<span class="sd">    ...     lines[10:12] = &quot;sm(185.13164, 181.18755)&quot;, &quot;&quot;</span>
+<span class="sd">    ...     with open(&quot;land_dill.py&quot;, &quot;w&quot;) as file_:</span>
+<span class="sd">    ...         _ = file_.write(&quot;\\n&quot;.join(lines))</span>
+<span class="sd">    ...     print()</span>
+<span class="sd">    ...     result = run_subprocess(&quot;hyd.py exec_script land_dill.py&quot;)</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    ...</span>
+<span class="sd">    While trying to set the value(s) of variable `sm`, the following error \</span>
+<span class="sd">occurred: While trying to convert the value(s) `(185.13164, 181.18755)` to \</span>
+<span class="sd">a numpy ndarray with shape `(12,)` and type `float`, the following error \</span>
+<span class="sd">occurred: could not broadcast input array from shape (2...) into shape (12...)</span>
+<span class="sd">    ...</span>
+
+<span class="sd">    With a little trick, we can fake to be &quot;inside&quot; condition file</span>
+<span class="sd">    `land_dill.py`.  Calling |controlcheck| then, for example, prepares the</span>
+<span class="sd">    shape of sequence |hland_states.Ic| as specified by the value of parameter</span>
+<span class="sd">    |hland_control.NmbZones| given in the corresponding control file:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland_v1 import *</span>
+<span class="sd">    &gt;&gt;&gt; __file__ = &quot;land_dill.py&quot;</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     os.chdir(cwd)</span>
+<span class="sd">    ...     controlcheck()</span>
+<span class="sd">    &gt;&gt;&gt; ic.shape</span>
+<span class="sd">    (12,)</span>
+
+<span class="sd">    In the above example, we use the default names for the project directory</span>
+<span class="sd">    (the one containing the executed condition file) and the control</span>
+<span class="sd">    directory (`default`).  The following example shows how to change them:</span>
+
+<span class="sd">    &gt;&gt;&gt; del model</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():   # doctest: +ELLIPSIS</span>
+<span class="sd">    ...     os.chdir(cwd)</span>
+<span class="sd">    ...     controlcheck(projectdir=&quot;somewhere&quot;, controldir=&quot;nowhere&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    FileNotFoundError: While trying to load the control file `land_dill.py` \</span>
+<span class="sd">from directory `...hydpy/tests/iotesting/somewhere/control/nowhere`, \</span>
+<span class="sd">the following error occurred: ...</span>
+
+<span class="sd">    For some models, the suitable states may depend on the initialisation</span>
+<span class="sd">    date.  One example is the interception storage (|lland_states.Inzp|) of</span>
+<span class="sd">    application model |lland_v1|, which should not exceed the interception</span>
+<span class="sd">    capacity (|lland_derived.KInz|).  However, |lland_derived.KInz| itself</span>
+<span class="sd">    depends on the leaf area index parameter |lland_control.LAI|, which</span>
+<span class="sd">    offers varying values both for different land-use types and months.</span>
+<span class="sd">    Hence, one can assign higher values to state |lland_states.Inzp| during</span>
+<span class="sd">    periods with high leaf area indices than during periods with small</span>
+<span class="sd">    leaf area indices.</span>
+
+<span class="sd">    To show the related functionalities, we first replace the |hland_v1|</span>
+<span class="sd">    application model of element `land_dill` with a |lland_v1| model object,</span>
+<span class="sd">    define some of its parameter values, and write its control and condition</span>
+<span class="sd">    files.  Note that the</span>
+<span class="sd">    |lland_control.LAI| value of the only relevant land-use</span>
+<span class="sd">    (|lland_constants.ACKER|) is 0.5 during January and 5.0 during July:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import HydPy, prepare_model, pub</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.lland_v1 import ACKER</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = &quot;2000-06-01&quot;, &quot;2000-07-01&quot;, &quot;1d&quot;</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     hp = HydPy(&quot;LahnH&quot;)</span>
+<span class="sd">    ...     hp.prepare_network()</span>
+<span class="sd">    ...     land_dill = hp.elements[&quot;land_dill&quot;]</span>
+<span class="sd">    ...     with pub.options.usedefaultvalues(True):</span>
+<span class="sd">    ...         land_dill.model = prepare_model(&quot;lland_v1&quot;)</span>
+<span class="sd">    ...         control = land_dill.model.parameters.control</span>
+<span class="sd">    ...         control.nhru(2)</span>
+<span class="sd">    ...         control.ft(1.0)</span>
+<span class="sd">    ...         control.fhru(0.5)</span>
+<span class="sd">    ...         control.hnn(100.0)</span>
+<span class="sd">    ...         control.lnk(ACKER)</span>
+<span class="sd">    ...         control.lai.acker_jan = 0.5</span>
+<span class="sd">    ...         control.lai.acker_jul = 5.0</span>
+<span class="sd">    ...         land_dill.model.parameters.update()</span>
+<span class="sd">    ...         land_dill.model.sequences.states.inzp(1.0)</span>
+<span class="sd">    ...     land_dill.model.parameters.save_controls()</span>
+<span class="sd">    ...     land_dill.model.sequences.save_conditions()</span>
+
+<span class="sd">    Unfortunately, state |lland_states.Inzp| does not define a |trim| method</span>
+<span class="sd">    taking the actual value of parameter |lland_derived.KInz| into account</span>
+<span class="sd">    (due to compatibility with the original LARSIM model).  As an auxiliary</span>
+<span class="sd">    solution, we define such a function within the `land_dill.py` condition</span>
+<span class="sd">    file (and additionally modify some warning settings in favour of the</span>
+<span class="sd">    next examples):</span>
+
+<span class="sd">    &gt;&gt;&gt; cwd = os.path.join(&quot;LahnH&quot;, &quot;conditions&quot;, &quot;init_2000_07_01_00_00_00&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     os.chdir(cwd)</span>
+<span class="sd">    ...     with open(&quot;land_dill.py&quot;) as file_:</span>
+<span class="sd">    ...         lines = file_.readlines()</span>
+<span class="sd">    ...     with open(&quot;land_dill.py&quot;, &quot;w&quot;) as file_:</span>
+<span class="sd">    ...         file_.writelines([</span>
+<span class="sd">    ...             &quot;from hydpy import pub\\n&quot;,</span>
+<span class="sd">    ...             &quot;pub.options.warnsimulationstep = False\\n&quot;,</span>
+<span class="sd">    ...             &quot;import warnings\\n&quot;,</span>
+<span class="sd">    ...             &#39;warnings.filterwarnings(&quot;error&quot;, message=&quot;For variable&quot;)\\n&#39;])</span>
+<span class="sd">    ...         file_.writelines(lines[:5])</span>
+<span class="sd">    ...         file_.writelines([</span>
+<span class="sd">    ...             &quot;from hydpy.core.variabletools import trim as trim_\\n&quot;,</span>
+<span class="sd">    ...             &quot;def trim(self, lower=None, upper=None):\\n&quot;,</span>
+<span class="sd">    ...             &quot;    der = self.subseqs.seqs.model.parameters.derived\\n&quot;,</span>
+<span class="sd">    ...             &quot;    trim_(self, 0.0, der.kinz.acker[der.moy[0]])\\n&quot;,</span>
+<span class="sd">    ...             &quot;type(inzp).trim = trim\\n&quot;])</span>
+<span class="sd">    ...         file_.writelines(lines[5:])</span>
+
+<span class="sd">    Now, executing the condition file (and thereby calling function</span>
+<span class="sd">    |controlcheck|) does not raise any warnings due to extracting the</span>
+<span class="sd">    initialisation date from the name of the condition directory:</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     os.chdir(cwd)</span>
+<span class="sd">    ...     result = run_subprocess(&quot;hyd.py exec_script land_dill.py&quot;)</span>
+
+<span class="sd">    If the directory name does imply the initialisation date to be within</span>
+<span class="sd">    January 2000 instead of July 2000, we correctly get the following warning:</span>
+
+<span class="sd">    &gt;&gt;&gt; cwd_old = cwd</span>
+<span class="sd">    &gt;&gt;&gt; cwd_new = os.path.join(&quot;LahnH&quot;, &quot;conditions&quot;, &quot;init_2000_01_01&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():   # doctest: +ELLIPSIS</span>
+<span class="sd">    ...     os.rename(cwd_old, cwd_new)</span>
+<span class="sd">    ...     os.chdir(cwd_new)</span>
+<span class="sd">    ...     result = run_subprocess(&quot;hyd.py exec_script land_dill.py&quot;)</span>
+<span class="sd">    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \</span>
+<span class="sd">in the following error:</span>
+<span class="sd">    For variable `inzp` at least one value needed to be trimmed.  \</span>
+<span class="sd">The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.</span>
+<span class="sd">    ...</span>
+
+<span class="sd">    One can define an alternative initialisation date via argument</span>
+<span class="sd">    `firstdate`:</span>
+
+<span class="sd">    &gt;&gt;&gt; text_old = (&#39;controlcheck(projectdir=r&quot;LahnH&quot;, &#39;</span>
+<span class="sd">    ...             &#39;controldir=&quot;default&quot;, stepsize=&quot;1d&quot;)&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; text_new = (&#39;controlcheck(projectdir=r&quot;LahnH&quot;, controldir=&quot;default&quot;, &#39;</span>
+<span class="sd">    ...             &#39;firstdate=&quot;2100-07-15&quot;, stepsize=&quot;1d&quot;)&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     os.chdir(cwd_new)</span>
+<span class="sd">    ...     with open(&quot;land_dill.py&quot;) as file_:</span>
+<span class="sd">    ...         text = file_.read()</span>
+<span class="sd">    ...     text = text.replace(text_old, text_new)</span>
+<span class="sd">    ...     with open(&quot;land_dill.py&quot;, &quot;w&quot;) as file_:</span>
+<span class="sd">    ...         _ = file_.write(text)</span>
+<span class="sd">    ...     result = run_subprocess(&quot;hyd.py exec_script land_dill.py&quot;)</span>
+
+<span class="sd">    Default condition directory names do not contain any information about</span>
+<span class="sd">    the simulation step size.  Hence, one needs to define it explicitly for</span>
+<span class="sd">    all application modelsrelying on the functionalities of class |Indexer|:</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():   # doctest: +ELLIPSIS</span>
+<span class="sd">    ...     os.chdir(cwd_new)</span>
+<span class="sd">    ...     with open(&quot;land_dill.py&quot;) as file_:</span>
+<span class="sd">    ...         text = file_.read()</span>
+<span class="sd">    ...     text = text.replace(&#39;stepsize=&quot;1d&quot;&#39;, &quot;&quot;)</span>
+<span class="sd">    ...     with open(&quot;land_dill.py&quot;, &quot;w&quot;) as file_:</span>
+<span class="sd">    ...         _ = file_.write(text)</span>
+<span class="sd">    ...     result = run_subprocess(&quot;hyd.py exec_script land_dill.py&quot;)</span>
+<span class="sd">    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \</span>
+<span class="sd">in the following error:</span>
+<span class="sd">    To apply function `controlcheck` requires time information for some \</span>
+<span class="sd">model types.  Please define the `Timegrids` object of module `pub` manually \</span>
+<span class="sd">or pass the required information (`stepsize` and eventually `firstdate`) \</span>
+<span class="sd">as function arguments.</span>
+<span class="sd">    ...</span>
+
+<span class="sd">    The same error occurs we do not use the argument `firstdate` to define</span>
+<span class="sd">    the initialisation time point, and method |controlcheck| cannot</span>
+<span class="sd">    extract it from the directory name:</span>
+
+<span class="sd">    &gt;&gt;&gt; cwd_old = cwd_new</span>
+<span class="sd">    &gt;&gt;&gt; cwd_new = os.path.join(&quot;LahnH&quot;, &quot;conditions&quot;, &quot;init&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():   # doctest: +ELLIPSIS</span>
+<span class="sd">    ...     os.rename(cwd_old, cwd_new)</span>
+<span class="sd">    ...     os.chdir(cwd_new)</span>
+<span class="sd">    ...     with open(&quot;land_dill.py&quot;) as file_:</span>
+<span class="sd">    ...         text = file_.read()</span>
+<span class="sd">    ...     text = text.replace(&#39;firstdate=&quot;2100-07-15&quot;&#39;, &#39;stepsize=&quot;1d&quot;&#39;)</span>
+<span class="sd">    ...     with open(&quot;land_dill.py&quot;, &quot;w&quot;) as file_:</span>
+<span class="sd">    ...         _ = file_.write(text)</span>
+<span class="sd">    ...     result = run_subprocess(&quot;hyd.py exec_script land_dill.py&quot;)</span>
+<span class="sd">    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \</span>
+<span class="sd">in the following error:</span>
+<span class="sd">    To apply function `controlcheck` requires time information for some \</span>
+<span class="sd">model types.  Please define the `Timegrids` object of module `pub` manually \</span>
+<span class="sd">or pass the required information (`stepsize` and eventually `firstdate`) \</span>
+<span class="sd">as function arguments.</span>
+<span class="sd">    ...</span>
+
+<span class="sd">    Note that the functionalities of function |controlcheck| do not come</span>
+<span class="sd">    into action if there is a `model` variable in the namespace, which is</span>
+<span class="sd">    the case when a condition file is executed within the context of a</span>
+<span class="sd">    complete *HydPy* project.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">namespace</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span><span class="o">.</span><span class="n">f_back</span><span class="o">.</span><span class="n">f_locals</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">namespace</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;model&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">controlfile</span><span class="p">:</span>
+            <span class="n">controlfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;__file__&quot;</span><span class="p">])[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">projectdir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">projectdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">0</span><span class="p">])[</span>
+                <span class="o">-</span><span class="mi">1</span>
+            <span class="p">]</span>
+        <span class="n">dirpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="n">projectdir</span><span class="p">,</span> <span class="s2">&quot;control&quot;</span><span class="p">,</span> <span class="n">controldir</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">exceptiontools</span><span class="o">.</span><span class="n">attrready</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="p">,</span> <span class="s2">&quot;timegrids&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">stepsize</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">firstdate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">firstdate</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Date</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                    <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">firstdate</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="n">firstdate</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">firstdate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">stepsize</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">(</span><span class="n">stepsize</span><span class="p">)</span>
+                <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="p">(</span><span class="n">firstdate</span><span class="p">,</span> <span class="n">firstdate</span> <span class="o">+</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">stepsize</span><span class="p">,</span> <span class="n">stepsize</span><span class="p">)</span>
+
+        <span class="k">class</span> <span class="nc">CM</span><span class="p">(</span><span class="n">filetools</span><span class="o">.</span><span class="n">ControlManager</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Tempory |ControlManager| class.&quot;&quot;&quot;</span>
+
+            <span class="n">currentpath</span> <span class="o">=</span> <span class="n">dirpath</span>
+
+        <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">dirpath</span><span class="p">)</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">CM</span><span class="p">()</span><span class="o">.</span><span class="n">load_file</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">controlfile</span><span class="p">)[</span><span class="s2">&quot;model&quot;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to load the control file `</span><span class="si">{</span><span class="n">controlfile</span><span class="si">}</span><span class="s2">` &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;from directory `</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="n">dirpath</span><span class="p">)</span><span class="si">}</span><span class="s2">`&quot;</span>
+            <span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;To apply function `controlcheck` requires time &quot;</span>
+                <span class="s2">&quot;information for some model types.  Please define &quot;</span>
+                <span class="s2">&quot;the `Timegrids` object of module `pub` manually &quot;</span>
+                <span class="s2">&quot;or pass the required information (`stepsize` and &quot;</span>
+                <span class="s2">&quot;eventually `firstdate`) as function arguments.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
+
+        <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;states&quot;</span><span class="p">,</span> <span class="s2">&quot;logs&quot;</span><span class="p">):</span>
+            <span class="n">subseqs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">subseqs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">subseqs</span><span class="p">:</span>
+                    <span class="n">namespace</span><span class="p">[</span><span class="n">seq</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">seq</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.importtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+.. |AC| replace:: :class:`~hydpy.models.wland.wland_control.AC`
+.. |ALR| replace:: :class:`~hydpy.models.wland.wland_derived.ALR`
+.. |ASR| replace:: :class:`~hydpy.models.wland.wland_derived.ASR`
+.. |AT| replace:: :class:`~hydpy.models.wland.wland_control.AT`
+.. |B| replace:: :class:`~hydpy.models.wland.wland_control.B`
+.. |CDG| replace:: :class:`~hydpy.models.wland.wland_fluxes.CDG`
+.. |CD| replace:: :class:`~hydpy.models.wland.wland_derived.CD`
+.. |CGE| replace:: :class:`~hydpy.models.wland.wland_control.CGE`
+.. |CONIFER| replace:: :const:`~hydpy.models.wland.wland_constants.CONIFER`
+.. |CWE| replace:: :class:`~hydpy.models.wland.wland_control.CWE`
+.. |Calc_CDG_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_CDG_V1`
+.. |Calc_DVEq_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_DVEq_V1`
+.. |Calc_FGS_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_FGS_V1`
+.. |Calc_RH_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_RH_V1`
+.. |DGC| replace:: :class:`~hydpy.models.wland.wland_control.DGC`
+.. |DG| replace:: :class:`~hydpy.models.wland.wland_states.DG`
+.. |DHS| replace:: :class:`~hydpy.models.wland.wland_factors.DHS`
+.. |DV| replace:: :class:`~hydpy.models.wland.wland_states.DV`
+.. |DischargeModel_V2| replace:: :class:`~hydpy.interfaces.dischargeinterfaces.DischargeModel_V2`
+.. |ELSModel| replace:: :class:`~hydpy.core.modeltools.ELSModel`
+.. |ER| replace:: :class:`~hydpy.models.wland.wland_control.ER`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |FGS| replace:: :class:`~hydpy.models.wland.wland_fluxes.FGS`
+.. |FIELD| replace:: :const:`~hydpy.models.wland.wland_constants.FIELD`
+.. |HS| replace:: :class:`~hydpy.models.wland.wland_states.HS`
+.. |IC| replace:: :class:`~hydpy.models.wland.wland_states.IC`
+.. |LAI| replace:: :class:`~hydpy.models.wland.wland_control.LAI`
+.. |NU| replace:: :class:`~hydpy.models.wland.wland_control.NU`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PETModel_V2| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V2`
+.. |PsiAE| replace:: :class:`~hydpy.models.wland.wland_control.PsiAE`
+.. |RG| replace:: :class:`~hydpy.models.wland.wland_control.RG`
+.. |RH| replace:: :class:`~hydpy.models.wland.wland_fluxes.RH`
+.. |SEALED| replace:: :const:`~hydpy.models.wland.wland_constants.SEALED`
+.. |SH| replace:: :class:`~hydpy.models.wland.wland_control.SH`
+.. |SP| replace:: :class:`~hydpy.models.wland.wland_states.SP`
+.. |ST| replace:: :class:`~hydpy.models.wland.wland_control.ST`
+.. |ThetaS| replace:: :class:`~hydpy.models.wland.wland_control.ThetaS`
+.. |True| replace:: :const:`True`
+.. |WATER| replace:: :const:`~hydpy.models.wland.wland_constants.WATER`
+.. |WaterLevelModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.WaterLevelModel_V1`
+.. |dam_pump| replace:: :mod:`~hydpy.models.dam_pump`
+.. |evap_pet_mlc| replace:: :mod:`~hydpy.models.evap_pet_mlc`
+.. |evap_ret_io| replace:: :mod:`~hydpy.models.evap_ret_io`
+.. |exch_waterlevel| replace:: :mod:`~hydpy.models.exch_waterlevel`
+.. |lland_dd| replace:: :mod:`~hydpy.models.lland_dd`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |smoothtools| replace:: :mod:`~hydpy.auxs.smoothtools`
+.. |smoothutils| replace:: :mod:`~hydpy.cythons.autogen.smoothutils`
+.. |sw1d_storage| replace:: :mod:`~hydpy.models.sw1d_storage`
+.. |wland_wag.DOCNAME.complete| replace:: HydPy-W-Wag (extended version of the original Wageningen WALRUS model)
+.. |wland_wag| replace:: :mod:`~hydpy.models.wland_wag`
+.. |wq_walrus| replace:: :mod:`~hydpy.models.wq_walrus`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |wland_inputs.FXG| replace:: :class:`~hydpy.models.wland.wland_inputs.FXG`
+.. |wland_inputs.FXS| replace:: :class:`~hydpy.models.wland.wland_inputs.FXS`
+.. |wland_model.BaseModel.check_waterbalance| replace:: :func:`~hydpy.models.wland.wland_model.BaseModel.check_waterbalance`
+
+.. _wland_wag:
+
+wland_wag
+=========
+
+.. automodule:: hydpy.models.wland_wag
+    :members:
+    :show-inheritance:
+    :exclude-members: IO, Container, SupportsAbs, FrozenSet, Buffer, RESULTSEQUENCES, MappingView, ObserverSequences, Union, Annotated, Counter, Deque, evaluate_forward_ref, ValuesView, reveal_type, NoExtraItems, Format, fastaccess_old, Coroutine, get_protocol_members, is_typeddict, subseqs, AsyncIterable, TypedDict, AsyncGenerator, NotRequired, OrderedDict, INTERFACE_METHODS, ItemsView, ChainMap, is_protocol, CapsuleType, SupportsFloat, FIXEDPARAMETERS, disjoint_base, type_repr, Sequence, CLASSES, SupportsComplex, SOLVERPARAMETERS, Dict, Never, Literal, Callable, overload, deprecated, LogSequences, Unpack, Match, NamedTuple, get_type_hints, Sized, override, runtime_checkable, get_annotations, TypeForm, INLET_METHODS, Set, Self, fastaccess, Any, InletSequences, runtime, Tuple, subvars, KeysView, Final, SENDER_METHODS, OBSERVER_METHODS, Optional, TextIO, seqs, no_type_check_decorator, ADD_METHODS, AsyncContextManager, dataclass_transform, TypeGuard, SenderSequences, ContextManager, ParamSpec, MutableSequence, ReceiverSequences, IntVar, Generator, pars, get_original_bases, SUBMODELS, final, Writer, subpars, CONTROLPARAMETERS, ParamSpecKwargs, Text, Sentinel, Doc, fastaccess_new, TypeVar, SupportsIndex, no_type_check, Iterable, PART_ODE_METHODS, SupportsInt, get_args, get_origin, Collection, Type, DefaultDict, TypeAlias, SupportsBytes, OUTLET_METHODS, MutableMapping, AsyncIterator, Iterator, Mapping, Hashable, RECEIVER_METHODS, Concatenate, TypeVarTuple, ByteString, Awaitable, Generic, Reversible, Required, Pattern, get_overloads, RUN_METHODS, BinaryIO, ClassVar, List, AnyStr, ParamSpecArgs, TypeAliasType, ForwardRef, NoReturn, SUBMODELINTERFACES, NewType, MutableSet, UPDATEDSEQUENCES, ReadOnly, NoDefault, assert_never, AbstractSet, TYPE_CHECKING, REQUIREDSEQUENCES, SOLVERSEQUENCES, assert_type, LiteralString, clear_overloads, FULL_ODE_METHODS, Reader, SupportsRound, cast, TypeIs, SUBMETHODS, Protocol, DERIVEDPARAMETERS

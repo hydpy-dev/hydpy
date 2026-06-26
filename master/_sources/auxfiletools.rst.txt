@@ -1,0 +1,47 @@
+.. |Auxfiler.get| replace:: :func:`~hydpy.core.auxfiletools.Auxfiler.get`
+.. |Auxfiler.remove_models| replace:: :func:`~hydpy.core.auxfiletools.Auxfiler.remove_models`
+.. |Auxfiler| replace:: :class:`~hydpy.core.auxfiletools.Auxfiler`
+.. |ControlManager| replace:: :class:`~hydpy.core.filetools.ControlManager`
+.. |FileManager.currentpath| replace:: :const:`~hydpy.core.filetools.FileManager.currentpath`
+.. |KeywordArguments.subset_of| replace:: :func:`~hydpy.core.parametertools.KeywordArguments.subset_of`
+.. |KeywordArguments| replace:: :class:`~hydpy.core.parametertools.KeywordArguments`
+.. |Model| replace:: :class:`~hydpy.core.modeltools.Model`
+.. |None| replace:: :const:`None`
+.. |Open| replace:: :class:`~hydpy.core.testtools.Open`
+.. |Parameter.keywordarguments| replace:: :const:`~hydpy.core.parametertools.Parameter.keywordarguments`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |SubAuxfiler.add_parameters| replace:: :func:`~hydpy.core.auxfiletools.SubAuxfiler.add_parameters`
+.. |SubAuxfiler.add_parameter| replace:: :func:`~hydpy.core.auxfiletools.SubAuxfiler.add_parameter`
+.. |SubAuxfiler.get_filenames| replace:: :func:`~hydpy.core.auxfiletools.SubAuxfiler.get_filenames`
+.. |SubAuxfiler.get_filename| replace:: :func:`~hydpy.core.auxfiletools.SubAuxfiler.get_filename`
+.. |SubAuxfiler.get_parameterstrings| replace:: :func:`~hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings`
+.. |SubAuxfiler.get_parametertypes| replace:: :func:`~hydpy.core.auxfiletools.SubAuxfiler.get_parametertypes`
+.. |SubAuxfiler.get_references| replace:: :func:`~hydpy.core.auxfiletools.SubAuxfiler.get_references`
+.. |SubAuxfiler| replace:: :class:`~hydpy.core.auxfiletools.SubAuxfiler`
+.. |ZipParameter| replace:: :class:`~hydpy.core.parametertools.ZipParameter`
+.. |auxfiletools| replace:: :mod:`~hydpy.core.auxfiletools`
+.. |kinw_williams| replace:: :mod:`~hydpy.models.kinw_williams`
+.. |lland_dd| replace:: :mod:`~hydpy.models.lland_dd`
+.. |lland_knauf| replace:: :mod:`~hydpy.models.lland_knauf`
+.. |property| replace:: :class:`property`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |selectiontools| replace:: :mod:`~hydpy.core.selectiontools`
+.. |str| replace:: :class:`str`
+.. |tuple| replace:: :class:`tuple`
+.. |lland_constants.ACKER| replace:: :const:`~hydpy.models.lland.lland_constants.ACKER`
+.. |lland_control.EQB| replace:: :class:`~hydpy.models.lland.lland_control.EQB`
+.. |lland_control.EQD1| replace:: :class:`~hydpy.models.lland.lland_control.EQD1`
+.. |lland_control.EQD2| replace:: :class:`~hydpy.models.lland.lland_control.EQD2`
+.. |lland_control.EQI1| replace:: :class:`~hydpy.models.lland.lland_control.EQI1`
+.. |lland_control.EQI2| replace:: :class:`~hydpy.models.lland.lland_control.EQI2`
+.. |lland_control.TGr| replace:: :class:`~hydpy.models.lland.lland_control.TGr`
+
+.. _auxfiletools:
+
+auxfiletools
+============
+
+.. automodule:: hydpy.core.auxfiletools
+    :members:
+    :show-inheritance:
+    :exclude-members: IO, Container, SupportsAbs, FrozenSet, Buffer, RESULTSEQUENCES, MappingView, Union, Annotated, Counter, Deque, evaluate_forward_ref, ValuesView, reveal_type, NoExtraItems, Format, fastaccess_old, Coroutine, get_protocol_members, is_typeddict, subseqs, AsyncIterable, TypedDict, AsyncGenerator, NotRequired, OrderedDict, INTERFACE_METHODS, ItemsView, ChainMap, is_protocol, CapsuleType, SupportsFloat, FIXEDPARAMETERS, disjoint_base, type_repr, Sequence, CLASSES, SupportsComplex, SOLVERPARAMETERS, Dict, Never, Literal, Callable, overload, deprecated, Unpack, Match, NamedTuple, get_type_hints, Sized, override, runtime_checkable, get_annotations, TypeForm, INLET_METHODS, Set, Self, fastaccess, Any, runtime, Tuple, subvars, KeysView, Final, SENDER_METHODS, OBSERVER_METHODS, Optional, TextIO, seqs, no_type_check_decorator, ADD_METHODS, AsyncContextManager, dataclass_transform, TypeGuard, ContextManager, ParamSpec, MutableSequence, IntVar, Generator, pars, get_original_bases, SUBMODELS, final, Writer, subpars, CONTROLPARAMETERS, ParamSpecKwargs, Text, Sentinel, Doc, fastaccess_new, TypeVar, SupportsIndex, no_type_check, Iterable, PART_ODE_METHODS, SupportsInt, get_args, get_origin, Collection, Type, DefaultDict, TypeAlias, SupportsBytes, OUTLET_METHODS, MutableMapping, AsyncIterator, Iterator, Mapping, Hashable, RECEIVER_METHODS, Concatenate, TypeVarTuple, ByteString, Awaitable, Generic, Reversible, Required, Pattern, get_overloads, RUN_METHODS, BinaryIO, ClassVar, List, AnyStr, ParamSpecArgs, TypeAliasType, ForwardRef, NoReturn, SUBMODELINTERFACES, NewType, MutableSet, UPDATEDSEQUENCES, ReadOnly, NoDefault, assert_never, AbstractSet, TYPE_CHECKING, REQUIREDSEQUENCES, SOLVERSEQUENCES, assert_type, LiteralString, clear_overloads, FULL_ODE_METHODS, Reader, SupportsRound, cast, TypeIs, SUBMETHODS, Protocol, DERIVEDPARAMETERS

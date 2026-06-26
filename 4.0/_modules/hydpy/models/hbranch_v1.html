@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.hbranch_v1 &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hbranch_v1</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.hbranch_v1</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=line-too-long, wildcard-import, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Version 1 of the HydPy-H-Branch model allows for branching the</span>
+<span class="sd">summed input from some inlet nodes to an arbitrary number of outlet</span>
+<span class="sd">nodes.  In the original HBV96 implementation, it is supposed to</span>
+<span class="sd">separate inflowing discharge, but in *HydPy* it can be used for</span>
+<span class="sd">arbitrary variables.  Calculations are performed for each branch</span>
+<span class="sd">individually by linear interpolation (or extrapolation) following</span>
+<span class="sd">tabulated supporting points.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">    .. how_to_understand_integration_tests::</span>
+
+<span class="sd">    We perform the following examples over a simulation period of 10 hours:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub, Nodes, Element</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = &quot;01.01.2000 00:00&quot;, &quot;01.01.2000 10:00&quot;, &quot;1h&quot;</span>
+
+<span class="sd">    |hbranch_v1| has no parameter with values depending on the simulation</span>
+<span class="sd">    step size, which is why we can pass anything (or nothing) to function</span>
+<span class="sd">    |parameterstep| without changing the following results:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hbranch_v1 import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">    The |hbranch_v1| model queries its inflow from two inlet |Node| objects</span>
+<span class="sd">    and passes the branched outflow to three outlet |Node| objects.  In</span>
+<span class="sd">    contrast to most other application models, we need to define the</span>
+<span class="sd">    parameter values before connecting the model to its |Element| object,</span>
+<span class="sd">    called `branch`:</span>
+
+<span class="sd">    &gt;&gt;&gt; nodes = Nodes(&quot;input1&quot;, &quot;input2&quot;, &quot;output1&quot;, &quot;output2&quot;, &quot;output3&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; branch = Element(&quot;branch&quot;,</span>
+<span class="sd">    ...                  inlets=[&quot;input1&quot;, &quot;input2&quot;],</span>
+<span class="sd">    ...                  outlets=[&quot;output1&quot;, &quot;output2&quot;, &quot;output3&quot;])</span>
+<span class="sd">    &gt;&gt;&gt; xpoints(0.0, 2.0, 4.0, 6.0)</span>
+<span class="sd">    &gt;&gt;&gt; ypoints(output1=[0.0, 1.0, 2.0, 3.0],</span>
+<span class="sd">    ...         output2=[0.0, 1.0, 0.0, 0.0],</span>
+<span class="sd">    ...         output3=[0.0, 0.0, 2.0, 6.0])</span>
+<span class="sd">    &gt;&gt;&gt; branch.model = model</span>
+
+<span class="sd">    We do not have to define any initial values in the test settings,</span>
+<span class="sd">    due to application model |hbranch_v1| having no memory at all:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.testtools import IntegrationTest</span>
+<span class="sd">    &gt;&gt;&gt; test = IntegrationTest(branch)</span>
+<span class="sd">    &gt;&gt;&gt; test.dateformat = &quot;%H:%M&quot;</span>
+
+<span class="sd">    The (identical) values of the inlet nodes `input1` and `input2`</span>
+<span class="sd">    define no realistic inflow series.  Instead, they are just</span>
+<span class="sd">    intended to show the behaviour of |hbranch_v1| within and slightly</span>
+<span class="sd">    outside the current range defined by parameter |XPoints|:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy</span>
+<span class="sd">    &gt;&gt;&gt; nodes.input1.sequences.sim.series = numpy.arange(-1, 9)/2</span>
+<span class="sd">    &gt;&gt;&gt; nodes.input2.sequences.sim.series = numpy.arange(-1, 9)/2</span>
+
+<span class="sd">    The results for outlet node `output1` clearly show that the linear</span>
+<span class="sd">    interpolation is extrapolated both below and above the current range</span>
+<span class="sd">    of parameter |XPoints|.  The values of node `output2` point out that</span>
+<span class="sd">    inverse relationships are allowed.  The values of node `output3`</span>
+<span class="sd">    raise to fast for high input values, showing that |hbranch_v1| does</span>
+<span class="sd">    not care for equality between the total sum of input and output values:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;hbranch_v1_ex1&quot;)</span>
+<span class="sd">    |  date | input |             outputs | input1 | input2 | output1 | output2 | output3 |</span>
+<span class="sd">    ---------------------------------------------------------------------------------------</span>
+<span class="sd">    | 00:00 |  -1.0 | -0.5  -0.5      0.0 |   -0.5 |   -0.5 |    -0.5 |    -0.5 |     0.0 |</span>
+<span class="sd">    | 01:00 |   0.0 |  0.0   0.0      0.0 |    0.0 |    0.0 |     0.0 |     0.0 |     0.0 |</span>
+<span class="sd">    | 02:00 |   1.0 |  0.5   0.5      0.0 |    0.5 |    0.5 |     0.5 |     0.5 |     0.0 |</span>
+<span class="sd">    | 03:00 |   2.0 |  1.0   1.0      0.0 |    1.0 |    1.0 |     1.0 |     1.0 |     0.0 |</span>
+<span class="sd">    | 04:00 |   3.0 |  1.5   0.5      1.0 |    1.5 |    1.5 |     1.5 |     0.5 |     1.0 |</span>
+<span class="sd">    | 05:00 |   4.0 |  2.0   0.0      2.0 |    2.0 |    2.0 |     2.0 |     0.0 |     2.0 |</span>
+<span class="sd">    | 06:00 |   5.0 |  2.5   0.0      4.0 |    2.5 |    2.5 |     2.5 |     0.0 |     4.0 |</span>
+<span class="sd">    | 07:00 |   6.0 |  3.0   0.0      6.0 |    3.0 |    3.0 |     3.0 |     0.0 |     6.0 |</span>
+<span class="sd">    | 08:00 |   7.0 |  3.5   0.0      8.0 |    3.5 |    3.5 |     3.5 |     0.0 |     8.0 |</span>
+<span class="sd">    | 09:00 |   8.0 |  4.0   0.0     10.0 |    4.0 |    4.0 |     4.0 |     0.0 |    10.0 |</span>
+
+<span class="sd">    .. raw:: html</span>
+
+<span class="sd">        &lt;a</span>
+<span class="sd">            href=&quot;hbranch_v1_ex1.html&quot;</span>
+<span class="sd">            target=&quot;_blank&quot;</span>
+<span class="sd">        &gt;Click here to see the graph&lt;/a&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.exe.modelimports</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from hbranch</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hbranch</span> <span class="kn">import</span> <span class="n">hbranch_model</span>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../hbranch_v1.html#hydpy.models.hbranch_v1.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">hbranch_model</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The HBV96 version of HydPy-H-Stream (hbranch_v1).&quot;&quot;&quot;</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hbranch_model</span><span class="o">.</span><span class="n">Pick_Input_V1</span><span class="p">,)</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hbranch_model</span><span class="o">.</span><span class="n">Calc_Outputs_V1</span><span class="p">,)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hbranch_model</span><span class="o">.</span><span class="n">Pass_Outputs_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+<span class="n">cythonizer</span><span class="o">.</span><span class="n">finalise</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hbranch_v1</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

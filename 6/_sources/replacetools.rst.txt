@@ -1,0 +1,13 @@
+.. |hyd| replace:: :mod:`~hydpy.exe.hyd`
+.. |str| replace:: :class:`str`
+.. |xml_replace| replace:: :func:`~hydpy.exe.replacetools.xml_replace`
+
+.. _replacetools:
+
+replacetools
+============
+
+.. automodule:: hydpy.exe.replacetools
+    :members:
+    :show-inheritance:
+    :exclude-members: Sequence, Callable, is_typeddict, AsyncContextManager, Never, SOLVERPARAMETERS, TypeVar, NamedTuple, ItemsView, SupportsBytes, Writer, fastaccess, overload, AsyncGenerator, Container, Iterator, Generic, no_type_check, Optional, TypeVarTuple, SOLVERSEQUENCES, Hashable, Collection, pars, SupportsAbs, type_repr, Sentinel, RESULTSEQUENCES, dataclass_transform, deprecated, CLASSES, Concatenate, ValuesView, subpars, TypeGuard, ParamSpec, Deque, SENDER_METHODS, MutableSequence, List, get_protocol_members, NoExtraItems, AbstractSet, AnyStr, SupportsComplex, SUBMETHODS, subvars, Tuple, evaluate_forward_ref, LiteralString, fastaccess_new, NewType, KeysView, seqs, FIXEDPARAMETERS, UPDATEDSEQUENCES, Set, Buffer, Doc, no_type_check_decorator, TypeAliasType, NoDefault, Final, disjoint_base, Counter, assert_type, final, TYPE_CHECKING, ChainMap, OUTLET_METHODS, DERIVEDPARAMETERS, Reader, Awaitable, SupportsIndex, SupportsInt, Union, RUN_METHODS, get_annotations, DefaultDict, Required, NotRequired, CapsuleType, fastaccess_old, AsyncIterable, assert_never, reveal_type, OBSERVER_METHODS, Self, get_overloads, cast, Protocol, runtime_checkable, Reversible, get_type_hints, ADD_METHODS, INLET_METHODS, ByteString, ForwardRef, IO, Coroutine, SupportsFloat, CONTROLPARAMETERS, Iterable, OrderedDict, Generator, ParamSpecKwargs, get_origin, Type, ParamSpecArgs, ReadOnly, SUBMODELINTERFACES, Pattern, MutableMapping, TextIO, SupportsRound, TypeIs, Dict, is_protocol, SUBMODELS, Mapping, runtime, Format, INTERFACE_METHODS, Annotated, TypeAlias, REQUIREDSEQUENCES, clear_overloads, Literal, get_original_bases, get_args, TypedDict, override, PART_ODE_METHODS, AsyncIterator, Unpack, ClassVar, Match, TypeForm, MutableSet, ContextManager, MappingView, BinaryIO, subseqs, IntVar, Any, NoReturn, Sized, FULL_ODE_METHODS, RECEIVER_METHODS, Text, FrozenSet

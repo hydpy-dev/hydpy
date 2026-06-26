@@ -225,10 +225,12 @@ class Calc_AdjustedEvaporation_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        d_weight = con.weightevaporation
-        d_new = der.inputfactor * con.correctionevaporation * flu.potentialevaporation
-        d_old = log.loggedadjustedevaporation[0]
-        flu.adjustedevaporation = d_weight * d_new + (1.0 - d_weight) * d_old
+        weight: float = con.weightevaporation
+        new: float = (
+            der.inputfactor * con.correctionevaporation * flu.potentialevaporation
+        )
+        old: float = log.loggedadjustedevaporation[0]
+        flu.adjustedevaporation = weight * new + (1.0 - weight) * old
         log.loggedadjustedevaporation[0] = flu.adjustedevaporation
 
 
@@ -1588,8 +1590,8 @@ class Calc_RemoteDemand_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        d_rdm = con.remotedischargeminimum[der.toy[model.idx_sim]]
-        flu.remotedemand = max(d_rdm - flu.naturalremotedischarge, 0.0)
+        rdm: float = con.remotedischargeminimum[der.toy[model.idx_sim]]
+        flu.remotedemand = max(rdm - flu.naturalremotedischarge, 0.0)
 
 
 class Calc_RemoteFailure_V1(modeltools.Method):
@@ -2095,16 +2097,16 @@ class Fix_Min1_V1(modeltools.Method):
     ) -> float:
         if relative:
             smoothpar *= threshold
-        d_result = smoothutils.smooth_min1(input_, threshold, smoothpar)
+        result: float = smoothutils.smooth_min1(input_, threshold, smoothpar)
         for _ in range(5):
             smoothpar /= 5.0
-            d_result = smoothutils.smooth_max1(d_result, 0.0, smoothpar)
+            result = smoothutils.smooth_max1(result, 0.0, smoothpar)
             smoothpar /= 5.0
             if relative:
-                d_result = smoothutils.smooth_min1(d_result, input_, smoothpar)
+                result = smoothutils.smooth_min1(result, input_, smoothpar)
             else:
-                d_result = smoothutils.smooth_min1(d_result, threshold, smoothpar)
-        return max(min(d_result, input_, threshold), 0.0)
+                result = smoothutils.smooth_min1(result, threshold, smoothpar)
+        return max(min(result, input_, threshold), 0.0)
 
 
 class Calc_ActualRemoteRelief_V1(modeltools.Method):
@@ -3544,49 +3546,49 @@ class Calc_ActualRelease_V3(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         # some general preparations:
         idx_toy = der.toy[model.idx_sim]
-        d_target = con.targetvolume[idx_toy]
-        d_range = max(con.targetrangeabsolute, con.targetrangerelative * d_target)
-        d_range = max(d_range, 1e-6)
-        d_qmin = con.neardischargeminimumthreshold[idx_toy]
-        d_qmax = smoothutils.smooth_max1(
-            d_qmin, aid.alloweddischarge, der.dischargesmoothpar
+        target: float = con.targetvolume[idx_toy]
+        range_: float = max(con.targetrangeabsolute, con.targetrangerelative * target)
+        range_ = max(range_, 1e-6)
+        qmin: float = con.neardischargeminimumthreshold[idx_toy]
+        qmax: float = smoothutils.smooth_max1(
+            qmin, aid.alloweddischarge, der.dischargesmoothpar
         )
         # calculate the release for too-high water volumes:
-        d_factor = smoothutils.smooth_logistic3(
-            (new.watervolume - d_target + d_range) / d_range, der.volumesmoothparlog2
+        factor: float = smoothutils.smooth_logistic3(
+            (new.watervolume - target + range_) / range_, der.volumesmoothparlog2
         )
-        d_upperbound = smoothutils.smooth_min1(
-            d_qmax, flu.inflow, der.dischargesmoothpar
+        upperbound: float = smoothutils.smooth_min1(
+            qmax, flu.inflow, der.dischargesmoothpar
         )
-        d_release1 = (1.0 - d_factor) * d_qmin + d_factor * smoothutils.smooth_max1(
-            d_qmin, d_upperbound, der.dischargesmoothpar
+        release1: float = (1.0 - factor) * qmin + factor * smoothutils.smooth_max1(
+            qmin, upperbound, der.dischargesmoothpar
         )
         # calculate the release for too-low water volumes:
-        d_factor = smoothutils.smooth_logistic3(
-            (d_target + d_range - new.watervolume) / d_range, der.volumesmoothparlog2
+        factor = smoothutils.smooth_logistic3(
+            (target + range_ - new.watervolume) / range_, der.volumesmoothparlog2
         )
-        d_neutral = smoothutils.smooth_max1(d_qmin, flu.inflow, der.dischargesmoothpar)
-        d_release2 = (1.0 - d_factor) * d_qmax + d_factor * smoothutils.smooth_min1(
-            d_qmax, d_neutral, der.dischargesmoothpar
+        neutral: float = smoothutils.smooth_max1(
+            qmin, flu.inflow, der.dischargesmoothpar
+        )
+        release2: float = (1.0 - factor) * qmax + factor * smoothutils.smooth_min1(
+            qmax, neutral, der.dischargesmoothpar
         )
         # combine both releases smoothly:
-        d_weight = smoothutils.smooth_logistic1(
-            d_target - new.watervolume, der.volumesmoothparlog1
+        weight: float = smoothutils.smooth_logistic1(
+            target - new.watervolume, der.volumesmoothparlog1
         )
-        flu.actualrelease = d_weight * d_release1 + (1.0 - d_weight) * d_release2
+        flu.actualrelease = weight * release1 + (1.0 - weight) * release2
         # the realease calculated so far may depend on the smoothing-degree,
         # even when the actual volume meets the target volume; the following
         # equations are supposed to correct this:
         if der.volumesmoothparlog1 > 0.0:
-            d_weight = modelutils.exp(
-                -(((new.watervolume - d_target) / der.volumesmoothparlog1) ** 2)
+            weight = modelutils.exp(
+                -(((new.watervolume - target) / der.volumesmoothparlog1) ** 2)
             )
         else:
-            d_weight = 0.0
-        d_neutral = smoothutils.smooth_max1(
-            d_upperbound, d_qmin, der.dischargesmoothpar
-        )
-        flu.actualrelease = d_weight * d_neutral + (1.0 - d_weight) * flu.actualrelease
+            weight = 0.0
+        neutral = smoothutils.smooth_max1(upperbound, qmin, der.dischargesmoothpar)
+        flu.actualrelease = weight * neutral + (1.0 - weight) * flu.actualrelease
         # for good measure, prevent negative release and storage overdrying
         # explictly:
         flu.actualrelease = smoothutils.smooth_max1(

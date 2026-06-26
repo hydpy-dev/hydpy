@@ -336,16 +336,16 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
-        d_b = 2.0 * fix.pi * (der.doy[model.idx_sim] - 80.0) / 365.0
-        d_sc = (
-            0.1645 * modelutils.sin(2.0 * d_b)
-            - 0.1255 * modelutils.cos(d_b)
-            - 0.025 * modelutils.sin(d_b)
+        b: float = 2.0 * fix.pi * (der.doy[model.idx_sim] - 80.0) / 365.0
+        sc: float = (
+            0.1645 * modelutils.sin(2.0 * b)
+            - 0.1255 * modelutils.cos(b)
+            - 0.025 * modelutils.sin(b)
         )
-        d_time = (
-            der.sct[model.idx_sim] + (con.longitude - der.utclongitude) / 15.0 + d_sc
+        time: float = (
+            der.sct[model.idx_sim] + (con.longitude - der.utclongitude) / 15.0 + sc
         )
-        fac.solartimeangle = fix.pi / 12.0 * (d_time - 12.0)
+        fac.solartimeangle = fix.pi / 12.0 * (time - 12.0)
 
 
 class Calc_TimeOfSunrise_TimeOfSunset_V1(modeltools.Method):
@@ -412,9 +412,9 @@ class Calc_TimeOfSunrise_TimeOfSunset_V1(modeltools.Method):
             / modelutils.cos(der.latituderad)
         )
         fac.timeofsunset = 24.0 - fac.timeofsunrise
-        d_dt = (der.utclongitude - con.longitude) * 4.0 / 60.0
-        fac.timeofsunrise += d_dt
-        fac.timeofsunset += d_dt
+        dt: float = (der.utclongitude - con.longitude) * 4.0 / 60.0
+        fac.timeofsunrise += dt
+        fac.timeofsunset += dt
 
 
 class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
@@ -648,16 +648,16 @@ class Calc_ExtraterrestrialRadiation_V2(modeltools.Method):
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        d_sunsethourangle = (fac.timeofsunset - fac.timeofsunrise) * fix.pi / 24.0
+        sunsethourangle: float = (fac.timeofsunset - fac.timeofsunrise) * fix.pi / 24.0
         flu.extraterrestrialradiation = (
             fix.solarconstant * fac.earthsundistance / fix.pi
         ) * (
-            d_sunsethourangle
+            sunsethourangle
             * modelutils.sin(fac.solardeclination)
             * modelutils.sin(der.latituderad)
             + modelutils.cos(fac.solardeclination)
             * modelutils.cos(der.latituderad)
-            * modelutils.sin(d_sunsethourangle)
+            * modelutils.sin(sunsethourangle)
         )
 
 
@@ -739,11 +739,11 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         if der.hours < 24.0:
             if fac.solartimeangle <= 0.0:
-                d_thresh = -fac.solartimeangle - fix.pi * der.days
+                thresh: float = -fac.solartimeangle - fix.pi * der.days
             else:
-                d_thresh = fac.solartimeangle - fix.pi * der.days
+                thresh = fac.solartimeangle - fix.pi * der.days
             fac.possiblesunshineduration = min(
-                max(12.0 / fix.pi * (fac.sunsethourangle - d_thresh), 0.0), der.hours
+                max(12.0 / fix.pi * (fac.sunsethourangle - thresh), 0.0), der.hours
             )
         else:
             fac.possiblesunshineduration = 24.0 / fix.pi * fac.sunsethourangle
@@ -821,10 +821,10 @@ class Calc_PossibleSunshineDuration_V2(modeltools.Method):
     def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
-        d_stc = der.sct[model.idx_sim]
-        d_t0 = max((d_stc - der.hours / 2.0), fac.timeofsunrise)
-        d_t1 = min((d_stc + der.hours / 2.0), fac.timeofsunset)
-        fac.possiblesunshineduration = max(d_t1 - d_t0, 0.0)
+        stc: float = der.sct[model.idx_sim]
+        t0: float = max((stc - der.hours / 2.0), fac.timeofsunrise)
+        t1: float = min((stc + der.hours / 2.0), fac.timeofsunset)
+        fac.possiblesunshineduration = max(t1 - t0, 0.0)
 
 
 class Calc_DailyPossibleSunshineDuration_V1(modeltools.Method):
@@ -1159,32 +1159,32 @@ class Calc_PortionDailyRadiation_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
-        d_fac = 2.0 * fix.pi / 360.0
+        factor: float = 2.0 * fix.pi / 360.0
         fac.portiondailyradiation = 0.0
         for i in range(2):
             if i:
-                d_dt = der.hours / 2.0
+                dt: float = der.hours / 2.0
             else:
-                d_dt = -der.hours / 2.0
-            d_tlp = (100.0 * d_fac) * (
-                (der.sct[model.idx_sim] + d_dt - fac.timeofsunrise)
+                dt = -der.hours / 2.0
+            tlp: float = (100.0 * factor) * (
+                (der.sct[model.idx_sim] + dt - fac.timeofsunrise)
                 / (fac.timeofsunset - fac.timeofsunrise)
             )
-            if d_tlp <= 0.0:
-                d_p = 0.0
-            elif d_tlp < 100.0 * d_fac:
-                d_p = 50.0 - 50.0 * modelutils.cos(1.8 * d_tlp)
-                d_temp = 3.4 * modelutils.sin(3.6 * d_tlp) ** 2
-                if d_tlp <= 50.0 * d_fac:
-                    d_p -= d_temp
+            if tlp <= 0.0:
+                p: float = 0.0
+            elif tlp < 100.0 * factor:
+                p = 50.0 - 50.0 * modelutils.cos(1.8 * tlp)
+                temp: float = 3.4 * modelutils.sin(3.6 * tlp) ** 2
+                if tlp <= 50.0 * factor:
+                    p -= temp
                 else:
-                    d_p += d_temp
+                    p += temp
             else:
-                d_p = 100.0
+                p = 100.0
             if i:
-                fac.portiondailyradiation += d_p
+                fac.portiondailyradiation += p
             else:
-                fac.portiondailyradiation -= d_p
+                fac.portiondailyradiation -= p
 
 
 class Return_DailyGlobalRadiation_V1(modeltools.Method):
@@ -1512,14 +1512,14 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         if fac.possiblesunshineduration > 0.0:
-            d_act = inp.sunshineduration
-            d_pos = fac.possiblesunshineduration
+            act: float = inp.sunshineduration
+            pos: float = fac.possiblesunshineduration
         else:
-            d_act = fac.dailysunshineduration
-            d_pos = fac.dailypossiblesunshineduration
+            act = fac.dailysunshineduration
+            pos = fac.dailypossiblesunshineduration
         flu.unadjustedglobalradiation = (
             der.nmblogentries * fac.portiondailyradiation / 100.0
-        ) * model.return_dailyglobalradiation_v1(d_act, d_pos)
+        ) * model.return_dailyglobalradiation_v1(act, pos)
 
 
 class Adjust_ClearSkySolarRadiation_V1(modeltools.Method):
@@ -1793,10 +1793,10 @@ class Return_SunshineDuration_V1(modeltools.Method):
         if extraterrestrialradiation <= 0.0:
             return possiblesunshineduration
         idx = der.moy[model.idx_sim]
-        d_sd = (possiblesunshineduration / con.angstromfactor[idx]) * (
+        sd: float = (possiblesunshineduration / con.angstromfactor[idx]) * (
             globalradiation / extraterrestrialradiation - con.angstromconstant[idx]
         )
-        return min(max(d_sd, 0.0), possiblesunshineduration)
+        return min(max(sd, 0.0), possiblesunshineduration)
 
 
 class Calc_UnadjustedSunshineDuration_V1(modeltools.Method):
@@ -1967,12 +1967,12 @@ class Calc_GlobalRadiation_V2(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
-        d_glob_sum = 0.0
+        glob_sum: float = 0.0
         for idx in range(der.nmblogentries):
-            d_glob_sum += log.loggedunadjustedglobalradiation[idx]
-        d_glob_mean = d_glob_sum / der.nmblogentries
+            glob_sum += log.loggedunadjustedglobalradiation[idx]
+        glob_mean: float = glob_sum / der.nmblogentries
         flu.globalradiation = (
-            flu.unadjustedglobalradiation * flu.dailyglobalradiation / d_glob_mean
+            flu.unadjustedglobalradiation * flu.dailyglobalradiation / glob_mean
         )
 
 
@@ -2062,11 +2062,11 @@ class Calc_SunshineDuration_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         if flu.extraterrestrialradiation > 0.0:
             idx = der.moy[model.idx_sim]
-            d_sd = (
+            sd: float = (
                 (inp.globalradiation / flu.extraterrestrialradiation)
                 - con.angstromconstant[idx]
             ) * (fac.possiblesunshineduration / con.angstromfactor[idx])
-            fac.sunshineduration = min(max(d_sd, 0.0), fac.possiblesunshineduration)
+            fac.sunshineduration = min(max(sd, 0.0), fac.possiblesunshineduration)
         else:
             fac.sunshineduration = 0.0
 
@@ -2254,14 +2254,14 @@ class Calc_SunshineDuration_V2(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
-        d_nom = fac.unadjustedsunshineduration * fac.dailysunshineduration
-        if d_nom == 0.0:
+        nom: float = fac.unadjustedsunshineduration * fac.dailysunshineduration
+        if nom == 0.0:
             fac.sunshineduration = 0.0
         else:
-            d_denom = 0.0
+            denom: float = 0.0
             for idx in range(der.nmblogentries):
-                d_denom += log.loggedunadjustedsunshineduration[idx]
-            fac.sunshineduration = min(d_nom / d_denom, fac.possiblesunshineduration)
+                denom += log.loggedunadjustedsunshineduration[idx]
+            fac.sunshineduration = min(nom / denom, fac.possiblesunshineduration)
 
 
 class Calc_Temperature_V1(modeltools.Method):

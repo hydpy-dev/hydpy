@@ -658,9 +658,9 @@ class Calc_ReducedWindSpeed2m_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             if con.lnk[k] in (LAUBW, MISCHW, NADELW):
-                d_lai = con.lai[con.lnk[k] - 1, der.moy[model.idx_sim]]
+                lai: float = con.lai[con.lnk[k] - 1, der.moy[model.idx_sim]]
                 flu.reducedwindspeed2m[k] = (
-                    max(con.p1wind - con.p2wind * d_lai, 0.0) * flu.windspeed2m
+                    max(con.p1wind - con.p2wind * lai, 0.0) * flu.windspeed2m
                 )
             else:
                 flu.reducedwindspeed2m[k] = flu.windspeed2m
@@ -939,8 +939,8 @@ class Calc_SnowIntMax_V1(modeltools.Method):
         idx = der.moy[model.idx_sim]
         for k in range(con.nhru):
             if con.lnk[k] in (LAUBW, MISCHW, NADELW):
-                d_lai = con.lai[con.lnk[k] - 1, idx]
-                flu.snowintmax[k] = con.p1simax + con.p2simax * d_lai
+                lai: float = con.lai[con.lnk[k] - 1, idx]
+                flu.snowintmax[k] = con.p1simax + con.p2simax * lai
                 if flu.tkor[k] >= -1.0:
                     flu.snowintmax[k] *= 2
                 elif flu.tkor[k] > -3.0:
@@ -1012,10 +1012,9 @@ class Calc_SnowIntRate_V1(modeltools.Method):
         idx = der.moy[model.idx_sim]
         for k in range(con.nhru):
             if con.lnk[k] in (LAUBW, MISCHW, NADELW):
-                d_lai = con.lai[con.lnk[k] - 1, idx]
+                lai: float = con.lai[con.lnk[k] - 1, idx]
                 flu.snowintrate[k] = min(
-                    con.p1sirate + con.p2sirate * d_lai + con.p3sirate * sta.sinz[k],
-                    1.0,
+                    con.p1sirate + con.p2sirate * lai + con.p3sirate * sta.sinz[k], 1.0
                 )
             else:
                 flu.snowintrate[k] = 0.0
@@ -1235,11 +1234,11 @@ class Calc_WNiedInz_ESnowInz_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if con.lnk[k] in (LAUBW, MISCHW, NADELW):
-                d_ice = fix.cpeis * flu.sbesinz[k]
-                d_water = fix.cpwasser * (
+                ice: float = fix.cpeis * flu.sbesinz[k]
+                water: float = fix.cpwasser * (
                     flu.nbesinz[k] - flu.sbesinz[k] - flu.wadainz[k]
                 )
-                flu.wniedinz[k] = (flu.tkor[k] - con.trefn[k]) * (d_ice + d_water)
+                flu.wniedinz[k] = (flu.tkor[k] - con.trefn[k]) * (ice + water)
                 sta.esnowinz[k] += flu.wniedinz[k]
             else:
                 flu.wniedinz[k] = 0.0
@@ -1283,9 +1282,9 @@ class Return_TempSInz_V1(modeltools.Method):
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         if sta.sinz[k] > 0.0:
-            d_ice = fix.cpeis * sta.stinz[k]
-            d_water = fix.cpwasser * (sta.sinz[k] - sta.stinz[k])
-            return max(sta.esnowinz[k] / (d_ice + d_water), -273.0)
+            ice: float = fix.cpeis * sta.stinz[k]
+            water: float = fix.cpwasser * (sta.sinz[k] - sta.stinz[k])
+            return max(sta.esnowinz[k] / (ice + water), -273.0)
         return modelutils.nan
 
 
@@ -1369,12 +1368,12 @@ class Update_ASInz_V1(modeltools.Method):
             if sta.sinz[k] > 0:
                 if modelutils.isnan(sta.asinz[k]):
                     sta.asinz[k] = 0.0
-                d_r1 = modelutils.exp(
+                r1: float = modelutils.exp(
                     5000.0 * (1 / 273.15 - 1.0 / (273.15 + aid.tempsinz[k]))
                 )
-                d_r2 = min(d_r1**10, 1.0)
+                r2: float = min(r1**10, 1.0)
                 sta.asinz[k] *= max(1 - 0.1 * flu.sbesinz[k], 0.0)
-                sta.asinz[k] += (d_r1 + d_r2 + 0.03) / 1e6 * der.seconds
+                sta.asinz[k] += (r1 + r2 + 0.03) / 1e6 * der.seconds
             else:
                 sta.asinz[k] = modelutils.nan
 
@@ -1712,9 +1711,9 @@ class Calc_EvSInz_SInz_STInz_V1(modeltools.Method):
         for k in range(con.nhru):
             if con.lnk[k] in (LAUBW, MISCHW, NADELW) and (sta.sinz[k] > 0.0):
                 flu.evsinz[k] = min(flu.wlatinz[k] / fix.lwe, sta.sinz[k])
-                d_frac = (sta.sinz[k] - flu.evsinz[k]) / sta.sinz[k]
-                sta.sinz[k] *= d_frac
-                sta.stinz[k] *= d_frac
+                frac: float = (sta.sinz[k] - flu.evsinz[k]) / sta.sinz[k]
+                sta.sinz[k] *= frac
+                sta.stinz[k] *= frac
             else:
                 flu.evsinz[k] = 0.0
                 sta.sinz[k] = 0.0
@@ -1760,9 +1759,11 @@ class Update_WaDaInz_SInz_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if con.lnk[k] in (LAUBW, MISCHW, NADELW):
-                d_wadainz_corr = max(sta.sinz[k] - con.pwmax[k] * sta.stinz[k], 0.0)
-                flu.wadainz[k] += d_wadainz_corr
-                sta.sinz[k] -= d_wadainz_corr
+                wadainz_corr: float = max(
+                    sta.sinz[k] - con.pwmax[k] * sta.stinz[k], 0.0
+                )
+                flu.wadainz[k] += wadainz_corr
+                sta.sinz[k] -= wadainz_corr
 
 
 class Update_ESnowInz_V2(modeltools.Method):
@@ -2228,9 +2229,9 @@ class Calc_WNied_V1(modeltools.Method):
             if con.lnk[k] in (WASSER, FLUSS, SEE):
                 flu.wnied[k] = 0.0
             else:
-                d_ice = fix.cpeis * flu.sbes[k]
-                d_water = fix.cpwasser * (flu.nbes[k] - flu.sbes[k])
-                flu.wnied[k] = (flu.tkor[k] - con.trefn[k]) * (d_ice + d_water)
+                ice: float = fix.cpeis * flu.sbes[k]
+                water: float = fix.cpwasser * (flu.nbes[k] - flu.sbes[k])
+                flu.wnied[k] = (flu.tkor[k] - con.trefn[k]) * (ice + water)
 
 
 class Calc_AWNied_V1(modeltools.Method):
@@ -2272,9 +2273,9 @@ class Calc_AWNied_V1(modeltools.Method):
             if con.lnk[k] in (WASSER, FLUSS, SEE):
                 flu.awnied[k] = 0.0
             else:
-                d_ice = fix.cpeis * flu.sbes[k]
-                d_water = fix.cpwasser * (flu.nbes[k] - flu.sbes[k])
-                flu.awnied[k] = (flu.atkor[k] - con.trefn[k]) * (d_ice + d_water)
+                ice: float = fix.cpeis * flu.sbes[k]
+                water: float = fix.cpwasser * (flu.nbes[k] - flu.sbes[k])
+                flu.awnied[k] = (flu.atkor[k] - con.trefn[k]) * (ice + water)
 
 
 class Calc_WNied_ESnow_V1(modeltools.Method):
@@ -2334,9 +2335,9 @@ class Calc_WNied_ESnow_V1(modeltools.Method):
                 flu.wnied[k] = 0.0
                 sta.esnow[k] = 0.0
             else:
-                d_ice = fix.cpeis * flu.sbes[k]
-                d_water = fix.cpwasser * (flu.nbes[k] - flu.sbes[k] - flu.wada[k])
-                flu.wnied[k] = (flu.tkor[k] - con.trefn[k]) * (d_ice + d_water)
+                ice: float = fix.cpeis * flu.sbes[k]
+                water: float = fix.cpwasser * (flu.nbes[k] - flu.sbes[k] - flu.wada[k])
+                flu.wnied[k] = (flu.tkor[k] - con.trefn[k]) * (ice + water)
                 sta.esnow[k] += flu.wnied[k]
 
 
@@ -2478,12 +2479,12 @@ class Calc_RLAtm_V1(modeltools.Method):
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
-        d_rs = flu.dailysunshineduration / flu.dailypossiblesunshineduration
-        d_common = fix.fratm * fix.sigma * (1.0 + 0.22 * (1.0 - d_rs) ** 2)
+        rs: float = flu.dailysunshineduration / flu.dailypossiblesunshineduration
+        common: float = fix.fratm * fix.sigma * (1.0 + 0.22 * (1.0 - rs) ** 2)
         for k in range(con.nhru):
-            d_t = flu.tkor[k] + 273.15
-            aid.rlatm[k] = d_common * (
-                d_t**4 * (flu.actualvapourpressure[k] / d_t) ** (1.0 / 7.0)
+            t: float = flu.tkor[k] + 273.15
+            aid.rlatm[k] = common * (
+                t**4 * (flu.actualvapourpressure[k] / t) ** (1.0 / 7.0)
             )
 
 
@@ -2546,9 +2547,9 @@ class Return_NetLongwaveRadiationInz_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         aid = model.sequences.aides.fastaccess
-        d_fr = der.fr[con.lnk[k] - 1, der.moy[model.idx_sim]]
-        d_rlsnow = fix.sigma * (aid.tempsinz[k] + 273.15) ** 4
-        return (1.0 - d_fr) * (d_rlsnow - aid.rlatm[k])
+        fr: float = der.fr[con.lnk[k] - 1, der.moy[model.idx_sim]]
+        rlsnow: float = fix.sigma * (aid.tempsinz[k] + 273.15) ** 4
+        return (1.0 - fr) * (rlsnow - aid.rlatm[k])
 
 
 class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
@@ -2611,12 +2612,12 @@ class Return_NetLongwaveRadiationSnow_V1(modeltools.Method):
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
-        d_temp = flu.tkor[k] + 273.15
-        d_counter = aid.rlatm[k]
+        temp: float = flu.tkor[k] + 273.15
+        counter: float = aid.rlatm[k]
         if con.lnk[k] in (LAUBW, MISCHW, NADELW):
-            d_fr = der.fr[con.lnk[k] - 1, der.moy[model.idx_sim]]
-            d_counter = d_fr * d_counter + (1.0 - d_fr) * 0.97 * fix.sigma * d_temp**4
-        return fix.sigma * (flu.tempssurface[k] + 273.15) ** 4 - d_counter
+            fr: float = der.fr[con.lnk[k] - 1, der.moy[model.idx_sim]]
+            counter = fr * counter + (1.0 - fr) * 0.97 * fix.sigma * temp**4
+        return fix.sigma * (flu.tempssurface[k] + 273.15) ** 4 - counter
 
 
 class Update_TauS_V1(modeltools.Method):
@@ -2675,12 +2676,12 @@ class Update_TauS_V1(modeltools.Method):
             if sta.waes[k] > 0:
                 if modelutils.isnan(sta.taus[k]):
                     sta.taus[k] = 0.0
-                d_r1 = modelutils.exp(
+                r1: float = modelutils.exp(
                     5000.0 * (1 / 273.15 - 1.0 / (273.15 + aid.temps[k]))
                 )
-                d_r2 = min(d_r1**10, 1.0)
+                r2: float = min(r1**10, 1.0)
                 sta.taus[k] *= max(1 - 0.1 * flu.sbes[k], 0.0)
-                sta.taus[k] += (d_r1 + d_r2 + 0.03) / 1e6 * der.seconds
+                sta.taus[k] += (r1 + r2 + 0.03) / 1e6 * der.seconds
             else:
                 sta.taus[k] = modelutils.nan
 
@@ -2841,9 +2842,9 @@ class Return_TempS_V1(modeltools.Method):
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
         if sta.waes[k] > 0.0:
-            d_ice = fix.cpeis * sta.wats[k]
-            d_water = fix.cpwasser * (sta.waes[k] - sta.wats[k])
-            return max(sta.esnow[k] / (d_ice + d_water), -273.0)
+            ice: float = fix.cpeis * sta.wats[k]
+            water: float = fix.cpwasser * (sta.waes[k] - sta.wats[k])
+            return max(sta.esnow[k] / (ice + water), -273.0)
         return modelutils.nan
 
 
@@ -2879,9 +2880,9 @@ class Return_ESnowInz_V1(modeltools.Method):
     def __call__(model: modeltools.Model, k: int, temps: float, /) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
-        d_ice = fix.cpeis * sta.stinz[k]
-        d_water = fix.cpwasser * (sta.sinz[k] - sta.stinz[k])
-        return temps * (d_ice + d_water)
+        ice: float = fix.cpeis * sta.stinz[k]
+        water: float = fix.cpwasser * (sta.sinz[k] - sta.stinz[k])
+        return temps * (ice + water)
 
 
 class Return_ESnow_V1(modeltools.Method):
@@ -2916,9 +2917,9 @@ class Return_ESnow_V1(modeltools.Method):
     def __call__(model: modeltools.Model, k: int, temps: float, /) -> float:
         fix = model.parameters.fixed.fastaccess
         sta = model.sequences.states.fastaccess
-        d_ice = fix.cpeis * sta.wats[k]
-        d_water = fix.cpwasser * (sta.waes[k] - sta.wats[k])
-        return temps * (d_ice + d_water)
+        ice: float = fix.cpeis * sta.wats[k]
+        water: float = fix.cpwasser * (sta.waes[k] - sta.wats[k])
+        return temps * (ice + water)
 
 
 class Calc_TempS_V1(modeltools.Method):
@@ -3078,10 +3079,10 @@ class Return_WG_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
         if sta.waes[k] > 0.0:
-            d_temp = aid.temps[k]
+            temp: float = aid.temps[k]
         else:
-            d_temp = flu.tkor[k]
-        return fix.lambdag * (flu.tz[k] - d_temp) / fix.z
+            temp = flu.tkor[k]
+        return fix.lambdag * (flu.tz[k] - temp) / fix.z
 
 
 class Calc_WG_V1(modeltools.Method):
@@ -3957,11 +3958,11 @@ class Return_BackwardEulerErrorInz_V1(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         k = model.idx_hru
         if sta.sinz[k] > 0.0:
-            d_esnowinz_old = sta.esnowinz[k]
+            esnowinz_old: float = sta.esnowinz[k]
             sta.esnowinz[k] = esnowinz
             aid.tempsinz[k] = model.return_tempsinz_v1(k)
-            sta.esnowinz[k] = d_esnowinz_old
-            return d_esnowinz_old - esnowinz - model.return_wsurfinz_v1(k)
+            sta.esnowinz[k] = esnowinz_old
+            return esnowinz_old - esnowinz - model.return_wsurfinz_v1(k)
         return modelutils.nan
 
 
@@ -4132,13 +4133,13 @@ class Return_BackwardEulerError_V1(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         k = model.idx_hru
         if sta.waes[k] > 0.0:
-            d_esnow_old = sta.esnow[k]
+            esnow_old: float = sta.esnow[k]
             sta.esnow[k] = esnow
             aid.temps[k] = model.return_temps_v1(k)
-            sta.esnow[k] = d_esnow_old
+            sta.esnow[k] = esnow_old
             model.return_tempssurface_v1(k)
             flu.wg[k] = model.return_wg_v1(k)
-            return d_esnow_old - esnow + flu.wg[k] - flu.wsurf[k]
+            return esnow_old - esnow + flu.wg[k] - flu.wsurf[k]
         return modelutils.nan
 
 
@@ -4252,7 +4253,7 @@ class Update_ESnowInz_V1(modeltools.Method):
         for k in range(con.nhru):
             if sta.sinz[k] > 0.0:
                 model.idx_hru = k
-                d_esnowinz = sta.esnowinz[k]
+                esnowinz: float = sta.esnowinz[k]
                 sta.esnowinz[k] = model.pegasusesnowinz.find_x(
                     model.return_esnowinz_v1(k, -30.0),
                     model.return_esnowinz_v1(k, 30.0),
@@ -4264,7 +4265,7 @@ class Update_ESnowInz_V1(modeltools.Method):
                 )
                 if sta.esnowinz[k] > 0.0:
                     aid.tempsinz[k] = 0.0
-                    sta.esnowinz[k] = d_esnowinz - model.return_wsurfinz_v1(k)
+                    sta.esnowinz[k] = esnowinz - model.return_wsurfinz_v1(k)
             else:
                 sta.esnowinz[k] = 0.0
                 aid.tempsinz[k] = modelutils.nan
@@ -4436,7 +4437,7 @@ class Update_ESnow_V1(modeltools.Method):
         for k in range(con.nhru):
             if sta.waes[k] > 0.0:
                 model.idx_hru = k
-                d_esnow = sta.esnow[k]
+                esnow: float = sta.esnow[k]
                 sta.esnow[k] = model.pegasusesnow.find_x(
                     model.return_esnow_v1(k, -30.0),
                     model.return_esnow_v1(k, 30.0),
@@ -4450,7 +4451,7 @@ class Update_ESnow_V1(modeltools.Method):
                     aid.temps[k] = 0.0
                     flu.tempssurface[k] = model.return_tempssurface(k)
                     flu.wg[k] = model.return_wg_v1(k)
-                    sta.esnow[k] = d_esnow + flu.wg[k] - flu.wsurf[k]
+                    sta.esnow[k] = esnow + flu.wg[k] - flu.wsurf[k]
             else:
                 sta.esnow[k] = 0.0
                 aid.temps[k] = modelutils.nan
@@ -4869,9 +4870,9 @@ class Update_WaDa_WAeS_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
             if con.lnk[k] not in (WASSER, FLUSS, SEE):
-                d_wada_corr = max(sta.waes[k] - con.pwmax[k] * sta.wats[k], 0.0)
-                flu.wada[k] += d_wada_corr
-                sta.waes[k] -= d_wada_corr
+                wada_corr: float = max(sta.waes[k] - con.pwmax[k] * sta.wats[k], 0.0)
+                flu.wada[k] += wada_corr
+                sta.waes[k] -= wada_corr
 
 
 class Update_ESnow_V2(modeltools.Method):
@@ -4951,8 +4952,8 @@ class Calc_SFF_V1(modeltools.Method):
             if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
                 flu.sff[k] = 0.0
             else:
-                d_sff = 1.0 - sta.ebdn[k] / (fix.bowa2z[k] * fix.rschmelz)
-                flu.sff[k] = min(max(d_sff, 0.0), 1.0)
+                sff: float = 1.0 - sta.ebdn[k] / (fix.bowa2z[k] * fix.rschmelz)
+                flu.sff[k] = min(max(sff, 0.0), 1.0)
 
 
 class Calc_FVG_V1(modeltools.Method):
@@ -5134,9 +5135,9 @@ class Calc_EvS_WAeS_WATS_V1(modeltools.Method):
                 sta.wats[k] = 0.0
             else:
                 flu.evs[k] = min(flu.wlatsnow[k] / fix.lwe, sta.waes[k])
-                d_frac = (sta.waes[k] - flu.evs[k]) / sta.waes[k]
-                sta.waes[k] *= d_frac
-                sta.wats[k] *= d_frac
+                frac: float = (sta.waes[k] - flu.evs[k]) / sta.waes[k]
+                sta.waes[k] *= frac
+                sta.wats[k] *= frac
 
 
 class Calc_EvI_Inzp_AETModel_V1(modeltools.Method):
@@ -5894,29 +5895,29 @@ class Calc_BoWa_Default_V1(modeltools.Method):
             if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
                 sta.bowa[k] = 0.0
             else:
-                d_decr = flu.qbb[k] + flu.qib1[k] + flu.qib2[k] + flu.qdb[k]
-                d_incr = flu.wada[k] + flu.qkap[k]
+                decr: float = flu.qbb[k] + flu.qib1[k] + flu.qib2[k] + flu.qdb[k]
+                incr: float = flu.wada[k] + flu.qkap[k]
                 if flu.evb[k] > 0.0:
-                    d_decr += flu.evb[k]
+                    decr += flu.evb[k]
                 else:
-                    d_incr -= flu.evb[k]
-                if d_decr > sta.bowa[k] + d_incr:
-                    d_rvl = (sta.bowa[k] + d_incr) / d_decr
+                    incr -= flu.evb[k]
+                if decr > sta.bowa[k] + incr:
+                    rvl: float = (sta.bowa[k] + incr) / decr
                     if flu.evb[k] > 0.0:
-                        flu.evb[k] *= d_rvl
-                    flu.qbb[k] *= d_rvl
-                    flu.qib1[k] *= d_rvl
-                    flu.qib2[k] *= d_rvl
-                    flu.qdb[k] *= d_rvl
+                        flu.evb[k] *= rvl
+                    flu.qbb[k] *= rvl
+                    flu.qib1[k] *= rvl
+                    flu.qib2[k] *= rvl
+                    flu.qdb[k] *= rvl
                     sta.bowa[k] = 0.0
                 else:
-                    sta.bowa[k] = (sta.bowa[k] + d_incr) - d_decr
+                    sta.bowa[k] = (sta.bowa[k] + incr) - decr
                     if sta.bowa[k] > con.wmax[k]:
-                        d_factor = (sta.bowa[k] - con.wmax[k]) / d_incr
+                        factor: float = (sta.bowa[k] - con.wmax[k]) / incr
                         if flu.evb[k] < 0.0:
-                            flu.evb[k] *= d_factor
-                        flu.wada[k] *= d_factor
-                        flu.qkap[k] *= d_factor
+                            flu.evb[k] *= factor
+                        flu.wada[k] *= factor
+                        flu.qkap[k] *= factor
                         sta.bowa[k] = con.wmax[k]
 
 
@@ -7267,26 +7268,26 @@ class Calc_QAH_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.qah = flu.qzh + flu.qbga + flu.qiga1 + flu.qiga2 + flu.qdga1 + flu.qdga2
         if (not con.negq) and (flu.qah < 0.0):
-            d_area = 0.0
+            area: float = 0.0
             for k in range(con.nhru):
                 if con.lnk[k] in (FLUSS, SEE):
-                    d_area += con.fhru[k]
-            if d_area > 0.0:
+                    area += con.fhru[k]
+            if area > 0.0:
                 for k in range(con.nhru):
                     if con.lnk[k] in (FLUSS, SEE):
-                        flu.evi[k] += flu.qah / d_area
+                        flu.evi[k] += flu.qah / area
             flu.qah = 0.0
-        d_epw = 0.0
+        epw: float = 0.0
         for k in range(con.nhru):
             if con.lnk[k] == WASSER:
                 flu.qah += con.fhru[k] * flu.nkor[k]
-                d_epw += con.fhru[k] * flu.evi[k]
-        if (flu.qah > d_epw) or con.negq:
-            flu.qah -= d_epw
-        elif d_epw > 0.0:
+                epw += con.fhru[k] * flu.evi[k]
+        if (flu.qah > epw) or con.negq:
+            flu.qah -= epw
+        elif epw > 0.0:
             for k in range(con.nhru):
                 if con.lnk[k] == WASSER:
-                    flu.evi[k] *= flu.qah / d_epw
+                    flu.evi[k] *= flu.qah / epw
             flu.qah = 0.0
 
 

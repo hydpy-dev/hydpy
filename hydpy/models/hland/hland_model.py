@@ -125,13 +125,13 @@ class Calc_FracRain_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbzones):
-            d_dt = con.ttint[k] / 2.0
-            if fac.tc[k] >= (con.tt[k] + d_dt):
+            dt: float = con.ttint[k] / 2.0
+            if fac.tc[k] >= (con.tt[k] + dt):
                 fac.fracrain[k] = 1.0
-            elif fac.tc[k] <= (con.tt[k] - d_dt):
+            elif fac.tc[k] <= (con.tt[k] - dt):
                 fac.fracrain[k] = 0.0
             else:
-                fac.fracrain[k] = (fac.tc[k] - (con.tt[k] - d_dt)) / con.ttint[k]
+                fac.fracrain[k] = (fac.tc[k] - (con.tt[k] - dt)) / con.ttint[k]
 
 
 class Calc_RFC_SFC_V1(modeltools.Method):
@@ -540,13 +540,13 @@ class Calc_SP_WC_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.zonetype[k] != ILAKE:
-                d_denom = fac.rfc[k] + fac.sfc[k]
-                if d_denom > 0.0:
-                    d_rain = flu.tf[k] * fac.rfc[k] / d_denom
-                    d_snow = flu.tf[k] * fac.sfc[k] / d_denom
+                denom: float = fac.rfc[k] + fac.sfc[k]
+                if denom > 0.0:
+                    rain: float = flu.tf[k] * fac.rfc[k] / denom
+                    snow: float = flu.tf[k] * fac.sfc[k] / denom
                     for c in range(con.sclass):
-                        sta.wc[c, k] += con.sfdist[c] * d_rain
-                        sta.sp[c, k] += con.sfdist[c] * d_snow
+                        sta.wc[c, k] += con.sfdist[c] * rain
+                        sta.sp[c, k] += con.sfdist[c] * snow
             else:
                 for c in range(con.sclass):
                     sta.wc[c, k] = 0.0
@@ -648,15 +648,15 @@ class Calc_SPL_WCL_SP_WC_V1(modeltools.Method):
                     sta.wc[c, k] = 0.0
             elif not modelutils.isinf(con.smax[k]):
                 for c in range(con.sclass):
-                    d_snow = sta.sp[c, k] + sta.wc[c, k]
-                    d_excess = d_snow - con.smax[k]
-                    if d_excess > 0.0:
-                        d_excess_sp = d_excess * sta.sp[c, k] / d_snow
-                        d_excess_wc = d_excess * sta.wc[c, k] / d_snow
-                        flu.spl[k] += d_excess_sp / con.sclass
-                        flu.wcl[k] += d_excess_wc / con.sclass
-                        sta.sp[c, k] -= d_excess_sp
-                        sta.wc[c, k] -= d_excess_wc
+                    snow: float = sta.sp[c, k] + sta.wc[c, k]
+                    excess: float = snow - con.smax[k]
+                    if excess > 0.0:
+                        excess_sp: float = excess * sta.sp[c, k] / snow
+                        excess_wc: float = excess * sta.wc[c, k] / snow
+                        flu.spl[k] += excess_sp / con.sclass
+                        flu.wcl[k] += excess_wc / con.sclass
+                        sta.sp[c, k] -= excess_sp
+                        sta.wc[c, k] -= excess_wc
 
 
 class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
@@ -949,31 +949,32 @@ class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
         for i in range(der.srednumber):
             # f: from, t: to
             f, t = der.sredorder[i, 0], der.sredorder[i, 1]
-            d_f = der.zonearearatios[f, t] * con.sred[f, t]
-            d_gain_frozen = d_f * (flu.spl[f] + aid.spe[f])
-            d_gain_liquid = d_f * (flu.wcl[f] + aid.wce[f])
-            d_gain_total = d_gain_frozen + d_gain_liquid
+            adjust: float = der.zonearearatios[f, t] * con.sred[f, t]
+            gain_frozen: float = adjust * (flu.spl[f] + aid.spe[f])
+            gain_liquid: float = adjust * (flu.wcl[f] + aid.wce[f])
+            gain_total: float = gain_frozen + gain_liquid
             for c in range(con.sclass):
-                d_gain_pot = con.sfdist[c] * d_gain_total
-                if d_gain_pot > 0.0:
-                    d_gain_max = con.smax[t] - sta.sp[c, t] - sta.wc[c, t]
-                    d_fraction_gain = min(d_gain_max / d_gain_pot, 1.0)
-                    d_factor_gain = d_fraction_gain * con.sfdist[c]
-                    flu.spg[t] += d_factor_gain * d_gain_frozen / con.sclass
-                    flu.wcg[t] += d_factor_gain * d_gain_liquid / con.sclass
-                    sta.sp[c, t] += d_factor_gain * d_gain_frozen
-                    sta.wc[c, t] += d_factor_gain * d_gain_liquid
-                    d_factor_excess = (1.0 - d_fraction_gain) * con.sfdist[c]
-                    aid.spe[t] += d_factor_excess * d_gain_frozen / con.sclass
-                    aid.wce[t] += d_factor_excess * d_gain_liquid / con.sclass
+                gain_pot: float = con.sfdist[c] * gain_total
+                if gain_pot > 0.0:
+                    gain_max: float = con.smax[t] - sta.sp[c, t] - sta.wc[c, t]
+                    fraction_gain: float = min(gain_max / gain_pot, 1.0)
+                    factor_gain: float = fraction_gain * con.sfdist[c]
+                    flu.spg[t] += factor_gain * gain_frozen / con.sclass
+                    flu.wcg[t] += factor_gain * gain_liquid / con.sclass
+                    sta.sp[c, t] += factor_gain * gain_frozen
+                    sta.wc[c, t] += factor_gain * gain_liquid
+                    factor_excess: float = (1.0 - fraction_gain) * con.sfdist[c]
+                    aid.spe[t] += factor_excess * gain_frozen / con.sclass
+                    aid.wce[t] += factor_excess * gain_liquid / con.sclass
 
         # check for remaining excess at the dead ends:
-        d_excess_frozen_basin, d_excess_liquid_basin = 0.0, 0.0
+        excess_frozen_basin: float = 0.0
+        excess_liquid_basin: float = 0.0
         for i in range(con.nmbzones):
             if der.sredend[i]:
-                d_excess_frozen_basin += der.relzoneareas[i] * (aid.spe[i] + flu.spl[i])
-                d_excess_liquid_basin += der.relzoneareas[i] * (aid.wce[i] + flu.wcl[i])
-        if (d_excess_frozen_basin + d_excess_liquid_basin) <= 0.0:
+                excess_frozen_basin += der.relzoneareas[i] * (aid.spe[i] + flu.spl[i])
+                excess_liquid_basin += der.relzoneareas[i] * (aid.wce[i] + flu.wcl[i])
+        if (excess_frozen_basin + excess_liquid_basin) <= 0.0:
             return
 
         # redistribute the remaining excess from bottom to top:
@@ -981,44 +982,44 @@ class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
             t = der.indiceszonez[i]
             if con.zonetype[t] == ILAKE:
                 continue
-            d_excess_frozen_zone = d_excess_frozen_basin / der.relzoneareas[t]
-            d_excess_liquid_zone = d_excess_liquid_basin / der.relzoneareas[t]
-            d_excess_total_zone = d_excess_frozen_zone + d_excess_liquid_zone
-            d_gain_max_cum = 0.0
+            excess_frozen_zone: float = excess_frozen_basin / der.relzoneareas[t]
+            excess_liquid_zone: float = excess_liquid_basin / der.relzoneareas[t]
+            excess_total_zone: float = excess_frozen_zone + excess_liquid_zone
+            gain_max_cum: float = 0.0
             for c in range(con.sclass):
-                d_gain_max_cum += con.smax[t] - sta.sp[c, t] - sta.wc[c, t]
-            if d_gain_max_cum <= 0.0:
+                gain_max_cum += con.smax[t] - sta.sp[c, t] - sta.wc[c, t]
+            if gain_max_cum <= 0.0:
                 continue
-            d_fraction_gain_zone = min(
-                d_gain_max_cum / con.sclass / d_excess_total_zone, 1.0
+            fraction_gain_zone: float = min(
+                gain_max_cum / con.sclass / excess_total_zone, 1.0
             )
-            d_excess_frozen_zone_actual = d_fraction_gain_zone * d_excess_frozen_zone
-            d_excess_liquid_zone_actual = d_fraction_gain_zone * d_excess_liquid_zone
+            excess_frozen_zone_actual: float = fraction_gain_zone * excess_frozen_zone
+            excess_liquid_zone_actual: float = fraction_gain_zone * excess_liquid_zone
             for c in range(con.sclass):
-                d_fraction_gain_class = (
+                fraction_gain_class: float = (
                     con.smax[t] - sta.sp[c, t] - sta.wc[c, t]
-                ) / d_gain_max_cum
-                d_delta_sp_zone = d_fraction_gain_class * d_excess_frozen_zone_actual
-                d_delta_wc_zone = d_fraction_gain_class * d_excess_liquid_zone_actual
-                flu.spg[t] += d_delta_sp_zone
-                flu.wcg[t] += d_delta_wc_zone
-                sta.sp[c, t] += d_delta_sp_zone * con.sclass
-                sta.wc[c, t] += d_delta_wc_zone * con.sclass
-            d_excess_frozen_basin -= d_excess_frozen_zone_actual * der.relzoneareas[t]
-            d_excess_liquid_basin -= d_excess_liquid_zone_actual * der.relzoneareas[t]
-            if (d_excess_frozen_basin + d_excess_liquid_basin) <= 0.0:
+                ) / gain_max_cum
+                delta_sp_zone: float = fraction_gain_class * excess_frozen_zone_actual
+                delta_wc_zone: float = fraction_gain_class * excess_liquid_zone_actual
+                flu.spg[t] += delta_sp_zone
+                flu.wcg[t] += delta_wc_zone
+                sta.sp[c, t] += delta_sp_zone * con.sclass
+                sta.wc[c, t] += delta_wc_zone * con.sclass
+            excess_frozen_basin -= excess_frozen_zone_actual * der.relzoneareas[t]
+            excess_liquid_basin -= excess_liquid_zone_actual * der.relzoneareas[t]
+            if (excess_frozen_basin + excess_liquid_basin) <= 0.0:
                 return
 
         # redistribute the still remaining excess evenly:
-        d_excess_frozen_land = d_excess_frozen_basin / der.rellandarea
-        d_excess_liquid_land = d_excess_liquid_basin / der.rellandarea
+        excess_frozen_land: float = excess_frozen_basin / der.rellandarea
+        excess_liquid_land: float = excess_liquid_basin / der.rellandarea
         for t in range(con.nmbzones):
             if con.zonetype[t] != ILAKE:
-                flu.spg[t] += d_excess_frozen_land
-                flu.wcg[t] += d_excess_liquid_land
+                flu.spg[t] += excess_frozen_land
+                flu.wcg[t] += excess_liquid_land
                 for c in range(con.sclass):
-                    sta.sp[c, t] += d_excess_frozen_land
-                    sta.wc[c, t] += d_excess_liquid_land
+                    sta.sp[c, t] += excess_frozen_land
+                    sta.wc[c, t] += excess_liquid_land
         return
 
 
@@ -1105,12 +1106,12 @@ class Calc_CFAct_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
-        d_factor = 0.5 * modelutils.sin(
+        factor: float = 0.5 * modelutils.sin(
             2 * fix.pi * (der.doy[model.idx_sim] + 1) / 366 - 1.39
         )
         for k in range(con.nmbzones):
             if con.zonetype[k] != ILAKE:
-                fac.cfact[k] = max(con.cfmax[k] + d_factor * con.cfvar[k], 0.0)
+                fac.cfact[k] = max(con.cfmax[k] + factor * con.cfvar[k], 0.0)
             else:
                 fac.cfact[k] = 0.0
 
@@ -1225,9 +1226,9 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
         for k in range(con.nmbzones):
             if con.zonetype[k] != ILAKE:
                 if fac.tc[k] > der.ttm[k]:
-                    d_potmelt = fac.cfact[k] * (fac.tc[k] - der.ttm[k])
+                    potmelt: float = fac.cfact[k] * (fac.tc[k] - der.ttm[k])
                     for c in range(con.sclass):
-                        flu.melt[c, k] = min(d_potmelt, sta.sp[c, k])
+                        flu.melt[c, k] = min(potmelt, sta.sp[c, k])
                         sta.sp[c, k] -= flu.melt[c, k]
                         sta.wc[c, k] += flu.melt[c, k]
                 else:
@@ -1377,9 +1378,11 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
         for k in range(con.nmbzones):
             if con.zonetype[k] != ILAKE:
                 if fac.tc[k] < der.ttm[k]:
-                    d_potrefr = con.cfr[k] * con.cfmax[k] * (der.ttm[k] - fac.tc[k])
+                    potrefr: float = (
+                        con.cfr[k] * con.cfmax[k] * (der.ttm[k] - fac.tc[k])
+                    )
                     for c in range(con.sclass):
-                        flu.refr[c, k] = min(d_potrefr, sta.wc[c, k])
+                        flu.refr[c, k] = min(potrefr, sta.wc[c, k])
                         sta.sp[c, k] += flu.refr[c, k]
                         sta.wc[c, k] -= flu.refr[c, k]
                 else:
@@ -1490,9 +1493,9 @@ class Calc_In_WC_V1(modeltools.Method):
             flu.in_[k] = 0.0
             if con.zonetype[k] != ILAKE:
                 for c in range(con.sclass):
-                    d_wc_old = sta.wc[c, k]
-                    sta.wc[c, k] = min(d_wc_old, con.whc[k] * sta.sp[c, k])
-                    flu.in_[k] += (d_wc_old - sta.wc[c, k]) / con.sclass
+                    wc_old: float = sta.wc[c, k]
+                    sta.wc[c, k] = min(wc_old, con.whc[k] * sta.sp[c, k])
+                    flu.in_[k] += (wc_old - sta.wc[c, k]) / con.sclass
             else:
                 flu.in_[k] = flu.tf[k]
                 for c in range(con.sclass):
@@ -1660,12 +1663,12 @@ class Calc_GAct_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
-        d_factor = 0.5 * modelutils.sin(
+        factor: float = 0.5 * modelutils.sin(
             2 * fix.pi * (der.doy[model.idx_sim] + 1) / 366 - 1.39
         )
         for k in range(con.nmbzones):
             if con.zonetype[k] == GLACIER:
-                fac.gact[k] = max(con.gmelt[k] + d_factor * con.gvar[k], 0.0)
+                fac.gact[k] = max(con.gmelt[k] + factor * con.gvar[k], 0.0)
             else:
                 fac.gact[k] = 0.0
 
@@ -1745,11 +1748,11 @@ class Calc_GlMelt_In_V1(modeltools.Method):
         for k in range(con.nmbzones):
             flu.glmelt[k] = 0.0
             if (con.zonetype[k] == GLACIER) and (fac.tc[k] > der.ttm[k]):
-                d_glmeltpot = fac.gact[k] / con.sclass * (fac.tc[k] - der.ttm[k])
+                glmeltpot: float = fac.gact[k] / con.sclass * (fac.tc[k] - der.ttm[k])
                 for c in range(con.sclass):
                     if sta.sp[c, k] <= 0.0:
-                        flu.glmelt[k] += d_glmeltpot
-                        flu.in_[k] += d_glmeltpot
+                        flu.glmelt[k] += glmeltpot
+                        flu.in_[k] += glmeltpot
 
 
 class Calc_R_SM_V1(modeltools.Method):
@@ -2282,8 +2285,8 @@ class Calc_ContriArea_V1(modeltools.Method):
             for k in range(con.nmbzones):
                 if con.zonetype[k] in (FIELD, FOREST):
                     if con.fc[k] > 0.0:
-                        d_weight = der.relzoneareas[k] / der.relsoilarea
-                        fac.contriarea *= (sta.sm[k] / con.fc[k]) ** d_weight
+                        weight: float = der.relzoneareas[k] / der.relsoilarea
+                        fac.contriarea *= (sta.sm[k] / con.fc[k]) ** weight
             fac.contriarea **= con.beta[k]
 
 
@@ -2611,65 +2614,63 @@ class Calc_QAb_QVs_BW_V1(modeltools.Method):
         t0: float,
         /,
     ) -> None:
-        d_h = h[k]
-        d_k1 = k1[k]
-        d_k2 = k2[k]
-        d_qz = qz[k]
-        d_s0 = s0[k]
-        if (d_k1 == 0.0) and (d_s0 > d_h):
-            qa1[k] += d_s0 - d_h
-            s0[k] = d_s0 = d_h
-        if (d_k1 == 0.0) and (d_s0 == d_h) and (d_qz > d_h / d_k2):
-            d_qa2 = d_h / d_k2
-            d_dt = 1.0 - t0
-            qa2[k] += d_dt * d_qa2
-            qa1[k] += d_dt * (d_qz - d_qa2)
-        elif d_k2 == 0.0:
-            qa2[k] += d_s0 + d_qz
+        h_: float = h[k]
+        k1_: float = k1[k]
+        k2_: float = k2[k]
+        qz_: float = qz[k]
+        s0_: float = s0[k]
+        if (k1_ == 0.0) and (s0_ > h_):
+            qa1[k] += s0_ - h_
+            s0[k] = s0_ = h_
+        if (k1_ == 0.0) and (s0_ == h_) and (qz_ > h_ / k2_):
+            qa2_: float = h_ / k2_
+            dt_: float = 1.0 - t0
+            qa2[k] += dt_ * qa2_
+            qa1[k] += dt_ * (qz_ - qa2_)
+        elif k2_ == 0.0:
+            qa2[k] += s0_ + qz_
             s0[k] = 0.0
-        elif (d_s0 < d_h) or (d_s0 == d_h and d_qz <= d_h / d_k2):
-            if (d_s0 == d_h) or (d_qz <= d_h / d_k2):
-                d_t1 = 1.0
-            elif modelutils.isinf(d_k2):
-                d_t1 = (d_h - d_s0) / d_qz
+        elif (s0_ < h_) or (s0_ == h_ and qz_ <= h_ / k2_):
+            if (s0_ == h_) or (qz_ <= h_ / k2_):
+                t1: float = 1.0
+            elif modelutils.isinf(k2_):
+                t1 = (h_ - s0_) / qz_
             else:
-                d_t1 = t0 + d_k2 * modelutils.log(
-                    (d_qz - d_s0 / d_k2) / (d_qz - d_h / d_k2)
-                )
-            if 0.0 < d_t1 < 1.0:
-                qa2[k] += (d_t1 - t0) * d_qz - (d_h - d_s0)
-                s0[k] = d_h
-                model.calc_qab_qvs_bw_v1(k, h, k1, k2, s0, qz, qa1, qa2, d_t1)
-            elif modelutils.isinf(d_k2):
-                s0[k] += (1.0 - t0) * d_qz
+                t1 = t0 + k2_ * modelutils.log((qz_ - s0_ / k2_) / (qz_ - h_ / k2_))
+            if 0.0 < t1 < 1.0:
+                qa2[k] += (t1 - t0) * qz_ - (h_ - s0_)
+                s0[k] = h_
+                model.calc_qab_qvs_bw_v1(k, h, k1, k2, s0, qz, qa1, qa2, t1)
+            elif modelutils.isinf(k2_):
+                s0[k] += (1.0 - t0) * qz_
             else:
-                d_dt = 1.0 - t0
-                d_k2qz = d_k2 * d_qz
-                s0[k] = d_k2qz - (d_k2qz - d_s0) * modelutils.exp(-d_dt / d_k2)
-                qa2[k] += d_s0 - s0[k] + d_dt * d_qz
+                dt_ = 1.0 - t0
+                k2qz: float = k2_ * qz_
+                s0[k] = k2qz - (k2qz - s0_) * modelutils.exp(-dt_ / k2_)
+                qa2[k] += s0_ - s0[k] + dt_ * qz_
         else:
-            d_v1 = 1.0 / d_k1 + 1.0 / d_k2
-            d_v2 = d_qz + d_h / d_k1
-            d_nom = d_v2 - d_h * d_v1
-            d_denom = d_v2 - d_s0 * d_v1
-            if (d_s0 == d_h) or (d_denom == 0.0) or (not 0 < d_nom / d_denom <= 1):
-                d_t1 = 1.0
+            v1: float = 1.0 / k1_ + 1.0 / k2_
+            v2: float = qz_ + h_ / k1_
+            nom: float = v2 - h_ * v1
+            denom: float = v2 - s0_ * v1
+            if (s0_ == h_) or (denom == 0.0) or (not 0 < nom / denom <= 1):
+                t1 = 1.0
             else:
-                d_t1 = t0 - 1.0 / d_v1 * modelutils.log(d_nom / d_denom)
-                d_t1 = min(d_t1, 1.0)
-            d_dt = d_t1 - t0
-            d_v3 = (d_v2 * d_dt) / d_v1
-            d_v4 = d_denom / d_v1**2 * (1.0 - modelutils.exp(-d_dt * d_v1))
-            d_qa1 = (d_v3 - d_v4 - d_h * d_dt) / d_k1
-            d_qa2 = (d_v3 - d_v4) / d_k2
-            qa1[k] += d_qa1
-            qa2[k] += d_qa2
-            if d_t1 == 1.0:
-                s0[k] += d_dt * d_qz - d_qa1 - d_qa2
+                t1 = t0 - 1.0 / v1 * modelutils.log(nom / denom)
+                t1 = min(t1, 1.0)
+            dt_ = t1 - t0
+            v3: float = (v2 * dt_) / v1
+            v4: float = denom / v1**2 * (1.0 - modelutils.exp(-dt_ * v1))
+            qa1_: float = (v3 - v4 - h_ * dt_) / k1_
+            qa2_ = (v3 - v4) / k2_
+            qa1[k] += qa1_
+            qa2[k] += qa2_
+            if t1 == 1.0:
+                s0[k] += dt_ * qz_ - qa1_ - qa2_
             else:
-                s0[k] = d_h
-            if d_t1 < 1.0:
-                model.calc_qab_qvs_bw_v1(k, h, k1, k2, s0, qz, qa1, qa2, d_t1)
+                s0[k] = h_
+            if t1 < 1.0:
+                model.calc_qab_qvs_bw_v1(k, h, k1, k2, s0, qz, qa1, qa2, t1)
 
 
 class Calc_QAb1_QVs1_BW1_V1(modeltools.Method):
@@ -3076,9 +3077,9 @@ class Calc_RS_RI_SUZ_V1(modeltools.Method):
                 flu.ri[k] = sta.suz[k] * (1.0 - der.w1[k])
                 sta.suz[k] -= flu.rs[k] + flu.ri[k]
                 if sta.suz[k] < 0.0:
-                    d_f = 1.0 - sta.suz[k] / (flu.rs[k] + flu.ri[k])
-                    flu.rs[k] *= d_f
-                    flu.ri[k] *= d_f
+                    f: float = 1.0 - sta.suz[k] / (flu.rs[k] + flu.ri[k])
+                    flu.rs[k] *= f
+                    flu.ri[k] *= f
                     sta.suz[k] = 0.0
             else:
                 sta.suz[k] = 0.0
@@ -3347,11 +3348,11 @@ class Calc_RG1_SG1_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.zonetype[k] in (FIELD, FOREST, GLACIER):
-                d_sg1 = sta.sg1[k]
+                sg1: float = sta.sg1[k]
                 sta.sg1[k] = (
-                    der.w2[k] * d_sg1 + (1.0 - der.w2[k]) * con.k2[k] * flu.gr1[k]
+                    der.w2[k] * sg1 + (1.0 - der.w2[k]) * con.k2[k] * flu.gr1[k]
                 )
-                flu.rg1[k] = d_sg1 + flu.gr1[k] - sta.sg1[k]
+                flu.rg1[k] = sg1 + flu.gr1[k] - sta.sg1[k]
             else:
                 sta.sg1[k] = 0.0
                 flu.rg1[k] = 0.0
@@ -3416,13 +3417,13 @@ class Calc_GR2_GR3_V1(modeltools.Method):
         for k in range(con.nmbzones):
             if con.zonetype[k] == SEALED:
                 continue
-            d_weight = der.relzoneareas[k] / der.rellowerzonearea
+            weight: float = der.relzoneareas[k] / der.rellowerzonearea
             if con.zonetype[k] == ILAKE:
-                d_total = d_weight * flu.pc[k]
+                total: float = weight * flu.pc[k]
             else:
-                d_total = d_weight * (flu.dp[k] - flu.gr1[k])
-            flu.gr2 += fix.fsg * d_total
-            flu.gr3 += (1.0 - fix.fsg) * d_total
+                total = weight * (flu.dp[k] - flu.gr1[k])
+            flu.gr2 += fix.fsg * total
+            flu.gr3 += (1.0 - fix.fsg) * total
 
 
 class Calc_EL_SG2_SG3_AETModel_V1(modeltools.Method):
@@ -3611,21 +3612,21 @@ class Calc_RG2_SG2_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        d_sg2 = sta.sg2
-        d_gr2 = flu.gr2
-        d_k3 = con.k3
-        d_w3 = der.w3
-        if d_sg2 < 0.0 < d_gr2:
-            d_add = min(-sta.sg2, d_gr2)
-            d_k3 *= d_gr2 / d_add
-            d_w3 = modelutils.exp(-1.0 / d_k3)
-            d_sg2 += d_add
-            d_gr2 -= d_add
-        if d_sg2 >= 0.0:
-            sta.sg2 = d_w3 * d_sg2 + (1.0 - d_w3) * d_k3 * d_gr2
-            flu.rg2 = d_sg2 + d_gr2 - sta.sg2
+        sg2: float = sta.sg2
+        gr2: float = flu.gr2
+        k3: float = con.k3
+        w3: float = der.w3
+        if sg2 < 0.0 < gr2:
+            add: float = min(-sta.sg2, gr2)
+            k3 *= gr2 / add
+            w3 = modelutils.exp(-1.0 / k3)
+            sg2 += add
+            gr2 -= add
+        if sg2 >= 0.0:
+            sta.sg2 = w3 * sg2 + (1.0 - w3) * k3 * gr2
+            flu.rg2 = sg2 + gr2 - sta.sg2
         else:
-            sta.sg2 = d_sg2
+            sta.sg2 = sg2
             flu.rg2 = 0.0
 
 
@@ -3700,21 +3701,21 @@ class Calc_RG3_SG3_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        d_sg3 = sta.sg3
-        d_gr3 = flu.gr3
-        d_k4 = der.k4
-        d_w4 = der.w4
-        if d_sg3 < 0.0 < d_gr3:
-            d_add = min(-sta.sg3, d_gr3)
-            d_k4 *= d_gr3 / d_add
-            d_w4 = modelutils.exp(-1.0 / d_k4)
-            d_sg3 += d_add
-            d_gr3 -= d_add
-        if d_sg3 >= 0.0:
-            sta.sg3 = d_w4 * d_sg3 + (1.0 - d_w4) * d_k4 * d_gr3
-            flu.rg3 = d_sg3 + d_gr3 - sta.sg3
+        sg3: float = sta.sg3
+        gr3: float = flu.gr3
+        k4: float = der.k4
+        w4: float = der.w4
+        if sg3 < 0.0 < gr3:
+            add: float = min(-sta.sg3, gr3)
+            k4 *= gr3 / add
+            w4 = modelutils.exp(-1.0 / k4)
+            sg3 += add
+            gr3 -= add
+        if sg3 >= 0.0:
+            sta.sg3 = w4 * sg3 + (1.0 - w4) * k4 * gr3
+            flu.rg3 = sg3 + gr3 - sta.sg3
         else:
-            sta.sg3 = d_sg3
+            sta.sg3 = sg3
             flu.rg3 = 0.0
 
 
@@ -4097,11 +4098,11 @@ class Calc_InRC_V3(modeltools.Method):
         for k in range(con.nmbzones):
             if con.zonetype[k] == ILAKE:
                 continue
-            d_weight = der.relzoneareas[k] / der.rellandarea
+            weight: float = der.relzoneareas[k] / der.rellandarea
             if con.zonetype[k] == SEALED:
-                flu.inrc += d_weight * flu.r[k]
+                flu.inrc += weight * flu.r[k]
             else:
-                flu.inrc += d_weight * (flu.qab1[k] + flu.qab2[k])
+                flu.inrc += weight * (flu.qab1[k] + flu.qab2[k])
 
 
 class Calc_OutRC_RConcModel_V1(modeltools.Method):

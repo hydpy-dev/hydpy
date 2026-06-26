@@ -130,13 +130,13 @@ class Return_Mean_V1(modeltools.Method):
         model: modeltools.Model, values: VectorFloat, mask: VectorFloat, number: int
     ) -> float:
         counter = 0
-        d_result = 0.0
+        result: float = 0.0
         for idx in range(number):
             if not modelutils.isnan(mask[idx]):
                 counter += 1
-                d_result += values[idx]
+                result += values[idx]
         if counter > 0:
-            return d_result / counter
+            return result / counter
         return modelutils.nan
 
 
@@ -242,20 +242,20 @@ class Calc_ActualConstant_ActualFactor_V1(modeltools.Method):
             flu.actualfactor = con.defaultfactor
             flu.actualconstant = con.defaultconstant
             return
-        d_mean_height = model.return_mean_v1(
+        mean_height: float = model.return_mean_v1(
             con.inputheights, flu.inputs, der.nmbinputs
         )
-        d_mean_inputs = model.return_mean_v1(flu.inputs, flu.inputs, der.nmbinputs)
-        d_nominator = 0.0
-        d_denominator = 0.0
+        mean_inputs: float = model.return_mean_v1(flu.inputs, flu.inputs, der.nmbinputs)
+        nominator: float = 0.0
+        denominator: float = 0.0
         for idx in range(der.nmbinputs):
             if not modelutils.isnan(flu.inputs[idx]):
-                d_temp = con.inputheights[idx] - d_mean_height
-                d_nominator += d_temp * (flu.inputs[idx] - d_mean_inputs)
-                d_denominator += d_temp * d_temp
-        if d_denominator > 0.0:
-            flu.actualfactor = d_nominator / d_denominator
-            flu.actualconstant = d_mean_inputs - flu.actualfactor * d_mean_height
+                temp: float = con.inputheights[idx] - mean_height
+                nominator += temp * (flu.inputs[idx] - mean_inputs)
+                denominator += temp * temp
+        if denominator > 0.0:
+            flu.actualfactor = nominator / denominator
+            flu.actualconstant = mean_inputs - flu.actualfactor * mean_height
         else:
             flu.actualfactor = con.defaultfactor
             flu.actualconstant = con.defaultconstant
@@ -387,23 +387,23 @@ class Interpolate_InverseDistance_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         for idx_out in range(der.nmboutputs):
-            d_sumweights = 0.0
-            d_sumvalues = 0.0
-            d_sumvalues_inf = 0.0
+            sumweights: float = 0.0
+            sumvalues: float = 0.0
+            sumvalues_inf: float = 0.0
             counter_inf = 0
             for idx_try in range(con.maxnmbinputs):
                 idx_in = der.proximityorder[idx_out, idx_try]
                 if not modelutils.isnan(inputs[idx_in]):
                     if modelutils.isinf(der.weights[idx_out, idx_try]):
-                        d_sumvalues_inf += inputs[idx_in]
+                        sumvalues_inf += inputs[idx_in]
                         counter_inf += 1
                     else:
-                        d_sumweights += der.weights[idx_out, idx_try]
-                        d_sumvalues += der.weights[idx_out, idx_try] * inputs[idx_in]
+                        sumweights += der.weights[idx_out, idx_try]
+                        sumvalues += der.weights[idx_out, idx_try] * inputs[idx_in]
             if counter_inf:
-                outputs[idx_out] = d_sumvalues_inf / counter_inf
-            elif d_sumweights:
-                outputs[idx_out] = d_sumvalues / d_sumweights
+                outputs[idx_out] = sumvalues_inf / counter_inf
+            elif sumweights:
+                outputs[idx_out] = sumvalues / sumweights
             else:
                 outputs[idx_out] = modelutils.nan
 

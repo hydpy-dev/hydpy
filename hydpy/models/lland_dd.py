@@ -2406,6 +2406,7 @@ class Model(
         lland_model.Get_Precipitation_V1,
         lland_model.Get_InterceptedWater_V1,
         lland_model.Get_SoilWater_V1,
+        lland_model.Computes_SnowEvaporation_V1,
         lland_model.Get_SnowCover_V1,
     )
     ADD_METHODS = (

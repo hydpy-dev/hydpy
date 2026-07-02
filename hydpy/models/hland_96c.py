@@ -89,6 +89,7 @@ We assign identical values to all parameters, besides those that are specific to
 >>> gamma(0.0)
 
 >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+...     usesnowcover(True)
 ...     temperaturethresholdice(0.0)
 ...     soilmoisturelimit(0.8)
 ...     excessreduction(0.5)
@@ -1088,6 +1089,7 @@ class Model(
         hland_model.Get_Precipitation_V1,
         hland_model.Get_InterceptedWater_V1,
         hland_model.Get_SoilWater_V1,
+        hland_model.Computes_SnowEvaporation_V1,
         hland_model.Get_SnowCover_V1,
     )
     ADD_METHODS = (

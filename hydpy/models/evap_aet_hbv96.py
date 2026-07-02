@@ -62,7 +62,7 @@ evapotranspiration), air temperature, intercepted water, soil water, and snow co
 >>> with model.add_soilwatermodel_v1("dummy_soilwater"):
 ...     pass
 >>> with model.add_snowcovermodel_v1("dummy_snowcover"):
-...     pass
+...     computessnowevaporation(False)
 
 Now, we can initialise an |IntegrationTest| object:
 
@@ -116,6 +116,26 @@ evapotranspiration but does not affect interception evaporation:
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |               0.021469 |
     | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |                    0.0 |
+
+.. _evap_aet_hbv96_neglecting_snow:
+
+neglecting snow
+_______________
+
+You can deviate from HBV96's behaviour of reducing soil evapotranspiration due to snow
+cover by setting the parameter |UseSnowCover| to |False|:
+
+>>> model.snowcovermodel.parameters.control.computessnowevaporation(True)
+
+.. integration-test::
+
+    >>> test()
+    |  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |               0.021469 |
+    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |               0.021469 |
+
+>>> model.snowcovermodel.parameters.control.computessnowevaporation(False)
 
 .. _evap_aet_hbv96_bare_soil:
 
@@ -339,6 +359,7 @@ class Model(
         evap_model.Calc_InterceptedWater_V1,
         evap_model.Calc_InterceptionEvaporation_V1,
         evap_model.Calc_SoilWater_V1,
+        evap_model.Has_SnowEvaporation_V1,
         evap_model.Calc_SnowCover_V1,
         evap_model.Calc_PotentialSoilEvapotranspiration_PETModel_V1,
         evap_model.Calc_PotentialSoilEvapotranspiration_PETModel_V2,

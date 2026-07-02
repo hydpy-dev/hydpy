@@ -21,3 +21,14 @@ class NmbZones(parametertools.Parameter):
                 for seq in subseqs:
                     if seq.NDIM == 1:
                         seq.shape = nmbhru_new
+
+
+
+
+class ComputesSnowEvaporation(parametertools.Parameter):
+    """Flag that indicates whether the relevant snow model computes snow evaporation
+    [-]."""
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = bool
+    SPAN = (False, True)

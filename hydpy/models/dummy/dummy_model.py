@@ -1,6 +1,7 @@
 # pylint: disable=missing-module-docstring
 
 from hydpy.core import modeltools
+from hydpy.models.dummy import dummy_control
 from hydpy.models.dummy import dummy_inputs
 from hydpy.models.dummy import dummy_inlets
 from hydpy.models.dummy import dummy_outlets
@@ -112,6 +113,28 @@ class Get_SoilWater_V1(modeltools.Method):
         return inp.soilwater[k]
 
 
+class Computes_SnowEvaporation_V1(modeltools.Method):
+    """Report whether the relevant snow model computes snow evaporation [-].
+
+    Examples:
+
+        >>> from hydpy.models.dummy import *
+        >>> parameterstep()
+        >>> computessnowevaporation(False)
+        >>> assert not model.computes_snowevaporation()
+        >>> computessnowevaporation(True)
+        >>> assert model.computes_snowevaporation()
+    """
+
+    CONTROLPARAMETERS = (dummy_control.ComputesSnowEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> bool:
+        con = model.parameters.control.fastaccess
+
+        return con.computessnowevaporation
+
+
 class Get_SnowCover_V1(modeltools.Method):
     """Get the selected zone's current snow cover fraction.
 
@@ -201,6 +224,7 @@ class Model(modeltools.AdHocModel):
     INTERFACE_METHODS = (
         Get_InterceptedWater_V1,
         Get_SoilWater_V1,
+        Computes_SnowEvaporation_V1,
         Get_SnowCover_V1,
         Get_SnowyCanopy_V1,
         Get_SnowAlbedo_V1,

@@ -4,6 +4,8 @@
 
 import contextlib
 
+from nox.virtualenv import HAS_UV
+
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
@@ -4375,6 +4377,21 @@ class Calc_SnowCover_V1(modeltools.Method):
         #         assert_never(model.petmodel)
 
 
+class Has_SnowEvaporation_V1(modeltools.Method):
+    """Let a submodel that complies with the |SnowCoverModel_V1| interface determine
+    the current snow cover degree."""
+
+    SUBMODELINTERFACES = (stateinterfaces.SnowCoverModel_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> bool:
+        if model.snowcovermodel_typeid == 1:
+            return cast(
+                stateinterfaces.SnowCoverModel_V1, model.snowcovermodel
+            ).computes_snowevaporation()
+        else:
+            return False
+
 class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
     r"""Calculate the actual evapotranspiration with the Penman-Monteith equation
     according to :cite:t:`ref-LARSIM`, based on :cite:t:`ref-Thompson1981`.
@@ -5957,6 +5974,7 @@ class Calc_InterceptionEvaporation_V1(modeltools.Method):
         interceptionevaporation(0.0, 0.0, 0.0, 0.0)
     """
 
+    SUBMETHODS = (Has_SnowEvaporation_V1,)
     CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Interception)
     REQUIREDSEQUENCES = (
         evap_factors.InterceptedWater,
@@ -5969,8 +5987,12 @@ class Calc_InterceptionEvaporation_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
+
         for k in range(con.nmbhru):
-            if con.interception[k]:
+            if (
+                con.interception[k]
+                and not (model.has_snowevaporation() and fac.snowcover[k] > 0.0)
+            ):
                 flu.interceptionevaporation[k] = min(
                     flu.potentialinterceptionevaporation[k], fac.interceptedwater[k]
                 )
@@ -6350,9 +6372,8 @@ class Calc_InterceptionEvaporation_V2(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
             if (
-                con.interception[k]
-                and (con.tree[k] or (fac.snowcover[k] == 0.0))
-                and not (con.tree[k] and (fac.snowycanopy[k] > 0.0))
+
+                 (fac.snowycanopy[k] == 0.0)
             ):
                 flu.interceptionevaporation[k] = min(
                     flu.potentialinterceptionevaporation[k], fac.interceptedwater[k]
@@ -6849,6 +6870,7 @@ class Calc_SoilEvapotranspiration_V3(modeltools.Method):
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
+
         for k in range(con.nmbhru):
             if con.soil[k] and (con.tree[k] or fac.snowcover[k] == 0.0):
                 flu.soilevapotranspiration[k] = (
@@ -6856,7 +6878,6 @@ class Calc_SoilEvapotranspiration_V3(modeltools.Method):
                         k, fac.actualsurfaceresistance[k]
                     )
                 )
-
             else:
                 flu.soilevapotranspiration[k] = 0.0
 
@@ -7007,6 +7028,7 @@ class Update_SoilEvapotranspiration_V2(modeltools.Method):
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> nmbhru(5)
+        >>> usesnowcover(True)
         >>> soil(True)
         >>> factors.snowcover = 0.0, 0.25, 0.5, 0.75, 1.0
         >>> fluxes.soilevapotranspiration = 2.0
@@ -7014,15 +7036,29 @@ class Update_SoilEvapotranspiration_V2(modeltools.Method):
         >>> fluxes.soilevapotranspiration
         soilevapotranspiration(2.0, 1.5, 1.0, 0.5, 0.0)
 
+        Setting parameter |UseSnowCover| to |False| disables the reduction of soil
+        evapotranspiration due to snow:
+
+        >>> usesnowcover(False)
+        >>> fluxes.soilevapotranspiration = 2.0
+        >>> model.update_soilevapotranspiration_v2()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(2.0, 2.0, 2.0, 2.0, 2.0)
+
         For non-soil units, soil evapotranspiration is generally zero:
 
+        >>> usesnowcover(True)
         >>> soil(False)
         >>> model.update_soilevapotranspiration_v2()
         >>> fluxes.soilevapotranspiration
         soilevapotranspiration(0.0, 0.0, 0.0, 0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Soil)
+    SUBMETHODS = (Has_SnowEvaporation_V1,)
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Soil,
+    )
     REQUIREDSEQUENCES = (evap_factors.SnowCover,)
     RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
 
@@ -7031,6 +7067,7 @@ class Update_SoilEvapotranspiration_V2(modeltools.Method):
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
+
         for k in range(con.nmbhru):
             if con.soil[k] and (fac.snowcover[k] < 1.0):
                 flu.soilevapotranspiration[k] *= 1.0 - fac.snowcover[k]
@@ -7557,9 +7594,11 @@ class Determine_SoilEvapotranspiration_V2(modeltools.AutoMethod):
 
     SUBMETHODS = (
         Calc_SoilWater_V1,
+        Calc_SnowCover_V1,
         Calc_PotentialSoilEvapotranspiration_V2,
         Calc_SoilEvapotranspiration_V2,
         Update_SoilEvapotranspiration_V3,
+        Update_SoilEvapotranspiration_V2,
     )
     CONTROLPARAMETERS = (
         evap_control.NmbHRU,
@@ -7591,6 +7630,7 @@ class Determine_SoilEvapotranspiration_V3(modeltools.AutoMethod):
         Calc_ActualSurfaceResistance_V1,
         Calc_SoilEvapotranspiration_V3,
         Update_SoilEvapotranspiration_V3,
+        Update_SoilEvapotranspiration_V2,
     )
     CONTROLPARAMETERS = (
         evap_control.NmbHRU,
@@ -8045,6 +8085,7 @@ class Model(modeltools.AdHocModel):
         Calc_Precipitation_PrecipModel_V2,
         Calc_InterceptedWater_IntercModel_V1,
         Calc_SoilWater_SoilWaterModel_V1,
+        Has_SnowEvaporation_V1,
         Calc_SnowCover_SnowCoverModel_V1,
         Calc_SnowyCanopy_SnowyCanopyModel_V1,
         Calc_PotentialInterceptionEvaporation_PETModel_V1,

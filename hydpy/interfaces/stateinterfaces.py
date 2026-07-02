@@ -41,8 +41,14 @@ class SnowCoverModel_V1(modeltools.SubmodelInterface):
     typeid: ClassVar[Literal[1]] = 1
     """Type identifier for |SnowCoverModel_V1| submodels."""
 
+
     def prepare_nmbzones(self, nmbzones: int) -> None:
         """Set the number of zones in which the actual calculations take place."""
+
+    @modeltools.abstractmodelmethod
+    def computes_snowevaporation(self) -> bool:
+        """Flag that indicates whether the relevant snow model computes snow
+        evaporation."""
 
     @modeltools.abstractmodelmethod
     def get_snowcover(self, k: int) -> float:

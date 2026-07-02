@@ -7,6 +7,8 @@ from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.evap import evap_parameters
 
+# from hydpy.models import evap_aet_hbv96  # acutal import below
+
 
 class NmbHRU(parametertools.Parameter):
     """The number of separately modelled hydrological response units [-]."""

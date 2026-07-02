@@ -44,6 +44,7 @@ k(0.0059480964539007095)
 k4(0.03402)
 gamma(0.0)
 with model.add_aetmodel_v1(evap_aet_hbv96):
+    usesnowcover(True)
     temperaturethresholdice(nan)
     soilmoisturelimit(0.9)
     excessreduction(0.0)

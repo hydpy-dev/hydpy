@@ -128,6 +128,7 @@ we select |evap_aet_hbv96|, which also closely follows equations used by HBV96
 provide |evap_aet_hbv96| with HBV96-like potential evapotranspiration estimates:
 
 >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
+...     usesnowcover(True)
 ...     temperaturethresholdice(0.0)
 ...     soilmoisturelimit(0.8)
 ...     excessreduction(0.5)
@@ -1710,6 +1711,7 @@ class Model(
         hland_model.Get_Precipitation_V1,
         hland_model.Get_InterceptedWater_V1,
         hland_model.Get_SoilWater_V1,
+        hland_model.Computes_SnowEvaporation_V1,
         hland_model.Get_SnowCover_V1,
     )
     ADD_METHODS = (

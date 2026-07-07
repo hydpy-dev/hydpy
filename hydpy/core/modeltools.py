@@ -337,6 +337,7 @@ instance of any of the following supported interfaces: SoilModel_V1.
 
     def __delete__(self, obj: Model) -> None:
         vars(obj)[self.name] = None
+        setattr(obj, f"{self.name}_typeid", 0)
         if obj.cymodel is not None:
             getattr(obj.cymodel, f"set_{self.name}")(None)
 

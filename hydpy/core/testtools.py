@@ -1924,8 +1924,8 @@ def check_selectedvariables(method: type[modeltools.Method], indent: int = 0) ->
     >>> Determine_InterceptionEvaporation_V1.SUBMETHODS = tuple(reversed(submethods))
     >>> print(check_selectedvariables(Determine_InterceptionEvaporation_V1))
     Possibly missing (REQUIREDSEQUENCES):
-        Calc_InterceptionEvaporation_V1: InterceptedWater and \
-PotentialInterceptionEvaporation
+        Calc_InterceptionEvaporation_V1: InterceptedWater, SnowCover, SnowyCanopy, \
+and PotentialInterceptionEvaporation
 
     >>> Determine_InterceptionEvaporation_V1.SUBMETHODS = submethods
     """

@@ -7467,6 +7467,36 @@ class Get_SoilWater_V1(modeltools.Method):
         return sta.bowa[k]
 
 
+class Computes_SnowEvaporation_V1(modeltools.Method):
+    """Report that the snow routine does not calculate snow evaporation [-].
+
+    Examples:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> assert not model.computes_snowevaporation_v1()
+    """
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> bool:
+        return False
+
+
+class Computes_SnowEvaporation_V2(modeltools.Method):
+    """Report that the snow routine calculates snow evaporation [-].
+
+    Examples:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> assert model.computes_snowevaporation_v2()
+    """
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> bool:
+        return True
+
+
 class Get_SnowCover_V1(modeltools.Method):
     """Get the selected response unit's current snow cover degree.
 
@@ -7586,6 +7616,8 @@ class Model(modeltools.AdHocModel):
         Get_Precipitation_V1,
         Get_InterceptedWater_V1,
         Get_SoilWater_V1,
+        Computes_SnowEvaporation_V1,
+        Computes_SnowEvaporation_V2,
         Get_SnowCover_V1,
         Get_SnowyCanopy_V1,
         Get_SnowAlbedo_V1,

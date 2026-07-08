@@ -4399,6 +4399,21 @@ class Get_SoilWater_V1(modeltools.Method):
         return sta.sm[k]
 
 
+class Computes_SnowEvaporation_V1(modeltools.Method):
+    """Report that the snow routine does not calculate snow evaporation [-].
+
+    Examples:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> assert not model.computes_snowevaporation_v1()
+    """
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> bool:
+        return False
+
+
 class Get_SnowCover_V1(modeltools.Method):
     """Get the selected zone's current snow cover degree.
 
@@ -4496,6 +4511,7 @@ class Model(modeltools.AdHocModel):
         Get_Precipitation_V1,
         Get_InterceptedWater_V1,
         Get_SoilWater_V1,
+        Computes_SnowEvaporation_V1,
         Get_SnowCover_V1,
     )
     ADD_METHODS = (
@@ -4539,6 +4555,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetinterfaces.AETModel_V1.prepare_interception,
         aetinterfaces.AETModel_V1.prepare_soil,
         aetinterfaces.AETModel_V1.prepare_plant,
+        aetinterfaces.AETModel_V1.prepare_tree,
         landtype_constants=hland_constants.CONSTANTS,
         landtype_refindices=hland_control.ZoneType,
         refweights=hland_control.ZoneArea,
@@ -4567,6 +4584,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         ...     water
         ...     interception
         ...     soil
+        ...     tree
         ...     excessreduction(field=1.0, forest=0.5, default=nan)
         ...     for method, arguments in model.preparemethod2arguments.items():
         ...         print(method, arguments[0][0], sep=": ")
@@ -4576,6 +4594,8 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         interception(field=True, forest=True, glacier=False, ilake=False,
                      sealed=True)
         soil(field=True, forest=True, glacier=False, ilake=False, sealed=False)
+        tree(field=False, forest=True, glacier=False, ilake=False,
+             sealed=False)
         prepare_nmbzones: 5
         prepare_zonetypes: [1 2 4 3 5]
         prepare_subareas: [2. 2. 2. 2. 2.]
@@ -4585,6 +4605,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         prepare_interception: [ True  True False False  True]
         prepare_plant: [ True  True False False False]
         prepare_soil: [ True  True False False False]
+        prepare_tree: [False  True False False False]
 
         >>> ered = model.aetmodel.parameters.control.excessreduction
         >>> ered
@@ -4614,6 +4635,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         sel[zonetype == SEALED] = False
         aetmodel.prepare_plant(sel)
         aetmodel.prepare_soil(sel)
+        aetmodel.prepare_tree(zonetype == FOREST)
 
 
 class Main_RConcModel_V1(modeltools.AdHocModel):

@@ -1840,8 +1840,10 @@ class SubmodelGraph:
         >>> selected = tuple(selected.values())[0][0]
         >>> for model, subgraph in selected.items():
         ...     print(model.__HYDPY_NAME__, *(port.name for port in subgraph))
-        evap_aet_hbv96 intercmodel petmodel snowcovermodel soilwatermodel tempmodel
-        evap_aet_minhas intercmodel petmodel soilwatermodel
+        evap_aet_hbv96 intercmodel petmodel snowcovermodel snowycanopymodel \
+soilwatermodel tempmodel
+        evap_aet_minhas intercmodel petmodel snowcovermodel snowycanopymodel \
+soilwatermodel
         evap_aet_morsim intercmodel radiationmodel snowalbedomodel snowcovermodel \
 snowycanopymodel soilwatermodel tempmodel
 

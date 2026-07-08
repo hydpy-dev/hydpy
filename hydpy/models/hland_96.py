@@ -1710,6 +1710,7 @@ class Model(
         hland_model.Get_Precipitation_V1,
         hland_model.Get_InterceptedWater_V1,
         hland_model.Get_SoilWater_V1,
+        hland_model.Computes_SnowEvaporation_V1,
         hland_model.Get_SnowCover_V1,
     )
     ADD_METHODS = (

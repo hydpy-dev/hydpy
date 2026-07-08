@@ -2858,6 +2858,8 @@ the available directories (calib_1 and calib_2).
          'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.aetmodel.snowcovermodel': None,
+         'model.aetmodel.snowycanopymodel': None,
          'model.aetmodel.soilwatermodel': None,
          'model.radiationmodel': None,
          'model.soilmodel': None}
@@ -2874,6 +2876,8 @@ the available directories (calib_1 and calib_2).
          'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.aetmodel.snowcovermodel': None,
+         'model.aetmodel.snowycanopymodel': None,
          'model.radiationmodel': None,
          'model.soilmodel': None}
 
@@ -2889,6 +2893,8 @@ the available directories (calib_1 and calib_2).
          'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.aetmodel.snowcovermodel': None,
+         'model.aetmodel.snowycanopymodel': None,
          'model.aetmodel.soilwatermodel': lland_knauf...,
          'model.radiationmodel': None,
          'model.soilmodel': None}

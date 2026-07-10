@@ -1107,6 +1107,9 @@ class Model:
 
     __hydpy_element__: devicetools.Element | None
     __HYDPY_NAME__: ClassVar[str]
+    __hydpy__submodel2adder__: dict[str, importtools.SubmodelAdder[Any, Any, Any]]
+    """Helper to keep track which submodel (given by the name of the corresponding 
+    submodel property) has been added by which submodel adder function object."""
 
     INLET_METHODS: ClassVar[tuple[type[Method], ...]]
     OUTLET_METHODS: ClassVar[tuple[type[Method], ...]]
@@ -1139,6 +1142,7 @@ class Model:
     def __init__(self) -> None:
         self.cymodel = None
         self.__hydpy_element__ = None
+        self.__hydpy__submodel2adder__ = {}
         self._init_methods()
 
     def _init_methods(self) -> None:
@@ -3159,7 +3163,7 @@ the available directories (calib_1 and calib_2).
         self.parameters.update(ignore_errors=ignore_errors)
         for name, submodel in self.find_submodels(include_subsubmodels=False).items():
             if isinstance(submodel, SubmodelInterface):
-                adder = submodel._submodeladder  # pylint: disable=protected-access
+                adder = self.__hydpy__submodel2adder__[name.split(".")[-1]]
                 if adder is not None:
                     if adder.dimensionality == 0:
                         adder.update(self, submodel, refresh=True)
@@ -4807,7 +4811,6 @@ class SubmodelInterface(Model, abc.ABC):
     """Base class for defining interfaces for submodels."""
 
     INTERFACE_METHODS: ClassVar[tuple[type[Method], ...]]
-    _submodeladder: importtools.SubmodelAdder[Any, Any, Any] | None
     preparemethod2arguments: dict[str, tuple[tuple[Any, ...], dict[str, Any]]]
 
     typeid: ClassVar[int]
@@ -4822,7 +4825,6 @@ class SubmodelInterface(Model, abc.ABC):
 
     def __init__(self) -> None:
         super().__init__()
-        self._submodeladder = None
         self.preparemethod2arguments = {}
 
     @staticmethod

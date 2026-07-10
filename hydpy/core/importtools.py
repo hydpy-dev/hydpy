@@ -777,6 +777,8 @@ following error occurred: The given `lland_knauf` instance is not considered sha
         try:
             assert (model := self._model) is not None
 
+            model.__hydpy__submodel2adder__[self.submodelname] = self
+
             if isinstance(submodel, modeltools.SharableSubmodelInterface):
                 self._check_submodelinterface(submodeltype=type(submodel))
                 self._connect_models(model=model, submodel=submodel, position=position)
@@ -807,7 +809,6 @@ following error occurred: The given `lland_knauf` instance is not considered sha
                 submodel_ = prepare_model(submodel)
                 assert isinstance(submodel_, self.submodelinterface)
                 self._connect_models(model=model, submodel=submodel_, position=position)
-                submodel_._submodeladder = self
                 if self.dimensionality == 0:
                     self.update(model, submodel_, refresh=False)
                 elif self.dimensionality == 1:

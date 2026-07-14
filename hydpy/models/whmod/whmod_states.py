@@ -13,12 +13,6 @@ class InterceptedWater(whmod_sequences.State1DNonWaterSequence):
     SPAN = (0.0, None)
 
 
-class Snowpack(whmod_sequences.State1DNonWaterSequence):
-    """Snow layer's total water content [mm]."""
-
-    SPAN = (0.0, None)
-
-
 class SoilMoisture(whmod_sequences.State1DSoilSequence):
     """Crop-available soil water content [mm]."""
 

@@ -52,24 +52,24 @@ class LandTypeNonWaterParameter(LandTypeBaseParameter):
     """Base class for 1-dimensional land type-specific parameters that do not affect
     water areas.
 
-    We take parameter |DegreeDayFactor| as an example:
+    We take parameter |CisternSource| as an example:
 
     >>> from hydpy.models.whmod import *
-    >>> simulationstep("1d")
-    >>> parameterstep("1d")
+    >>> parameterstep()
     >>> nmbzones(9)
     >>> landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,
     ...          SEALED, WATER)
-    >>> degreedayfactor(grass=1.0, deciduous=2.0, corn=3.0, conifer=4.0,
-    ...                 springwheat=5.0, winterwheat=6.0, sugarbeets=7.0, sealed=8.0)
-    >>> degreedayfactor
-    degreedayfactor(conifer=4.0, corn=3.0, deciduous=2.0, grass=1.0,
-                    sealed=8.0, springwheat=5.0, sugarbeets=7.0,
-                    winterwheat=6.0)
+    >>> cisternsource(grass=True, deciduous=True, corn=True, conifer=True,
+    ...               springwheat=True, winterwheat=False, sugarbeets=False,
+    ...               sealed=False)
+    >>> cisternsource
+    cisternsource(conifer=True, corn=True, deciduous=True, grass=True,
+                  sealed=False, springwheat=True, sugarbeets=False,
+                  winterwheat=False)
     >>> zonearea(0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.9)
     >>> from hydpy import round_
-    >>> round_(degreedayfactor.average_values())
-    3.333333
+    >>> round_(cisternsource.average_values())
+    0.833333
     """
 
     mask = whmod_masks.LandTypeNonWater()

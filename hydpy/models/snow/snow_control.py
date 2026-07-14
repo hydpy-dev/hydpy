@@ -412,8 +412,8 @@ water areas must be zero, which is not the case for columns 3 and 5.
 `?` define at least one cycle: (1, 5) and (5, 1).
 
     Note that method |RedistributionPaths.verify_order| relies on the
-    |RedistributionPathOrder.update| method of parameter |RedistributionPathOrder| but
-    resets its values afterwards:
+    |RedistributionOrder.update| method of parameter |RedistributionOrder| but resets
+    its values afterwards:
 
     >>> derived.redistributionorder.shape = (1, 2)
     >>> derived.redistributionorder.values = [[0, 1]]

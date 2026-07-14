@@ -179,14 +179,6 @@ class InterceptionCapacity(parametertools.KeywordParameter2D):
     )
 
 
-class DegreeDayFactor(whmod_parameters.LandTypeNonWaterParameter):
-    """Degree day factor for snow melting [mm/T/K]."""
-
-    TYPE: Final = float
-    TIME = True
-    SPAN = (0.0, None)
-
-
 class AvailableFieldCapacity(whmod_parameters.SoilTypeParameter):
     """Maximum relative soil moisture content [mm/m]."""
 

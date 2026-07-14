@@ -14,16 +14,8 @@ class Throughfall(whmod_sequences.Flux1DNonWaterSequence):
     """Precipitation, passing the interception storage [mm/T]."""
 
 
-class PotentialSnowmelt(whmod_sequences.Flux1DNonWaterSequence):
-    """Potential snowmelt [mm/T]."""
-
-
-class Snowmelt(whmod_sequences.Flux1DNonWaterSequence):
-    """Actual snowmelt [mm/T]."""
-
-
 class Ponding(whmod_sequences.Flux1DNonWaterSequence):
-    """Ponding on land surfaces [mm/T]."""
+    """Ponding on land and water areas [mm/T]."""
 
 
 class SurfaceRunoff(whmod_sequences.Flux1DNonWaterSequence):

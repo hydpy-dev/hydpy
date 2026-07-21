@@ -423,6 +423,8 @@ class StandardInputNames(enum.StrEnum):
     """Capillary rise [mm/T]."""
     CLEAR_SKY_SOLAR_RADIATION = "clear_sky_solar_radiation"
     """Clear sky solar radiation [W/m²]."""
+    DISCHARGE = "Discharge"
+    """Discharge [m³/s]"""
     EVAPOTRANSPIRATION = "evapotranspiration"
     """Actual evapotranspiration [mm/T]."""
     GLOBAL_RADIATION = "global_radiation"

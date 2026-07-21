@@ -18,6 +18,7 @@ TypeOption = TypeVar(
     SeriesFileType,
     SeriesAggregationType,
     SeriesConventionType,
+    SimulationMode,
 )
 TypeOptionContextBase = TypeVar("TypeOptionContextBase", bound="OptionContextBase[Any]")
 TypeOptionPropertyBase = TypeVar(
@@ -706,6 +707,73 @@ Please choose one of the following modes: model-specific and HydPy.
     _CONTEXT = OptionContextStr[SeriesConventionType]
 
 
+def _check_simulationmode(value: SimulationMode) -> SimulationMode:
+    try:
+        if value == "historical":
+            return "historical"
+        if value == "forecast":
+            return "forecast"
+        assert_never(value)
+    except AssertionError:
+        raise ValueError(
+            f"The given simulation mode `{value}` is not implemented.  Please "
+            f"choose one of the following simulation modes: historical, forecast."
+        ) from None
+    assert False
+
+
+class _OptionPropertySimulationMode(
+    OptionPropertyBase[SimulationMode, OptionContextStr[SimulationMode]]
+):
+    """Descriptor for defining options of type |SimulationMode|.
+
+    *HydPy* currently supports two simulation modes: historical and forecast.
+    Options based on |OptionPropertySimulationMode|
+    automatically check if the given string is a supported simulatio mode
+    and raise errors if not:
+
+    >>> from hydpy.core.optiontools import _OptionPropertySimulationMode
+    >>> class T:
+    ...     v = _OptionPropertySimulationMode("historical", "x")
+    >>> T.v.__doc__
+    'x'
+
+    >>> t = T()
+    >>> assert t.v == "historical"
+    >>> t.v = "abc"
+    Traceback (most recent call last):
+    ...
+    ValueError: The given simulation mode `abc` is not implemented.  Please choose \
+one of the following simulation modes: historical, forecast.
+    >>> assert t.v == "historical"
+    >>> t.v = "forecast"
+    >>> assert t.v == "forecast"
+    >>> t.v = "historical"
+    >>> assert t.v == "historical"
+
+    >>> with t.v("abc"):
+    ...     pass
+    Traceback (most recent call last):
+    ...
+    ValueError: The given simulation mode `abc` is not implemented.  Please choose \
+one of the following simulation modes: historical, forecast.
+    >>> assert t.v == "historical"
+    >>> with t.v("forecast"):
+    ...     assert t.v == "forecast"
+    ...     with t.v("historical"):
+    ...         assert t.v == "historical"
+    ...         with t.v():
+    ...             assert t.v == "historical"
+    ...         with t.v(None):
+    ...             assert t.v == "historical"
+    ...     assert t.v == "forecast"
+    >>> assert t.v == "historical"
+    """
+
+    _CONVERTER = (_check_simulationmode,)
+    _CONTEXT = OptionContextStr[SimulationMode]
+
+
 class Options:
     """Singleton class for the general options available in the global |pub| module.
 
@@ -812,7 +880,7 @@ class Options:
         """,
     )
     printprogress = OptionPropertyBool(
-        True,
+        False,
         """A bool-like flag for printing information about the progress of some 
         processes to the standard output.
         
@@ -836,6 +904,32 @@ class Options:
         >>> assert pub.options.reprdigits == 6   
         >>> del pub.options.reprdigits
         >>> assert pub.options.reprdigits == -1
+        """,
+    )
+    simulationmode = _OptionPropertySimulationMode(
+        "historical",
+        """The current simulation mode.
+
+        The supported values are "historical" (default) and "forecast". In 
+        "historical" mode, the simulation typically relies on observed data, 
+        whereas "forecast" mode might involve different initialization or 
+        meteorological forcing.
+        
+        >>> from hydpy import pub
+        >>> pub.options.simulationmode
+        'historical'
+    
+        You can switch the mode by assigning one of the valid string identifiers:
+    
+        >>> pub.options.simulationmode = "forecast"
+        >>> pub.options.simulationmode
+        'forecast'
+    
+        Resetting the option restores the default "historical" mode:
+    
+        >>> del pub.options.simulationmode
+        >>> pub.options.simulationmode
+        'historical'
         """,
     )
     simulationstep = _OptionPropertySimulationstep(
@@ -920,7 +1014,7 @@ class Options:
         """,
     )
     usecython = OptionPropertyBool(
-        True,
+        False,
         """A bool-like flag for applying cythonized models, which are much faster than 
         pure Python models.
         

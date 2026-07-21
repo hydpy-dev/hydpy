@@ -94,7 +94,7 @@ ADDITIONAL_CONTROLPARAMETERS = (
 )
 
 
-class Model(statcorr_model.Model):
+class Model(modeltools.AdHocModel):
     """|statcorr_main.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
@@ -102,6 +102,17 @@ class Model(statcorr_model.Model):
         description="main statistical output correction model for discharge forecasts",
     )
     __HYDPY_ROOTMODEL__ = True
+
+    INLET_METHODS = (statcorr_model.Pick_Inflow_V1,)
+    OBSERVER_METHODS = ()
+    RECEIVER_METHODS = ()
+    RUN_METHODS = (statcorr_model.Calc_OutputCorr_V1,)
+    INTERFACE_METHODS = (statcorr_model.Get_Discharge_V1,)
+    ADD_METHODS = ()
+    OUTLET_METHODS = (statcorr_model.Pass_CorrectedQ_V1,)
+    SENDER_METHODS = ()
+    SUBMODELINTERFACES = (statcorrinterfaces.OutputCorrModel_V1,)
+    SUBMODELS = ()
 
     outputcorrmodels = modeltools.SubmodelsProperty(
         statcorrinterfaces.OutputCorrModel_V1

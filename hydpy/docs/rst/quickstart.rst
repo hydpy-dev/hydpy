@@ -268,7 +268,7 @@ by calling method |HydPy.simulate|:
 Now, we can inspect the freshly calculated discharge values:
 
 >>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series[:6])
-54.019337, 37.257561, 31.865308, 28.359542, 26.191386, 25.047099
+54.019332, 37.257552, 31.865302, 28.359538, 26.191383, 25.047098
 
 You could now write the results to file, print them into a figure, evaluate them
 statistically, or change some configurations and repeat the simulation if you don't

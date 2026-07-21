@@ -1469,7 +1469,7 @@ class IOSequence(Sequence_):
     >>> round_(inputs.t.series)
     -0.7, -1.5, -4.6, -8.2
     >>> round_(states.sm.series[:, 0])
-    99.1369, 99.01204, 98.93674, 98.91913
+    99.1369, 99.012039, 98.936738, 98.919128
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
@@ -1502,7 +1502,7 @@ class IOSequence(Sequence_):
     ...     states.sp.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
     >>> round_(states.sm.series[:, 0])
-    99.1369, 99.01204, 98.93674, 98.91913
+    99.1369, 99.012039, 98.936738, 98.919128
     >>> round_(states.sp.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
@@ -1530,7 +1530,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     values of input sequence |hland_inputs.P| (given precipitation) are also zero:
 
     >>> round_(fluxes.pc.series[:, 0])
-    0.0, 0.105611, 0.0, 0.0
+    0.0, 0.10512, 0.0, 0.0
 
     We can assign different values to attribute |IOSequence.series| of sequence
     |hland_inputs.P|, perform a new simulation run, and see that the newly calculated
@@ -1539,7 +1539,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
     >>> inputs.p.series = 10.0
     >>> hp.simulate()
     >>> round_(fluxes.pc.series[:, 0])
-    9.154557, 10.561131, 10.665633, 10.665633
+    8.804655, 10.511977, 10.665633, 10.665633
 
     Another convenience property is |IOSequence.seriesshape|, which combines the length
     of the simulation period with the shape of the individual |IOSequence| object:
@@ -3286,16 +3286,16 @@ class OutputSequence(ModelIOSequence):
     3.0, 3.0, 3.0, 3.0, 3.0
 
     >>> print_vector(model.sequences.fluxes.perc.series)
-    0.694084, 0.693611, 0.693239, 0.693098, 0.693012
+    0.694084, 0.69361, 0.693238, 0.693098, 0.693012
     >>> print_vector(node_perc.sequences.sim.series)
-    0.694084, 0.693611, 0.693239, 0.693098, 0.693012
+    0.694084, 0.69361, 0.693238, 0.693098, 0.693012
     >>> print_vector(node_perc.sequences.obs.series)
     4.0, 4.0, 4.0, 4.0, 4.0
 
     >>> print_vector(model.sequences.states.uz.series)
-    5.628278, 4.368269, 3.337343, 2.452946, 1.662766
+    5.628272, 4.368264, 3.337339, 2.452943, 1.662763
     >>> print_vector(node_uz.sequences.sim.series)
-    5.628278, 4.368269, 3.337343, 2.452946, 1.662766
+    5.628272, 4.368264, 3.337339, 2.452943, 1.662763
     >>> print_vector(node_uz.sequences.obs.series)
     5.0, 5.0, 5.0, 5.0, 5.0
 

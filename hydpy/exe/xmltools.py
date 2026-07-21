@@ -60,7 +60,7 @@ conditions and the written final conditions of sequence |hland_states.SM| for th
 sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
-sm(184.517818, 180.588472, 199.142925, 195.90995, 212.04018, 209.48859,
+sm(184.517802, 180.588456, 199.142888, 195.909912, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
 
@@ -75,7 +75,7 @@ The intermediate soil moisture values have been stored in a NetCDF file called
 ...     chars2str(query_variable(ncfile, "station_id")[:].data)[:3]
 ...     print_vector(query_variable(ncfile, "hland_96_state_sm")[:, 0])
 ['land_dill_assl_0', 'land_dill_assl_1', 'land_dill_assl_2']
-184.958475, 184.763638, 184.610776, 184.553224, 184.517818
+184.958459, 184.763623, 184.610761, 184.553208, 184.517802
 >>> ncfile.close()
 
 Spatially averaged time series values have been stored in files ending with the suffix

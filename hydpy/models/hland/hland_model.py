@@ -1,5 +1,6 @@
 """
 .. _`issue 68`: https://github.com/hydpy-dev/hydpy/issues/68
+.. _`issue 188`: https://github.com/hydpy-dev/hydpy/issues/188
 """
 
 import numpy
@@ -134,68 +135,29 @@ class Calc_FracRain_V1(modeltools.Method):
                 fac.fracrain[k] = (fac.tc[k] - (con.tt[k] - dt)) / con.ttint[k]
 
 
-class Calc_RFC_SFC_V1(modeltools.Method):
-    r"""Calculate the corrected fractions of rainfall/snowfall and total precipitation.
-
-    Basic equations:
-      :math:`RfC = RfCF \cdot FracRain`
-
-      :math:`SfC = SfCF \cdot (1 - FracRain)`
-
-    Examples:
-
-        Assume five zones with different temperatures and hence different fractions of
-        rainfall and total precipitation:
-
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(5)
-        >>> factors.fracrain = 0.0, 0.25, 0.5, 0.75, 1.0
-
-        With no rainfall and no snowfall correction (due to the respective factors
-        being one), the corrected fraction related to rain is identical to the original
-        fraction, while the corrected fraction related to snow behaves the opposite:
-
-        >>> rfcf(1.0)
-        >>> sfcf(1.0)
-        >>> model.calc_rfc_sfc_v1()
-        >>> factors.rfc
-        rfc(0.0, 0.25, 0.5, 0.75, 1.0)
-        >>> factors.sfc
-        sfc(1.0, 0.75, 0.5, 0.25, 0.0)
-
-        With a rainfall reduction of 20% and a snowfall increase of 20 %, the corrected
-        fractions are as follows:
-
-        >>> rfcf(0.8)
-        >>> sfcf(1.2)
-        >>> model.calc_rfc_sfc_v1()
-        >>> factors.rfc
-        rfc(0.0, 0.2, 0.4, 0.6, 0.8)
-        >>> factors.sfc
-        sfc(1.2, 0.9, 0.6, 0.3, 0.0)
-    """
-
-    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.RfCF, hland_control.SfCF)
-    REQUIREDSEQUENCES = (hland_factors.FracRain,)
-    RESULTSEQUENCES = (hland_factors.RfC, hland_factors.SfC)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, /) -> None:
-        con = model.parameters.control.fastaccess
-        fac = model.sequences.factors.fastaccess
-        for k in range(con.nmbzones):
-            fac.rfc[k] = fac.fracrain[k] * con.rfcf[k]
-            fac.sfc[k] = (1.0 - fac.fracrain[k]) * con.sfcf[k]
-
-
 class Calc_PC_V1(modeltools.Method):
     r"""Apply the precipitation correction factors and adjust precipitation to the
     altitude of the individual zones.
 
     Basic equation:
-      :math:`PC = P \cdot PCorr \cdot (1 + PCAlt \cdot (ZoneZ - Z)) \cdot (RfC + SfC)`
+      .. math::
+        PC = \frac{P \cdot PCorr \cdot \big(1 + PCAlt \cdot (ZoneZ - Z) \big)}
+        {\frac{FracRain}{RfCF} + \frac{1 - FracRain}{SfCF}}
+
+    .. note::
+
+       Until HydPy 6, |Calc_PC_V1| relied on the following basic equation:
+
+       .. math::
+        PC = P \cdot PCorr \cdot (1 + PCAlt \cdot (ZoneZ - Z)) \cdot (RfC + SfC)
+
+       The fraction of RfC and RfC + SfC was often not consistent with |FracRain|.
+       |FracRain| did represent the relative amount of estimated, uncorrected rainfall
+       with respect to measured total precipitation.  Since HydPy 7, |FracRain| always
+       represents the relative amount of estimated, corrected rainfall to corrected
+       total precipitation.  This might not be totally consistent with HBV96 but makes
+       reasoning and the coupling of snow submodels simpler.  See `issue 188`_ for
+       background information.
 
     Examples:
 
@@ -211,23 +173,23 @@ class Calc_PC_V1(modeltools.Method):
         >>> derived.z(2.0)
 
         The first four zones illustrate the individual precipitation corrections due to
-        the general (|PCorr|, first zone), the altitude (|PCAlt|, second zone), the
-        rainfall (|RfC|, third zone), and the snowfall adjustment (|SfC|, fourth zone).
-        The fifth zone illustrates the interaction between all corrections:
+        the general (first zone), the altitude (second zone), the rainfall (third
+        zone), and the snowfall adjustment (fourth zone).  The fifth zone illustrates
+        the interaction between all corrections:
 
         >>> pcorr(1.3, 1.0, 1.0, 1.0, 1.3)
         >>> pcalt(0.0, 0.1, 0.0, 0.0, 0.1)
-        >>> factors.rfc = 0.5, 0.5, 0.4, 0.5, 0.4
-        >>> factors.sfc = 0.5, 0.5, 0.5, 0.7, 0.7
+        >>> rfcf(1.0, 1.0, 0.9, 1.0, 0.9)
+        >>> sfcf(1.0, 1.0, 1.0, 1.2, 1.2)
+        >>> factors.fracrain = 0.8, 0.8, 1.0, 0.0, 0.8
         >>> model.calc_pc_v1()
         >>> fluxes.pc
-        pc(6.5, 5.5, 4.5, 6.0, 7.865)
+        pc(6.5, 5.5, 4.5, 6.0, 6.773684)
 
         Usually, one would set zero or positive values for parameter |PCAlt|.  But it
         is also allowed to assign negative values to reflect possible negative
         relationships between precipitation and altitude.  Method |Calc_PC_V1| performs
         the required truncations to prevent negative precipitation values:
-
 
         >>> pcalt(-1.0)
         >>> model.calc_pc_v1()
@@ -237,12 +199,14 @@ class Calc_PC_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (
         hland_control.NmbZones,
+        hland_control.PCorr,
         hland_control.PCAlt,
         hland_control.ZoneZ,
-        hland_control.PCorr,
+        hland_control.RfCF,
+        hland_control.SfCF,
     )
     DERIVEDPARAMETERS = (hland_derived.Z,)
-    REQUIREDSEQUENCES = (hland_inputs.P, hland_factors.RfC, hland_factors.SfC)
+    REQUIREDSEQUENCES = (hland_inputs.P, hland_factors.FracRain)
     RESULTSEQUENCES = (hland_fluxes.PC,)
 
     @staticmethod
@@ -257,7 +221,8 @@ class Calc_PC_V1(modeltools.Method):
             if flu.pc[k] <= 0.0:
                 flu.pc[k] = 0.0
             else:
-                flu.pc[k] *= con.pcorr[k] * (fac.rfc[k] + fac.sfc[k])
+                x: float = fac.fracrain[k]
+                flu.pc[k] *= con.pcorr[k] / (x / con.rfcf[k] + (1.0 - x) / con.sfcf[k])
 
 
 class Calc_TF_Ic_V1(modeltools.Method):
@@ -456,71 +421,54 @@ class Calc_SP_WC_V1(modeltools.Method):
     r"""Add throughfall to the snow layer.
 
     Basic equations:
-      :math:`\frac{dSP}{dt} = SFDist \cdot TF \cdot \frac{SfC}{SfC + RfC}`
-
-      :math:`\frac{dWC}{dt} = SFDist \cdot TF \cdot \frac{RfC}{SfC + RfC}`
+      .. math::
+        \frac{dWC}{dt} = SFDist \cdot FracRain \cdot TF \\
+        \frac{dSP}{dt} = SFDist \cdot (1 - FracRain) \cdot TF
 
     Examples:
 
-        Consider the following setting, in which nine zones of different types receive
+        Consider the following setting, in which seven zones of different types receive
         a throughfall of 10 mm:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
-        >>> nmbzones(9)
+        >>> nmbzones(7)
         >>> sclass(1)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, FIELD, FIELD, FIELD, FIELD)
+        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, FIELD, FIELD)
         >>> sfdist(0.2)
         >>> fluxes.tf = 10.0
-        >>> factors.sfc = 0.5, 0.5, 0.5, 0.5, 0.5, 0.2, 0.8, 1.0, 4.0
-        >>> factors.rfc = 0.5, 0.5, 0.5, 0.5, 0.5, 0.8, 0.2, 4.0, 1.0
+        >>> factors.fracrain(0.5, 0.5, 0.5, 0.5, 0.5, 0.8, 0.2)
         >>> states.sp = 2.0
         >>> states.wc = 1.0
         >>> model.calc_sp_wc_v1()
         >>> states.sp
-        sp(0.0, 7.0, 7.0, 7.0, 7.0, 4.0, 10.0, 4.0, 10.0)
+        sp(0.0, 7.0, 7.0, 7.0, 7.0, 4.0, 10.0)
         >>> states.wc
-        wc(0.0, 6.0, 6.0, 6.0, 6.0, 9.0, 3.0, 9.0, 3.0)
+        wc(0.0, 6.0, 6.0, 6.0, 6.0, 9.0, 3.0)
 
         The snow routine does not apply to internal lakes, which is why both the ice
         storage and the water storage of the first zone remain unchanged.  The snow
         routine is identical for fields, forests, sealed areas, and glaciers (besides
         the additional glacier melt), which is why the results zone three to five are
-        equal.  The last four zones illustrate that method |Calc_SP_WC_V1| applies the
-        corrected snowfall and rainfall fractions "relatively", considering that the
-        throughfall is already corrected.
+        equal.
 
-        When both factors are zero, neither the water nor the ice content of the snow
-        layer changes:
-
-        >>> factors.sfc = 0.0
-        >>> factors.rfc = 0.0
-        >>> states.sp = 2.0
-        >>> states.wc = 1.0
-        >>> model.calc_sp_wc_v1()
-        >>> states.sp
-        sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
-        >>> states.wc
-        wc(0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
-
-        In the above examples, we did not divide the zones into snow classes. If we do
+        In the above example, we did not divide the zones into snow classes. If we do
         so, method |Calc_SP_WC_V1| adds different amounts of snow and rainfall to the
         individual snow classes based on the current values of parameter |SFDist|:
 
         >>> sclass(2)
         >>> sfdist(0.0, 2.0)
-        >>> factors.sfc = 0.5, 0.5, 0.5, 0.5, 0.5, 0.2, 0.8, 1.0, 4.0
-        >>> factors.rfc = 0.5, 0.5, 0.5, 0.5, 0.5, 0.8, 0.2, 4.0, 1.0
+        >>> factors.fracrain(0.5, 0.5, 0.5, 0.5, 0.5, 0.8, 0.2)
         >>> states.sp = 2.0
         >>> states.wc = 1.0
         >>> model.calc_sp_wc_v1()
         >>> states.sp
-        sp([[0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
-            [0.0, 12.0, 12.0, 12.0, 12.0, 6.0, 18.0, 6.0, 18.0]])
+        sp([[0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
+            [0.0, 12.0, 12.0, 12.0, 12.0, 6.0, 18.0]])
         >>> states.wc
-        wc([[0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-            [0.0, 11.0, 11.0, 11.0, 11.0, 17.0, 5.0, 17.0, 5.0]])
+        wc([[0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+            [0.0, 11.0, 11.0, 11.0, 11.0, 17.0, 5.0]])
     """
 
     CONTROLPARAMETERS = (
@@ -529,7 +477,7 @@ class Calc_SP_WC_V1(modeltools.Method):
         hland_control.ZoneType,
         hland_control.SFDist,
     )
-    REQUIREDSEQUENCES = (hland_fluxes.TF, hland_factors.RfC, hland_factors.SfC)
+    REQUIREDSEQUENCES = (hland_fluxes.TF, hland_factors.FracRain)
     UPDATEDSEQUENCES = (hland_states.WC, hland_states.SP)
 
     @staticmethod
@@ -540,13 +488,11 @@ class Calc_SP_WC_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for k in range(con.nmbzones):
             if con.zonetype[k] != ILAKE:
-                denom: float = fac.rfc[k] + fac.sfc[k]
-                if denom > 0.0:
-                    rain: float = flu.tf[k] * fac.rfc[k] / denom
-                    snow: float = flu.tf[k] * fac.sfc[k] / denom
-                    for c in range(con.sclass):
-                        sta.wc[c, k] += con.sfdist[c] * rain
-                        sta.sp[c, k] += con.sfdist[c] * snow
+                rain: float = flu.tf[k] * fac.fracrain[k]
+                snow: float = flu.tf[k] * (1.0 - fac.fracrain[k])
+                for c in range(con.sclass):
+                    sta.wc[c, k] += con.sfdist[c] * rain
+                    sta.sp[c, k] += con.sfdist[c] * snow
             else:
                 for c in range(con.sclass):
                     sta.wc[c, k] = 0.0
@@ -4461,7 +4407,6 @@ class Model(modeltools.AdHocModel):
     RUN_METHODS = (
         Calc_TC_V1,
         Calc_FracRain_V1,
-        Calc_RFC_SFC_V1,
         Calc_PC_V1,
         Calc_TF_Ic_V1,
         Calc_EI_Ic_V1,

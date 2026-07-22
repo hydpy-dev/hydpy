@@ -1,0 +1,30 @@
+.. |AngstromAlternative| replace:: :class:`~hydpy.models.meteo.meteo_control.AngstromAlternative`
+.. |Calc_DailyGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_DailyGlobalRadiation_V1`
+.. |Calc_GlobalRadiation_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_GlobalRadiation_V2`
+.. |Calc_SunshineDuration_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_SunshineDuration_V2`
+.. |Calc_UnadjustedGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_UnadjustedGlobalRadiation_V1`
+.. |LoggedGlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedGlobalRadiation`
+.. |LoggedSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedSunshineDuration`
+.. |LoggedUnadjustedSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedUnadjustedSunshineDuration`
+.. |RadiationModel_V1| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V1`
+.. |Return_DailyGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Return_DailyGlobalRadiation_V1`
+.. |meteo_glob_fao56| replace:: :mod:`~hydpy.models.meteo_glob_fao56`
+.. |meteo_glob_morsim| replace:: :mod:`~hydpy.models.meteo_glob_morsim`
+.. |meteo_sun_fao56| replace:: :mod:`~hydpy.models.meteo_sun_fao56`
+.. |meteo_sun_morsim.DOCNAME.complete| replace:: HydPy-Meteo-Sun-MORSIM (sunshine duration estimation adopted from MORECS/LARSIM)
+.. |meteo_sun_morsim| replace:: :mod:`~hydpy.models.meteo_sun_morsim`
+.. |meteo_factors.PossibleSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.PossibleSunshineDuration`
+.. |meteo_factors.SunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.SunshineDuration`
+.. |meteo_fluxes.GlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_fluxes.GlobalRadiation`
+.. |meteo_inputs.GlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_inputs.GlobalRadiation`
+.. |meteo_inputs.SunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_inputs.SunshineDuration`
+
+.. _meteo_sun_morsim:
+
+meteo_sun_morsim
+================
+
+.. automodule:: hydpy.models.meteo_sun_morsim
+    :members:
+    :show-inheritance:
+    :exclude-members: SOLVERPARAMETERS, IO, ADD_METHODS, SenderSequences, Sequence, ParamSpec, pars, Pattern, Coroutine, Iterator, BinaryIO, Never, final, Optional, LiteralString, SupportsComplex, ObserverSequences, OBSERVER_METHODS, Final, FrozenSet, AnyStr, Sized, OutletSequences, NoDefault, TypeIs, ParamSpecKwargs, DERIVEDPARAMETERS, ReadOnly, type_repr, get_protocol_members, reveal_type, evaluate_forward_ref, ItemsView, fastaccess_new, fastaccess_old, runtime_checkable, MutableSequence, FIXEDPARAMETERS, ContextManager, INTERFACE_METHODS, AbstractSet, ValuesView, Awaitable, AsyncContextManager, NamedTuple, cast, subvars, Tuple, CapsuleType, OUTLET_METHODS, dataclass_transform, disjoint_base, RESULTSEQUENCES, Mapping, TypedDict, TYPE_CHECKING, get_original_bases, get_type_hints, Reader, assert_type, CONTROLPARAMETERS, subpars, overload, seqs, Doc, TypeVarTuple, Buffer, Match, AideSequences, get_args, Set, NewType, deprecated, AsyncIterable, TypeVar, AsyncIterator, fastaccess, runtime, List, Container, INLET_METHODS, Self, get_origin, clear_overloads, Dict, Writer, SUBMODELS, ParamSpecArgs, Unpack, Literal, StateSequences, assert_never, is_typeddict, Counter, CLASSES, MutableMapping, Generic, ByteString, PART_ODE_METHODS, NoReturn, Annotated, Collection, TypeAlias, Sentinel, Protocol, Union, get_annotations, Callable, SupportsBytes, get_overloads, Deque, Iterable, RUN_METHODS, SENDER_METHODS, DefaultDict, SUBMETHODS, SupportsRound, OrderedDict, ClassVar, Type, SupportsFloat, REQUIREDSEQUENCES, AsyncGenerator, IntVar, InletSequences, Required, MappingView, subseqs, SupportsIndex, ForwardRef, sentinel, is_protocol, NotRequired, SupportsInt, NoExtraItems, TypeAliasType, Reversible, no_type_check_decorator, ChainMap, KeysView, override, ReceiverSequences, no_type_check, Format, SOLVERSEQUENCES, Any, SUBMODELINTERFACES, TypeGuard, UPDATEDSEQUENCES, Concatenate, Generator, RECEIVER_METHODS, TextIO, Hashable, Text, SupportsAbs, MutableSet, TypeForm, FULL_ODE_METHODS

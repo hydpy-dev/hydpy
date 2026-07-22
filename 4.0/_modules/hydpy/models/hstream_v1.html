@@ -1,0 +1,344 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.hstream_v1 &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hstream_v1</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.hstream_v1</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=line-too-long, wildcard-import, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Version 1 of The HydPy-H-Stream model is a straightforward routing</span>
+<span class="sd">approach.  It applies the working equation of the Muskingum method on some</span>
+<span class="sd">river segments of the same length.  The number of segments (parameter</span>
+<span class="sd">|NmbSegments|) controls translation (parameter |Lag|), the Muskingum</span>
+<span class="sd">coefficients (parameters |C1|, |C2|, and |C3|) control attenuation</span>
+<span class="sd">(parameter |Damp|).  For |NmbSegments| only integer values are allowed,</span>
+<span class="sd">which is why the translation time cannot be varied continuously.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">    .. how_to_understand_integration_tests::</span>
+
+<span class="sd">    We perform the following examples over a simulation period of 20 hours:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub, Nodes, Element</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = &quot;01.01.2000 00:00&quot;, &quot;01.01.2000 20:00&quot;, &quot;1h&quot;</span>
+
+<span class="sd">    We also set the time step size of the parameter values defined</span>
+<span class="sd">    below to one hour:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hstream_v1 import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1h&quot;)</span>
+
+<span class="sd">    The |hstream_v1| model, handled by |Element| `stream`, queries its</span>
+<span class="sd">    inflow from two |Node| objects (`input1` and `input2`) and passes its</span>
+<span class="sd">    outflow to a single |Node| object (`output`):</span>
+
+<span class="sd">    &gt;&gt;&gt; nodes = Nodes(&quot;input1&quot;, &quot;input2&quot;, &quot;output&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; stream = Element(&quot;stream&quot;,</span>
+<span class="sd">    ...                  inlets=[&quot;input1&quot;, &quot;input2&quot;],</span>
+<span class="sd">    ...                  outlets=&quot;output&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; stream.model = model</span>
+
+<span class="sd">    The test function object sets the initial inflow of all segments</span>
+<span class="sd">    junctions (|QJoints|) to zero before each simulation run:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.testtools import IntegrationTest</span>
+<span class="sd">    &gt;&gt;&gt; test = IntegrationTest(stream,</span>
+<span class="sd">    ...                        inits=((states.qjoints, 0.),))</span>
+<span class="sd">    &gt;&gt;&gt; test.dateformat = &quot;%H:%M&quot;</span>
+
+<span class="sd">    We define two flood events, one for each inflow node:</span>
+
+<span class="sd">    &gt;&gt;&gt; nodes.input1.sequences.sim.series = [</span>
+<span class="sd">    ...                     0., 0., 1., 3., 2., 1., 0., 0., 0., 0.,</span>
+<span class="sd">    ...                     0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]</span>
+<span class="sd">    &gt;&gt;&gt; nodes.input2.sequences.sim.series = [</span>
+<span class="sd">    ...                     0., 1., 5., 9., 8., 5., 3., 2., 1., 0.,</span>
+<span class="sd">    ...                     0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]</span>
+
+<span class="sd">    **Example 1**</span>
+
+<span class="sd">    With zero |Lag| time, there are no river segments.  Hence, there is</span>
+<span class="sd">    only one &quot;virtual&quot; junction, which is both the start and the end</span>
+<span class="sd">    point of the whole channel. Accordingly, outflow is always equal to</span>
+<span class="sd">    inflow:</span>
+
+<span class="sd">    &gt;&gt;&gt; lag(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; damp(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;hstream_v1_ex1&quot;)</span>
+<span class="sd">    |  date | qjoints | input1 | input2 | output |</span>
+<span class="sd">    ----------------------------------------------</span>
+<span class="sd">    | 00:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 01:00 |     1.0 |    0.0 |    1.0 |    1.0 |</span>
+<span class="sd">    | 02:00 |     6.0 |    1.0 |    5.0 |    6.0 |</span>
+<span class="sd">    | 03:00 |    12.0 |    3.0 |    9.0 |   12.0 |</span>
+<span class="sd">    | 04:00 |    10.0 |    2.0 |    8.0 |   10.0 |</span>
+<span class="sd">    | 05:00 |     6.0 |    1.0 |    5.0 |    6.0 |</span>
+<span class="sd">    | 06:00 |     3.0 |    0.0 |    3.0 |    3.0 |</span>
+<span class="sd">    | 07:00 |     2.0 |    0.0 |    2.0 |    2.0 |</span>
+<span class="sd">    | 08:00 |     1.0 |    0.0 |    1.0 |    1.0 |</span>
+<span class="sd">    | 09:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 10:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 11:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 12:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 13:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 14:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 15:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 16:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 17:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 18:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 19:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+
+<span class="sd">    .. raw:: html</span>
+
+<span class="sd">        &lt;a</span>
+<span class="sd">            href=&quot;hstream_v1_ex1.html&quot;</span>
+<span class="sd">            target=&quot;_blank&quot;</span>
+<span class="sd">        &gt;Click here to see the graph&lt;/a&gt;</span>
+
+<span class="sd">    **Example 2**</span>
+
+<span class="sd">    Parameter |Damp| controls the attenuation of flood waves within a</span>
+<span class="sd">    single river segment.  With a zero |Lag| time, there are no river</span>
+<span class="sd">    segments and thus not damping even for the highest possible value</span>
+<span class="sd">    of |Damp|:</span>
+
+<span class="sd">    &gt;&gt;&gt; lag(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; damp(1.0)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;hstream_v1_ex2&quot;)</span>
+<span class="sd">    |  date | qjoints | input1 | input2 | output |</span>
+<span class="sd">    ----------------------------------------------</span>
+<span class="sd">    | 00:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 01:00 |     1.0 |    0.0 |    1.0 |    1.0 |</span>
+<span class="sd">    | 02:00 |     6.0 |    1.0 |    5.0 |    6.0 |</span>
+<span class="sd">    | 03:00 |    12.0 |    3.0 |    9.0 |   12.0 |</span>
+<span class="sd">    | 04:00 |    10.0 |    2.0 |    8.0 |   10.0 |</span>
+<span class="sd">    | 05:00 |     6.0 |    1.0 |    5.0 |    6.0 |</span>
+<span class="sd">    | 06:00 |     3.0 |    0.0 |    3.0 |    3.0 |</span>
+<span class="sd">    | 07:00 |     2.0 |    0.0 |    2.0 |    2.0 |</span>
+<span class="sd">    | 08:00 |     1.0 |    0.0 |    1.0 |    1.0 |</span>
+<span class="sd">    | 09:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 10:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 11:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 12:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 13:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 14:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 15:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 16:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 17:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 18:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 19:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+
+<span class="sd">    .. raw:: html</span>
+
+<span class="sd">        &lt;a</span>
+<span class="sd">            href=&quot;hstream_v1_ex2.html&quot;</span>
+<span class="sd">            target=&quot;_blank&quot;</span>
+<span class="sd">        &gt;Click here to see the graph&lt;/a&gt;</span>
+
+<span class="sd">    **Example 3**</span>
+
+<span class="sd">    With a lag time of three hours and zero damping, |hstream_v1|</span>
+<span class="sd">    passes the flow values from one junction to the next one within</span>
+<span class="sd">    each simulation time step.  Three segments give an overall time</span>
+<span class="sd">    shift of three hours:</span>
+
+<span class="sd">    &gt;&gt;&gt; lag(3.0)</span>
+<span class="sd">    &gt;&gt;&gt; damp(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;hstream_v1_ex3&quot;)</span>
+<span class="sd">    |  date |                   qjoints | input1 | input2 | output |</span>
+<span class="sd">    ----------------------------------------------------------------</span>
+<span class="sd">    | 00:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 01:00 |  1.0   0.0   0.0      0.0 |    0.0 |    1.0 |    0.0 |</span>
+<span class="sd">    | 02:00 |  6.0   1.0   0.0      0.0 |    1.0 |    5.0 |    0.0 |</span>
+<span class="sd">    | 03:00 | 12.0   6.0   1.0      0.0 |    3.0 |    9.0 |    0.0 |</span>
+<span class="sd">    | 04:00 | 10.0  12.0   6.0      1.0 |    2.0 |    8.0 |    1.0 |</span>
+<span class="sd">    | 05:00 |  6.0  10.0  12.0      6.0 |    1.0 |    5.0 |    6.0 |</span>
+<span class="sd">    | 06:00 |  3.0   6.0  10.0     12.0 |    0.0 |    3.0 |   12.0 |</span>
+<span class="sd">    | 07:00 |  2.0   3.0   6.0     10.0 |    0.0 |    2.0 |   10.0 |</span>
+<span class="sd">    | 08:00 |  1.0   2.0   3.0      6.0 |    0.0 |    1.0 |    6.0 |</span>
+<span class="sd">    | 09:00 |  0.0   1.0   2.0      3.0 |    0.0 |    0.0 |    3.0 |</span>
+<span class="sd">    | 10:00 |  0.0   0.0   1.0      2.0 |    0.0 |    0.0 |    2.0 |</span>
+<span class="sd">    | 11:00 |  0.0   0.0   0.0      1.0 |    0.0 |    0.0 |    1.0 |</span>
+<span class="sd">    | 12:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 13:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 14:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 15:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 16:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 17:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 18:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="sd">    | 19:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+
+<span class="sd">    .. raw:: html</span>
+
+<span class="sd">        &lt;a</span>
+<span class="sd">            href=&quot;hstream_v1_ex3.html&quot;</span>
+<span class="sd">            target=&quot;_blank&quot;</span>
+<span class="sd">        &gt;Click here to see the graph&lt;/a&gt;</span>
+
+<span class="sd">    **Example 4**</span>
+
+<span class="sd">    The last example shows the highest possible attenuation for three</span>
+<span class="sd">    river segments:</span>
+
+<span class="sd">    &gt;&gt;&gt; lag(3.0)</span>
+<span class="sd">    &gt;&gt;&gt; damp(1.0)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;hstream_v1_ex4&quot;)</span>
+<span class="sd">    |  date |                            qjoints | input1 | input2 |   output |</span>
+<span class="sd">    ---------------------------------------------------------------------------</span>
+<span class="sd">    | 00:00 |  0.0       0.0       0.0       0.0 |    0.0 |    0.0 |      0.0 |</span>
+<span class="sd">    | 01:00 |  1.0       0.5      0.25     0.125 |    0.0 |    1.0 |    0.125 |</span>
+<span class="sd">    | 02:00 |  6.0      3.25      1.75    0.9375 |    1.0 |    5.0 |   0.9375 |</span>
+<span class="sd">    | 03:00 | 12.0     7.625    4.6875    2.8125 |    3.0 |    9.0 |   2.8125 |</span>
+<span class="sd">    | 04:00 | 10.0    8.8125      6.75   4.78125 |    2.0 |    8.0 |  4.78125 |</span>
+<span class="sd">    | 05:00 |  6.0   7.40625  7.078125  5.929688 |    1.0 |    5.0 | 5.929688 |</span>
+<span class="sd">    | 06:00 |  3.0  5.203125  6.140625  6.035156 |    0.0 |    3.0 | 6.035156 |</span>
+<span class="sd">    | 07:00 |  2.0  3.601562  4.871094  5.453125 |    0.0 |    2.0 | 5.453125 |</span>
+<span class="sd">    | 08:00 |  1.0  2.300781  3.585938  4.519531 |    0.0 |    1.0 | 4.519531 |</span>
+<span class="sd">    | 09:00 |  0.0  1.150391  2.368164  3.443848 |    0.0 |    0.0 | 3.443848 |</span>
+<span class="sd">    | 10:00 |  0.0  0.575195   1.47168  2.457764 |    0.0 |    0.0 | 2.457764 |</span>
+<span class="sd">    | 11:00 |  0.0  0.287598  0.879639  1.668701 |    0.0 |    0.0 | 1.668701 |</span>
+<span class="sd">    | 12:00 |  0.0  0.143799  0.511719   1.09021 |    0.0 |    0.0 |  1.09021 |</span>
+<span class="sd">    | 13:00 |  0.0  0.071899  0.291809   0.69101 |    0.0 |    0.0 |  0.69101 |</span>
+<span class="sd">    | 14:00 |  0.0   0.03595  0.163879  0.427444 |    0.0 |    0.0 | 0.427444 |</span>
+<span class="sd">    | 15:00 |  0.0  0.017975  0.090927  0.259186 |    0.0 |    0.0 | 0.259186 |</span>
+<span class="sd">    | 16:00 |  0.0  0.008987  0.049957  0.154572 |    0.0 |    0.0 | 0.154572 |</span>
+<span class="sd">    | 17:00 |  0.0  0.004494  0.027225  0.090899 |    0.0 |    0.0 | 0.090899 |</span>
+<span class="sd">    | 18:00 |  0.0  0.002247  0.014736  0.052817 |    0.0 |    0.0 | 0.052817 |</span>
+<span class="sd">    | 19:00 |  0.0  0.001123   0.00793  0.030374 |    0.0 |    0.0 | 0.030374 |</span>
+
+<span class="sd">    .. raw:: html</span>
+
+<span class="sd">        &lt;a</span>
+<span class="sd">            href=&quot;hstream_v1_ex4.html&quot;</span>
+<span class="sd">            target=&quot;_blank&quot;</span>
+<span class="sd">        &gt;Click here to see the graph&lt;/a&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.exe.modelimports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">masktools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+
+<span class="c1"># ...from hstream</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hstream</span> <span class="kn">import</span> <span class="n">hstream_masks</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hstream</span> <span class="kn">import</span> <span class="n">hstream_model</span>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../hstream_v1.html#hydpy.models.hstream_v1.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The HBV96 version of HydPy-H-Stream (|hstream_v1|).&quot;&quot;&quot;</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hstream_model</span><span class="o">.</span><span class="n">Pick_Q_V1</span><span class="p">,)</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hstream_model</span><span class="o">.</span><span class="n">Calc_QJoints_V1</span><span class="p">,)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hstream_model</span><span class="o">.</span><span class="n">Pass_Q_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Masks"><a class="viewcode-back" href="../../../hstream_v1.html#hydpy.models.hstream_v1.Masks">[docs]</a><span class="k">class</span> <span class="nc">Masks</span><span class="p">(</span><span class="n">masktools</span><span class="o">.</span><span class="n">Masks</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Masks applicable to |hstream_v1|.&quot;&quot;&quot;</span>
+
+    <span class="c1"># pylint: disable=no-member</span>
+    <span class="c1"># bug of pylint 2.4?</span>
+    <span class="n">CLASSES</span> <span class="o">=</span> <span class="n">hstream_masks</span><span class="o">.</span><span class="n">Masks</span><span class="o">.</span><span class="n">CLASSES</span></div>
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+<span class="n">cythonizer</span><span class="o">.</span><span class="n">finalise</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hstream_v1</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

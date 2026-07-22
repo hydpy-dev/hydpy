@@ -1,0 +1,18 @@
+.. |Pegasus.find_x| replace:: :func:`~hydpy.auxs.roottools.Pegasus.find_x`
+.. |Pegasus| replace:: :class:`~hydpy.auxs.roottools.Pegasus`
+.. |Submodel| replace:: :class:`~hydpy.core.modeltools.Submodel`
+.. |lland_v3| replace:: :mod:`~hydpy.models.lland_v3`
+.. |roottools| replace:: :mod:`~hydpy.auxs.roottools`
+.. |lland_model.PegasusTempSSurface| replace:: :class:`~hydpy.models.lland.lland_model.PegasusTempSSurface`
+.. |lland_model.Return_EnergyGainSnowSurface_V1| replace:: :class:`~hydpy.models.lland.lland_model.Return_EnergyGainSnowSurface_V1`
+.. |lland_model.Return_TempSSurface_V1| replace:: :class:`~hydpy.models.lland.lland_model.Return_TempSSurface_V1`
+
+.. _roottools:
+
+roottools
+=========
+
+.. automodule:: hydpy.auxs.roottools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

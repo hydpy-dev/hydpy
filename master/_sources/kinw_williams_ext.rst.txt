@@ -1,0 +1,19 @@
+.. |H| replace:: :class:`~hydpy.models.kinw.kinw_states.H`
+.. |VG2FG| replace:: :class:`~hydpy.models.kinw.kinw_control.VG2FG`
+.. |VG| replace:: :class:`~hydpy.models.kinw.kinw_states.VG`
+.. |anntools| replace:: :mod:`~hydpy.auxs.anntools`
+.. |arma_rimorido| replace:: :mod:`~hydpy.models.arma_rimorido`
+.. |kinw_williams_ext.DOCNAME.complete| replace:: HydPy-KinW-Williams-Ext (Williams routing based on an externally calculated volume-discharge relationship)
+.. |kinw_williams_ext| replace:: :mod:`~hydpy.models.kinw_williams_ext`
+.. |kinw_williams| replace:: :mod:`~hydpy.models.kinw_williams`
+.. |ppolytools| replace:: :mod:`~hydpy.auxs.ppolytools`
+
+.. _kinw_williams_ext:
+
+kinw_williams_ext
+=================
+
+.. automodule:: hydpy.models.kinw_williams_ext
+    :members:
+    :show-inheritance:
+    :exclude-members: SOLVERPARAMETERS, IO, ADD_METHODS, SenderSequences, Sequence, ParamSpec, pars, Pattern, Coroutine, Iterator, BinaryIO, Never, final, Optional, LiteralString, SupportsComplex, ObserverSequences, OBSERVER_METHODS, Final, FrozenSet, AnyStr, Sized, NoDefault, TypeIs, ParamSpecKwargs, DERIVEDPARAMETERS, ReadOnly, type_repr, get_protocol_members, reveal_type, evaluate_forward_ref, ItemsView, fastaccess_new, LogSequences, fastaccess_old, runtime_checkable, MutableSequence, FIXEDPARAMETERS, ContextManager, INTERFACE_METHODS, AbstractSet, ValuesView, Awaitable, AsyncContextManager, NamedTuple, cast, subvars, Tuple, CapsuleType, OUTLET_METHODS, dataclass_transform, disjoint_base, RESULTSEQUENCES, Mapping, TypedDict, TYPE_CHECKING, get_original_bases, get_type_hints, Reader, assert_type, CONTROLPARAMETERS, subpars, overload, seqs, Doc, TypeVarTuple, Buffer, Match, AideSequences, get_args, Set, NewType, deprecated, AsyncIterable, FactorSequences, TypeVar, AsyncIterator, fastaccess, runtime, List, Container, INLET_METHODS, Self, get_origin, clear_overloads, Dict, Writer, SUBMODELS, ParamSpecArgs, Unpack, Literal, assert_never, is_typeddict, Counter, CLASSES, MutableMapping, Generic, ByteString, PART_ODE_METHODS, NoReturn, Annotated, Collection, TypeAlias, Sentinel, Protocol, Union, get_annotations, Callable, SupportsBytes, get_overloads, Deque, Iterable, RUN_METHODS, SENDER_METHODS, DefaultDict, SUBMETHODS, SupportsRound, OrderedDict, ClassVar, Type, SupportsFloat, REQUIREDSEQUENCES, AsyncGenerator, IntVar, Required, MappingView, InputSequences, subseqs, SupportsIndex, ForwardRef, sentinel, is_protocol, NotRequired, SupportsInt, NoExtraItems, TypeAliasType, Reversible, no_type_check_decorator, ChainMap, KeysView, override, ReceiverSequences, no_type_check, Format, SOLVERSEQUENCES, Any, SUBMODELINTERFACES, TypeGuard, UPDATEDSEQUENCES, Concatenate, Generator, RECEIVER_METHODS, TextIO, Hashable, Text, SupportsAbs, MutableSet, TypeForm, FULL_ODE_METHODS

@@ -1,0 +1,45 @@
+.. |False| replace:: :const:`False`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |SummaryRow.summarise_criteria| replace:: :func:`~hydpy.auxs.statstools.SummaryRow.summarise_criteria`
+.. |SummaryRowSimple| replace:: :class:`~hydpy.auxs.statstools.SummaryRowSimple`
+.. |SummaryRowWeighted| replace:: :class:`~hydpy.auxs.statstools.SummaryRowWeighted`
+.. |SummaryRow| replace:: :class:`~hydpy.auxs.statstools.SummaryRow`
+.. |Timegrids.eval_| replace:: :attr:`~hydpy.core.timetools.Timegrids.eval_`
+.. |Timegrid| replace:: :class:`~hydpy.core.timetools.Timegrid`
+.. |aggregate_series| replace:: :func:`~hydpy.core.seriestools.aggregate_series`
+.. |bias_abs| replace:: :func:`~hydpy.auxs.statstools.bias_abs`
+.. |bias_rel| replace:: :func:`~hydpy.auxs.statstools.bias_rel`
+.. |calc_weights| replace:: :func:`~hydpy.auxs.statstools.calc_weights`
+.. |corr2| replace:: :func:`~hydpy.auxs.statstools.corr2`
+.. |corr| replace:: :func:`~hydpy.auxs.statstools.corr`
+.. |fdc_nse_log| replace:: :func:`~hydpy.auxs.statstools.fdc_nse_log`
+.. |fdc_nse| replace:: :func:`~hydpy.auxs.statstools.fdc_nse`
+.. |filter_series| replace:: :func:`~hydpy.auxs.statstools.filter_series`
+.. |hsepd_manual| replace:: :func:`~hydpy.auxs.statstools.hsepd_manual`
+.. |hsepd_pdf| replace:: :func:`~hydpy.auxs.statstools.hsepd_pdf`
+.. |hsepd| replace:: :func:`~hydpy.auxs.statstools.hsepd`
+.. |kge| replace:: :func:`~hydpy.auxs.statstools.kge`
+.. |list| replace:: :class:`list`
+.. |nan| replace:: :const:`~hydpy.exe.modelimports.nan`
+.. |nse_log| replace:: :func:`~hydpy.auxs.statstools.nse_log`
+.. |nse| replace:: :func:`~hydpy.auxs.statstools.nse`
+.. |numpy| replace:: :mod:`~numpy`
+.. |prepare_arrays| replace:: :func:`~hydpy.auxs.statstools.prepare_arrays`
+.. |print_evaluationtable| replace:: :func:`~hydpy.auxs.statstools.print_evaluationtable`
+.. |rmse| replace:: :func:`~hydpy.auxs.statstools.rmse`
+.. |statstools| replace:: :mod:`~hydpy.auxs.statstools`
+.. |std_ratio| replace:: :func:`~hydpy.auxs.statstools.std_ratio`
+.. |tuple| replace:: :class:`tuple`
+.. |var_ratio| replace:: :func:`~hydpy.auxs.statstools.var_ratio`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |pandas.Series| replace:: :class:`~pandas.Series`
+
+.. _statstools:
+
+statstools
+==========
+
+.. automodule:: hydpy.auxs.statstools
+    :members:
+    :show-inheritance:
+    :exclude-members: SOLVERPARAMETERS, IO, ADD_METHODS, Sequence, ParamSpec, pars, Pattern, Coroutine, Iterator, BinaryIO, Never, final, Optional, LiteralString, SupportsComplex, OBSERVER_METHODS, Final, FrozenSet, AnyStr, Sized, NoDefault, TypeIs, ParamSpecKwargs, DERIVEDPARAMETERS, ReadOnly, type_repr, get_protocol_members, reveal_type, evaluate_forward_ref, ItemsView, fastaccess_new, fastaccess_old, runtime_checkable, MutableSequence, FIXEDPARAMETERS, ContextManager, INTERFACE_METHODS, AbstractSet, ValuesView, Awaitable, AsyncContextManager, NamedTuple, cast, subvars, Tuple, CapsuleType, OUTLET_METHODS, dataclass_transform, disjoint_base, RESULTSEQUENCES, Mapping, TypedDict, TYPE_CHECKING, get_original_bases, get_type_hints, Reader, assert_type, CONTROLPARAMETERS, subpars, overload, seqs, Doc, TypeVarTuple, Buffer, Match, get_args, Set, NewType, deprecated, AsyncIterable, TypeVar, AsyncIterator, fastaccess, runtime, List, Container, INLET_METHODS, Self, get_origin, clear_overloads, Dict, Writer, SUBMODELS, ParamSpecArgs, Unpack, Literal, assert_never, is_typeddict, Counter, CLASSES, MutableMapping, Generic, ByteString, PART_ODE_METHODS, NoReturn, Annotated, Collection, TypeAlias, Sentinel, Protocol, Union, get_annotations, Callable, SupportsBytes, get_overloads, Deque, Iterable, RUN_METHODS, SENDER_METHODS, DefaultDict, SUBMETHODS, SupportsRound, OrderedDict, ClassVar, Type, SupportsFloat, REQUIREDSEQUENCES, AsyncGenerator, IntVar, Required, MappingView, subseqs, SupportsIndex, ForwardRef, sentinel, is_protocol, NotRequired, SupportsInt, NoExtraItems, TypeAliasType, Reversible, no_type_check_decorator, ChainMap, KeysView, override, no_type_check, Format, SOLVERSEQUENCES, Any, SUBMODELINTERFACES, TypeGuard, UPDATEDSEQUENCES, Concatenate, Generator, RECEIVER_METHODS, TextIO, Hashable, Text, SupportsAbs, MutableSet, TypeForm, FULL_ODE_METHODS

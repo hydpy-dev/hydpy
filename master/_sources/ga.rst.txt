@@ -1,0 +1,45 @@
+.. |Active_Bin_V1| replace:: :class:`~hydpy.models.ga.ga_model.Active_Bin_V1`
+.. |ActualSurfaceWater| replace:: :class:`~hydpy.models.ga.ga_aides.ActualSurfaceWater`
+.. |Add_SoilWater_V1| replace:: :class:`~hydpy.models.ga.ga_model.Add_SoilWater_V1`
+.. |AirEntryPotential| replace:: :class:`~hydpy.models.ga.ga_control.AirEntryPotential`
+.. |DT| replace:: :class:`~hydpy.models.ga.ga_control.DT`
+.. |Execute_Infiltration_V1| replace:: :class:`~hydpy.models.ga.ga_model.Execute_Infiltration_V1`
+.. |Infiltrate_WettingFrontBins_V1| replace:: :class:`~hydpy.models.ga.ga_model.Infiltrate_WettingFrontBins_V1`
+.. |InitialSurfaceWater| replace:: :class:`~hydpy.models.ga.ga_aides.InitialSurfaceWater`
+.. |Merge_FrontDepthOvershootings_V1| replace:: :class:`~hydpy.models.ga.ga_model.Merge_FrontDepthOvershootings_V1`
+.. |Merge_SoilDepthOvershootings_V1| replace:: :class:`~hydpy.models.ga.ga_model.Merge_SoilDepthOvershootings_V1`
+.. |MoistureChange| replace:: :class:`~hydpy.models.ga.ga_logs.MoistureChange`
+.. |Moisture| replace:: :class:`~hydpy.models.ga.ga_states.Moisture`
+.. |NmbBins| replace:: :class:`~hydpy.models.ga.ga_control.NmbBins`
+.. |Percolate_FilledBin_V1| replace:: :class:`~hydpy.models.ga.ga_model.Percolate_FilledBin_V1`
+.. |Perform_GARTO_V1| replace:: :class:`~hydpy.models.ga.ga_model.Perform_GARTO_V1`
+.. |PoreSizeDistribution| replace:: :class:`~hydpy.models.ga.ga_control.PoreSizeDistribution`
+.. |Redistribute_Front_V1| replace:: :class:`~hydpy.models.ga.ga_model.Redistribute_Front_V1`
+.. |Remove_SoilWater_V1| replace:: :class:`~hydpy.models.ga.ga_model.Remove_SoilWater_V1`
+.. |ResidualMoisture| replace:: :class:`~hydpy.models.ga.ga_control.ResidualMoisture`
+.. |Return_DryDepth_V1| replace:: :class:`~hydpy.models.ga.ga_model.Return_DryDepth_V1`
+.. |Return_RelativeMoisture_V1| replace:: :class:`~hydpy.models.ga.ga_model.Return_RelativeMoisture_V1`
+.. |SaturationMoisture| replace:: :class:`~hydpy.models.ga.ga_control.SaturationMoisture`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |Set_ActualSurfaceWater_V1| replace:: :class:`~hydpy.models.ga.ga_model.Set_ActualSurfaceWater_V1`
+.. |Set_InitialSurfaceWater_V1| replace:: :class:`~hydpy.models.ga.ga_model.Set_InitialSurfaceWater_V1`
+.. |Shift_Front_V1| replace:: :class:`~hydpy.models.ga.ga_model.Shift_Front_V1`
+.. |SoilModel_V1| replace:: :class:`~hydpy.interfaces.soilinterfaces.SoilModel_V1`
+.. |Water_AllBins_V1| replace:: :class:`~hydpy.models.ga.ga_model.Water_AllBins_V1`
+.. |Withdraw_AllBins_V1| replace:: :class:`~hydpy.models.ga.ga_model.Withdraw_AllBins_V1`
+.. |ga.DOCNAME.complete| replace:: HydPy-GA (base model)
+.. |ga.DOCNAME.long| replace:: HydPy-GA
+.. |ga_garto| replace:: :mod:`~hydpy.models.ga_garto`
+.. |ga_model.BaseModel.check_waterbalance| replace:: :func:`~hydpy.models.ga.ga_model.BaseModel.check_waterbalance`
+.. |ga_model.BaseModel.watercontents| replace:: :const:`~hydpy.models.ga.ga_model.BaseModel.watercontents`
+.. |ga_model.BaseModel.watercontent| replace:: :const:`~hydpy.models.ga.ga_model.BaseModel.watercontent`
+
+.. _ga:
+
+ga
+==
+
+.. automodule:: hydpy.models.ga
+    :members:
+    :show-inheritance:
+    :exclude-members: SOLVERPARAMETERS, IO, ADD_METHODS, SenderSequences, Sequence, ParamSpec, pars, Pattern, Coroutine, Iterator, BinaryIO, Never, final, Optional, LiteralString, SupportsComplex, ObserverSequences, OBSERVER_METHODS, Final, FrozenSet, AnyStr, Sized, OutletSequences, NoDefault, TypeIs, ParamSpecKwargs, DERIVEDPARAMETERS, ReadOnly, type_repr, get_protocol_members, reveal_type, evaluate_forward_ref, ItemsView, fastaccess_new, fastaccess_old, runtime_checkable, MutableSequence, FIXEDPARAMETERS, ContextManager, INTERFACE_METHODS, AbstractSet, ValuesView, Awaitable, AsyncContextManager, NamedTuple, cast, subvars, Tuple, CapsuleType, OUTLET_METHODS, dataclass_transform, disjoint_base, RESULTSEQUENCES, Mapping, TypedDict, TYPE_CHECKING, get_original_bases, get_type_hints, Reader, assert_type, CONTROLPARAMETERS, subpars, overload, seqs, Doc, TypeVarTuple, Buffer, Match, get_args, Set, NewType, deprecated, AsyncIterable, FactorSequences, TypeVar, AsyncIterator, fastaccess, runtime, List, Container, INLET_METHODS, Self, get_origin, clear_overloads, Dict, Writer, SUBMODELS, ParamSpecArgs, Unpack, Literal, assert_never, is_typeddict, Counter, CLASSES, MutableMapping, Generic, ByteString, PART_ODE_METHODS, NoReturn, Annotated, Collection, TypeAlias, Sentinel, Protocol, Union, get_annotations, Callable, SupportsBytes, get_overloads, Deque, Iterable, RUN_METHODS, SENDER_METHODS, DefaultDict, SUBMETHODS, SupportsRound, OrderedDict, ClassVar, Type, SupportsFloat, REQUIREDSEQUENCES, AsyncGenerator, IntVar, InletSequences, Required, MappingView, subseqs, SupportsIndex, ForwardRef, sentinel, is_protocol, NotRequired, SupportsInt, NoExtraItems, TypeAliasType, Reversible, no_type_check_decorator, ChainMap, KeysView, override, ReceiverSequences, no_type_check, Format, SOLVERSEQUENCES, Any, SUBMODELINTERFACES, TypeGuard, UPDATEDSEQUENCES, Concatenate, Generator, RECEIVER_METHODS, TextIO, Hashable, Text, SupportsAbs, MutableSet, TypeForm, FULL_ODE_METHODS

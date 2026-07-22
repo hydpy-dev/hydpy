@@ -1,0 +1,509 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dam_v007 &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dam_v008" href="dam_v008.html" />
+    <link rel="prev" title="dam_v006" href="dam_v006.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dam_v008.html" title="dam_v008"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dam_v006.html" title="dam_v006"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-D.html" accesskey="U">HydPy-D (DAM)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dam_v007</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="dam-v007">
+<span id="id1"></span><h1>dam_v007<a class="headerlink" href="#dam-v007" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.models.dam_v007"></span><p>Retention basin version of HydPy-Dam.</p>
+<p><a class="reference internal" href="#module-hydpy.models.dam_v007" title="hydpy.models.dam_v007"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v007</span></code></a> is a simple “retention basin” model, similar to the “RUEC”
+model of <a class="reference external" href="http://www.larsim.de/en/the-model/">LARSIM</a>.  One can understand it as an extension of <a class="reference internal" href="dam_v006.html#module-hydpy.models.dam_v006" title="hydpy.models.dam_v006"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v006</span></code></a>,
+and it partly requires equal specifications.  Hence, before continuing
+please first read the documentation on <a class="reference internal" href="dam_v006.html#module-hydpy.models.dam_v006" title="hydpy.models.dam_v006"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v006</span></code></a>.</p>
+<p>In extension to <a class="reference internal" href="dam_v006.html#module-hydpy.models.dam_v006" title="hydpy.models.dam_v006"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v006</span></code></a>, <a class="reference internal" href="#module-hydpy.models.dam_v007" title="hydpy.models.dam_v007"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v007</span></code></a> implements the control parameter
+<a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.AllowedRelease" title="hydpy.models.dam.dam_control.AllowedRelease"><code class="xref py py-class docutils literal notranslate"><span class="pre">AllowedRelease</span></code></a> (and the related parameters <a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterLevelMinimumThreshold" title="hydpy.models.dam.dam_control.WaterLevelMinimumThreshold"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevelMinimumThreshold</span></code></a>
+and <a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterLevelMinimumTolerance" title="hydpy.models.dam.dam_control.WaterLevelMinimumTolerance"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevelMinimumTolerance</span></code></a>).  Usually, one takes the discharge
+not causing any harm downstream as the “allowed release”, making <a class="reference internal" href="#module-hydpy.models.dam_v007" title="hydpy.models.dam_v007"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v007</span></code></a>
+behave like a retention basin without active control.  However, one can
+vary the allowed release seasonally (<a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.AllowedRelease" title="hydpy.models.dam.dam_control.AllowedRelease"><code class="xref py py-class docutils literal notranslate"><span class="pre">AllowedRelease</span></code></a> inherits from class
+<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SeasonalParameter" title="hydpy.core.parametertools.SeasonalParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalParameter</span></code></a>).</p>
+<p>In contrast to <a class="reference internal" href="dam_v006.html#module-hydpy.models.dam_v006" title="hydpy.models.dam_v006"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v006</span></code></a>, <a class="reference internal" href="#module-hydpy.models.dam_v007" title="hydpy.models.dam_v007"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v007</span></code></a> does not allow to restrict the speed
+of the water level decrease during periods with little inflow and thus does
+not use the parameter <a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.AllowedWaterLevelDrop" title="hydpy.models.dam.dam_control.AllowedWaterLevelDrop"><code class="xref py py-class docutils literal notranslate"><span class="pre">AllowedWaterLevelDrop</span></code></a>.</p>
+<div class="section" id="integration-tests">
+<h2>Integration tests<a class="headerlink" href="#integration-tests" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When new to <em>HydPy</em>, consider reading section <a class="reference internal" href="how_to.html#understand-integration-tests"><span class="std std-ref">How to understand integration tests?</span></a> first.</p>
+</div>
+<p>We create the same test set as for application model <a class="reference internal" href="dam_v006.html#module-hydpy.models.dam_v006" title="hydpy.models.dam_v006"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v006</span></code></a>,
+including an identical inflow series and an identical relationship
+between stage and volume:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">IntegrationTest</span><span class="p">,</span> <span class="n">Element</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;01.01.2000&quot;</span><span class="p">,</span> <span class="s2">&quot;21.01.2000&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;element&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="s2">&quot;input_&quot;</span><span class="p">,</span> <span class="n">outlets</span><span class="o">=</span><span class="s2">&quot;output&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">IntegrationTest</span><span class="o">.</span><span class="n">plotting_options</span><span class="o">.</span><span class="n">axis1</span> <span class="o">=</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">inflow</span><span class="p">,</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">IntegrationTest</span><span class="o">.</span><span class="n">plotting_options</span><span class="o">.</span><span class="n">axis2</span> <span class="o">=</span> <span class="n">states</span><span class="o">.</span><span class="n">watervolume</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">.%m.&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span> <span class="o">=</span> <span class="p">[(</span><span class="n">states</span><span class="o">.</span><span class="n">watervolume</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">watervolume2waterlevel</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">weights_input</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">weights_output</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">intercepts_hidden</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">intercepts_output</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">activation</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">catchmentarea</span><span class="p">(</span><span class="mf">86.4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">input_</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="base-scenario">
+<span id="dam-v007-base-scenario"></span><h3>base scenario<a class="headerlink" href="#base-scenario" title="Permalink to this headline">¶</a></h3>
+<p>To show that <a class="reference internal" href="#module-hydpy.models.dam_v007" title="hydpy.models.dam_v007"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v007</span></code></a> extends <a class="reference internal" href="dam_v006.html#module-hydpy.models.dam_v006" title="hydpy.models.dam_v006"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v006</span></code></a> correctly, we also define the
+same quasi-linear relation between discharge and stage used throughout the
+integration tests of <a class="reference internal" href="dam_v006.html#module-hydpy.models.dam_v006" title="hydpy.models.dam_v006"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v006</span></code></a> and additionally set the allowed release to
+0 m³/s (which makes the values of the two water-related control parameters
+irrelevant).  As expected, <a class="reference internal" href="#module-hydpy.models.dam_v007" title="hydpy.models.dam_v007"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v007</span></code></a> now calculates outflow values
+identical with the ones of the <a class="reference internal" href="dam_v006.html#dam-v006-base-scenario"><span class="std std-ref">base scenario</span></a> example of
+<a class="reference internal" href="dam_v006.html#module-hydpy.models.dam_v006" title="hydpy.models.dam_v006"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v006</span></code></a> (where <a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.AllowedWaterLevelDrop" title="hydpy.models.dam.dam_control.AllowedWaterLevelDrop"><code class="xref py py-class docutils literal notranslate"><span class="pre">AllowedWaterLevelDrop</span></code></a> is <code class="xref py py-const docutils literal notranslate"><span class="pre">inf</span></code>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel2flooddischarge</span><span class="p">(</span><span class="n">ann</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">weights_input</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">weights_output</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">intercepts_hidden</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">intercepts_output</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">activation</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allowedrelease</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevelminimumtolerance</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevelminimumthreshold</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;dam_v007_base_scenario&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_10__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_10__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |</span>
+<span class="go">-------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+<span class="go">| 02.01. |    1.0 |           0.0 |       0.329814 | 0.329814 |    0.057904 |    1.0 | 0.329814 |</span>
+<span class="go">| 03.01. |    6.0 |           0.0 |       2.370574 | 2.370574 |    0.371486 |    6.0 | 2.370574 |</span>
+<span class="go">| 04.01. |   12.0 |           0.0 |       6.452959 | 6.452959 |    0.850751 |   12.0 | 6.452959 |</span>
+<span class="go">| 05.01. |   10.0 |           0.0 |       8.999753 | 8.999753 |    0.937172 |   10.0 | 8.999753 |</span>
+<span class="go">| 06.01. |    6.0 |           0.0 |       8.257426 | 8.257426 |    0.742131 |    6.0 | 8.257426 |</span>
+<span class="go">| 07.01. |    3.0 |           0.0 |        5.96014 |  5.96014 |    0.486374 |    3.0 |  5.96014 |</span>
+<span class="go">| 08.01. |    2.0 |           0.0 |       3.917326 | 3.917326 |    0.320717 |    2.0 | 3.917326 |</span>
+<span class="go">| 09.01. |    1.0 |           0.0 |       2.477741 | 2.477741 |    0.193041 |    1.0 | 2.477741 |</span>
+<span class="go">| 10.01. |    0.0 |           0.0 |       1.293731 | 1.293731 |    0.081262 |    0.0 | 1.293731 |</span>
+<span class="go">| 11.01. |    0.0 |           0.0 |       0.544608 | 0.544608 |    0.034208 |    0.0 | 0.544608 |</span>
+<span class="go">| 12.01. |    0.0 |           0.0 |       0.227669 | 0.227669 |    0.014537 |    0.0 | 0.227669 |</span>
+<span class="go">| 13.01. |    0.0 |           0.0 |       0.096753 | 0.096753 |    0.006178 |    0.0 | 0.096753 |</span>
+<span class="go">| 14.01. |    0.0 |           0.0 |       0.042778 | 0.042778 |    0.002482 |    0.0 | 0.042778 |</span>
+<span class="go">| 15.01. |    0.0 |           0.0 |       0.017186 | 0.017186 |    0.000997 |    0.0 | 0.017186 |</span>
+<span class="go">| 16.01. |    0.0 |           0.0 |       0.005664 | 0.005664 |    0.000508 |    0.0 | 0.005664 |</span>
+<span class="go">| 17.01. |    0.0 |           0.0 |       0.002884 | 0.002884 |    0.000259 |    0.0 | 0.002884 |</span>
+<span class="go">| 18.01. |    0.0 |           0.0 |       0.001469 | 0.001469 |    0.000132 |    0.0 | 0.001469 |</span>
+<span class="go">| 19.01. |    0.0 |           0.0 |       0.000748 | 0.000748 |    0.000067 |    0.0 | 0.000748 |</span>
+<span class="go">| 20.01. |    0.0 |           0.0 |       0.000381 | 0.000381 |    0.000034 |    0.0 | 0.000381 |</span>
+</pre></div></div></div><a href="dam_v007_base_scenario.html" target="_blank" >Click to see the graph</a></pre></div></div></div>
+<div class="section" id="spillway">
+<span id="dam-v007-spillway"></span><h3>spillway<a class="headerlink" href="#spillway" title="Permalink to this headline">¶</a></h3>
+<p>Now, we introduce a more realistic relationship between flood discharge
+and stage, where the spillway of the retention basin starts to become
+relevant when the water volume exceeds about 1.4 million m³:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel2flooddischarge</span><span class="p">(</span><span class="n">ann</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">weights_input</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">weights_output</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">intercepts_hidden</span><span class="o">=-</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">intercepts_output</span><span class="o">=</span><span class="mf">0.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel2flooddischarge</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.testtools</span> <span class="kn">import</span> <span class="n">save_autofig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">save_autofig</span><span class="p">(</span><span class="s2">&quot;dam_v007_waterlevel2flooddischarge.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/dam_v007_waterlevel2flooddischarge.png"><img alt="_images/dam_v007_waterlevel2flooddischarge.png" src="_images/dam_v007_waterlevel2flooddischarge.png" style="width: 400px;" /></a>
+<p>The initially available storage volume of about 1.4 million m³ reduces
+the peak flow to 7.3 m³/s:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;dam_v007_spillway&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_11__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_11__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |</span>
+<span class="go">-------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+<span class="go">| 02.01. |    1.0 |           0.0 |            0.0 |      0.0 |      0.0864 |    1.0 |      0.0 |</span>
+<span class="go">| 03.01. |    6.0 |           0.0 |       0.000022 | 0.000022 |    0.604798 |    6.0 | 0.000022 |</span>
+<span class="go">| 04.01. |   12.0 |           0.0 |       0.125869 | 0.125869 |    1.630723 |   12.0 | 0.125869 |</span>
+<span class="go">| 05.01. |   10.0 |           0.0 |       7.337517 | 7.337517 |    1.860762 |   10.0 | 7.337517 |</span>
+<span class="go">| 06.01. |    6.0 |           0.0 |       6.687413 | 6.687413 |    1.801369 |    6.0 | 6.687413 |</span>
+<span class="go">| 07.01. |    3.0 |           0.0 |       3.829425 | 3.829425 |    1.729707 |    3.0 | 3.829425 |</span>
+<span class="go">| 08.01. |    2.0 |           0.0 |       2.462161 | 2.462161 |    1.689776 |    2.0 | 2.462161 |</span>
+<span class="go">| 09.01. |    1.0 |           0.0 |       1.602443 | 1.602443 |    1.637725 |    1.0 | 1.602443 |</span>
+<span class="go">| 10.01. |    0.0 |           0.0 |       0.869271 | 0.869271 |     1.56262 |    0.0 | 0.869271 |</span>
+<span class="go">| 11.01. |    0.0 |           0.0 |       0.498579 | 0.498579 |    1.519543 |    0.0 | 0.498579 |</span>
+<span class="go">| 12.01. |    0.0 |           0.0 |       0.348504 | 0.348504 |    1.489432 |    0.0 | 0.348504 |</span>
+<span class="go">| 13.01. |    0.0 |           0.0 |       0.267917 | 0.267917 |    1.466284 |    0.0 | 0.267917 |</span>
+<span class="go">| 14.01. |    0.0 |           0.0 |       0.217618 | 0.217618 |    1.447482 |    0.0 | 0.217618 |</span>
+<span class="go">| 15.01. |    0.0 |           0.0 |       0.183225 | 0.183225 |    1.431651 |    0.0 | 0.183225 |</span>
+<span class="go">| 16.01. |    0.0 |           0.0 |       0.158219 | 0.158219 |    1.417981 |    0.0 | 0.158219 |</span>
+<span class="go">| 17.01. |    0.0 |           0.0 |       0.139064 | 0.139064 |    1.405966 |    0.0 | 0.139064 |</span>
+<span class="go">| 18.01. |    0.0 |           0.0 |       0.124197 | 0.124197 |    1.395235 |    0.0 | 0.124197 |</span>
+<span class="go">| 19.01. |    0.0 |           0.0 |       0.112196 | 0.112196 |    1.385542 |    0.0 | 0.112196 |</span>
+<span class="go">| 20.01. |    0.0 |           0.0 |       0.102307 | 0.102307 |    1.376702 |    0.0 | 0.102307 |</span>
+</pre></div></div></div><a href="dam_v007_spillway.html" target="_blank" >Click to see the graph</a></pre></div></div></div>
+<div class="section" id="allowed-release">
+<span id="dam-v007-allowed-release"></span><h3>allowed release<a class="headerlink" href="#allowed-release" title="Permalink to this headline">¶</a></h3>
+<p>In the <a class="reference internal" href="#dam-v007-spillway"><span class="std std-ref">spillway</span></a> example, <a class="reference internal" href="#module-hydpy.models.dam_v007" title="hydpy.models.dam_v007"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v007</span></code></a> would not handle a
+second event following the first one similarly well, due to the retention
+basin not releasing the remaining 1.4 million m³ water.  Setting the allowed
+release to 4 m³/s solves this problem and also decreases the amount of water
+stored during the beginning of the event and thus further reduces the peak
+flow to 4.6 m³/s:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">allowedrelease</span><span class="p">(</span><span class="mf">4.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevelminimumthreshold</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;dam_v007_allowed_release&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_12__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_12__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |</span>
+<span class="go">-------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01.01. |    0.0 |      0.037088 |            0.0 | 0.037088 |   -0.003204 |    0.0 | 0.037088 |</span>
+<span class="go">| 02.01. |    1.0 |       0.24393 |            0.0 |  0.24393 |     0.06212 |    1.0 |  0.24393 |</span>
+<span class="go">| 03.01. |    6.0 |      3.512924 |       0.000001 | 3.512925 |    0.277003 |    6.0 | 3.512925 |</span>
+<span class="go">| 04.01. |   12.0 |      3.999413 |       0.000827 | 4.000241 |    0.968183 |   12.0 | 4.000241 |</span>
+<span class="go">| 05.01. |   10.0 |           4.0 |        0.05527 |  4.05527 |    1.481807 |   10.0 |  4.05527 |</span>
+<span class="go">| 06.01. |    6.0 |           4.0 |       0.572981 | 4.572981 |    1.605102 |    6.0 | 4.572981 |</span>
+<span class="go">| 07.01. |    3.0 |           4.0 |       0.508315 | 4.508315 |    1.474783 |    3.0 | 4.508315 |</span>
+<span class="go">| 08.01. |    2.0 |           4.0 |       0.117913 | 4.117913 |    1.291796 |    2.0 | 4.117913 |</span>
+<span class="go">| 09.01. |    1.0 |           4.0 |       0.015063 | 4.015063 |    1.031294 |    1.0 | 4.015063 |</span>
+<span class="go">| 10.01. |    0.0 |           4.0 |       0.001601 | 4.001601 |    0.685556 |    0.0 | 4.001601 |</span>
+<span class="go">| 11.01. |    0.0 |      3.999967 |        0.00005 | 4.000018 |    0.339954 |    0.0 | 4.000018 |</span>
+<span class="go">| 12.01. |    0.0 |      3.097067 |       0.000001 | 3.097068 |    0.072368 |    0.0 | 3.097068 |</span>
+<span class="go">| 13.01. |    0.0 |       0.40591 |            0.0 |  0.40591 |    0.037297 |    0.0 |  0.40591 |</span>
+<span class="go">| 14.01. |    0.0 |      0.155222 |            0.0 | 0.155222 |    0.023886 |    0.0 | 0.155222 |</span>
+<span class="go">| 15.01. |    0.0 |      0.096838 |            0.0 | 0.096838 |    0.015519 |    0.0 | 0.096838 |</span>
+<span class="go">| 16.01. |    0.0 |      0.070215 |            0.0 | 0.070216 |    0.009452 |    0.0 | 0.070216 |</span>
+<span class="go">| 17.01. |    0.0 |      0.054858 |            0.0 | 0.054858 |    0.004713 |    0.0 | 0.054858 |</span>
+<span class="go">| 18.01. |    0.0 |      0.045172 |            0.0 | 0.045172 |     0.00081 |    0.0 | 0.045172 |</span>
+<span class="go">| 19.01. |    0.0 |      0.038376 |            0.0 | 0.038376 |   -0.002506 |    0.0 | 0.038376 |</span>
+<span class="go">| 20.01. |    0.0 |      0.033349 |            0.0 | 0.033349 |   -0.005387 |    0.0 | 0.033349 |</span>
+</pre></div></div></div><a href="dam_v007_allowed_release.html" target="_blank" >Click to see the graph</a></pre></div></div><p>The initial and final water volumes shown in the last table are slightly
+negative, which is due to the periods of zero inflow in combination with
+the value of parameter <a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterLevelMinimumTolerance" title="hydpy.models.dam.dam_control.WaterLevelMinimumTolerance"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevelMinimumTolerance</span></code></a> set to 0.1 m.  One
+could avoid such negative values by increasing parameter
+<a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterLevelMinimumThreshold" title="hydpy.models.dam.dam_control.WaterLevelMinimumThreshold"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevelMinimumThreshold</span></code></a> or decreasing parameter
+<a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterLevelMinimumTolerance" title="hydpy.models.dam.dam_control.WaterLevelMinimumTolerance"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevelMinimumTolerance</span></code></a>.  Theoretically, one could set
+<a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterLevelMinimumTolerance" title="hydpy.models.dam.dam_control.WaterLevelMinimumTolerance"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevelMinimumTolerance</span></code></a> to zero, but at the cost of potentially
+increased computation times.</p>
+<dl class="py class">
+<dt id="hydpy.models.dam_v007.Model">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dam_v007.</span></code><code class="sig-name descname"><span class="pre">Model</span></code><a class="reference internal" href="_modules/hydpy/models/dam_v007.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.dam_v007.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.ELSModel" title="hydpy.core.modeltools.ELSModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.modeltools.ELSModel</span></code></a></p>
+<p>Version 7 of HydPy-Dam.</p>
+<dl class="simple">
+<dt>The following “inlet update methods” are called in the given sequence at the beginning of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Pic_Inflow_V1" title="hydpy.models.dam.dam_model.Pic_Inflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pic_Inflow_V1</span></code></a> Update the inlet link sequence.</p></li>
+</ul>
+</dd>
+<dt>The following methods define the relevant components of a system of ODE equations (e.g. direct runoff):</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Pic_Inflow_V1" title="hydpy.models.dam.dam_model.Pic_Inflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pic_Inflow_V1</span></code></a> Update the inlet link sequence.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_WaterLevel_V1" title="hydpy.models.dam.dam_model.Calc_WaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_WaterLevel_V1</span></code></a> Determine the water level based on an artificial neural network describing the relationship between water level and water stage.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_ActualRelease_V2" title="hydpy.models.dam.dam_model.Calc_ActualRelease_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ActualRelease_V2</span></code></a> Calculate the actual water release in aggrement with the allowed release not causing harm downstream and the actual water volume.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_FloodDischarge_V1" title="hydpy.models.dam.dam_model.Calc_FloodDischarge_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_FloodDischarge_V1</span></code></a> Calculate the discharge during and after a flood event based on an <a class="reference internal" href="anntools.html#hydpy.auxs.anntools.SeasonalANN" title="hydpy.auxs.anntools.SeasonalANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalANN</span></code></a> describing the relationship(s) between discharge and water stage.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_Outflow_V1" title="hydpy.models.dam.dam_model.Calc_Outflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Outflow_V1</span></code></a> Calculate the total outflow of the dam.</p></li>
+</ul>
+</dd>
+<dt>The following methods define the complete equations of an ODE system (e.g. change in storage of <cite>fast water</cite> due to effective precipitation and direct runoff):</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Update_WaterVolume_V1" title="hydpy.models.dam.dam_model.Update_WaterVolume_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_WaterVolume_V1</span></code></a> Update the actual water volume.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence at the end of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Pass_Outflow_V1" title="hydpy.models.dam.dam_model.Pass_Outflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Outflow_V1</span></code></a> Update the outlet link sequence <a class="reference internal" href="dam.html#hydpy.models.dam.dam_outlets.Q" title="hydpy.models.dam.dam_outlets.Q"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q</span></code></a>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="hydpy.models.dam_v007.Model.numconsts">
+<code class="sig-name descname"><span class="pre">numconsts</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.NumConstsELS" title="hydpy.core.modeltools.NumConstsELS"><span class="pre">hydpy.core.modeltools.NumConstsELS</span></a></em><a class="headerlink" href="#hydpy.models.dam_v007.Model.numconsts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.dam_v007.Model.numvars">
+<code class="sig-name descname"><span class="pre">numvars</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.NumVarsELS" title="hydpy.core.modeltools.NumVarsELS"><span class="pre">hydpy.core.modeltools.NumVarsELS</span></a></em><a class="headerlink" href="#hydpy.models.dam_v007.Model.numvars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.dam_v007.AideSequences">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dam_v007.</span></code><code class="sig-name descname"><span class="pre">AideSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_v007.AideSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.ModelSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">AideSequence</span></code>, <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.FastAccess</span></code></a>]</p>
+<p>Aide sequences of model dam_v007.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_aides.WaterLevel" title="hydpy.models.dam.dam_aides.WaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterLevel()</span></code></a> Water level [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.dam_v007.ControlParameters">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dam_v007.</span></code><code class="sig-name descname"><span class="pre">ControlParameters</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">hydpy.core.parametertools.Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_v007.ControlParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.SubVariables" title="hydpy.core.variabletools.SubVariables"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.SubVariables</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.Parameters</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Control parameters of model dam_v007.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.CatchmentArea" title="hydpy.models.dam.dam_control.CatchmentArea"><code class="xref py py-func docutils literal notranslate"><span class="pre">CatchmentArea()</span></code></a> Size of the catchment draining into the dam [km²].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterLevelMinimumThreshold" title="hydpy.models.dam.dam_control.WaterLevelMinimumThreshold"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterLevelMinimumThreshold()</span></code></a> The minimum operating water level of the dam [m].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterLevelMinimumTolerance" title="hydpy.models.dam.dam_control.WaterLevelMinimumTolerance"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterLevelMinimumTolerance()</span></code></a> A tolarance value for the minimum operating water level [m].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterVolume2WaterLevel" title="hydpy.models.dam.dam_control.WaterVolume2WaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterVolume2WaterLevel()</span></code></a> Artificial neural network describing the relationship between water level and water volume [-].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterLevel2FloodDischarge" title="hydpy.models.dam.dam_control.WaterLevel2FloodDischarge"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterLevel2FloodDischarge()</span></code></a> Artificial neural network describing the relationship between flood discharge and water volume [-].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.AllowedRelease" title="hydpy.models.dam.dam_control.AllowedRelease"><code class="xref py py-func docutils literal notranslate"><span class="pre">AllowedRelease()</span></code></a> The maximum water release not causing any harm downstream [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.dam_v007.DerivedParameters">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dam_v007.</span></code><code class="sig-name descname"><span class="pre">DerivedParameters</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">hydpy.core.parametertools.Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_v007.DerivedParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.SubVariables" title="hydpy.core.variabletools.SubVariables"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.SubVariables</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.Parameters</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Derived parameters of model dam_v007.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_derived.TOY" title="hydpy.models.dam.dam_derived.TOY"><code class="xref py py-func docutils literal notranslate"><span class="pre">TOY()</span></code></a> References the <a class="reference internal" href="indextools.html#hydpy.core.indextools.Indexer.timeofyear" title="hydpy.core.indextools.Indexer.timeofyear"><code class="xref py py-const docutils literal notranslate"><span class="pre">timeofyear</span></code></a> index array provided by the instance of class <a class="reference internal" href="indextools.html#hydpy.core.indextools.Indexer" title="hydpy.core.indextools.Indexer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Indexer</span></code></a> available in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>. [-].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_derived.Seconds" title="hydpy.models.dam.dam_derived.Seconds"><code class="xref py py-func docutils literal notranslate"><span class="pre">Seconds()</span></code></a> Length of the actual simulation step size in seconds [s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_derived.WaterLevelMinimumSmoothPar" title="hydpy.models.dam.dam_derived.WaterLevelMinimumSmoothPar"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterLevelMinimumSmoothPar()</span></code></a> Smoothing parameter to be derived from <a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterLevelMinimumTolerance" title="hydpy.models.dam.dam_control.WaterLevelMinimumTolerance"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevelMinimumTolerance</span></code></a> for smoothing kernel <code class="xref py py-func docutils literal notranslate"><span class="pre">smooth_logistic1()</span></code> [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.dam_v007.FluxSequences">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dam_v007.</span></code><code class="sig-name descname"><span class="pre">FluxSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_v007.FluxSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequences" title="hydpy.core.sequencetools.OutputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code>]</p>
+<p>Flux sequences of model dam_v007.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.Inflow" title="hydpy.models.dam.dam_fluxes.Inflow"><code class="xref py py-func docutils literal notranslate"><span class="pre">Inflow()</span></code></a> Total inflow [m³/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.ActualRelease" title="hydpy.models.dam.dam_fluxes.ActualRelease"><code class="xref py py-func docutils literal notranslate"><span class="pre">ActualRelease()</span></code></a> Actual water release thought for reducing drought events downstream [m³/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.FloodDischarge" title="hydpy.models.dam.dam_fluxes.FloodDischarge"><code class="xref py py-func docutils literal notranslate"><span class="pre">FloodDischarge()</span></code></a> Water release associated with flood events [m³/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.Outflow" title="hydpy.models.dam.dam_fluxes.Outflow"><code class="xref py py-func docutils literal notranslate"><span class="pre">Outflow()</span></code></a> Total outflow [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.dam_v007.InletSequences">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dam_v007.</span></code><code class="sig-name descname"><span class="pre">InletSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_v007.InletSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequences" title="hydpy.core.sequencetools.LinkSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.LinkSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequence</span></code>]</p>
+<p>Inlet sequences of model dam_v007.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_inlets.Q" title="hydpy.models.dam.dam_inlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Discharge [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.dam_v007.OutletSequences">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dam_v007.</span></code><code class="sig-name descname"><span class="pre">OutletSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_v007.OutletSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequences" title="hydpy.core.sequencetools.LinkSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.LinkSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequence</span></code>]</p>
+<p>Outlet sequences of model dam_v007.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_outlets.Q" title="hydpy.models.dam.dam_outlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Discharge [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.dam_v007.SolverParameters">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dam_v007.</span></code><code class="sig-name descname"><span class="pre">SolverParameters</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">hydpy.core.parametertools.Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_v007.SolverParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.SubVariables" title="hydpy.core.variabletools.SubVariables"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.SubVariables</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.Parameters</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Solver parameters of model dam_v007.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_solver.AbsErrorMax" title="hydpy.models.dam.dam_solver.AbsErrorMax"><code class="xref py py-func docutils literal notranslate"><span class="pre">AbsErrorMax()</span></code></a> Absolute numerical error tolerance [m3/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_solver.RelErrorMax" title="hydpy.models.dam.dam_solver.RelErrorMax"><code class="xref py py-func docutils literal notranslate"><span class="pre">RelErrorMax()</span></code></a> Relative numerical error tolerance [1/T].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_solver.RelDTMin" title="hydpy.models.dam.dam_solver.RelDTMin"><code class="xref py py-func docutils literal notranslate"><span class="pre">RelDTMin()</span></code></a> Smallest relative integration time step size allowed [-].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_solver.RelDTMax" title="hydpy.models.dam.dam_solver.RelDTMax"><code class="xref py py-func docutils literal notranslate"><span class="pre">RelDTMax()</span></code></a> Largest relative integration time step size allowed [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.dam_v007.StateSequences">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dam_v007.</span></code><code class="sig-name descname"><span class="pre">StateSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_v007.StateSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequences" title="hydpy.core.sequencetools.OutputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequence</span></code>]</p>
+<p>State sequences of model dam_v007.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_states.WaterVolume" title="hydpy.models.dam.dam_states.WaterVolume"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterVolume()</span></code></a> Water volume [million m³].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework Tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modelcollection.html">Model Collection</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="HydPy-A.html">HydPy-A (RIMO/RIDO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-C.html">HydPy-C (Conv)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-E.html">HydPy-E (Evap)</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="HydPy-D.html">HydPy-D (DAM)</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="dam.html">dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v001.html">dam_v001</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v002.html">dam_v002</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v003.html">dam_v003</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v004.html">dam_v004</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v005.html">dam_v005</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v006.html">dam_v006 (controlled lake)</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">dam_v007 (retention basin)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#integration-tests">Integration tests</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#base-scenario">base scenario</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#spillway">spillway</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#allowed-release">allowed release</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v008.html">dam_v008 (reservoir)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-T.html">HydPy-T (TESTING)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dam_v006.html"
+                        title="previous chapter">dam_v006</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dam_v008.html"
+                        title="next chapter">dam_v008</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dam_v007.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dam_v008.html" title="dam_v008"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dam_v006.html" title="dam_v006"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-D.html" >HydPy-D (DAM)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dam_v007</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

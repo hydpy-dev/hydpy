@@ -1,0 +1,67 @@
+.. |Cythonizer.compile_| replace:: :func:`~hydpy.cythons.modelutils.Cythonizer.compile_`
+.. |Cythonizer.cymodule| replace:: :const:`~hydpy.cythons.modelutils.Cythonizer.cymodule`
+.. |Cythonizer.cyname| replace:: :const:`~hydpy.cythons.modelutils.Cythonizer.cyname`
+.. |Cythonizer.cythonize| replace:: :func:`~hydpy.cythons.modelutils.Cythonizer.cythonize`
+.. |Cythonizer.finalise| replace:: :func:`~hydpy.cythons.modelutils.Cythonizer.finalise`
+.. |Cythonizer.move_dll| replace:: :func:`~hydpy.cythons.modelutils.Cythonizer.move_dll`
+.. |Cythonizer.outdated| replace:: :const:`~hydpy.cythons.modelutils.Cythonizer.outdated`
+.. |Cythonizer.pysourcefiles| replace:: :const:`~hydpy.cythons.modelutils.Cythonizer.pysourcefiles`
+.. |Cythonizer| replace:: :class:`~hydpy.cythons.modelutils.Cythonizer`
+.. |ELSModel.addup_fluxes| replace:: :func:`~hydpy.core.modeltools.ELSModel.addup_fluxes`
+.. |ELSModel.calculate_error| replace:: :func:`~hydpy.core.modeltools.ELSModel.calculate_error`
+.. |ELSModel.get_point_states| replace:: :func:`~hydpy.core.modeltools.ELSModel.get_point_states`
+.. |ELSModel.integrate_fluxes| replace:: :func:`~hydpy.core.modeltools.ELSModel.integrate_fluxes`
+.. |ELSModel.reset_sum_fluxes| replace:: :func:`~hydpy.core.modeltools.ELSModel.reset_sum_fluxes`
+.. |ELSModel| replace:: :class:`~hydpy.core.modeltools.ELSModel`
+.. |False| replace:: :const:`False`
+.. |FluxSequence| replace:: :class:`~hydpy.core.sequencetools.FluxSequence`
+.. |FuncConverter.pyxlines| replace:: :const:`~hydpy.cythons.modelutils.FuncConverter.pyxlines`
+.. |IOSequence| replace:: :class:`~hydpy.core.sequencetools.IOSequence`
+.. |Lines| replace:: :class:`~hydpy.cythons.modelutils.Lines`
+.. |Options.autocompile| replace:: :const:`~hydpy.core.optiontools.Options.autocompile`
+.. |Options.forcecompiling| replace:: :const:`~hydpy.core.optiontools.Options.forcecompiling`
+.. |Options.skipdoctests| replace:: :const:`~hydpy.core.optiontools.Options.skipdoctests`
+.. |Options.usecython| replace:: :const:`~hydpy.core.optiontools.Options.usecython`
+.. |PyxWriter.iofunctions| replace:: :const:`~hydpy.cythons.modelutils.PyxWriter.iofunctions`
+.. |PyxWriter.write_stubfile| replace:: :func:`~hydpy.cythons.modelutils.PyxWriter.write_stubfile`
+.. |PyxWriter| replace:: :class:`~hydpy.cythons.modelutils.PyxWriter`
+.. |TYPE2STR| replace:: :const:`~hydpy.cythons.modelutils.TYPE2STR`
+.. |Tester.perform_tests| replace:: :func:`~hydpy.core.testtools.Tester.perform_tests`
+.. |Tester| replace:: :class:`~hydpy.core.testtools.Tester`
+.. |True| replace:: :const:`True`
+.. |float| replace:: :class:`float`
+.. |get_dllextension| replace:: :func:`~hydpy.cythons.modelutils.get_dllextension`
+.. |hland_v1| replace:: :mod:`~hydpy.models.hland_v1`
+.. |hland| replace:: :mod:`~hydpy.models.hland`
+.. |int| replace:: :class:`int`
+.. |isinstance| replace:: :func:`isinstance`
+.. |math| replace:: :mod:`~math`
+.. |modelutils| replace:: :mod:`~hydpy.cythons.modelutils`
+.. |numpy| replace:: :mod:`~numpy`
+.. |platform| replace:: :mod:`~platform`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |test| replace:: :mod:`~hydpy.models.test`
+.. |unittest| replace:: :mod:`~unittest`
+.. |math.exp| replace:: :func:`~math.exp`
+.. |numpy.arccos| replace:: :func:`~numpy.arccos`
+.. |numpy.arcsin| replace:: :func:`~numpy.arcsin`
+.. |numpy.arctan| replace:: :func:`~numpy.arctan`
+.. |numpy.cos| replace:: :func:`~numpy.cos`
+.. |numpy.exp| replace:: :func:`~numpy.exp`
+.. |numpy.isinf| replace:: :func:`~numpy.isinf`
+.. |numpy.isnan| replace:: :func:`~numpy.isnan`
+.. |numpy.log| replace:: :func:`~numpy.log`
+.. |numpy.sin| replace:: :func:`~numpy.sin`
+.. |numpy.tan| replace:: :func:`~numpy.tan`
+.. |platform.system| replace:: :func:`~platform.system`
+.. |test_states.S| replace:: :class:`~hydpy.models.test.test_states.S`
+
+.. _modelutils:
+
+modelutils
+==========
+
+.. automodule:: hydpy.cythons.modelutils
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>quadtools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>window.MathJax = {"chtml": {"displayAlign": "left"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="roottools" href="roottools.html" />
+    <link rel="prev" title="ppolytools" href="ppolytools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="roottools.html" title="roottools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ppolytools.html" title="ppolytools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="auxiliaries.html" accesskey="U">Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">quadtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="anntools.html">anntools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="armatools.html">armatools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="calibtools.html">calibtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interptools.html">interptools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="iuhtools.html">iuhtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="networktools.html">networktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ppolytools.html">ppolytools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">quadtools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.auxs.quadtools.Quad"><code class="docutils literal notranslate"><span class="pre">Quad</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.quadtools.Quad.CYTHONBASECLASS"><code class="docutils literal notranslate"><span class="pre">Quad.CYTHONBASECLASS</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.quadtools.Quad.PYTHONCLASS"><code class="docutils literal notranslate"><span class="pre">Quad.PYTHONCLASS</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.quadtools.Quad.integrate"><code class="docutils literal notranslate"><span class="pre">Quad.integrate()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.quadtools.Quad.apply_method0"><code class="docutils literal notranslate"><span class="pre">Quad.apply_method0()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.quadtools.Quad.name"><code class="docutils literal notranslate"><span class="pre">Quad.name</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="roottools.html">roottools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="smoothtools.html">smoothtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="statstools.html">statstools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="validtools.html">validtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="xmltools.html">xmltools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="ppolytools.html"
+                          title="previous chapter">ppolytools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="roottools.html"
+                          title="next chapter">roottools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/quadtools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="quadtools">
+<span id="id1"></span><h1>quadtools<a class="headerlink" href="#quadtools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.auxs.quadtools">This module specialises class <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Submodel" title="hydpy.core.modeltools.Submodel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Submodel</span></code></a> for quadrature problems.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.auxs.quadtools" title="hydpy.auxs.quadtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">quadtools</span></code></a> provides Python interfaces only.  See the Cython extension module
+<cite>quadutils</cite> for the actual implementations of the mathematical algorithms.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.auxs.quadtools" title="hydpy.auxs.quadtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">quadtools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.auxs.quadtools.Quad" title="hydpy.auxs.quadtools.Quad"><code class="xref py py-class docutils literal notranslate"><span class="pre">Quad</span></code></a> Numerical solver for quadrature problems based on the Gauss-Lobatto quadrature.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.quadtools.Quad">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.quadtools.</span></span><span class="sig-name descname"><span class="pre">Quad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><span class="pre">Model</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/quadtools.html#Quad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.quadtools.Quad" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Submodel" title="hydpy.core.modeltools.Submodel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Submodel</span></code></a></p>
+<p>Numerical solver for quadrature problems based on the Gauss-Lobatto
+quadrature.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.quadtools.Quad.CYTHONBASECLASS">
+<span class="sig-name descname"><span class="pre">CYTHONBASECLASS</span></span><a class="headerlink" href="#hydpy.auxs.quadtools.Quad.CYTHONBASECLASS" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">QuadBase</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.quadtools.Quad.PYTHONCLASS">
+<span class="sig-name descname"><span class="pre">PYTHONCLASS</span></span><a class="headerlink" href="#hydpy.auxs.quadtools.Quad.PYTHONCLASS" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">QuadPython</span></code></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.quadtools.Quad.integrate">
+<span class="sig-name descname"><span class="pre">integrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/quadtools.html#Quad.integrate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.quadtools.Quad.integrate" title="Link to this definition">¶</a></dt>
+<dd><p>Repeatedly integrate the target function within the interval
+<span class="math notranslate nohighlight">\(x0 \leq x \leq x1\)</span> until the estimated accuracy is smaller than
+<cite>tol</cite> using at least <cite>xmin</cite> and at most <cite>xmax</cite> number of nodes.</p>
+<p>The algorithm underlying <a class="reference internal" href="#hydpy.auxs.quadtools.Quad" title="hydpy.auxs.quadtools.Quad"><code class="xref py py-class docutils literal notranslate"><span class="pre">Quad</span></code></a> works acceptable, but should be improvable
+both regarding accuracy and efficiency.  We postpone this and provide
+example calculations afterwards.  Please see the documentation on method
+<a class="reference internal" href="wland.html#hydpy.models.wland.wland_model.Calc_DVEq_V1" title="hydpy.models.wland.wland_model.Calc_DVEq_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_DVEq_V1</span></code></a> to see <a class="reference internal" href="#hydpy.auxs.quadtools.Quad" title="hydpy.auxs.quadtools.Quad"><code class="xref py py-class docutils literal notranslate"><span class="pre">Quad</span></code></a> in action until then.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.quadtools.Quad.apply_method0">
+<span class="sig-name descname"><span class="pre">apply_method0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/quadtools.html#Quad.apply_method0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.quadtools.Quad.apply_method0" title="Link to this definition">¶</a></dt>
+<dd><p>Apply the model method to be integrated.</p>
+<p>For example, submodel <a class="reference internal" href="wland.html#hydpy.models.wland.wland_model.QuadDVEq_V1" title="hydpy.models.wland.wland_model.QuadDVEq_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">QuadDVEq_V1</span></code></a> integrates method
+<a class="reference internal" href="wland.html#hydpy.models.wland.wland_model.Return_DVH_V1" title="hydpy.models.wland.wland_model.Return_DVH_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_DVH_V1</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.wland</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thetas</span><span class="p">(</span><span class="mf">0.4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">psiae</span><span class="p">(</span><span class="mf">300.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sh</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">rh1</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">return_dvh_v1</span><span class="p">(</span><span class="mf">600.0</span><span class="p">))</span>
+<span class="go">0.05178</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">quaddveq_v1</span><span class="o">.</span><span class="n">apply_method0</span><span class="p">(</span><span class="mf">600.0</span><span class="p">))</span>
+<span class="go">0.05178</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.quadtools.Quad.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'quad'</span></em><a class="headerlink" href="#hydpy.auxs.quadtools.Quad.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="roottools.html" title="roottools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ppolytools.html" title="ppolytools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="auxiliaries.html" >Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">quadtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

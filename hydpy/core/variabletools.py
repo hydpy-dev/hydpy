@@ -1927,9 +1927,11 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             masks = self.availablemasks
             mask = masktools.CustomMask(numpy.full(self.shape, False))
             for arg in args:
-                mask = mask + self._prepare_mask(arg, masks)
+                mask = cast(masktools.CustomMask, mask + self._prepare_mask(arg, masks))
             for key, value in kwargs.items():
-                mask = mask + self._prepare_mask(key, masks, **value)
+                mask = cast(
+                    masktools.CustomMask, mask + self._prepare_mask(key, masks, **value)
+                )
             if mask not in self.mask:
                 raise ValueError(
                     f"Based on the arguments `{args}` and `{kwargs}` the mask "
@@ -1939,11 +1941,16 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             return mask
         return self.mask
 
-    def _prepare_mask(self, mask, masks, **kwargs):
-        mask = masks[mask]
-        if inspect.isclass(mask):
-            return mask(self, **kwargs)
-        return mask
+    def _prepare_mask(
+        self,
+        mask: masktools.BaseMask | type[masktools.BaseMask] | str,
+        masks: masktools.Masks,
+        **kwargs,
+    ) -> masktools.BaseMask:
+        mask_ = masks[mask]
+        if inspect.isclass(mask_):
+            return mask_(self, **kwargs)
+        return mask_
 
     def __deepcopy__(self, memo) -> Self:
         new = type(self)(None)  # type: ignore[arg-type]

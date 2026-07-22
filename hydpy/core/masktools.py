@@ -419,7 +419,9 @@ occurred: The given key is neither a `string` a `mask` type.
             f"a Mask instance."
         )
 
-    def __getitem__(self, key: str | BaseMask | type[BaseMask]) -> BaseMask:
+    def __getitem__(
+        self, key: str | BaseMask | type[BaseMask]
+    ) -> BaseMask | type[BaseMask]:
         _key = key
         try:
             if inspect.isclass(key):

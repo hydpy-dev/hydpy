@@ -19,16 +19,10 @@ class FracRain(hland_sequences.Factor1DSequence):
     mask = hland_masks.Complete()
 
 
-class CFAct(hland_sequences.Factor1DSequence):
-    """Actual degree day factor for snow (on glaciers or not) [mm/°C/T]."""
+class Cov(hland_sequences.Factor1DSequence):
+    """ToDo [-]."""
 
-    mask = hland_masks.Land()
-
-
-class SWE(hland_sequences.Factor2DSequence):
-    """Snow water equivalent [mm]."""
-
-    mask = hland_masks.Land()
+    mask = hland_masks.Complete()
 
 
 class GAct(hland_sequences.Factor1DSequence):

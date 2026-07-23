@@ -14,6 +14,8 @@ from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import rconcinterfaces
 from hydpy.interfaces import tempinterfaces
+from hydpy.interfaces import throughfallinterfaces
+from hydpy.interfaces import snowinterfaces
 from hydpy.interfaces import stateinterfaces
 from hydpy.models.hland import hland_constants
 from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE, SEALED
@@ -24,7 +26,6 @@ from hydpy.models.hland import hland_inputs
 from hydpy.models.hland import hland_factors
 from hydpy.models.hland import hland_fluxes
 from hydpy.models.hland import hland_states
-from hydpy.models.hland import hland_aides
 from hydpy.models.hland import hland_outlets
 
 
@@ -39,7 +40,7 @@ class Calc_TC_V1(modeltools.Method):
         Prepare two zones, the first lying at the reference height and the second 200
         meters above:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.models.hland_96 import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
         >>> nmbzones(2)
@@ -417,1082 +418,97 @@ class Calc_EI_Ic_V1(modeltools.Method):
         #         assert_never(model.petmodel)
 
 
-class Calc_SP_WC_V1(modeltools.Method):
-    r"""Add throughfall to the snow layer.
+class Calc_In_Cov_SnowModel_V1(modeltools.Method):
+    r"""Let a submodel that follows the |SnowModel_V1| interface calculate incoming
+    water.
 
-    Basic equations:
+    Basic equation:
       .. math::
-        \frac{dWC}{dt} = SFDist \cdot FracRain \cdot TF \\
-        \frac{dSP}{dt} = SFDist \cdot (1 - FracRain) \cdot TF
+        In = get\_release() \\
+        Cov = get\_snowcover()
 
-    Examples:
 
-        Consider the following setting, in which seven zones of different types receive
-        a throughfall of 10 mm:
+    Example:
 
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.hland_96 import *
         >>> parameterstep("1d")
-        >>> nmbzones(7)
-        >>> sclass(1)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, FIELD, FIELD)
-        >>> sfdist(0.2)
-        >>> fluxes.tf = 10.0
-        >>> factors.fracrain(0.5, 0.5, 0.5, 0.5, 0.5, 0.8, 0.2)
-        >>> states.sp = 2.0
-        >>> states.wc = 1.0
-        >>> model.calc_sp_wc_v1()
-        >>> states.sp
-        sp(0.0, 7.0, 7.0, 7.0, 7.0, 4.0, 10.0)
-        >>> states.wc
-        wc(0.0, 6.0, 6.0, 6.0, 6.0, 9.0, 3.0)
-
-        The snow routine does not apply to internal lakes, which is why both the ice
-        storage and the water storage of the first zone remain unchanged.  The snow
-        routine is identical for fields, forests, sealed areas, and glaciers (besides
-        the additional glacier melt), which is why the results zone three to five are
-        equal.
-
-        In the above example, we did not divide the zones into snow classes. If we do
-        so, method |Calc_SP_WC_V1| adds different amounts of snow and rainfall to the
-        individual snow classes based on the current values of parameter |SFDist|:
-
-        >>> sclass(2)
-        >>> sfdist(0.0, 2.0)
-        >>> factors.fracrain(0.5, 0.5, 0.5, 0.5, 0.5, 0.8, 0.2)
-        >>> states.sp = 2.0
-        >>> states.wc = 1.0
-        >>> model.calc_sp_wc_v1()
-        >>> states.sp
-        sp([[0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
-            [0.0, 12.0, 12.0, 12.0, 12.0, 6.0, 18.0]])
-        >>> states.wc
-        wc([[0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-            [0.0, 11.0, 11.0, 11.0, 11.0, 17.0, 5.0]])
-    """
-
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.SClass,
-        hland_control.ZoneType,
-        hland_control.SFDist,
-    )
-    REQUIREDSEQUENCES = (hland_fluxes.TF, hland_factors.FracRain)
-    UPDATEDSEQUENCES = (hland_states.WC, hland_states.SP)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, /) -> None:
-        con = model.parameters.control.fastaccess
-        fac = model.sequences.factors.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nmbzones):
-            if con.zonetype[k] != ILAKE:
-                rain: float = flu.tf[k] * fac.fracrain[k]
-                snow: float = flu.tf[k] * (1.0 - fac.fracrain[k])
-                for c in range(con.sclass):
-                    sta.wc[c, k] += con.sfdist[c] * rain
-                    sta.sp[c, k] += con.sfdist[c] * snow
-            else:
-                for c in range(con.sclass):
-                    sta.wc[c, k] = 0.0
-                    sta.sp[c, k] = 0.0
-
-
-class Calc_SPL_WCL_SP_WC_V1(modeltools.Method):
-    r"""Calculate the subbasin-internal redistribution losses of the snow layer.
-
-    Basic equations:
-      :math:`\frac{dSP}{dt} = -SPL`
-
-      :math:`\frac{dWC}{dt} = -WCL`
-
-      :math:`SPL = SP \cdot RelExcess`
-
-      :math:`WCL = WC \cdot RelExcess`
-
-      :math:`RelExcess = \frac{max(SP + WC - SMax, 0)}{SP + WC}`
-
-    Examples:
-
-        We prepare eight zones.  We use the first five to show the identical behaviour
-        of the land-use types |GLACIER|, |FIELD|, |FOREST|, and |SEALED| and the unique
-        behaviour of type |ILAKE|.  Zones six to eight serve to demonstrate the effects
-        of different initial states:
-
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(8)
-        >>> sclass(1)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, FIELD, FIELD, FIELD)
-        >>> smax(500.0)
-
-        Internal lakes do not possess a snow module and cannot redistribute any snow.
-        Hence, |Calc_SPL_WCL_SP_WC_V1| sets the loss (|SPL| and |WCL|) and state (|SP|
-        and |WC|) sequences to zero.  For all other zones, the total amount of snow
-        redistribution depends on how much the total water equivalent exceeds the
-        threshold parameter |SMax| (consistently set to 500 m).  The fraction between
-        the liquid (|WCL|) and frozen (|SPL|) loss depends on the fraction between
-        the actual storage of liquid (|WC|) and frozen (|SP|) water in the snow layer:
-
-        >>> states.sp = 600.0, 600.0, 600.0, 600.0, 600.0, 60.0, 800.0, 0.0
-        >>> states.wc = 200.0, 200.0, 200.0, 200.0, 200.0, 20.0, 0.0, 800.0
-        >>> model.calc_spl_wcl_sp_wc_v1()
-        >>> fluxes.spl
-        spl(0.0, 225.0, 225.0, 225.0, 225.0, 0.0, 300.0, 0.0)
-        >>> fluxes.wcl
-        wcl(0.0, 75.0, 75.0, 75.0, 75.0, 0.0, 0.0, 300.0)
-        >>> states.sp
-        sp(0.0, 375.0, 375.0, 375.0, 375.0, 60.0, 500.0, 0.0)
-        >>> states.wc
-        wc(0.0, 125.0, 125.0, 125.0, 125.0, 20.0, 0.0, 500.0)
-
-        The above example deals with a single snow class.  Here, we add a second snow
-        class to illustrate that the total snow loss of each zone does not depend on
-        its average snow storage but the degree of exceedance of |SMax| within its
-        individual snow classes:
-
-        >>> sclass(2)
-        >>> states.sp = [[600.0, 600.0, 600.0, 600.0, 600.0, 60.0, 800.0, 0.0],
-        ...              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
-        >>> states.wc = [[200.0, 200.0, 200.0, 200.0, 200.0, 20.0, 0.0, 800.0],
-        ...              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
-        >>> model.calc_spl_wcl_sp_wc_v1()
-        >>> fluxes.spl
-        spl(0.0, 112.5, 112.5, 112.5, 112.5, 0.0, 150.0, 0.0)
-        >>> fluxes.wcl
-        wcl(0.0, 37.5, 37.5, 37.5, 37.5, 0.0, 0.0, 150.0)
-        >>> states.sp
-        sp([[0.0, 375.0, 375.0, 375.0, 375.0, 60.0, 500.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
-        >>> states.wc
-        wc([[0.0, 125.0, 125.0, 125.0, 125.0, 20.0, 0.0, 500.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
-    """
-
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.SClass,
-        hland_control.ZoneType,
-        hland_control.SMax,
-    )
-    UPDATEDSEQUENCES = (hland_states.WC, hland_states.SP)
-    RESULTSEQUENCES = (hland_fluxes.SPL, hland_fluxes.WCL)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, /) -> None:
-        con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nmbzones):
-            flu.spl[k] = 0.0
-            flu.wcl[k] = 0.0
-            if con.zonetype[k] == ILAKE:
-                for c in range(con.sclass):
-                    sta.sp[c, k] = 0.0
-                    sta.wc[c, k] = 0.0
-            elif not modelutils.isinf(con.smax[k]):
-                for c in range(con.sclass):
-                    snow: float = sta.sp[c, k] + sta.wc[c, k]
-                    excess: float = snow - con.smax[k]
-                    if excess > 0.0:
-                        excess_sp: float = excess * sta.sp[c, k] / snow
-                        excess_wc: float = excess * sta.wc[c, k] / snow
-                        flu.spl[k] += excess_sp / con.sclass
-                        flu.wcl[k] += excess_wc / con.sclass
-                        sta.sp[c, k] -= excess_sp
-                        sta.wc[c, k] -= excess_wc
-
-
-class Calc_SPG_WCG_SP_WC_V1(modeltools.Method):
-    r"""Calculate the subbasin-internal redistribution gains of the snow layer.
-
-    Basic equations:
-      :math:`\frac{dSP}{dt} = -SPG`
-
-      :math:`\frac{dWC}{dt} = -WCG`
-
-    Examples:
-
-        We prepare an example consisting of seven zones, sorted by (non-strictly)
-        descending elevation.  For now, there is a single snow class per zone, and the
-        zones' areas are identical (1.0 km²).  The last zone is of type |ILAKE| and
-        does not participate in snow redistribution. We use the same configuration for
-        |SMax| (the maximum snow storage) and |SRed| (defining the redistribution
-        paths) throughout all examples:
-
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> area(7.0)
-        >>> nmbzones(7)
-        >>> sclass(1)
-        >>> zonetype(GLACIER, FIELD, FOREST, SEALED, FOREST, FIELD, ILAKE)
-        >>> zonez(30.0, 25.0, 20.0, 15.0, 10.0, 10.0, 5.0)
-        >>> zonearea(1.0)
-        >>> psi(1.0)
-        >>> sfdist(1.0)
-        >>> smax(500.0)
-        >>> sred([[0.0, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0],
-        ...       [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-        ...       [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
-        ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.0],
-        ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
-
-        For convenience, we prepare a function that updates all relevant derived
-        parameters:
-
-        >>> def update():
-        ...     derived.rellandarea.update()
-        ...     derived.relzoneareas.update()
-        ...     derived.rellowerzonearea.update()
-        ...     derived.zonearearatios.update()
-        ...     derived.indiceszonez.update()
-        ...     derived.sredorder.update()
-        ...     derived.srednumber.update()
-        ...     derived.sredend.update()
-        >>> update()
-
-        In the first example, the total snow water equivalent (300 mm) is way below
-        |SRed| (500 mm).  Hence, all frozen (|SPL|) and liquid (|WCL|) water released
-        deposits completely in the target zones:
-
-        >>> states.sp = 200.0
-        >>> states.wc = 100.0
-        >>> fluxes.spl = 20.0, 20.0, 20.0, 20.0, 0.0, 0.0, 0.0
-        >>> fluxes.wcl = 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 0.0
-        >>> model.calc_spg_wcg_sp_wc_v1()
-        >>> fluxes.spg
-        spg(0.0, 4.0, 24.0, 24.0, 14.0, 14.0, 0.0)
-        >>> fluxes.wcg
-        wcg(0.0, 2.0, 12.0, 12.0, 7.0, 7.0, 0.0)
-        >>> states.sp
-        sp(200.0, 204.0, 224.0, 224.0, 214.0, 214.0, 0.0)
-        >>> states.wc
-        wc(100.0, 102.0, 112.0, 112.0, 107.0, 107.0, 0.0)
-
-        The following test function checks that method |Calc_SPG_WCG_SP_WC_V1| does not
-        introduce any water balance errors:
-
-        >>> from hydpy import repr_
-        >>> def check(sp_old, wc_old):
-        ...     def check_vector(deltas):
-        ...         return numpy.max(numpy.abs(numpy.sum(deltas, axis=0)))
-        ...     sp_new = states.sp.average_values()
-        ...     sp_delta_l = fluxes.spl.average_values()
-        ...     sp_delta_g = fluxes.spg.average_values()
-        ...     sp_old_array = numpy.asarray(6 * [sp_old] + [0.0])
-        ...     wc_new = states.wc.average_values()
-        ...     wc_delta_l = fluxes.wcl.average_values()
-        ...     wc_delta_g = fluxes.wcg.average_values()
-        ...     wc_old_array = numpy.asarray(6 * [wc_old] + [0.0])
-        ...     errors = [sp_old + sp_delta_l - sp_new,
-        ...               sp_delta_l - sp_delta_g,
-        ...               check_vector(sp_old_array + fluxes.spg - states.sp),
-        ...               wc_old + wc_delta_l - wc_new,
-        ...               wc_delta_l - wc_delta_g,
-        ...               check_vector(wc_old_array + fluxes.wcg - states.wc)]
-        ...     print(*(repr_(error) for error in errors), sep=", ")
-
-        The possible errors related to different aspects of the frozen and the liquid
-        water content of the snow layer are all within the range of the given numerical
-        precision:
-
-        >>> check(sp_old=200.0, wc_old=100.0)
-        0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-
-        Next, we increase the size of the first area and decrease the size of the
-        second area by the same amount.  The different results for |SPG| and |WCG|
-        reflect that the loss terms (|SPL| and |WCL|) relate to the sizes of the
-        supplying zones while the gain terms (|SPG| and |WCG|) relate to the sizes of
-        the receiving zones:
-
-        >>> zonearea(1.5, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0)
-        >>> update()
-        >>> states.sp = 200.0
-        >>> states.wc = 100.0
-        >>> model.calc_spg_wcg_sp_wc_v1()
-        >>> fluxes.spg
-        spg(0.0, 12.0, 16.0, 26.0, 16.0, 16.0, 0.0)
-        >>> fluxes.wcg
-        wcg(0.0, 6.0, 8.0, 13.0, 8.0, 8.0, 0.0)
-        >>> states.sp
-        sp(200.0, 212.0, 216.0, 226.0, 216.0, 216.0, 0.0)
-        >>> states.wc
-        wc(100.0, 106.0, 108.0, 113.0, 108.0, 108.0, 0.0)
-        >>> check(sp_old=200.0, wc_old=100.0)
-        0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-
-        When modelling high mountain areas, even the lowest zones (the so-called
-        "dead-ends") can receive substantial amounts of redistributed snow.  Therefore,
-        the simple "from top to bottom" approach described so far can result in
-        unrealistic snow towers for these dead-ends, especially if their size is small
-        compared to the size of the snow-delivering area.  To prevent such artefacts,
-        method |Calc_SPG_WCG_SP_WC_V1| takes the total snow amount of all dead-ends
-        exceeding the |Smax| threshold and distributes it gradually to the other zones,
-        starting from the lowest in the order defined by parameter |IndicesZoneZ|:
-
-        >>> zonearea(1.0)
-        >>> update()
-        >>> states.sp = 400.0
-        >>> states.wc = 75.0
-        >>> model.calc_spg_wcg_sp_wc_v1()
-        >>> fluxes.spg
-        spg(0.0, 13.333333, 16.666667, 16.666667, 16.666667, 16.666667, 0.0)
-        >>> fluxes.wcg
-        wcg(0.0, 6.666667, 8.333333, 8.333333, 8.333333, 8.333333, 0.0)
-        >>> states.sp
-        sp(400.0, 413.333333, 416.666667, 416.666667, 416.666667, 416.666667,
-           0.0)
-        >>> states.wc
-        wc(75.0, 81.666667, 83.333333, 83.333333, 83.333333, 83.333333, 0.0)
-        >>> check(sp_old=400.0, wc_old=75.0)
-        0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-
-        If the total snow amount of all zone reaches |SMax|, |Calc_SPG_WCG_SP_WC_V1|
-        distributes all remaining excess evenly to all non-lake zones:
-
-        >>> states.sp = 400.0
-        >>> states.wc = 90.0
-        >>> model.calc_spg_wcg_sp_wc_v1()
-        >>> fluxes.spg
-        spg(13.333333, 13.333333, 13.333333, 13.333333, 13.333333, 13.333333,
-            0.0)
-        >>> fluxes.wcg
-        wcg(6.666667, 6.666667, 6.666667, 6.666667, 6.666667, 6.666667, 0.0)
-        >>> states.sp
-        sp(413.333333, 413.333333, 413.333333, 413.333333, 413.333333,
-           413.333333, 0.0)
-        >>> states.wc
-        wc(96.666667, 96.666667, 96.666667, 96.666667, 96.666667, 96.666667, 0.0)
-        >>> check(sp_old=400.0, wc_old=90.0)
-        0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-
-        Introducing multiple snow classes within each zone complicates things.  We
-        repeat some of the above examples with an increased number of snow classes:
-
-        >>> sclass(2)
-        >>> update()
-
-        The "normal" snow redistribution relies similarly on parameter |SFDist| as the
-        snowfall accumulation does.  We show this by repeating the first example with
-        the most extreme configuration of |SFDist|, where the second snow class
-        receives the entire amount of incoming snow:
-
-        >>> sfdist(0.0, 2.0)
-        >>> states.sp = 200.0
-        >>> states.wc = 100.0
-        >>> fluxes.spl = 20.0, 20.0, 20.0, 20.0, 0.0, 0.0, 0.0
-        >>> fluxes.wcl = 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 0.0
-        >>> model.calc_spg_wcg_sp_wc_v1()
-        >>> fluxes.spg
-        spg(0.0, 4.0, 24.0, 24.0, 14.0, 14.0, 0.0)
-        >>> fluxes.wcg
-        wcg(0.0, 2.0, 12.0, 12.0, 7.0, 7.0, 0.0)
-        >>> states.sp
-        sp([[200.0, 200.0, 200.0, 200.0, 200.0, 200.0, 0.0],
-            [200.0, 208.0, 248.0, 248.0, 228.0, 228.0, 0.0]])
-        >>> states.wc
-        wc([[100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 0.0],
-            [100.0, 104.0, 124.0, 124.0, 114.0, 114.0, 0.0]])
-
-        During the eventual "bottom to top" re-redistribution, on the other hand,
-        the fractions between the gains of individual snow classes do not depend on
-        |SFDist| but their remaining capacities:
-
-        >>> states.sp = 400.0
-        >>> states.wc = 75.0
-        >>> model.calc_spg_wcg_sp_wc_v1()
-        >>> fluxes.spg
-        spg(0.0, 13.333333, 16.666667, 16.666667, 16.666667, 16.666667, 0.0)
-        >>> fluxes.wcg
-        wcg(0.0, 6.666667, 8.333333, 8.333333, 8.333333, 8.333333, 0.0)
-        >>> states.sp
-        sp([[400.0, 412.280702, 416.666667, 416.666667, 416.666667, 416.666667,
-             0.0],
-            [400.0, 414.385965, 416.666667, 416.666667, 416.666667, 416.666667,
-             0.0]])
-        >>> states.wc
-        wc([[75.0, 81.140351, 83.333333, 83.333333, 83.333333, 83.333333, 0.0],
-            [75.0, 82.192982, 83.333333, 83.333333, 83.333333, 83.333333, 0.0]])
-        >>> check(sp_old=400.0, wc_old=75.0)
-        0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-
-        During a subbasin-wide excess of |SMax|, all snow classes of a specific zone
-        handle the same total snow water equivalent:
-
-        >>> states.sp = 400.0
-        >>> states.wc = 90.0
-        >>> model.calc_spg_wcg_sp_wc_v1()
-        >>> fluxes.spg
-        spg(13.333333, 13.333333, 13.333333, 13.333333, 13.333333, 13.333333,
-            0.0)
-        >>> fluxes.wcg
-        wcg(6.666667, 6.666667, 6.666667, 6.666667, 6.666667, 6.666667, 0.0)
-        >>> states.sp
-        sp([[413.333333, 413.333333, 413.333333, 413.333333, 413.333333,
-             413.333333, 0.0],
-            [413.333333, 413.333333, 413.333333, 413.333333, 413.333333,
-             413.333333, 0.0]])
-        >>> states.wc
-        wc([[96.666667, 96.666667, 96.666667, 96.666667, 96.666667, 96.666667,
-             0.0],
-            [96.666667, 96.666667, 96.666667, 96.666667, 96.666667, 96.666667,
-             0.0]])
-        >>> check(sp_old=400.0, wc_old=90.0)
-        0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-    """
-
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.SClass,
-        hland_control.ZoneType,
-        hland_control.SFDist,
-        hland_control.SMax,
-        hland_control.SRed,
-    )
-    DERIVEDPARAMETERS = (
-        hland_derived.RelLandArea,
-        hland_derived.RelZoneAreas,
-        hland_derived.ZoneAreaRatios,
-        hland_derived.IndicesZoneZ,
-        hland_derived.SRedNumber,
-        hland_derived.SRedOrder,
-        hland_derived.SRedEnd,
-    )
-    REQUIREDSEQUENCES = (hland_fluxes.SPL, hland_fluxes.WCL)
-    UPDATEDSEQUENCES = (hland_states.WC, hland_states.SP)
-    RESULTSEQUENCES = (
-        hland_aides.SPE,
-        hland_aides.WCE,
-        hland_fluxes.SPG,
-        hland_fluxes.WCG,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model, /) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        aid = model.sequences.aides.fastaccess
-
-        # initialise gain and excess:
-        for i in range(con.nmbzones):
-            flu.spg[i] = 0.0
-            flu.wcg[i] = 0.0
-            aid.spe[i] = 0.0
-            aid.wce[i] = 0.0
-            if con.zonetype[i] == ILAKE:
-                for c in range(con.sclass):
-                    sta.sp[c, i] = 0.0
-                    sta.wc[c, i] = 0.0
-
-        # redistribute losses from top to bottom:
-        for i in range(der.srednumber):
-            # f: from, t: to
-            f, t = der.sredorder[i, 0], der.sredorder[i, 1]
-            adjust: float = der.zonearearatios[f, t] * con.sred[f, t]
-            gain_frozen: float = adjust * (flu.spl[f] + aid.spe[f])
-            gain_liquid: float = adjust * (flu.wcl[f] + aid.wce[f])
-            gain_total: float = gain_frozen + gain_liquid
-            for c in range(con.sclass):
-                gain_pot: float = con.sfdist[c] * gain_total
-                if gain_pot > 0.0:
-                    gain_max: float = con.smax[t] - sta.sp[c, t] - sta.wc[c, t]
-                    fraction_gain: float = min(gain_max / gain_pot, 1.0)
-                    factor_gain: float = fraction_gain * con.sfdist[c]
-                    flu.spg[t] += factor_gain * gain_frozen / con.sclass
-                    flu.wcg[t] += factor_gain * gain_liquid / con.sclass
-                    sta.sp[c, t] += factor_gain * gain_frozen
-                    sta.wc[c, t] += factor_gain * gain_liquid
-                    factor_excess: float = (1.0 - fraction_gain) * con.sfdist[c]
-                    aid.spe[t] += factor_excess * gain_frozen / con.sclass
-                    aid.wce[t] += factor_excess * gain_liquid / con.sclass
-
-        # check for remaining excess at the dead ends:
-        excess_frozen_basin: float = 0.0
-        excess_liquid_basin: float = 0.0
-        for i in range(con.nmbzones):
-            if der.sredend[i]:
-                excess_frozen_basin += der.relzoneareas[i] * (aid.spe[i] + flu.spl[i])
-                excess_liquid_basin += der.relzoneareas[i] * (aid.wce[i] + flu.wcl[i])
-        if (excess_frozen_basin + excess_liquid_basin) <= 0.0:
-            return
-
-        # redistribute the remaining excess from bottom to top:
-        for i in range(con.nmbzones):
-            t = der.indiceszonez[i]
-            if con.zonetype[t] == ILAKE:
-                continue
-            excess_frozen_zone: float = excess_frozen_basin / der.relzoneareas[t]
-            excess_liquid_zone: float = excess_liquid_basin / der.relzoneareas[t]
-            excess_total_zone: float = excess_frozen_zone + excess_liquid_zone
-            gain_max_cum: float = 0.0
-            for c in range(con.sclass):
-                gain_max_cum += con.smax[t] - sta.sp[c, t] - sta.wc[c, t]
-            if gain_max_cum <= 0.0:
-                continue
-            fraction_gain_zone: float = min(
-                gain_max_cum / con.sclass / excess_total_zone, 1.0
-            )
-            excess_frozen_zone_actual: float = fraction_gain_zone * excess_frozen_zone
-            excess_liquid_zone_actual: float = fraction_gain_zone * excess_liquid_zone
-            for c in range(con.sclass):
-                fraction_gain_class: float = (
-                    con.smax[t] - sta.sp[c, t] - sta.wc[c, t]
-                ) / gain_max_cum
-                delta_sp_zone: float = fraction_gain_class * excess_frozen_zone_actual
-                delta_wc_zone: float = fraction_gain_class * excess_liquid_zone_actual
-                flu.spg[t] += delta_sp_zone
-                flu.wcg[t] += delta_wc_zone
-                sta.sp[c, t] += delta_sp_zone * con.sclass
-                sta.wc[c, t] += delta_wc_zone * con.sclass
-            excess_frozen_basin -= excess_frozen_zone_actual * der.relzoneareas[t]
-            excess_liquid_basin -= excess_liquid_zone_actual * der.relzoneareas[t]
-            if (excess_frozen_basin + excess_liquid_basin) <= 0.0:
-                return
-
-        # redistribute the still remaining excess evenly:
-        excess_frozen_land: float = excess_frozen_basin / der.rellandarea
-        excess_liquid_land: float = excess_liquid_basin / der.rellandarea
-        for t in range(con.nmbzones):
-            if con.zonetype[t] != ILAKE:
-                flu.spg[t] += excess_frozen_land
-                flu.wcg[t] += excess_liquid_land
-                for c in range(con.sclass):
-                    sta.sp[c, t] += excess_frozen_land
-                    sta.wc[c, t] += excess_liquid_land
-        return
-
-
-class Calc_CFAct_V1(modeltools.Method):
-    r"""Adjust the day degree factor for snow to the current day of the year.
-
-    Basic equations:
-      :math:`CFAct = max( CFMax + f \cdot CFVar, 0 )`
-
-      :math:`f = sin(2 \cdot  Pi \cdot (DOY + 1) / 366) / 2`
-
-    Examples:
-
-        We initialise five zones of different types but the same values for |CFMax| and
-        |CFVar|.  For internal lakes, |CFAct| is always zero.  In all other cases,
-        results are identical and follow a sinusoid curve throughout the year (of which
-        we show only selected points as the maximum around June 20 and the minimum
-        around December 20):
-
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(5)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED)
-        >>> cfmax(4.0)
-        >>> cfvar(3.0)
-        >>> from hydpy import UnitTest
-        >>> test = UnitTest(model=model,
-        ...                 method=model.calc_cfact_v1,
-        ...                 last_example=10,
-        ...                 parseqs=(derived.doy, factors.cfact))
-        >>> test.nexts.doy = 0, 1, 170, 171, 172, 353, 354, 355, 364, 365
-        >>> test()
-        | ex. |                     doy |                                       cfact |
-        -------------------------------------------------------------------------------
-        |   1 |   0    0    0    0    0 | 0.0  1.264648  1.264648  1.264648  1.264648 |
-        |   2 |   1    1    1    1    1 | 0.0  1.267289  1.267289  1.267289  1.267289 |
-        |   3 | 170  170  170  170  170 | 0.0  2.749762  2.749762  2.749762  2.749762 |
-        |   4 | 171  171  171  171  171 | 0.0  2.749976  2.749976  2.749976  2.749976 |
-        |   5 | 172  172  172  172  172 | 0.0  2.749969  2.749969  2.749969  2.749969 |
-        |   6 | 353  353  353  353  353 | 0.0  1.250238  1.250238  1.250238  1.250238 |
-        |   7 | 354  354  354  354  354 | 0.0  1.250024  1.250024  1.250024  1.250024 |
-        |   8 | 355  355  355  355  355 | 0.0  1.250031  1.250031  1.250031  1.250031 |
-        |   9 | 364  364  364  364  364 | 0.0  1.260018  1.260018  1.260018  1.260018 |
-        |  10 | 365  365  365  365  365 | 0.0  1.262224  1.262224  1.262224  1.262224 |
-
-        Now, we convert all zones to type |FIELD| and vary |CFVar|.  If we set |CFVar|
-        to zero, |CFAct| always equals |CFMax| (see zone one).  If we change the sign
-        of |CFVar|, the sinusoid curve shifts a half year to reflect the southern
-        hemisphere's annual cycle of radiation (compare zone two and three).  Finally,
-        |Calc_CFAct_V1| prevents negative values of |CFAct| by setting them to zero
-        (see zone four and five):
-
+        >>> area(2.0)
+        >>> nmbzones(2)
         >>> zonetype(FIELD)
-        >>> cfvar(0.0, 3.0, -3.0, 10.0, -10.0)
-        >>> test()
-        | ex. |                     doy |                                       cfact |
-        -------------------------------------------------------------------------------
-        |   1 |   0    0    0    0    0 | 2.0  1.264648  2.735352       0.0  4.451173 |
-        |   2 |   1    1    1    1    1 | 2.0  1.267289  2.732711       0.0  4.442371 |
-        |   3 | 170  170  170  170  170 | 2.0  2.749762  1.250238  4.499206       0.0 |
-        |   4 | 171  171  171  171  171 | 2.0  2.749976  1.250024  4.499919       0.0 |
-        |   5 | 172  172  172  172  172 | 2.0  2.749969  1.250031  4.499896       0.0 |
-        |   6 | 353  353  353  353  353 | 2.0  1.250238  2.749762       0.0  4.499206 |
-        |   7 | 354  354  354  354  354 | 2.0  1.250024  2.749976       0.0  4.499919 |
-        |   8 | 355  355  355  355  355 | 2.0  1.250031  2.749969       0.0  4.499896 |
-        |   9 | 364  364  364  364  364 | 2.0  1.260018  2.739982       0.0  4.466606 |
-        |  10 | 365  365  365  365  365 | 2.0  1.262224  2.737776       0.0  4.459252 |
+        >>> zonearea(1.0)
+        >>> zonez(10.0)
+        >>> with model.add_snowmodel_v1("snow_dd"):
+        ...     ...
+        >>> model.calc_in_cov_v1()
+        >>> fluxes.in_
+        in_(?)
+        >>> factors.cov
+        cov(?)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.ZoneType,
-        hland_control.CFMax,
-        hland_control.CFVar,
-    )
-    FIXEDPARAMETERS = (hland_fixed.Pi,)
-    DERIVEDPARAMETERS = (hland_derived.DOY,)
-    RESULTSEQUENCES = (hland_factors.CFAct,)
+    CONTROLPARAMETERS = (hland_control.NmbZones,)
+    RESULTSEQUENCES = (hland_factors.Cov, hland_fluxes.In_,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, /) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: snowinterfaces.SnowModel_V1, /
+    ) -> None:
         con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        fix = model.parameters.fixed.fastaccess
-        fac = model.sequences.factors.fastaccess
-        factor: float = 0.5 * modelutils.sin(
-            2 * fix.pi * (der.doy[model.idx_sim] + 1) / 366 - 1.39
-        )
-        for k in range(con.nmbzones):
-            if con.zonetype[k] != ILAKE:
-                fac.cfact[k] = max(con.cfmax[k] + factor * con.cfvar[k], 0.0)
-            else:
-                fac.cfact[k] = 0.0
-
-
-class Calc_Melt_SP_WC_V1(modeltools.Method):
-    r"""Calculate the melting of the ice content within the snow layer and update both
-    the snow layers' ice and the water content.
-
-    Basic equations:
-      :math:`\frac{dSP}{dt} = - Melt`
-
-      :math:`\frac{dWC}{dt} = + Melt`
-
-      :math:`Melt = min(CFAct \cdot (TC - TTM), SP)`
-
-    Examples:
-
-        We initialise seven zones with the same threshold temperature and degree-day
-        factor but different zone types and initial ice contents:
-
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(7)
-        >>> sclass(1)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, SEALED, SEALED)
-        >>> derived.ttm = 2.0
-        >>> factors.cfact(2.0)
-        >>> states.sp = 0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0
-        >>> states.wc = 2.0
-
-        When the actual temperature equals the threshold temperature for melting and
-        refreezing, no melting occurs, and the states remain unchanged:
-
-        >>> factors.tc = 2.0
-        >>> model.calc_melt_sp_wc_v1()
-        >>> fluxes.melt
-        melt(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-        >>> states.sp
-        sp(0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0)
-        >>> states.wc
-        wc(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
-
-        The same holds for an actual temperature lower than the threshold temperature:
-
-        >>> states.sp = 0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0
-        >>> states.wc = 2.0
-        >>> factors.tc = -1.0
-        >>> model.calc_melt_sp_wc_v1()
-        >>> fluxes.melt
-        melt(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-        >>> states.sp
-        sp(0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0)
-        >>> states.wc
-        wc(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
-
-        With an actual temperature of 3°C above the threshold temperature, melting can
-        occur. The actual melting is consistent with potential melting, except for the
-        first zone, an internal lake, and the last two zones, for which potential
-        melting exceeds the available frozen water content of the snow layer:
-
-        >>> states.sp = 0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0
-        >>> states.wc = 2.0
-        >>> factors.tc = 5.0
-        >>> model.calc_melt_sp_wc_v1()
-        >>> fluxes.melt
-        melt(0.0, 6.0, 6.0, 6.0, 6.0, 5.0, 0.0)
-        >>> states.sp
-        sp(0.0, 4.0, 4.0, 4.0, 4.0, 0.0, 0.0)
-        >>> states.wc
-        wc(0.0, 8.0, 8.0, 8.0, 8.0, 7.0, 2.0)
-
-        In the above examples, we did not divide the zones into snow classes. If we do
-        so, method |Calc_Melt_SP_WC_V1| assumes a uniform distribution of the
-        potential melting among the individual classes.  This assumption implies that
-        if a single snow class does not provide enough frozen water, the actual melting
-        of the total zone must be smaller than its potential melt rate:
-
-        >>> sclass(2)
-        >>> states.sp = [[0.0, 0.0, 1.0, 2.0, 3.0, 4.0, 0.0],
-        ...              [0.0, 10.0, 10.0, 10.0, 10.0, 10.0, 0.0]]
-        >>> states.wc = [[0.0], [2.0]]
-        >>> model.calc_melt_sp_wc_v1()
-        >>> fluxes.melt
-        melt([[0.0, 0.0, 1.0, 2.0, 3.0, 4.0, 0.0],
-              [0.0, 6.0, 6.0, 6.0, 6.0, 6.0, 0.0]])
-        >>> states.sp
-        sp([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 4.0, 4.0, 4.0, 4.0, 4.0, 0.0]])
-        >>> states.wc
-        wc([[0.0, 0.0, 1.0, 2.0, 3.0, 4.0, 0.0],
-            [0.0, 8.0, 8.0, 8.0, 8.0, 8.0, 2.0]])
-    """
-
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.SClass,
-        hland_control.ZoneType,
-    )
-    DERIVEDPARAMETERS = (hland_derived.TTM,)
-    REQUIREDSEQUENCES = (hland_factors.TC, hland_factors.CFAct)
-    UPDATEDSEQUENCES = (hland_states.WC, hland_states.SP)
-    RESULTSEQUENCES = (hland_fluxes.Melt,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, /) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nmbzones):
-            if con.zonetype[k] != ILAKE:
-                if fac.tc[k] > der.ttm[k]:
-                    potmelt: float = fac.cfact[k] * (fac.tc[k] - der.ttm[k])
-                    for c in range(con.sclass):
-                        flu.melt[c, k] = min(potmelt, sta.sp[c, k])
-                        sta.sp[c, k] -= flu.melt[c, k]
-                        sta.wc[c, k] += flu.melt[c, k]
-                else:
-                    for c in range(con.sclass):
-                        flu.melt[c, k] = 0.0
-            else:
-                for c in range(con.sclass):
-                    flu.melt[c, k] = 0.0
-                    sta.wc[c, k] = 0.0
-                    sta.sp[c, k] = 0.0
-
-
-class Calc_Refr_SP_WC_V1(modeltools.Method):
-    r"""Calculate refreezing of the water content within the snow layer and
-    update both the snow layers' ice and the water content.
-
-    Basic equations:
-      :math:`\frac{dSP}{dt} =  + Refr`
-
-      :math:`\frac{dWC}{dt} =  - Refr`
-
-      :math:`Refr = min(cfr \cdot cfmax \cdot (TTM - TC), WC)`
-
-    Examples:
-
-        We initialise seven zones with the same threshold temperature, degree-day factor
-        and refreezing coefficient but different zone types and initial states:
-
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(7)
-        >>> sclass(1)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, SEALED, SEALED)
-        >>> cfmax(4.0)
-        >>> cfr(0.1)
-        >>> derived.ttm = 2.0
-        >>> states.sp = 2.0
-        >>> states.wc = 0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0
-
-        Note that the assumed length of the simulation step is half a day.  Hence the
-        effective value of the degree-day factor is not 4 but 2:
-
-        >>> cfmax
-        cfmax(4.0)
-        >>> from hydpy import round_
-        >>> round_(cfmax.values[0])
-        2.0
-
-        When the actual temperature equals the threshold temperature for melting and
-        refreezing, no refreezing occurs, and the states remain unchanged:
-
-        >>> factors.tc = 2.0
-        >>> model.calc_refr_sp_wc_v1()
-        >>> fluxes.refr
-        refr(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-        >>> states.sp
-        sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
-        >>> states.wc
-        wc(0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0)
-
-        The same holds for an actual temperature higher than the threshold temperature:
-
-        >>> states.sp = 2.0
-        >>> states.wc = 0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0
-        >>> factors.tc = 2.0
-        >>> model.calc_refr_sp_wc_v1()
-        >>> fluxes.refr
-        refr(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-        >>> states.sp
-        sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
-        >>> states.wc
-        wc(0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0)
-
-        With an actual temperature of 3°C above the threshold temperature, there is no
-        refreezing:
-
-        >>> states.sp = 2.0
-        >>> states.wc = 0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0
-        >>> factors.tc = 5.0
-        >>> model.calc_refr_sp_wc_v1()
-        >>> fluxes.refr
-        refr(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-        >>> states.sp
-        sp(0.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0)
-        >>> states.wc
-        wc(0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0)
-
-        With an actual temperature of 3°C below the threshold temperature, refreezing
-        can occur. Actual refreezing is consistent with potential refreezing, except
-        for the first zone, an internal lake, and the last two zones, for which
-        potential refreezing exceeds the available liquid water content of the snow
-        layer:
-
-        >>> states.sp = 2.0
-        >>> states.wc = 0.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0
-        >>> factors.tc = -1.0
-        >>> model.calc_refr_sp_wc_v1()
-        >>> fluxes.refr
-        refr(0.0, 0.6, 0.6, 0.6, 0.6, 0.5, 0.0)
-        >>> states.sp
-        sp(0.0, 2.6, 2.6, 2.6, 2.6, 2.5, 2.0)
-        >>> states.wc
-        wc(0.0, 0.4, 0.4, 0.4, 0.4, 0.0, 0.0)
-
-        In the above examples, we did not divide the zones into snow classes. If we do
-        so, method |Calc_Refr_SP_WC_V1| assumes a uniform distribution of the potential
-        refreezing among the individual classes.  This assumption implies that if a
-        single snow class does not provide enough liquid water, the actual refreezing
-        of the total zone must be smaller than its potential refreezing rate:
-
-        >>> sclass(2)
-        >>> states.sp = [[0.0], [2.0]]
-        >>> states.wc = [[0.0, 0.0, 0.1, 0.2, 0.3, 0.4, 0.0],
-        ...              [0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0]]
-        >>> model.calc_refr_sp_wc_v1()
-        >>> fluxes.refr
-        refr([[0.0, 0.0, 0.1, 0.2, 0.3, 0.4, 0.0],
-              [0.0, 0.6, 0.6, 0.6, 0.6, 0.6, 0.0]])
-        >>> states.sp
-        sp([[0.0, 0.0, 0.1, 0.2, 0.3, 0.4, 0.0],
-            [0.0, 2.6, 2.6, 2.6, 2.6, 2.6, 2.0]])
-        >>> states.wc
-        wc([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 0.4, 0.4, 0.4, 0.4, 0.4, 0.0]])
-    """
-
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.SClass,
-        hland_control.ZoneType,
-        hland_control.CFR,
-        hland_control.CFMax,
-    )
-    DERIVEDPARAMETERS = (hland_derived.TTM,)
-    REQUIREDSEQUENCES = (hland_factors.TC,)
-    UPDATEDSEQUENCES = (hland_states.WC, hland_states.SP)
-    RESULTSEQUENCES = (hland_fluxes.Refr,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, /) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
+
+        submodel.determine_release()
         for k in range(con.nmbzones):
-            if con.zonetype[k] != ILAKE:
-                if fac.tc[k] < der.ttm[k]:
-                    potrefr: float = (
-                        con.cfr[k] * con.cfmax[k] * (der.ttm[k] - fac.tc[k])
-                    )
-                    for c in range(con.sclass):
-                        flu.refr[c, k] = min(potrefr, sta.wc[c, k])
-                        sta.sp[c, k] += flu.refr[c, k]
-                        sta.wc[c, k] -= flu.refr[c, k]
-                else:
-                    for c in range(con.sclass):
-                        flu.refr[c, k] = 0.0
-            else:
-                for c in range(con.sclass):
-                    flu.refr[c, k] = 0.0
-                    sta.wc[c, k] = 0.0
-                    sta.sp[c, k] = 0.0
+            flu.in_[k] = submodel.get_release(k)
+            fac.cov[k] = submodel.get_snowcover(k)
 
 
-class Calc_In_WC_V1(modeltools.Method):
-    r"""Calculate the actual water release from the snow layer due to the exceedance of
-    the snow layers' capacity for (liquid) water.
+class Calc_In_Cov_V1(modeltools.Method):
+    """If available, let a submodel that follows the |SnowModel_V1| submodel interface
+    calculate incoming water on land and water surfaces.
 
-    Basic equations:
-      :math:`\frac{dWC}{dt} = -In`
+    Example:
 
-      :math:`-In = max(WC - WHC \cdot SP, 0)`
+        ToDo Without an available snow submodel, snow processes are neglected, and so all
+        throughfall immediately leads to ponding:
 
-    Examples:
-
-        We initialise seven zones of different types with different frozen water
-        contents of the snow layer and set the relative water holding capacity to 20 %:
-
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(7)
-        >>> sclass(1)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED, SEALED, SEALED)
-        >>> whc(0.2)
-        >>> states.sp = 0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0
-
-        Also, we set the actual value of stand precipitation to 5 mm/d:
-
-        >>> fluxes.tf = 5.0
-
-        When there is no (liquid) water content in the snow layer, no water can be
-        released:
-
-        >>> states.wc = 0.0
-        >>> model.calc_in_wc_v1()
+        >>> from hydpy.models.hland_96 import *
+        >>> parameterstep()
+        >>> nmbzones(2)
+        >>> fluxes.tf = 2.0, 3.0
+        >>> model.calc_in_cov_v1()
         >>> fluxes.in_
-        in_(5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-        >>> states.wc
-        wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-
-        When there is a (liquid) water content in the snow layer, the water release
-        depends on the frozen water content.  Note the special cases of the first zone
-        being an internal lake, for which the snow routine does not apply, and of the
-        last zone, which has no ice content and thus effectively is not a snow layer:
-
-        >>> states.wc = 5.0
-        >>> model.calc_in_wc_v1()
-        >>> fluxes.in_
-        in_(5.0, 3.0, 3.0, 3.0, 3.0, 4.0, 5.0)
-        >>> states.wc
-        wc(0.0, 2.0, 2.0, 2.0, 2.0, 1.0, 0.0)
-
-        For a relative water holding capacity of zero, the snow layer releases all
-        liquid water immediately:
-
-        >>> whc(0.0)
-        >>> states.wc = 5.0
-        >>> model.calc_in_wc_v1()
-        >>> fluxes.in_
-        in_(5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0)
-        >>> states.wc
-        wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-
-        In the above examples, we did not divide the zones into snow classes. If we do
-        so, method |Calc_In_WC_V1| averages the water release of all snow classes of
-        each zone:
-
-        >>> sclass(2)
-        >>> whc(0.0)
-        >>> states.sp = 0.0, 10.0, 10.0, 10.0, 10.0, 5.0, 0.0
-        >>> states.wc = [[2.0], [3.0]]
-        >>> model.calc_in_wc_v1()
-        >>> fluxes.in_
-        in_(5.0, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5)
-        >>> states.wc
-        wc([[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
-
-        For the single lake zone, method |Calc_In_WC_V1| passed the stand precipitation
-        directly to |In_| in all examples.
+        in_(2.0, 3.0)
+        >>> factors.cov
+        cov(0.0, 0.0)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.SClass,
-        hland_control.ZoneType,
-        hland_control.WHC,
-    )
-    REQUIREDSEQUENCES = (hland_fluxes.TF, hland_states.SP)
-    UPDATEDSEQUENCES = (hland_states.WC,)
+    SUBMODELINTERFACES = (snowinterfaces.SnowModel_V1,)
+    SUBMETHODS = (Calc_In_Cov_SnowModel_V1,)
+    CONTROLPARAMETERS = (hland_control.NmbZones,)
+    REQUIREDSEQUENCES = (hland_fluxes.TF,)
     RESULTSEQUENCES = (hland_fluxes.In_,)
 
     @staticmethod
     def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nmbzones):
-            flu.in_[k] = 0.0
-            if con.zonetype[k] != ILAKE:
-                for c in range(con.sclass):
-                    wc_old: float = sta.wc[c, k]
-                    sta.wc[c, k] = min(wc_old, con.whc[k] * sta.sp[c, k])
-                    flu.in_[k] += (wc_old - sta.wc[c, k]) / con.sclass
-            else:
-                flu.in_[k] = flu.tf[k]
-                for c in range(con.sclass):
-                    sta.wc[c, k] = 0.0
-
-
-class Calc_SWE_V1(modeltools.Method):
-    r"""Calculate the total snow water equivalent.
-
-    Basic equation:
-      :math:`SWE = SP + WC`
-
-    Example:
-
-        We initialise five zones of different types, each one with two snow classes.
-        For internal lakes, |Calc_SWE_V1| generally sets the snow water equivalent to
-        zero.  For all others, the given basic equation applies:
-
-        >>> from hydpy.models.hland import *
-        >>> parameterstep()
-        >>> nmbzones(5)
-        >>> sclass(2)
-        >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, SEALED)
-        >>> states.wc = [[0.1, 0.2, 0.3, 0.4, 0.5], [0.6, 0.7, 0.8, 0.9, 1.0]]
-        >>> states.sp = [[1.0, 2.0, 3.0, 4.0, 5.0], [6.0, 7.0, 8.0, 9.0, 10.0]]
-        >>> model.calc_swe_v1()
-        >>> factors.swe
-        swe([[0.0, 2.2, 3.3, 4.4, 5.5],
-             [0.0, 7.7, 8.8, 9.9, 11.0]])
-    """
-
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.SClass,
-        hland_control.ZoneType,
-    )
-    REQUIREDSEQUENCES = (hland_states.SP, hland_states.WC)
-    RESULTSEQUENCES = (hland_factors.SWE,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, /) -> None:
-        con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
-        sta = model.sequences.states.fastaccess
-        for k in range(con.nmbzones):
-            if con.zonetype[k] != ILAKE:
-                for c in range(con.sclass):
-                    fac.swe[c, k] = sta.sp[c, k] + sta.wc[c, k]
-            else:
-                for c in range(con.sclass):
-                    fac.swe[c, k] = 0.0
+        flu = model.sequences.fluxes.fastaccess
+
+        if model.snowmodel is None:
+            for k in range(con.nmbzones):
+                flu.in_[k] = flu.tf[k]
+                fac.cov[k] = 0.0
+        elif model.snowmodel_typeid == 1:
+            model.calc_in_cov_snowmodel_v1(
+                cast(snowinterfaces.SnowModel_V1, model.snowmodel)
+            )
 
 
 class Calc_SR_V1(modeltools.Method):
@@ -1625,62 +641,34 @@ class Calc_GlMelt_In_V1(modeltools.Method):
 
     Basic equation:
       .. math::
-        GlMelt =
-        \begin{cases}
-        max(GMelt \cdot (TC - TTM), 0) &|\ SP = 0
-        \\
-        0 &|\ SP > 0
-        \end{cases}
+        GlMelt = max \big(GMelt \cdot (1 - Cov) \cdot (TC - TTM), \,0 \big)
 
     Examples:
 
-        We prepare eight zones. The first four zones are no glaciers, a snow layer
+        ToDo We prepare seven zones. The first zone is no glacier, a snow layer
         covers the sixth zone, and the last two zones actual temperature is not above
         the threshold temperature.  Hence, glacier melting occurs only in the fifth
         zone:
 
         >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(8)
-        >>> sclass(1)
-        >>> zonetype(FIELD, FOREST, ILAKE, SEALED, GLACIER, GLACIER, GLACIER, GLACIER)
-        >>> derived.ttm(2.0)
-        >>> factors.tc = 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 2.0, 1.0
+        >>> parameterstep()
+        >>> nmbzones(7)
+        >>> zonetype(FIELD, GLACIER, GLACIER, GLACIER, GLACIER, GLACIER, GLACIER)
+        >>> derived.ttm(1.0)
+        >>> factors.tc = 3.0, 3.0, 2.0, 1.0, 0.0, 3.0, 3.0
+        >>> factors.cov = 0.0, 0.0, 0.0, 0.0, 0.0, 0.8, 1.0
         >>> factors.gact = 2.0
-        >>> states.sp = 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0
         >>> fluxes.in_ = 3.0
         >>> model.calc_glmelt_in_v1()
         >>> fluxes.glmelt
-        glmelt(0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0)
+        glmelt(0.0, 4.0, 2.0, 0.0, 0.0, 0.8, 0.0)
         >>> fluxes.in_
-        in_(3.0, 3.0, 3.0, 3.0, 5.0, 3.0, 3.0, 3.0)
-
-        In the above examples, we did not divide the zones into snow classes. If we do
-        so, method |Calc_GlMelt_In_V1| sums the glacier melt of all non-snow-covered
-        snow classes of each glacier zone. This assumption implies that if there is a
-        single snow-covered snow class, the actual glacier melting of the total zone
-        must be smaller than its potential melt rate:
-
-        >>> sclass(2)
-        >>> factors.tc = 3.0
-        >>> fluxes.in_ = 3.0
-        >>> states.sp = [[0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.1, 0.1],
-        ...              [0.0, 0.1, 0.0, 0.1, 0.0, 0.1, 0.0, 0.1]]
-        >>> model.calc_glmelt_in_v1()
-        >>> fluxes.glmelt
-        glmelt(0.0, 0.0, 0.0, 0.0, 2.0, 1.0, 1.0, 0.0)
-        >>> fluxes.in_
-        in_(3.0, 3.0, 3.0, 3.0, 5.0, 4.0, 4.0, 3.0)
+        in_(3.0, 7.0, 5.0, 3.0, 3.0, 3.8, 3.0)
     """
 
-    CONTROLPARAMETERS = (
-        hland_control.NmbZones,
-        hland_control.SClass,
-        hland_control.ZoneType,
-    )
+    CONTROLPARAMETERS = (hland_control.NmbZones, hland_control.ZoneType)
     DERIVEDPARAMETERS = (hland_derived.TTM,)
-    REQUIREDSEQUENCES = (hland_states.SP, hland_factors.TC, hland_factors.GAct)
+    REQUIREDSEQUENCES = (hland_factors.TC, hland_factors.Cov, hland_factors.GAct)
     UPDATEDSEQUENCES = (hland_fluxes.In_,)
     RESULTSEQUENCES = (hland_fluxes.GlMelt,)
 
@@ -1690,15 +678,15 @@ class Calc_GlMelt_In_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        sta = model.sequences.states.fastaccess
+
         for k in range(con.nmbzones):
-            flu.glmelt[k] = 0.0
             if (con.zonetype[k] == GLACIER) and (fac.tc[k] > der.ttm[k]):
-                glmeltpot: float = fac.gact[k] / con.sclass * (fac.tc[k] - der.ttm[k])
-                for c in range(con.sclass):
-                    if sta.sp[c, k] <= 0.0:
-                        flu.glmelt[k] += glmeltpot
-                        flu.in_[k] += glmeltpot
+                flu.glmelt[k] = (
+                    fac.gact[k] * (1.0 - fac.cov[k]) * (fac.tc[k] - der.ttm[k])
+                )
+                flu.in_[k] += flu.glmelt[k]
+            else:
+                flu.glmelt[k] = 0.0
 
 
 class Calc_R_SM_V1(modeltools.Method):
@@ -4295,6 +3283,31 @@ class Get_Precipitation_V1(modeltools.Method):
         return flu.pc[s]
 
 
+class Get_Throughfall_V1(modeltools.Method):
+    """Get the current throughfall from the selected zone.
+
+    Example:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> nmbzones(2)
+        >>> fluxes.tf = 2.0, 4.0
+        >>> from hydpy import round_
+        >>> round_(model.get_throughfall_v1(0))
+        2.0
+        >>> round_(model.get_throughfall_v1(1))
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (hland_fluxes.TF,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int, /) -> float:
+        flu = model.sequences.fluxes.fastaccess
+
+        return flu.tf[s]
+
+
 class Get_InterceptedWater_V1(modeltools.Method):
     """Get the selected zone's current amount of intercepted water.
 
@@ -4360,41 +3373,6 @@ class Computes_SnowEvaporation_V1(modeltools.Method):
         return False
 
 
-class Get_SnowCover_V1(modeltools.Method):
-    """Get the selected zone's current snow cover degree.
-
-    Example:
-
-        Each snow class with a non-zero amount of snow counts as completely covered:
-
-        >>> from hydpy.models.hland import *
-        >>> parameterstep()
-        >>> nmbzones(3)
-        >>> sclass(2)
-        >>> states.sp = [[0.0, 0.0, 1.0], [0.0, 1.0, 1.0]]
-        >>> from hydpy import round_
-        >>> round_(model.get_snowcover_v1(0))
-        0.0
-        >>> round_(model.get_snowcover_v1(1))
-        0.5
-        >>> round_(model.get_snowcover_v1(2))
-        1.0
-    """
-
-    CONTROLPARAMETERS = (hland_control.SClass,)
-    REQUIREDSEQUENCES = (hland_states.SP,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, k: int, /) -> float:
-        con = model.parameters.control.fastaccess
-        sta = model.sequences.states.fastaccess
-
-        snowcovered: float = 0.0
-        for c in range(con.sclass):
-            snowcovered += sta.sp[c, k] > 0.0
-        return snowcovered / con.sclass
-
-
 class Model(modeltools.AdHocModel):
     """|hland.DOCNAME.complete|."""
 
@@ -4410,14 +3388,7 @@ class Model(modeltools.AdHocModel):
         Calc_PC_V1,
         Calc_TF_Ic_V1,
         Calc_EI_Ic_V1,
-        Calc_SP_WC_V1,
-        Calc_SPL_WCL_SP_WC_V1,
-        Calc_SPG_WCG_SP_WC_V1,
-        Calc_CFAct_V1,
-        Calc_Melt_SP_WC_V1,
-        Calc_Refr_SP_WC_V1,
-        Calc_In_WC_V1,
-        Calc_SWE_V1,
+        Calc_In_Cov_V1,
         Calc_SR_V1,
         Calc_GAct_V1,
         Calc_GlMelt_In_V1,
@@ -4454,16 +3425,17 @@ class Model(modeltools.AdHocModel):
         Get_Temperature_V1,
         Get_MeanTemperature_V1,
         Get_Precipitation_V1,
+        Get_Throughfall_V1,
         Get_InterceptedWater_V1,
         Get_SoilWater_V1,
         Computes_SnowEvaporation_V1,
-        Get_SnowCover_V1,
     )
     ADD_METHODS = (
         Calc_EI_Ic_AETModel_V1,
         Calc_EA_SM_AETModel_V1,
         Calc_EL_LZ_AETModel_V1,
         Calc_EL_SG2_SG3_AETModel_V1,
+        Calc_In_Cov_SnowModel_V1,
         Calc_QAb_QVs_BW_V1,
         Calc_OutRC_RConcModel_V1,
     )
@@ -4583,6 +3555,90 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_tree(zonetype == FOREST)
 
 
+class Main_SnowModel_V1(modeltools.AdHocModel):
+    """Base class for |hland.DOCNAME.long| models that use submodels that comply with
+    the |SnowModel_V1| interface."""
+
+    snowmodel: modeltools.SubmodelProperty[snowinterfaces.SnowModel_V1]
+    snowmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    snowmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "snowmodel",
+        snowinterfaces.SnowModel_V1,
+        snowinterfaces.SnowModel_V1.prepare_nmbzones,
+        snowinterfaces.SnowModel_V1.prepare_subareas,
+        snowinterfaces.SnowModel_V1.prepare_zoneheights,
+        snowinterfaces.SnowModel_V1.prepare_land,
+        snowinterfaces.SnowModel_V1.prepare_water,
+        landtype_constants=hland_constants.CONSTANTS,
+        landtype_refindices=hland_control.ZoneType,
+        refweights=hland_control.ZoneArea,
+    )
+    def add_snowmodel_v1(
+        self,
+        snowmodel: snowinterfaces.SnowModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given submodel that follows the |SnowModel_V1| interface and
+        is responsible for calculating snow processes.
+
+        >>> from hydpy.models.hland_96 import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> area(10.0)
+        >>> nmbzones(5)
+        >>> zonetype(FIELD, FOREST, ILAKE, GLACIER, SEALED)
+        >>> zonearea(3.0, 2.0, 2.0, 2.0, 1.0)
+        >>> zonez(10.0, 40.0, 30.0, 20.0)
+        >>> with model.add_snowmodel_v1("snow_dd"):
+        ...     numberzones
+        ...     zonearea
+        ...     land
+        ...     water
+        ...     degreedayfactor(field=5.0, forest=3.0, default=4.0)
+        ...     for method, arguments in model.preparemethod2arguments.items():
+        ...         print(method, arguments[0][0], sep=": ")
+        numberzones(5)
+        zonearea(field=3.0, forest=2.0, glacier=2.0, ilake=2.0, sealed=1.0)
+        land(field=True, forest=True, glacier=True, ilake=False, sealed=True)
+        water(field=False, forest=False, glacier=False, ilake=True,
+              sealed=False)
+        prepare_nmbzones: 5
+        prepare_subareas: [3. 2. 2. 2. 1.]
+        prepare_land: [ True  True False  True  True]
+        prepare_water: [False False  True False False]
+
+        >>> ddf = model.snowmodel.parameters.control.degreedayfactor
+        >>> ddf
+        degreedayfactor(field=5.0, forest=3.0, glacier=4.0, sealed=4.0)
+        >>> zonetype(FOREST, FIELD, ILAKE, GLACIER, SEALED)
+        >>> ddf
+        degreedayfactor(field=3.0, forest=5.0, glacier=4.0, sealed=4.0)
+        >>> from hydpy import round_
+        >>> round_(ddf.average_values())
+        4.125
+        """
+
+        control = self.parameters.control
+
+        snowmodel.prepare_nmbzones(control.nmbzones.value)
+        snowmodel.prepare_subareas(control.zonearea.values)
+        snowmodel.prepare_zoneheights(control.zonez.values)
+
+        zonetype = control.zonetype.values
+        snowmodel.prepare_land(zonetype != ILAKE)
+        snowmodel.prepare_water(zonetype == ILAKE)
+
+    def _get_snomodel_waterbalance(self, initial_conditions: ConditionsModel) -> float:
+        """Get the water balance of the rconc submodel if used."""
+        if snowmodel := self.snowmodel:
+            return snowmodel.get_waterbalance(initial_conditions["model.snowmodel"])
+        return 0.0
+
+
 class Main_RConcModel_V1(modeltools.AdHocModel):
     """Base class for |hland.DOCNAME.long| models that use submodels that comply with
     the |RConcModel_V1| interface."""
@@ -4629,6 +3685,13 @@ class Sub_TempModel_V1(modeltools.AdHocModel, tempinterfaces.TempModel_V1):
 class Sub_PrecipModel_V1(modeltools.AdHocModel, precipinterfaces.PrecipModel_V1):
     """Base class for |hland.DOCNAME.long| models that comply with the |PrecipModel_V1|
     submodel interface."""
+
+
+class Sub_ThroughfallModel_V1(
+    modeltools.AdHocModel, throughfallinterfaces.ThroughfallModel_V1
+):
+    """Base class for |hland.DOCNAME.long| models that comply with the
+    |ThroughfallModel_V1| submodel interface."""
 
 
 class Sub_IntercModel_V1(modeltools.AdHocModel, stateinterfaces.IntercModel_V1):

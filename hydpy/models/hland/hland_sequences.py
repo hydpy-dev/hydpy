@@ -34,7 +34,7 @@ class Factor1DSequence(sequencetools.FactorSequence):
         """Alias for the associated instance of |ZoneArea| for calculating areal
         values."""
         model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.control.zonearea
+        return model.parameters.control.zonearea  # type: ignore[return-value]
 
 
 class Factor2DSequence(sequencetools.FactorSequence):
@@ -65,7 +65,7 @@ class Factor2DSequence(sequencetools.FactorSequence):
         """Alias for the associated instance of |ZoneArea| for calculating areal
         values."""
         model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.control.zonearea
+        return model.parameters.control.zonearea  # type: ignore[return-value]
 
     @property
     def valuevector(self) -> VectorFloat:
@@ -158,7 +158,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
         """Alias for the associated instance of |ZoneArea| for calculating areal
         values."""
         model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.control.zonearea
+        return model.parameters.control.zonearea  # type: ignore[return-value]
 
 
 class Flux2DSequence(sequencetools.FluxSequence):
@@ -189,7 +189,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
         """Alias for the associated instance of |ZoneArea| for calculating areal
         values."""
         model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.control.zonearea
+        return model.parameters.control.zonearea  # type: ignore[return-value]
 
     @property
     def valuevector(self) -> VectorFloat:
@@ -283,7 +283,7 @@ class State1DSequence(sequencetools.StateSequence):
         """Alias for the associated instance of |ZoneArea| for calculating
         areal values."""
         model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.control.zonearea
+        return model.parameters.control.zonearea  # type: ignore[return-value]
 
 
 class State2DSequence(sequencetools.StateSequence):
@@ -314,7 +314,7 @@ class State2DSequence(sequencetools.StateSequence):
         """Alias for the associated instance of |ZoneArea| for calculating areal
         values."""
         model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.control.zonearea
+        return model.parameters.control.zonearea  # type: ignore[return-value]
 
     @property
     def valuevector(self) -> VectorFloat:

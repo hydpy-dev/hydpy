@@ -4,6 +4,15 @@ from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
 
+class Pi(parametertools.FixedParameter):
+    """π [-]."""
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
+    INIT = 3.141592653589793
+
+
 class ZThreshold(parametertools.FixedParameter):
     """Altitude threshold for constant precipitation [m]."""
 

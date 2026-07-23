@@ -19,3 +19,19 @@ class SolidFractionPrecipitation(snow_sequences.Factor1DNLayers):
     """Solid fraction of precipitation of each snow layer [-]."""
 
     SPAN = (0.0, 1.0)
+
+
+class FracRain(snow_sequences.FactorSequence1D):
+    """Fraction rainfall / total precipitation [-]."""
+
+
+class MeltingFactor(snow_sequences.FactorSequence1D):
+    """Actual degree day factor for snow (on glaciers or not) [mm/°C/T]."""
+
+
+class SWE(snow_sequences.FactorSequence1D):
+    """Snow water equivalent [mm]."""
+
+
+class TC(snow_sequences.FactorSequence1D):
+    """Corrected temperature [°C]."""

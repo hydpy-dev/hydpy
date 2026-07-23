@@ -1,8 +1,65 @@
 # pylint: disable=missing-module-docstring
 
+from hydpy.core import exceptiontools
+from hydpy.core import masktools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.snow import snow_control
+
+
+class Sequence1D(sequencetools.ModelSequence):
+    """ToDo"""
+
+    NDIM: Final[Literal[1]] = 1
+
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        if isinstance(p, snow_control.NumberZones):
+            self.__hydpy__change_shape_if_necessary__((p.value,))
+
+
+class FactorSequence1D(Sequence1D, sequencetools.FactorSequence):
+    """ToDo"""
+
+
+class FluxSequence1D(Sequence1D, sequencetools.FluxSequence):
+    """ToDo"""
+
+    mask = masktools.SubmodelIndexMask()
+
+
+class AideSequence1D(Sequence1D, sequencetools.AideSequence):
+    """ToDo"""
+
+
+class Sequence2D(sequencetools.ModelSequence):
+    """Base class for sequences with different values for individual layers."""
+
+    NDIM: Final[Literal[2]] = 2
+
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        if isinstance(p, snow_control.NumberZones):
+            v1 = exceptiontools.getattr_(p.subpars.numberdivisions, "value", None)
+            v2 = p.value
+        elif isinstance(p, snow_control.NumberDivisions):
+            v1 = p.value
+            v2 = exceptiontools.getattr_(p.subpars.numberzones, "value", None)
+        else:
+            return
+        if (v1 is not None) and (v2 is not None):
+            self.__hydpy__change_shape_if_necessary__((v1, v2))
+
+
+class StateSequence2D(Sequence2D, sequencetools.StateSequence):
+    """ToDo"""
+
+    # ToDo: mask
+
+
+class FluxSequence2D(Sequence2D, sequencetools.FluxSequence):
+    """ToDo"""
+
+    # ToDo: mask
 
 
 class Sequence1DNLayers(sequencetools.ModelSequence):

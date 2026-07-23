@@ -24,30 +24,6 @@ class TF(hland_sequences.Flux1DSequence):
     mask = hland_masks.Interception()
 
 
-class SPL(hland_sequences.Flux1DSequence):
-    """Subbasin-internal redistribution loss of the snow's ice content [mm/T]."""
-
-    mask = hland_masks.Snow()
-
-
-class WCL(hland_sequences.Flux1DSequence):
-    """Subbasin-internal redistribution loss of the snow's water content [mm/T]."""
-
-    mask = hland_masks.Snow()
-
-
-class SPG(hland_sequences.Flux1DSequence):
-    """Subbasin-internal redistribution gain of the snow's ice content [mm/T]."""
-
-    mask = hland_masks.Snow()
-
-
-class WCG(hland_sequences.Flux1DSequence):
-    """Subbasin-internal redistribution gain of the snow's water content [mm/T]."""
-
-    mask = hland_masks.Snow()
-
-
 class GlMelt(hland_sequences.Flux1DSequence):
     """Glacier melt [mm/T]."""
 
@@ -56,12 +32,6 @@ class GlMelt(hland_sequences.Flux1DSequence):
 
 class Melt(hland_sequences.Flux2DSequence):
     """Actual melting of frozen water stored in the snow layer [mm/T]."""
-
-    mask = hland_masks.Snow()
-
-
-class Refr(hland_sequences.Flux2DSequence):
-    """Actual (re)freezing of liquid water stored in the snow layer [mm/T]."""
 
     mask = hland_masks.Snow()
 

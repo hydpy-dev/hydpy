@@ -26,7 +26,7 @@ class ParameterBase(parametertools.ZipParameter):
         from hydpy.models.hland import hland_model
 
         model = cast(hland_model.Model, self.subpars.pars.model)
-        return model.parameters.control.zonearea
+        return model.parameters.control.zonearea  # type: ignore[return-value]
 
 
 class ParameterComplete(ParameterBase):

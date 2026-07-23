@@ -500,6 +500,7 @@ None of the previous calculations included snow processes.  Now, we add the subm
 potential evapotranspiration time series defined above:
 
 >>> with model.add_snowmodel_v1("snow_dd") as snowmodel:
+...     numberdivisions(1)
 ...     degreedayfactor(4.5)
 >>> snowmodel.sequences.inputs.airtemperature.prepare_series()
 >>> snowmodel.sequences.inputs.airtemperature.series = (

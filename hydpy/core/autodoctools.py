@@ -1696,8 +1696,8 @@ class SubmodelGraph:
         AETModel_V1
         ChannelModel_V1
         ...
-        TempModel_V1
-        TempModel_V2
+        ThroughfallModel_V1
+        ThroughfallModel_V2
         WaterLevelModel_V1
         """
         dirpath = interfaces.__path__[0]

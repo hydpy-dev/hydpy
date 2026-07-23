@@ -1954,6 +1954,7 @@ from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import radiationinterfaces
+from hydpy.interfaces import snowinterfaces
 from hydpy.interfaces import soilinterfaces
 from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_masks
@@ -1964,13 +1965,12 @@ class Model(
     lland_model.Main_RadiationModel_V1,
     lland_model.Main_RadiationModel_V4,
     lland_model.Main_AETModel_V1B,
+    lland_model.Main_SnowModel_V1,
     lland_model.Main_SoilModel_V1,
     lland_model.Sub_TempModel_V1,
     lland_model.Sub_PrecipModel_V1,
     lland_model.Sub_IntercModel_V1,
     lland_model.Sub_SoilWaterModel_V1,
-    lland_model.Sub_SnowCoverModel_V1,
-    lland_model.Sub_SnowAlbedoModel_V1,
 ):
     """|lland_knauf.DOCNAME.complete|."""
 
@@ -2076,7 +2076,11 @@ class Model(
     )
     OUTLET_METHODS = (lland_model.Pass_QA_V1,)
     SENDER_METHODS = ()
-    SUBMODELINTERFACES = (aetinterfaces.AETModel_V1, soilinterfaces.SoilModel_V1)
+    SUBMODELINTERFACES = (
+        aetinterfaces.AETModel_V1,
+        snowinterfaces.SnowModel_V1,
+        soilinterfaces.SoilModel_V1,
+    )
     SUBMODELS = (lland_model.PegasusESnow, lland_model.PegasusTempSSurface)
 
     idx_hru = modeltools.Idx_HRU()
@@ -2084,6 +2088,7 @@ class Model(
         radiationinterfaces.RadiationModel_V1 | radiationinterfaces.RadiationModel_V4
     ](radiationinterfaces.RadiationModel_V1, radiationinterfaces.RadiationModel_V4)
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
+    snowmodel = modeltools.SubmodelProperty(snowinterfaces.SnowModel_V1, optional=True)
     soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)
 
     def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:

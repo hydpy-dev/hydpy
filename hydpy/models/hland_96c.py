@@ -1057,14 +1057,7 @@ class Model(
         hland_model.Calc_FracRain_V1,
         hland_model.Calc_PC_V1,
         hland_model.Calc_TF_Ic_V1,
-        hland_model.Calc_SP_WC_V1,
-        hland_model.Calc_SPL_WCL_SP_WC_V1,
-        hland_model.Calc_SPG_WCG_SP_WC_V1,
-        hland_model.Calc_CFAct_V1,
-        hland_model.Calc_Melt_SP_WC_V1,
-        hland_model.Calc_Refr_SP_WC_V1,
-        hland_model.Calc_In_WC_V1,
-        hland_model.Calc_SWE_V1,
+        hland_model.Calc_In_Cov_V1,
         hland_model.Calc_SR_V1,
         hland_model.Calc_GAct_V1,
         hland_model.Calc_GlMelt_In_V1,
@@ -1088,7 +1081,6 @@ class Model(
         hland_model.Get_InterceptedWater_V1,
         hland_model.Get_SoilWater_V1,
         hland_model.Computes_SnowEvaporation_V1,
-        hland_model.Get_SnowCover_V1,
     )
     ADD_METHODS = (
         hland_model.Calc_EI_Ic_AETModel_V1,

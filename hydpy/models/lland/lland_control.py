@@ -555,7 +555,7 @@ therefore, please consider updating your model setup.
 
 
 class PWMax(lland_parameters.ParameterLand):
-    """Maximalverhältnis Gesamt- zu Trockenschnee (maximum ratio of the
+    r"""Maximalverhältnis Gesamt- zu Trockenschnee (maximum ratio of the
     total and the frozen water equivalent stored in the snow cover) [-].
 
     In addition to the |parametertools| call method, it
@@ -563,8 +563,8 @@ class PWMax(lland_parameters.ParameterLand):
     the keyword arguments `rhot0` and `rhodkrit`.
 
     Basic Equation:
-        :math:`PWMax = \\frac{1.474 \\cdot rhodkrit}
-        {rhot0 + 0.474 \\cdot rhodkrit}`
+        :math:`PWMax = \frac{1.474 \cdot rhodkrit}
+        {rhot0 + 0.474 \cdot rhodkrit}`
 
     Example:
 

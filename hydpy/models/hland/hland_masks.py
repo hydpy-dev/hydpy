@@ -23,7 +23,7 @@ class HLandBaseMask(masktools.IndexMask):
         from hydpy.models.hland import hland_model
 
         model = cast(hland_model.Model, variable.subvars.vars.model)
-        return model.parameters.control.zonetype
+        return model.parameters.control.zonetype  # type: ignore[return-value]
 
 
 class Complete(HLandBaseMask):

@@ -12,6 +12,7 @@ import itertools
 import os
 import runpy
 import types
+import weakref
 
 import numpy
 
@@ -278,6 +279,27 @@ instance of any of the following supported interfaces: SoilModel_V1.
         collections.defaultdict[type[Model], list[SubmodelProperty[Any]]]
     ] = collections.defaultdict(list)
 
+    __hydpy__crossconnections__: ClassVar[
+        weakref.WeakKeyDictionary[
+            Model, weakref.WeakKeyDictionary[Model, set[tuple[bool, str]]]
+        ]
+    ] = weakref.WeakKeyDictionary()
+    """Helper to ease the removal of submodel cross connections after the corresponding
+    main or submodel has been deleted.
+    
+    dict[
+        main or submodel, 
+        dict[
+            main or submodel, 
+            set[
+                tuple[
+                    are the main and the submodel listed invertedly?, 
+                    the name of the submodel property
+                ]
+            ]
+        ].
+    """
+
     def __init__(
         self,
         *interfaces: type[TypeSubmodelInterface],
@@ -336,10 +358,20 @@ instance of any of the following supported interfaces: SoilModel_V1.
             )
 
     def __delete__(self, obj: Model) -> None:
+        submodel = vars(obj).get(self.name)
         vars(obj)[self.name] = None
         setattr(obj, f"{self.name}_typeid", 0)
         if obj.cymodel is not None:
             getattr(obj.cymodel, f"set_{self.name}")(None)
+        ccs = self.__hydpy__crossconnections__
+        if submodel in ccs:
+            assert submodel is not None
+            for model, infos in ccs[submodel].items():
+                for inverted, property_ in infos:
+                    if inverted:
+                        delattr(submodel, property_)
+                    else:
+                        delattr(model, property_)
 
 
 class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
@@ -3163,7 +3195,7 @@ the available directories (calib_1 and calib_2).
         self.parameters.update(ignore_errors=ignore_errors)
         for name, submodel in self.find_submodels(include_subsubmodels=False).items():
             if isinstance(submodel, SubmodelInterface):
-                adder = self.__hydpy__submodel2adder__[name.split(".")[-1]]
+                adder = self.__hydpy__submodel2adder__.get(name.split(".")[-1])
                 if adder is not None:
                     if adder.dimensionality == 0:
                         adder.update(self, submodel, refresh=True)

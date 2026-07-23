@@ -1951,15 +1951,15 @@ class Main_SnowModel_V1(modeltools.AdHocModel):
         >>> landtype(GRASS, DECIDUOUS, CONIFER, WATER, SEALED)
         >>> zonearea(4.0, 1.0, 1.0, 1.0, 3.0)
         >>> with model.add_snowmodel_v1("snow_dd"):
-        ...     nmbhru
-        ...     hruarea
+        ...     numberzones
+        ...     zonearea
         ...     land
         ...     water
         ...     degreedayfactor(grass=1.0, deciduous=2.0, default=3.0)
         ...     for method, arguments in model.preparemethod2arguments.items():
         ...         print(method, arguments[0][0], sep=": ")
-        nmbhru(5)
-        hruarea(conifer=1.0, deciduous=1.0, grass=4.0, sealed=3.0, water=1.0)
+        numberzones(5)
+        zonearea(conifer=1.0, deciduous=1.0, grass=4.0, sealed=3.0, water=1.0)
         land(conifer=True, deciduous=True, grass=True, sealed=True,
              water=False)
         water(conifer=False, deciduous=False, grass=False, sealed=False,

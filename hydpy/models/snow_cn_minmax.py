@@ -106,7 +106,7 @@ explanation:
 ...     1.1, 0.0, 0.0, 0.0, 0.4, 9.1, 0.0, 13.4, 4.0, 0.0, 0.0, 8.6, 5.3, 2.5, 1.8,
 ...     0.0, 2.4, 13.3, 5.8, 4.3, 20.0, 9.8, 2.1, 1.6, 3.7, 0.2, 0.0, 0.0, 0.1, 0.7,
 ...     2.2)
->>> inputs.t.series = (
+>>> inputs.airtemperature.series = (
 ...     7.2, 7.1, 6.4, 7.4, 7.5, 4.3, 3.5, 3.5, 4.5, 5.0, 1.9, 1.8, 3.0, 1.3, 0.2, 1.8,
 ...     1.5, 3.7, 7.4, 7.6, 5.8, 6.0, 8.1, 8.1, 8.6, 8.7, 6.6, 8.8, 9.6, 9.2, 7.8, 8.0,
 ...     10.6, 13.8, 12.1, 7.7, 7.0, 10.0, 9.1, 11.3, 6.6, 7.4, 5.9, 7.6, 9.2, 11.8,
@@ -225,11 +225,11 @@ data regarding daily minimum and maximum air temperature:
 ...     (states.gratio, [0.8, 0.8, 0.8, 0.8, 0.8]),
 ...     (logs.glocalmax, derived.gthresh),
 ... )
->>> inputs.t.series = (
+>>> inputs.airtemperature.series = (
 ...     5.0, 5.0, 5.0, 5.0, 5.0, 5.0, -1.0, -1.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0
 ... )
->>> inputs.tmin.series = inputs.t.series - 1.0
->>> inputs.tmax.series = inputs.t.series + 3.0
+>>> inputs.tmin.series = inputs.airtemperature.series - 1.0
+>>> inputs.tmax.series = inputs.airtemperature.series + 3.0
 >>> inputs.p.series = (
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 ... )
@@ -292,7 +292,7 @@ class Model(snow_model.BaseModel):
         snow_model.Calc_PSnowLayer_V1,
         snow_model.Update_G_V1,
         snow_model.Calc_ETG_V1,
-        snow_model.Calc_PotMelt_V1,
+        snow_model.Calc_PotentialSnowmelt_V2,
         snow_model.Update_GRatio_GLocalMax_V1,
         snow_model.Calc_Melt_V1,
         snow_model.Update_G_V2,

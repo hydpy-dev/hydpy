@@ -13,6 +13,7 @@ from hydpy.cythons import modelutils
 from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import radiationinterfaces
+from hydpy.interfaces import snowinterfaces
 from hydpy.interfaces import soilinterfaces
 from hydpy.interfaces import stateinterfaces
 from hydpy.interfaces import tempinterfaces
@@ -8029,6 +8030,96 @@ class Main_AETModel_V1B(_Main_AETModel_V1):
         aetmodel.prepare_measuringheightwindspeed(
             self.parameters.control.measuringheightwindspeed.value
         )
+
+
+class Main_SnowModel_V1(modeltools.AdHocModel):
+    """Base class for |whmod.DOCNAME.long| models that use submodels that comply with
+    the |SnowModel_V1| interface."""
+
+    snowmodel: modeltools.SubmodelProperty[snowinterfaces.SnowModel_V1]
+    snowmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    snowmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "snowmodel",
+        snowinterfaces.SnowModel_V1,
+        snowinterfaces.SnowModel_V1.prepare_nmbzones,
+        snowinterfaces.SnowModel_V1.prepare_subareas,
+        landtype_constants=lland_constants.CONSTANTS,
+        landtype_refindices=lland_control.Lnk,
+        refweights=lland_control.FT,
+    )
+    def add_snowmodel_v1(
+        self,
+        snowmodel: snowinterfaces.SnowModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """Initialise the given submodel that follows the |AETModel_V1| interface and
+        is responsible for calculating the different kinds of actual
+        evapotranspiration.
+
+        >>> from hydpy.models.lland_knauf import *
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
+        >>> nmbzones(5)
+        >>> area(10.0)
+        >>> landtype(GRASS, DECIDUOUS, CONIFER, WATER, SEALED)
+        >>> zonearea(4.0, 1.0, 1.0, 1.0, 3.0)
+        >>> availablefieldcapacity(200.0)
+        >>> rootingdepth(1.0)
+        >>> groundwaterdepth(1.0)
+        >>> with model.add_snowmodel_v1("snow_dd"):
+        ...     nmbhru
+        ...     water
+        ...     degreedayfactor(grass=1.0, deciduous=2.0, default=3.0)
+        ...     for method, arguments in model.preparemethod2arguments.items():
+        ...         print(method, arguments[0][0], sep=": ")
+        nmbhru(5)
+        area(10.0)
+        water(conifer=False, deciduous=False, grass=False, sealed=False,
+              water=True)
+        interception(conifer=True, deciduous=True, grass=True, sealed=True,
+                     water=False)
+        soil(conifer=True, deciduous=True, grass=True, sealed=False,
+             water=False)
+        prepare_nmbzones: 5
+        prepare_zonetypes: [1 2 4 9 8]
+        prepare_subareas: [4. 1. 1. 1. 3.]
+        prepare_water: [False False False  True False]
+        prepare_interception: [ True  True  True False  True]
+        prepare_soil: [ True  True  True False False]
+        prepare_plant: [ True  True  True False False]
+        prepare_conifer: [False False  True False False]
+        prepare_tree: [False  True  True False False]
+        prepare_maxsoilwater: [200. 200. 200. 200. 200.]
+
+        >>> ddf = model.snowmodel.parameters.control.degreedayfactor
+        >>> ddf
+        degreedayfactor(conifer=3.0, deciduous=2.0, grass=1.0)
+        >>> landtype(DECIDUOUS, GRASS, CONIFER, WATER, SEALED)
+        >>> ddf
+        degreedayfactor(conifer=3.0, deciduous=1.0, grass=2.0)
+        >>> from hydpy import round_
+        >>> round_(ddf.average_values())
+        1.5
+        """
+
+        control = self.parameters.control
+
+        nmbzones = control.nhru.value
+        zonetype = control.lnk.values
+
+        snowmodel.prepare_nmbzones(nmbzones)
+        snowmodel.prepare_subareas(control.ft.values)
+        snowmodel.prepare_water(zonetype == WASSER)
+
+    def _get_snomodel_waterbalance(self, initial_conditions: ConditionsModel) -> float:
+        """Get the water balance of the rconc submodel if used."""
+        if snowmodel := self.snowmodel:
+            return snowmodel.get_waterbalance(initial_conditions["model.snowmodel"])
+        return 0.0
 
 
 class Main_SoilModel_V1(modeltools.AdHocModel):

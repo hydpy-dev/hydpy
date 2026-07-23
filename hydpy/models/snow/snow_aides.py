@@ -1,16 +1,11 @@
 # pylint: disable=missing-module-docstring
 
-from hydpy.core import sequencetools
-from hydpy.core.typingtools import *
+from hydpy.models.snow import snow_sequences
 
 
-class SPE(sequencetools.AideSequence):
+class SPE(snow_sequences.AideSequence1D):
     """Subbasin-internal redistribution excess of the snow's ice content [mm/T]."""
 
-    NDIM: Final[Literal[1]] = 1
 
-
-class WCE(sequencetools.AideSequence):
+class WCE(snow_sequences.AideSequence1D):
     """Subbasin-internal redistribution excess of the snow's water content [mm/T]."""
-
-    NDIM: Final[Literal[1]] = 1

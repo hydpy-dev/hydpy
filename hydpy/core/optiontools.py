@@ -880,7 +880,7 @@ class Options:
         """,
     )
     printprogress = OptionPropertyBool(
-        False,
+        True,
         """A bool-like flag for printing information about the progress of some 
         processes to the standard output.
         
@@ -1014,7 +1014,7 @@ class Options:
         """,
     )
     usecython = OptionPropertyBool(
-        False,
+        True,
         """A bool-like flag for applying cythonized models, which are much faster than 
         pure Python models.
         

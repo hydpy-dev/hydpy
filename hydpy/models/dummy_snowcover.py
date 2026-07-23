@@ -7,8 +7,8 @@ them to complex main models like |hland_96| for providing snow cover data.
 Integration test
 ================
 
-The only functionality of |dummy_snowcover| is reading input time series.  Hence,
-configuring and testing it does not require additional explanations:
+The primary functionality of |dummy_snowcover| is reading input time series.  Hence,
+configuring and testing it requires little additional explanation:
 
 >>> from hydpy.models.dummy_snowcover import *
 >>> parameterstep()
@@ -19,6 +19,14 @@ configuring and testing it does not require additional explanations:
 >>> from hydpy import IntegrationTest, pub, round_
 >>> pub.timegrids = "2000-01-01", "2000-01-03", "1d"
 >>> nmbzones(2)
+
+The only special control parameter is |ComputesSnowEvaporation|, which provides the
+value returned by method |Computes_SnowEvaporation_V1|.  This method usually informs a
+related evapotranspiration model whether a snow model computes snow evaporation
+separately:
+
+>>> computessnowevaporation(False)
+>>> assert not model.computes_snowevaporation()
 
 >>> test = IntegrationTest(element)
 >>> test.dateformat = "%Y-%d-%m"
@@ -60,7 +68,10 @@ class Model(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
     OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
-    INTERFACE_METHODS = (dummy_model.Get_SnowCover_V1,)
+    INTERFACE_METHODS = (
+        dummy_model.Computes_SnowEvaporation_V1,
+        dummy_model.Get_SnowCover_V1,
+    )
     ADD_METHODS = ()
     OUTLET_METHODS = ()
     SENDER_METHODS = ()

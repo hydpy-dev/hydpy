@@ -29,9 +29,7 @@ if TYPE_CHECKING:
 
 _builtinnames = set(dir(builtins))
 
-ReprArg: TypeAlias = Union[
-    numbers.Number, Iterable[numbers.Number], Iterable[Iterable[numbers.Number]]
-]
+ReprArg: TypeAlias = Union[float, Iterable[float], Iterable[Iterable[float]]]
 
 
 def classname(self: object) -> str:
@@ -901,12 +899,12 @@ def repr_numbers(values: ReprArg) -> str:
 
     Note that the returned string is not wrapped.
     """
-    if isinstance(values, numbers.Number):
+    if isinstance(values, float):
         return repr_(values)
     result = []
     ndim = 1
     for value in values:
-        if isinstance(value, numbers.Number):
+        if isinstance(value, float):
             result.append(repr_(value))
         else:
             result.append(", ".join(repr_(v) for v in value))

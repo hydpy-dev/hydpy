@@ -173,12 +173,10 @@ def main(  # pylint: disable=too-many-branches
                         warnings.filterwarnings(
                             action="ignore",
                             category=DeprecationWarning,
-                            message="`np.bool`",
-                        )
-                        warnings.filterwarnings(
-                            action="ignore",
-                            category=DeprecationWarning,
-                            message="datetime.datetime.utcfromtimestamp",
+                            message=(
+                                "Setting the shape on a NumPy array has been "
+                                "deprecated in NumPy 2.5."
+                            ),
                         )
                         runner = unittest.TextTestRunner(stream=file_)
                         result = runner.run(suite)

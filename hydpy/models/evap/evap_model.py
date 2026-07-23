@@ -1597,10 +1597,10 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
         >>> from hydpy.models.lland_knauf import *
         >>> parameterstep()
         >>> ft(10.0)
-        >>> nhru(3)
-        >>> fhru(5.0, 3.0, 2.0)
+        >>> nhru(4)
+        >>> fhru(1.0)
         >>> gh(100.0)
-        >>> lnk(ACKER, VERS, VERS)
+        >>> lnk(ACKER, VERS, VERS, VERS)
         >>> measuringheightwindspeed(10.0)
         >>> lai(3.0)
         >>> wmax(100.0)
@@ -1613,15 +1613,17 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
         |SnowAlbedoModel_V1| submodels return |numpy.nan| values for snow-free
         conditions.  In such cases (see the first and second hydrological response
         unit), |Calc_CurrentAlbedo_V1| takes the relevant value from parameter
-        |Albedo|.  If there is a snow cover (see the third response unit), the
-        |SnowAlbedoModel_V1| submodel provides an albedo value and
-        |Calc_CurrentAlbedo_V1| takes it without modification:
+        |Albedo|.  If there is a snow cover (see the third and fourth response unit),
+        the |SnowAlbedoModel_V1| submodel provides a snow albedo value and
+        |Calc_CurrentAlbedo_V1| combines it with the snow-free albedo in accordance
+        with the current snow cover degree:
 
         >>> model.aetmodel.idx_sim = 1
-        >>> fluxes.actualalbedo = nan, nan, 1.0
+        >>> fluxes.actualalbedo = nan, nan, 1.0, 1.0
+        >>> model.aetmodel.sequences.factors.snowcover = 0.0, 0.0, 0.5, 1.0
         >>> model.aetmodel.calc_currentalbedo_v1()
         >>> model.aetmodel.sequences.factors.currentalbedo
-        currentalbedo(0.2, 0.3, 1.0)
+        currentalbedo(0.2, 0.3, 0.65, 1.0)
 
         |Calc_CurrentAlbedo_V1| always falls back on using the land type- and
         month-specific values of parameter |Albedo| if no |SnowAlbedoModel_V1| submodel
@@ -1631,13 +1633,14 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
         >>> model.aetmodel.idx_sim = 2
         >>> model.aetmodel.calc_currentalbedo_v1()
         >>> model.aetmodel.sequences.factors.currentalbedo
-        currentalbedo(0.4, 0.5, 0.5)
+        currentalbedo(0.4, 0.5, 0.5, 0.5)
     """
 
     SUBMODELINTERFACES = (stateinterfaces.SnowAlbedoModel_V1,)
     SUBMETHODS = (Calc_CurrentAlbedo_SnowAlbedoModel_V1,)
     CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.HRUType, evap_control.Albedo)
     DERIVEDPARAMETERS = (evap_derived.MOY,)
+    REQUIREDSEQUENCES = (evap_factors.SnowCover,)
     RESULTSEQUENCES = (evap_factors.CurrentAlbedo,)
 
     @staticmethod
@@ -1656,11 +1659,16 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
                 cast(stateinterfaces.SnowAlbedoModel_V1, model.snowalbedomodel)
             )
             for k in range(con.nmbhru):
-                if modelutils.isnan(fac.currentalbedo[k]):
-                    fac.currentalbedo[k] = con.albedo[
-                        con.hrutype[k] - con._albedo_rowmin,
-                        der.moy[model.idx_sim] - con._albedo_columnmin,
-                    ]
+                a_snow: float = fac.currentalbedo[k]
+                a_free: float = con.albedo[
+                    con.hrutype[k] - con._albedo_rowmin,
+                    der.moy[model.idx_sim] - con._albedo_columnmin,
+                ]
+                if modelutils.isnan(a_snow):
+                    fac.currentalbedo[k] = a_free
+                else:
+                    c: float = fac.snowcover[k]
+                    fac.currentalbedo[k] = c * a_snow + (1.0 - c) * a_free
 
 
 class Calc_CurrentAlbedo_V2(modeltools.Method):
@@ -4226,12 +4234,12 @@ class Calc_SnowyCanopy_V1(modeltools.Method):
         snowycanopy(0.0, 1.0, nan)
 
         Without a suitable submodel, |Calc_SnowyCanopy_V1| generally sets |SnowyCanopy|
-        to |numpy.nan|:
+        to zero:
 
         >>> del model.aetmodel.snowycanopymodel
         >>> model.aetmodel.calc_snowycanopy_v1()
         >>> model.aetmodel.sequences.factors.snowycanopy
-        snowycanopy(nan, nan, nan)
+        snowycanopy(0.0, 0.0, 0.0)
 
         .. testsetup::
 
@@ -4250,7 +4258,7 @@ class Calc_SnowyCanopy_V1(modeltools.Method):
 
         if model.snowycanopymodel is None:
             for k in range(con.nmbhru):
-                fac.snowycanopy[k] = modelutils.nan
+                fac.snowycanopy[k] = 0.0
         elif model.snowycanopymodel_typeid == 1:
             model.calc_snowycanopy_snowycanopymodel_v1(
                 cast(stateinterfaces.SnowyCanopyModel_V1, model.snowycanopymodel)
@@ -4319,9 +4327,26 @@ class Calc_SoilWater_V1(modeltools.Method):
 
 class Calc_SnowCover_SnowCoverModel_V1(modeltools.Method):
     """Query the current snow cover degree from a submodel that follows the
-    |SnowCoverModel_V1| interface.
+    |SnowCoverModel_V1| interface."""
 
-    Example:
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    RESULTSEQUENCES = (evap_factors.SnowCover,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, submodel: stateinterfaces.SnowCoverModel_V1
+    ) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        for k in range(con.nmbhru):
+            fac.snowcover[k] = submodel.get_snowcover(k)
+
+
+class Calc_SnowCover_V1(modeltools.Method):
+    """Let a submodel that complies with the |SnowCoverModel_V1| interface determine
+    the current snow cover degree.
+
+    Examples:
 
         We use the combination of |hland_96| and |evap_aet_hbv96| as an example:
 
@@ -4340,24 +4365,15 @@ class Calc_SnowCover_SnowCoverModel_V1(modeltools.Method):
         >>> model.aetmodel.calc_snowcover_v1()
         >>> model.aetmodel.sequences.factors.snowcover
         snowcover(0.0, 0.5, 1.0)
+
+        Without a suitable submodel, |Calc_SnowCover_V1| generally sets |SnowCover| to
+        zero:
+
+        >>> del model.aetmodel.snowcovermodel
+        >>> model.aetmodel.calc_snowcover_v1()
+        >>> model.aetmodel.sequences.factors.snowcover
+        snowcover(0.0, 0.0, 0.0)
     """
-
-    CONTROLPARAMETERS = (evap_control.NmbHRU,)
-    RESULTSEQUENCES = (evap_factors.SnowCover,)
-
-    @staticmethod
-    def __call__(
-        model: modeltools.Model, submodel: stateinterfaces.SnowCoverModel_V1
-    ) -> None:
-        con = model.parameters.control.fastaccess
-        fac = model.sequences.factors.fastaccess
-        for k in range(con.nmbhru):
-            fac.snowcover[k] = submodel.get_snowcover(k)
-
-
-class Calc_SnowCover_V1(modeltools.Method):
-    """Let a submodel that complies with the |SnowCoverModel_V1| interface determine
-    the current snow cover degree."""
 
     SUBMODELINTERFACES = (stateinterfaces.SnowCoverModel_V1,)
     SUBMETHODS = (Calc_SnowCover_SnowCoverModel_V1,)
@@ -4366,6 +4382,12 @@ class Calc_SnowCover_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        if model.snowcovermodel is None:
+            for k in range(con.nmbhru):
+                fac.snowcover[k] = 0.0
         if model.snowcovermodel_typeid == 1:
             model.calc_snowcover_snowcovermodel_v1(
                 cast(stateinterfaces.SnowCoverModel_V1, model.snowcovermodel)
@@ -4373,6 +4395,39 @@ class Calc_SnowCover_V1(modeltools.Method):
         # ToDo:
         #     else:
         #         assert_never(model.petmodel)
+
+
+class Has_SnowEvaporation_V1(modeltools.Method):
+    """Let a submodel that complies with the |SnowCoverModel_V1| interface determine
+    the current snow cover degree.
+
+    Examples:
+
+        >>> from hydpy.models.evap_aet_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(4)
+        >>> tree(False)
+        >>> with model.add_snowcovermodel_v1("dummy_snowcover") as snowcovermodel:
+        ...     computessnowevaporation(False)
+        >>> assert not model.has_snowevaporation()
+        >>> model.snowcovermodel.parameters.control.computessnowevaporation(True)
+        >>> assert model.has_snowevaporation()
+
+        Without an available submodel, |Has_SnowEvaporation_V1| always returns |False|:
+
+        >>> del model.snowcovermodel
+        >>> assert not model.has_snowevaporation()
+    """
+
+    SUBMODELINTERFACES = (stateinterfaces.SnowCoverModel_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> bool:
+        if model.snowcovermodel_typeid == 1:
+            return cast(
+                stateinterfaces.SnowCoverModel_V1, model.snowcovermodel
+            ).computes_snowevaporation()
+        return False
 
 
 class Return_Evaporation_PenmanMonteith_V1(modeltools.Method):
@@ -5926,21 +5981,39 @@ class Calc_InterceptionEvaporation_V1(modeltools.Method):
 
     Basic equation:
       .. math::
-        InterceptionEvaporation =
+        E =
         \begin{cases}
-        PotentialInterceptionEvaporation &|\ InterceptedWater > 0
+        P &|\ W > 0 \ \land \ \overline{H}
         \\
-        0 &|\ InterceptedWater = 0
+        (1 - S) \cdot P &|\ W > 0 \ \land \ \overline{H}
+        \\
+        0 &|\ W= 0
         \end{cases}
+        \\ \\
+        E = InterceptionEvaporation \\
+        P = PotentialInterceptionEvaporation \\
+        W = InterceptedWater \\
+        H = Has\_SnowEvaporation \\
+        S = SnowCover
 
     Examples:
+
+        We use |evap_aet_hbv96| as an example and add a snow-specific submodel to it,
+        because |Calc_InterceptionEvaporation_V1| can take snow information into
+        account.
+
+        >>> from hydpy.models.evap_aet_hbv96 import *
+        >>> parameterstep()
+        >>> nmbhru(4)
+        >>> tree(False)
+        >>> with model.add_snowcovermodel_v1("dummy_snowcover") as snowcovermodel:
+        ...     computessnowevaporation(False)
+        >>> factors.snowcover(1.0, 0.0, 0.8, 0.8)
+        >>> factors.snowycanopy(0.0, 1.0, 0.8, 0.8)
 
         The availability of intercepted water may restrict the possible interception
         evaporation:
 
-        >>> from hydpy.models.evap import *
-        >>> parameterstep()
-        >>> nmbhru(4)
         >>> interception(True)
         >>> fluxes.potentialinterceptionevaporation(1.0)
         >>> factors.interceptedwater(1.5, 1.0, 0.5, 0.0)
@@ -5955,11 +6028,38 @@ class Calc_InterceptionEvaporation_V1(modeltools.Method):
         >>> model.calc_interceptionevaporation_v1()
         >>> fluxes.interceptionevaporation
         interceptionevaporation(0.0, 0.0, 0.0, 0.0)
+
+        To prevent double counting of evaporation for non-tree areas, method
+        |Calc_InterceptionEvaporation_V1| reduces the actual interception evaporation
+        in proportion to the degree of snow cover, if the corresponding snow simulation
+        includes snow evaporation estimates:
+
+        >>> interception(True)
+        >>> snowcovermodel.parameters.control.computessnowevaporation(True)
+        >>> model.calc_interceptionevaporation_v1()
+        >>> fluxes.interceptionevaporation
+        interceptionevaporation(0.0, 1.0, 0.2, 0.0)
+
+        For tree areas, method |Calc_InterceptionEvaporation_V1| does the same but
+        relies on the snow-cover degree calculated for the tree canopies rather than
+        for the ground (if this information is provided):
+
+        >>> tree(True)
+        >>> model.calc_interceptionevaporation_v1()
+        >>> fluxes.interceptionevaporation
+        interceptionevaporation(1.0, 0.0, 0.2, 0.0)
     """
 
-    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Interception)
+    SUBMETHODS = (Has_SnowEvaporation_V1,)
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Tree,
+        evap_control.Interception,
+    )
     REQUIREDSEQUENCES = (
         evap_factors.InterceptedWater,
+        evap_factors.SnowCover,
+        evap_factors.SnowyCanopy,
         evap_fluxes.PotentialInterceptionEvaporation,
     )
     RESULTSEQUENCES = (evap_fluxes.InterceptionEvaporation,)
@@ -5969,10 +6069,18 @@ class Calc_InterceptionEvaporation_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
+
         for k in range(con.nmbhru):
             if con.interception[k]:
+                if model.has_snowevaporation():
+                    if con.tree[k]:
+                        f: float = 1.0 - fac.snowycanopy[k]
+                    else:
+                        f = 1.0 - fac.snowcover[k]
+                else:
+                    f = 1.0
                 flu.interceptionevaporation[k] = min(
-                    flu.potentialinterceptionevaporation[k], fac.interceptedwater[k]
+                    f * flu.potentialinterceptionevaporation[k], fac.interceptedwater[k]
                 )
             else:
                 flu.interceptionevaporation[k] = 0.0
@@ -6256,109 +6364,6 @@ class Calc_PotentialInterceptionEvaporation_V3(modeltools.Method):
             model.calc_potentialinterceptionevaporation_petmodel_v2(
                 cast(petinterfaces.PETModel_V1, model.petmodel)
             )
-
-
-class Calc_InterceptionEvaporation_V2(modeltools.Method):
-    r"""Calculate the actual interception evaporation by setting it equal to potential
-    interception evaporation.
-
-    Basic equation:
-      .. math::
-        InterceptionEvaporation =
-        \begin{cases}
-        min(PotentialInterceptionEvaporation, \ InterceptedWater) &|\
-        Interception \land ( Tree \lor SnowCover = 0 )
-        \\
-        0 &|\ \overline{Interception} \lor ( \overline{Tree} \land SnowCover > 0 )
-        \end{cases}
-
-    Examples:
-
-        We prepare two hydrological response units.  The first one is tree-like, while
-        the second one is not:
-
-        >>> from hydpy.models.evap import *
-        >>> simulationstep("1d")
-        >>> parameterstep()
-        >>> nmbhru(2)
-        >>> interception(True)
-        >>> tree(True, False)
-        >>> factors.interceptedwater = 1.0
-        >>> fluxes.potentialinterceptionevaporation = 1.0
-
-        Without any snow cover, the vegetation type does not make a difference:
-
-        >>> factors.snowcover = 0.0
-        >>> factors.snowycanopy = 0.0, nan
-        >>> model.calc_interceptionevaporation_v2()
-        >>> fluxes.interceptionevaporation
-        interceptionevaporation(1.0, 1.0)
-
-        For tree-like vegetation, a snow layer (on the ground) does not affect
-        interception evaporation.  For other vegetation types, even incomplete covering
-        suppresses interception evaporation completely:
-
-        >>> factors.snowcover = 0.1
-        >>> model.calc_interceptionevaporation_v2()
-        >>> fluxes.interceptionevaporation
-        interceptionevaporation(1.0, 0.0)
-
-        For tree-like vegetation, snow interception (in the canopy) suppresses
-        interception evaporation completely:
-
-        >>> factors.snowcover = 0.0
-        >>> factors.snowycanopy = 1.0
-        >>> model.calc_interceptionevaporation_v2()
-        >>> fluxes.interceptionevaporation
-        interceptionevaporation(0.0, 1.0)
-
-        The availability of intercepted water may restrict the possible interception
-        evaporation:
-
-        >>> factors.snowycanopy = 0.0
-        >>> factors.interceptedwater = 0.5, 0.0
-        >>> model.calc_interceptionevaporation_v2()
-        >>> fluxes.interceptionevaporation
-        interceptionevaporation(0.5, 0.0)
-
-        Interception evaporation is always zero for hydrological response units not
-        considering interception:
-
-        >>> interception(False)
-        >>> model.calc_interceptionevaporation_v2()
-        >>> fluxes.interceptionevaporation
-        interceptionevaporation(0.0, 0.0)
-    """
-
-    CONTROLPARAMETERS = (
-        evap_control.NmbHRU,
-        evap_control.Interception,
-        evap_control.Tree,
-    )
-    REQUIREDSEQUENCES = (
-        evap_factors.InterceptedWater,
-        evap_factors.SnowCover,
-        evap_factors.SnowyCanopy,
-        evap_fluxes.PotentialInterceptionEvaporation,
-    )
-    RESULTSEQUENCES = (evap_fluxes.InterceptionEvaporation,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, /) -> None:
-        con = model.parameters.control.fastaccess
-        fac = model.sequences.factors.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        for k in range(con.nmbhru):
-            if (
-                con.interception[k]
-                and (con.tree[k] or (fac.snowcover[k] == 0.0))
-                and not (con.tree[k] and (fac.snowycanopy[k] > 0.0))
-            ):
-                flu.interceptionevaporation[k] = min(
-                    flu.potentialinterceptionevaporation[k], fac.interceptedwater[k]
-                )
-            else:
-                flu.interceptionevaporation[k] = 0.0
 
 
 class Calc_PotentialSoilEvapotranspiration_V1(modeltools.Method):
@@ -6763,11 +6768,21 @@ class Calc_SoilEvapotranspiration_V3(modeltools.Method):
 
     Basic equation:
       .. math::
-        SoilEvapotranspiration = \begin{cases}
-        f_{PM}(ActualSurfaceResistance)  &|\ Soil \land (Tree \lor SnowCover = 0 )
+        E = \begin{cases}
+        f(R)  &|\ S \land (T \lor \overline{H})
         \\
-        0 &|\ \overline{Soil } \lor ( \overline{Tree} \land SnowCover > 0 )
+        (1 - C) \cdot f(R)  &|\ S \land (\overline{T} \land H)
+        \\
+        0 &|\ \overline{S}
         \end{cases}
+        \\ \\
+        E = SoilEvapotranspiration \\
+        f = Return\_Evaporation\_PenmanMonteith\_V1 \\
+        R = ActualSurfaceResistance \\
+        S = Soil \\
+        T = Tree \\
+        H = Has\_SnowEvaporation \\
+        C = SnowCover
 
     Examples:
 
@@ -6775,13 +6790,15 @@ class Calc_SoilEvapotranspiration_V3(modeltools.Method):
         the second one is not.  The other settings agree with the last response unit in
         the second example on method |Return_Evaporation_PenmanMonteith_V1|:
 
-        >>> from hydpy.models.evap import *
+        >>> from hydpy.models.evap_aet_morsim import *
         >>> simulationstep("1d")
         >>> parameterstep()
         >>> nmbhru(2)
         >>> soil(True)
         >>> tree(True, False)
         >>> emissivity(0.96)
+        >>> with model.add_snowcovermodel_v1("dummy_snowcover") as snowcovermodel:
+        ...     computessnowevaporation(True)
         >>> factors.saturationvapourpressure = 12.0
         >>> factors.saturationvapourpressureslope = 0.8
         >>> factors.actualvapourpressure = 0.0
@@ -6800,13 +6817,21 @@ class Calc_SoilEvapotranspiration_V3(modeltools.Method):
         soilevapotranspiration(5.761072, 5.761072)
 
         For tree-like vegetation, a snow layer (on the ground) does not affect soil
-        evapotranspiration.  For other vegetation types, even incomplete covering
-        suppresses interception evaporation completely:
+        evapotranspiration.  For other vegetation types, soil evapotranspiration
+        decreases linearly with increasing degree of snow cover:
 
-        >>> factors.snowcover(0.1)
+        >>> factors.snowcover(0.9)
         >>> model.calc_soilevapotranspiration_v3()
         >>> fluxes.soilevapotranspiration
-        soilevapotranspiration(5.761072, 0.0)
+        soilevapotranspiration(5.761072, 0.576107)
+
+        The mentioned reduction occurs only when the corresponding snow simulation
+        accounts for snow evaporation separately:
+
+        >>> snowcovermodel.parameters.control.computessnowevaporation(False)
+        >>> model.calc_soilevapotranspiration_v3()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(5.761072, 5.761072)
 
         Soil evapotranspiration is always zero for soil-less hydrological response
         units:
@@ -6849,14 +6874,18 @@ class Calc_SoilEvapotranspiration_V3(modeltools.Method):
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
+
         for k in range(con.nmbhru):
-            if con.soil[k] and (con.tree[k] or fac.snowcover[k] == 0.0):
-                flu.soilevapotranspiration[k] = (
+            if con.soil[k]:
+                if con.tree[k] or not model.has_snowevaporation():
+                    f: float = 1.0
+                else:
+                    f = 1.0 - fac.snowcover[k]
+                flu.soilevapotranspiration[k] = f * (
                     model.return_evaporation_penmanmonteith_v1(
                         k, fac.actualsurfaceresistance[k]
                     )
                 )
-
             else:
                 flu.soilevapotranspiration[k] = 0.0
 
@@ -6994,10 +7023,10 @@ class Update_SoilEvapotranspiration_V2(modeltools.Method):
 
     Basic equations:
       .. math::
-        et_s^{new} = (1 - c) \cdot et_s^{old}
+        E^{new} = (1 - C) \cdot E^{old}
         \\ \\
-        et_s = SoilEvapotranspiration \\
-        c = SnowCover
+        E = SoilEvapotranspiration \\
+        C = SnowCover
 
     Examples:
 
@@ -7022,6 +7051,7 @@ class Update_SoilEvapotranspiration_V2(modeltools.Method):
         soilevapotranspiration(0.0, 0.0, 0.0, 0.0, 0.0)
     """
 
+    SUBMETHODS = (Has_SnowEvaporation_V1,)
     CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Soil)
     REQUIREDSEQUENCES = (evap_factors.SnowCover,)
     RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
@@ -7031,8 +7061,9 @@ class Update_SoilEvapotranspiration_V2(modeltools.Method):
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
+
         for k in range(con.nmbhru):
-            if con.soil[k] and (fac.snowcover[k] < 1.0):
+            if con.soil[k]:
                 flu.soilevapotranspiration[k] *= 1.0 - fac.snowcover[k]
             else:
                 flu.soilevapotranspiration[k] = 0.0
@@ -7139,6 +7170,74 @@ class Update_SoilEvapotranspiration_V3(modeltools.Method):
                         ) / flu.potentialinterceptionevaporation[k]
             else:
                 flu.soilevapotranspiration[k] = 0.0
+
+
+class Update_SoilEvapotranspiration_V4(modeltools.Method):
+    r"""Reduce actual soil evapotranspiration due to snow covering.
+
+    Basic equations:
+      .. math::
+        E_{new} = \begin{cases}
+        E_{old} &|\ S \land \overline{H}
+        \\
+        (1 - C) \cdot E_{old}  &|\ S \land H
+        \\
+        0 &|\ \overline{S}
+        \end{cases}
+        \\ \\
+        E = SoilEvapotranspiration \\
+        S = Soil \\
+        H = Has\_SnowEvaporation \\
+        C = SnowCover
+
+    Examples:
+
+        We use |evap_aet_minhas| as an example and add a snow-specific submodel to it
+        because |Update_SoilEvapotranspiration_V4| can account for snow information:
+
+        >>> from hydpy.models.evap_aet_minhas import *
+        >>> parameterstep()
+        >>> nmbhru(4)
+        >>> soil(True, True, True, False)
+        >>> with model.add_snowcovermodel_v1("dummy_snowcover") as snowcovermodel:
+        ...     computessnowevaporation(True)
+        >>> factors.snowcover = 0.0, 0.75, 1.0, 1.0
+
+        |Update_SoilEvapotranspiration_V4| generally reduces soil evapotranspiration in
+        proportion to the snow cover degree but sets it to zero for soil-free zones:
+
+        >>> fluxes.soilevapotranspiration = 2.0
+        >>> model.update_soilevapotranspiration_v4()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(2.0, 0.5, 0.0, 0.0)
+
+        If the snow routine does not calculate snow evaporation separately,
+        |Update_SoilEvapotranspiration_V4| does not adjust soil evapotranspiration to
+        the current degree of snow cover:
+
+        >>> snowcovermodel.parameters.control.computessnowevaporation(False)
+        >>> fluxes.soilevapotranspiration = 2.0
+        >>> model.update_soilevapotranspiration_v4()
+        >>> fluxes.soilevapotranspiration
+        soilevapotranspiration(2.0, 2.0, 2.0, 0.0)
+    """
+
+    SUBMETHODS = (Has_SnowEvaporation_V1,)
+    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Soil)
+    REQUIREDSEQUENCES = (evap_factors.SnowCover,)
+    RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        for k in range(con.nmbhru):
+            if not con.soil[k]:
+                flu.soilevapotranspiration[k] = 0.0
+            elif model.has_snowevaporation():
+                flu.soilevapotranspiration[k] *= 1.0 - fac.snowcover[k]
 
 
 class Determine_PotentialEvapotranspiration_V1(modeltools.Method):
@@ -7348,11 +7447,19 @@ class Determine_InterceptionEvaporation_V1(modeltools.AutoMethod):
     SUBMETHODS = (
         Calc_PotentialInterceptionEvaporation_V3,
         Calc_InterceptedWater_V1,
+        Calc_SnowCover_V1,
+        Calc_SnowyCanopy_V1,
         Calc_InterceptionEvaporation_V1,
     )
-    CONTROLPARAMETERS = (evap_control.NmbHRU, evap_control.Interception)
+    CONTROLPARAMETERS = (
+        evap_control.NmbHRU,
+        evap_control.Interception,
+        evap_control.Tree,
+    )
     RESULTSEQUENCES = (
         evap_factors.InterceptedWater,
+        evap_factors.SnowCover,
+        evap_factors.SnowyCanopy,
         evap_fluxes.PotentialInterceptionEvaporation,
         evap_fluxes.InterceptionEvaporation,
     )
@@ -7395,7 +7502,7 @@ class Determine_InterceptionEvaporation_V2(modeltools.AutoMethod):
         Calc_SoilHeatFlux_V3,
         Calc_PotentialInterceptionEvaporation_V1,
         Calc_InterceptedWater_V1,
-        Calc_InterceptionEvaporation_V2,
+        Calc_InterceptionEvaporation_V1,
     )
     CONTROLPARAMETERS = (
         evap_control.NmbHRU,
@@ -7557,8 +7664,10 @@ class Determine_SoilEvapotranspiration_V2(modeltools.AutoMethod):
 
     SUBMETHODS = (
         Calc_SoilWater_V1,
+        Calc_SnowCover_V1,
         Calc_PotentialSoilEvapotranspiration_V2,
         Calc_SoilEvapotranspiration_V2,
+        Update_SoilEvapotranspiration_V4,
         Update_SoilEvapotranspiration_V3,
     )
     CONTROLPARAMETERS = (
@@ -7574,6 +7683,7 @@ class Determine_SoilEvapotranspiration_V2(modeltools.AutoMethod):
     )
     RESULTSEQUENCES = (
         evap_factors.SoilWater,
+        evap_factors.SnowCover,
         evap_fluxes.PotentialSoilEvapotranspiration,
         evap_fluxes.SoilEvapotranspiration,
     )
@@ -7998,7 +8108,6 @@ class Model(modeltools.AdHocModel):
         Calc_PotentialInterceptionEvaporation_V1,
         Calc_PotentialInterceptionEvaporation_V2,
         Calc_PotentialInterceptionEvaporation_V3,
-        Calc_InterceptionEvaporation_V2,
         Calc_PotentialSoilEvapotranspiration_V1,
         Calc_PotentialSoilEvapotranspiration_V2,
         Calc_SoilEvapotranspiration_V1,
@@ -8007,6 +8116,7 @@ class Model(modeltools.AdHocModel):
         Update_SoilEvapotranspiration_V1,
         Update_SoilEvapotranspiration_V2,
         Update_SoilEvapotranspiration_V3,
+        Update_SoilEvapotranspiration_V4,
         Update_LoggedPrecipitation_V1,
         Update_LoggedPotentialSoilEvapotranspiration_V1,
     )
@@ -8045,6 +8155,7 @@ class Model(modeltools.AdHocModel):
         Calc_Precipitation_PrecipModel_V2,
         Calc_InterceptedWater_IntercModel_V1,
         Calc_SoilWater_SoilWaterModel_V1,
+        Has_SnowEvaporation_V1,
         Calc_SnowCover_SnowCoverModel_V1,
         Calc_SnowyCanopy_SnowyCanopyModel_V1,
         Calc_PotentialInterceptionEvaporation_PETModel_V1,

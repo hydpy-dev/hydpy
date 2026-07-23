@@ -19,18 +19,6 @@ class FracRain(hland_sequences.Factor1DSequence):
     mask = hland_masks.Complete()
 
 
-class RfC(hland_sequences.Factor1DSequence):
-    """Actual precipitation correction related to liquid precipitation [-]."""
-
-    mask = hland_masks.Complete()
-
-
-class SfC(hland_sequences.Factor1DSequence):
-    """Actual precipitation correction related to frozen precipitation [-]."""
-
-    mask = hland_masks.Complete()
-
-
 class CFAct(hland_sequences.Factor1DSequence):
     """Actual degree day factor for snow (on glaciers or not) [mm/°C/T]."""
 

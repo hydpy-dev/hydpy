@@ -1869,6 +1869,21 @@ class Get_SoilWater_V1(modeltools.Method):
         return sta.soilmoisture[k]
 
 
+class Computes_SnowEvaporation_V1(modeltools.Method):
+    """Report that the snow routine does not calculate snow evaporation [-].
+
+    Examples:
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> assert not model.computes_snowevaporation_v1()
+    """
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> bool:
+        return False
+
+
 class Get_SnowCover_V1(modeltools.Method):
     """Get the selected zones's current snow cover degree.
 
@@ -1921,6 +1936,7 @@ class Model(modeltools.AdHocModel):
         Get_Precipitation_V1,
         Get_InterceptedWater_V1,
         Get_SoilWater_V1,
+        Computes_SnowEvaporation_V1,
         Get_SnowCover_V1,
     )
     RUN_METHODS = (

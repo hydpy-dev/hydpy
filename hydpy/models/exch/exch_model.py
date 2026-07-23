@@ -180,9 +180,9 @@ class Calc_DeltaWaterLevel_V1(modeltools.Method):
     def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
-        d_wl0 = max(fac.waterlevels[0], con.crestheight)
-        d_wl1 = max(fac.waterlevels[1], con.crestheight)
-        fac.deltawaterlevel = d_wl0 - d_wl1
+        wl0: float = max(fac.waterlevels[0], con.crestheight)
+        wl1: float = max(fac.waterlevels[1], con.crestheight)
+        fac.deltawaterlevel = wl0 - wl1
 
 
 class Calc_PotentialExchange_V1(modeltools.Method):
@@ -228,13 +228,13 @@ class Calc_PotentialExchange_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         if fac.deltawaterlevel >= 0.0:
-            d_dwl = fac.deltawaterlevel
-            d_sig = 1.0
+            dwl: float = fac.deltawaterlevel
+            sig: float = 1.0
         else:
-            d_dwl = -fac.deltawaterlevel
-            d_sig = -1.0
-        flu.potentialexchange = d_sig * (
-            con.flowcoefficient * con.crestwidth * d_dwl**con.flowexponent
+            dwl = -fac.deltawaterlevel
+            sig = -1.0
+        flu.potentialexchange = sig * (
+            con.flowcoefficient * con.crestwidth * dwl**con.flowexponent
         )
 
 
@@ -476,13 +476,13 @@ class Calc_Outputs_V1(modeltools.Method):
             if con.xpoints[pdx] > flu.adjustedinput:
                 break
         # ...and use it for linear interpolation (or extrapolation).
-        d_x = flu.adjustedinput
+        x: float = flu.adjustedinput
         for bdx in range(der.nmbbranches):
-            d_x0 = con.xpoints[pdx - 1]
-            d_dx = con.xpoints[pdx] - d_x0
-            d_y0 = con.ypoints[bdx, pdx - 1]
-            d_dy = con.ypoints[bdx, pdx] - d_y0
-            flu.outputs[bdx] = (d_x - d_x0) * d_dy / d_dx + d_y0
+            x0: float = con.xpoints[pdx - 1]
+            dx: float = con.xpoints[pdx] - x0
+            y0: float = con.ypoints[bdx, pdx - 1]
+            dy: float = con.ypoints[bdx, pdx] - y0
+            flu.outputs[bdx] = (x - x0) * dy / dx + y0
 
 
 class Calc_Y_V1(modeltools.Method):

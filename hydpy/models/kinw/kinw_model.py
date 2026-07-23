@@ -516,11 +516,11 @@ class Calc_AM_UM_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            d_temp = aid.rhm[i] - aid.rhv[i]
-            aid.am[i] = d_temp * (con.bm + d_temp * con.bnm) + aid.rhv[i] * (
-                con.bm + 2.0 * d_temp * con.bnm
+            temp: float = aid.rhm[i] - aid.rhv[i]
+            aid.am[i] = temp * (con.bm + temp * con.bnm) + aid.rhv[i] * (
+                con.bm + 2.0 * temp * con.bnm
             )
-            aid.um[i] = con.bm + 2.0 * d_temp * der.bnmf + 2.0 * aid.rhv[i]
+            aid.um[i] = con.bm + 2.0 * temp * der.bnmf + 2.0 * aid.rhv[i]
 
 
 class Calc_AMDH_UMDH_V1(modeltools.Method):
@@ -618,15 +618,15 @@ class Calc_AMDH_UMDH_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            d_temp1 = aid.rhm[i] - aid.rhv[i]
-            d_temp2 = aid.rhmdh[i] - aid.rhvdh[i]
+            temp1: float = aid.rhm[i] - aid.rhv[i]
+            temp2: float = aid.rhmdh[i] - aid.rhvdh[i]
             aid.amdh[i] = (
-                con.bnm * d_temp1 * d_temp2
-                + 2.0 * con.bnm * d_temp2 * aid.rhv[i]
-                + (con.bm + con.bnm * d_temp1) * d_temp2
-                + (con.bm + 2.0 * con.bnm * d_temp1) * aid.rhvdh[i]
+                con.bnm * temp1 * temp2
+                + 2.0 * con.bnm * temp2 * aid.rhv[i]
+                + (con.bm + con.bnm * temp1) * temp2
+                + (con.bm + 2.0 * con.bnm * temp1) * aid.rhvdh[i]
             )
-            aid.umdh[i] = 2.0 * d_temp2 * der.bnmf + 2.0 * aid.rhvdh[i]
+            aid.umdh[i] = 2.0 * temp2 * der.bnmf + 2.0 * aid.rhvdh[i]
 
 
 class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
@@ -764,16 +764,16 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            d_temp = aid.rhv[i] - aid.rhlvr[i]
-            aid.alv[i] = d_temp * (con.bv[0] + (d_temp * con.bnv[0] / 2.0)) + aid.rhlvr[
+            temp: float = aid.rhv[i] - aid.rhlvr[i]
+            aid.alv[i] = temp * (con.bv[0] + (temp * con.bnv[0] / 2.0)) + aid.rhlvr[
                 i
-            ] * (con.bv[0] + d_temp * con.bnv[0])
-            aid.ulv[i] = con.bv[0] + d_temp * der.bnvf[0] + aid.rhlvr[i]
-            d_temp = aid.rhv[i] - aid.rhrvr[i]
-            aid.arv[i] = d_temp * (con.bv[1] + (d_temp * con.bnv[1] / 2.0)) + aid.rhrvr[
+            ] * (con.bv[0] + temp * con.bnv[0])
+            aid.ulv[i] = con.bv[0] + temp * der.bnvf[0] + aid.rhlvr[i]
+            temp = aid.rhv[i] - aid.rhrvr[i]
+            aid.arv[i] = temp * (con.bv[1] + (temp * con.bnv[1] / 2.0)) + aid.rhrvr[
                 i
-            ] * (con.bv[1] + d_temp * con.bnv[1])
-            aid.urv[i] = con.bv[1] + d_temp * der.bnvf[1] + aid.rhrvr[i]
+            ] * (con.bv[1] + temp * con.bnv[1])
+            aid.urv[i] = con.bv[1] + temp * der.bnvf[1] + aid.rhrvr[i]
 
 
 class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
@@ -921,24 +921,24 @@ class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            d_temp1 = aid.rhv[i] - aid.rhlvr[i]
-            d_temp2 = aid.rhvdh[i] - aid.rhlvrdh[i]
+            temp1: float = aid.rhv[i] - aid.rhlvr[i]
+            temp2: float = aid.rhvdh[i] - aid.rhlvrdh[i]
             aid.alvdh[i] = (
-                con.bnv[0] * d_temp1 * d_temp2 / 2.0
-                + con.bnv[0] * d_temp2 * aid.rhlvr[i]
-                + (con.bnv[0] * d_temp1 / 2 + con.bv[0]) * d_temp2
-                + (con.bnv[0] * d_temp1 + con.bv[0]) * aid.rhlvrdh[i]
+                con.bnv[0] * temp1 * temp2 / 2.0
+                + con.bnv[0] * temp2 * aid.rhlvr[i]
+                + (con.bnv[0] * temp1 / 2 + con.bv[0]) * temp2
+                + (con.bnv[0] * temp1 + con.bv[0]) * aid.rhlvrdh[i]
             )
-            aid.ulvdh[i] = d_temp2 * der.bnvf[0] + aid.rhlvrdh[i]
-            d_temp1 = aid.rhv[i] - aid.rhrvr[i]
-            d_temp2 = aid.rhvdh[i] - aid.rhrvrdh[i]
+            aid.ulvdh[i] = temp2 * der.bnvf[0] + aid.rhlvrdh[i]
+            temp1 = aid.rhv[i] - aid.rhrvr[i]
+            temp2 = aid.rhvdh[i] - aid.rhrvrdh[i]
             aid.arvdh[i] = (
-                con.bnv[1] * d_temp1 * d_temp2 / 2.0
-                + con.bnv[1] * d_temp2 * aid.rhrvr[i]
-                + (con.bnv[1] * d_temp1 / 2 + con.bv[1]) * d_temp2
-                + (con.bnv[1] * d_temp1 + con.bv[1]) * aid.rhrvrdh[i]
+                con.bnv[1] * temp1 * temp2 / 2.0
+                + con.bnv[1] * temp2 * aid.rhrvr[i]
+                + (con.bnv[1] * temp1 / 2 + con.bv[1]) * temp2
+                + (con.bnv[1] * temp1 + con.bv[1]) * aid.rhrvrdh[i]
             )
-            aid.urvdh[i] = d_temp2 * der.bnvf[1] + aid.rhrvrdh[i]
+            aid.urvdh[i] = temp2 * der.bnvf[1] + aid.rhrvrdh[i]
 
 
 class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
@@ -1931,8 +1931,8 @@ class Calc_QG_V2(modeltools.Method):
         for i in range(con.gts):
             con.vg2fg.inputs[0] = sta.vg[i]
             con.vg2fg.calculate_values()
-            d_v = max(con.ek * con.vg2fg.outputs[0], 0.0)
-            flu.qg[i] = 1000.0 * d_v * sta.vg[i] * con.gts / con.laen
+            v: float = max(con.ek * con.vg2fg.outputs[0], 0.0)
+            flu.qg[i] = 1000.0 * v * sta.vg[i] * con.gts / con.laen
 
 
 class Calc_WBM_V1(modeltools.Method):
@@ -2001,13 +2001,13 @@ class Calc_WBM_V1(modeltools.Method):
         fix = model.parameters.fixed.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            d_temp1 = aid.rhm[i] - aid.rhv[i]
-            d_temp2 = aid.rhmdh[i] - aid.rhvdh[i]
+            temp1: float = aid.rhm[i] - aid.rhv[i]
+            temp2: float = aid.rhmdh[i] - aid.rhvdh[i]
             aid.wbm[i] = (
-                con.bnm * d_temp1 * d_temp2
-                + con.bnm * 2.0 * d_temp2 * aid.rhv[i]
-                + (con.bm + con.bnm * d_temp1) * d_temp2
-                + (con.bm + con.bnm * 2.0 * d_temp1) * aid.rhvdh[i]
+                con.bnm * temp1 * temp2
+                + con.bnm * 2.0 * temp2 * aid.rhv[i]
+                + (con.bm + con.bnm * temp1) * temp2
+                + (con.bm + con.bnm * 2.0 * temp1) * aid.rhvdh[i]
             )
             aid.wbm[i] = smoothutils.smooth_max1(fix.wbmin, aid.wbm[i], fix.wbreg)
 
@@ -2097,21 +2097,21 @@ class Calc_WBLV_WBRV_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
-            d_temp1 = aid.rhv[i] - aid.rhlvr[i]
-            d_temp2 = aid.rhvdh[i] - aid.rhlvrdh[i]
+            temp1: float = aid.rhv[i] - aid.rhlvr[i]
+            temp2: float = aid.rhvdh[i] - aid.rhlvrdh[i]
             aid.wblv[i] = (
-                con.bnv[0] * d_temp1 * d_temp2 / 2.0
-                + con.bnv[0] * d_temp2 * aid.rhlvr[i]
-                + (con.bnv[0] * d_temp1 / 2.0 + con.bv[0]) * d_temp2
-                + (con.bnv[0] * d_temp1 + con.bv[0]) * aid.rhlvrdh[i]
+                con.bnv[0] * temp1 * temp2 / 2.0
+                + con.bnv[0] * temp2 * aid.rhlvr[i]
+                + (con.bnv[0] * temp1 / 2.0 + con.bv[0]) * temp2
+                + (con.bnv[0] * temp1 + con.bv[0]) * aid.rhlvrdh[i]
             )
-            d_temp1 = aid.rhv[i] - aid.rhrvr[i]
-            d_temp2 = aid.rhvdh[i] - aid.rhrvrdh[i]
+            temp1 = aid.rhv[i] - aid.rhrvr[i]
+            temp2 = aid.rhvdh[i] - aid.rhrvrdh[i]
             aid.wbrv[i] = (
-                con.bnv[1] * d_temp1 * d_temp2 / 2.0
-                + con.bnv[1] * d_temp2 * aid.rhrvr[i]
-                + (con.bnv[1] * d_temp1 / 2.0 + con.bv[1]) * d_temp2
-                + (con.bnv[1] * d_temp1 + con.bv[1]) * aid.rhrvrdh[i]
+                con.bnv[1] * temp1 * temp2 / 2.0
+                + con.bnv[1] * temp2 * aid.rhrvr[i]
+                + (con.bnv[1] * temp1 / 2.0 + con.bv[1]) * temp2
+                + (con.bnv[1] * temp1 + con.bv[1]) * aid.rhrvrdh[i]
             )
 
 
@@ -2261,10 +2261,10 @@ class Calc_DH_V1(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
             if i:
-                d_qz = flu.qg[i - 1]
+                qz: float = flu.qg[i - 1]
             else:
-                d_qz = flu.qz
-            flu.dh[i] = (d_qz - flu.qg[i]) / (1000.0 * con.laen / con.gts * aid.wbg[i])
+                qz = flu.qz
+            flu.dh[i] = (qz - flu.qg[i]) / (1000.0 * con.laen / con.gts * aid.wbg[i])
 
 
 class Update_H_V1(modeltools.Method):
@@ -3116,7 +3116,7 @@ class Return_QF_V1(modeltools.Method):
     def __call__(model: modeltools.Model, h: float, /) -> float:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        d_qg = flu.qg[0]
+        qg_: float = flu.qg[0]
         sta.h[0] = h
         model.calc_rhm_v1()
         model.calc_rhmdh_v1()
@@ -3132,9 +3132,9 @@ class Return_QF_V1(modeltools.Method):
         model.calc_qlvr_qrvr_v1()
         model.calc_ag_v1()
         model.calc_qg_v1()
-        d_error = flu.qg[0] - d_qg
-        flu.qg[0] = d_qg
-        return d_error
+        error: float = flu.qg[0] - qg_
+        flu.qg[0] = qg_
+        return error
 
 
 class Return_H_V1(modeltools.Method):

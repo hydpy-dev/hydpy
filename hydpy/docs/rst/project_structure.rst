@@ -442,6 +442,7 @@ VARIABLES
         data type = |S1
         Attributes
             long_name = station or node identification code
+            cf_role = timeseries_id
     station_names
         dimensions = stations, str_len
         shape = 4, 40

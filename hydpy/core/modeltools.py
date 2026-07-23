@@ -337,6 +337,7 @@ instance of any of the following supported interfaces: SoilModel_V1.
 
     def __delete__(self, obj: Model) -> None:
         vars(obj)[self.name] = None
+        setattr(obj, f"{self.name}_typeid", 0)
         if obj.cymodel is not None:
             getattr(obj.cymodel, f"set_{self.name}")(None)
 
@@ -2488,7 +2489,7 @@ the available directories (calib_1 and calib_2).
         >>> model.simulate_period(0, 4)
         >>> from hydpy import print_vector
         >>> print_vector(model.sequences.outlets.q.series[:4])
-        11.757526, 8.865079, 7.101815, 5.994195
+        11.757521, 8.865071, 7.10181, 5.994192
 
         Be aware that models never exchange data with their connected nodes when in
         multi-threading mode:
@@ -2857,6 +2858,8 @@ the available directories (calib_1 and calib_2).
          'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.aetmodel.snowcovermodel': None,
+         'model.aetmodel.snowycanopymodel': None,
          'model.aetmodel.soilwatermodel': None,
          'model.radiationmodel': None,
          'model.soilmodel': None}
@@ -2873,6 +2876,8 @@ the available directories (calib_1 and calib_2).
          'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.aetmodel.snowcovermodel': None,
+         'model.aetmodel.snowycanopymodel': None,
          'model.radiationmodel': None,
          'model.soilmodel': None}
 
@@ -2888,6 +2893,8 @@ the available directories (calib_1 and calib_2).
          'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
          'model.aetmodel.petmodel.retmodel.radiationmodel': None,
          'model.aetmodel.petmodel.retmodel.tempmodel': None,
+         'model.aetmodel.snowcovermodel': None,
+         'model.aetmodel.snowycanopymodel': None,
          'model.aetmodel.soilwatermodel': lland_knauf...,
          'model.radiationmodel': None,
          'model.soilmodel': None}
@@ -3348,10 +3355,10 @@ class RunModel(Model):
         ...     model.simulate(idx)
         ...     print(hp.nodes.dill_assl.sequences.sim)
         ...     hp.nodes.dill_assl.sequences.sim = 0.0
-        sim(11.757526)
-        sim(8.865079)
-        sim(7.101815)
-        sim(5.994195)
+        sim(11.757521)
+        sim(8.865071)
+        sim(7.10181)
+        sim(5.994192)
         >>> hp.nodes.dill_assl.sequences.sim.series
         InfoArray([nan, nan, nan, nan])
 
@@ -3364,7 +3371,7 @@ class RunModel(Model):
         >>> hp.reset_conditions()
         >>> hp.simulate()
         >>> round_(hp.nodes.dill_assl.sequences.sim.series)
-        11.757526, 8.865079, 7.101815, 5.994195
+        11.757521, 8.865071, 7.10181, 5.994192
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.

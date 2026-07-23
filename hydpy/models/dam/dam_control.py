@@ -450,9 +450,6 @@ class Commission(parametertools.DateParameter):
         """Always fall back to the default value if the user provides none
         (deprecated).
 
-        >>> import warnings
-        >>> warnings.filterwarnings("error")
-
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
         >>> from hydpy.models.dam import *

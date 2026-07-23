@@ -140,29 +140,29 @@ In the simplest example, we perform a simulation throughout five days for an
 |hland_control.Alpha| value of 2:
 
 >>> do_everything("1a", "1996-01-01", "1996-01-06", 2.0)
-2.0: 35.494358, 7.730125, 5.01782, 4.508775, 4.244626
+2.0: 35.494336, 7.730113, 5.017817, 4.508775, 4.244626
 
 The following example shows interlocked simulation runs.  The first call only triggers
 a simulation run for the first initialised day:
 
 >>> do_everything("1b", "1996-01-01", "1996-01-02", 2.0)
-2.0: 35.494358
+2.0: 35.494336
 
 The second call repeats the first one with a different `id` value:
 
 >>> do_everything("2", "1996-01-01", "1996-01-02", 2.0)
-2.0: 35.494358
+2.0: 35.494336
 
 The third call covers the first three initialisation days:
 
 >>> do_everything("3", "1996-01-01", "1996-01-04", 2.0)
-2.0: 35.494358, 7.730125, 5.01782
+2.0: 35.494336, 7.730113, 5.017817
 
 The fourth call continues the simulation of the first call, covering the last four
 initialised days:
 
 >>> do_everything("1b", "1996-01-02", "1996-01-06", 2.0)
-2.0: 7.730125, 5.01782, 4.508775, 4.244626
+2.0: 7.730113, 5.017817, 4.508775, 4.244626
 
 The results of the very first call of function `do_everything` (with`id=1`) are
 identical with the pulled-together discharge values of the calls with `id=1b`, made
@@ -172,15 +172,15 @@ numbers, but any other strings are valid `id` values.
 This example extends the last one by applying different parameter values:
 
 >>> do_everything("4", "1996-01-01", "1996-01-04", 2.0)
-2.0: 35.494358, 7.730125, 5.01782
+2.0: 35.494336, 7.730113, 5.017817
 >>> do_everything("5", "1996-01-01", "1996-01-04", 1.0)
-1.0: 11.757526, 8.865079, 7.101815
+1.0: 11.757521, 8.865071, 7.10181
 >>> do_everything("4", "1996-01-04", "1996-01-06", 2.0)
 2.0: 4.508775, 4.244626
 >>> do_everything("5", "1996-01-04", "1996-01-06", 1.0)
-1.0: 5.994195, 5.301584
+1.0: 5.994192, 5.301582
 >>> do_everything("5", "1996-01-01", "1996-01-06", 1.0)
-1.0: 11.757526, 8.865079, 7.101815, 5.994195, 5.301584
+1.0: 11.757521, 8.865071, 7.10181, 5.994192, 5.301582
 
 The order in which function `do_everything` calls its subfunctions seems quite natural,
 but some tools might require do deviate from it.  For example, `OpenDA`_ offers
@@ -193,9 +193,9 @@ methods support such an execution sequence:
 >>> set_itemvalues("7", "1996-01-01", "1996-01-03", 1.0)
 >>> simulate("7")
 >>> print_itemvalues("6")
-2.0: 35.494358, 7.730125
+2.0: 35.494336, 7.730113
 >>> print_itemvalues("7")
-1.0: 11.757526, 8.865079
+1.0: 11.757521, 8.865071
 
 When working in parallel mode, `OpenDA`_ might not always call the functions
 `set_itemvalues` and `simulate` for the same `id` directly one after another, which
@@ -206,9 +206,9 @@ also causes no problem:
 >>> simulate("6")
 >>> simulate("7")
 >>> print_itemvalues("6")
-2.0: 5.01782, 4.508775, 4.244626
+2.0: 5.017817, 4.508775, 4.244626
 >>> print_itemvalues("7")
-1.0: 7.101815, 5.994195, 5.301584
+1.0: 7.10181, 5.994192, 5.301582
 
 Finally, we close the server and kill its process (just closing your command-line tool
 works likewise):

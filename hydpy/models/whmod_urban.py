@@ -901,6 +901,7 @@ class Model(
         whmod_model.Get_Precipitation_V1,
         whmod_model.Get_InterceptedWater_V1,
         whmod_model.Get_SoilWater_V1,
+        whmod_model.Computes_SnowEvaporation_V1,
         whmod_model.Get_SnowCover_V1,
     )
     RUN_METHODS = (

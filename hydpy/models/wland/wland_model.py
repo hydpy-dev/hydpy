@@ -1908,10 +1908,10 @@ class Return_ErrorDV_V1(modeltools.Method):
         dg_old: float = sta.dg
         sta.dg = dg
         model.calc_dveq_v3()
-        d_delta: float = aid.dveq - sta.dv
+        delta: float = aid.dveq - sta.dv
         aid.dveq = dveq_old
         sta.dg = dg_old
-        return d_delta
+        return delta
 
 
 class Calc_DGEq_V1(modeltools.Method):

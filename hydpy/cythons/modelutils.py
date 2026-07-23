@@ -913,7 +913,6 @@ class PyxWriter:
 
     def constants(self, lines: PyxPxdLines) -> None:
         """Constants declaration lines."""
-        both = lines.add
         for name, member in vars(self.cythonizer).items():
             if (
                 name.isupper()
@@ -922,7 +921,8 @@ class PyxWriter:
             ):
                 ndim = numpy.asarray(member).ndim
                 ctype = TYPE2STR[type(member)] + NDIM2STR[ndim]
-                both(0, f"cdef public {ctype} {name} = {member}")
+                lines.pxd.add(0, f"cdef public {ctype} {name}")
+                lines.pyx.add(0, f"{name} = {member}")
 
     def parameters(self, lines: PyxPxdLines) -> None:
         """Parameter declaration lines."""
@@ -2873,8 +2873,8 @@ class FuncConverter:
           * Annotations specify all argument and return types.
           * Non-default argument and return types are translate to
             "modulename.classname" strings.
-          * Local variables are generally of type `int` but of type `double` when their
-            name starts with `d_`.
+          * Local variables are generally of type `int` but of the (C) type `double`
+            when they are annotated with (corresponding Python) type `float`.
           * Identical type names in Python and Cython when casting.
 
         We import some classes and prepare a pure-Python instance of application model
@@ -2898,18 +2898,18 @@ class FuncConverter:
         ...         flu = model.sequences.fluxes.fastaccess
         ...         inp = model.sequences.inputs.fastaccess
         ...         for k in range(con.nmbzones):
-        ...             d_pc = con.kg[k]*inp.p[k]
-        ...             flu.pc[k] = d_pc
+        ...             pc: float = con.kg[k]*inp.p[k]
+        ...             flu.pc[k] = pc
         >>> model.calc_test_v1 = MethodType(Calc_Test_V1.__call__, model)
         >>> FuncConverter(
         ...     model, "calc_test_v1", model.calc_test_v1
         ... ).pyxlines   # doctest: +ELLIPSIS
         cpdef inline void calc_test_v1(self) noexcept nogil:
-            cdef double d_pc
+            cdef double pc
             cdef ...int... k
             for k in range(self.parameters.control.nmbzones):
-                d_pc = self.parameters.control.kg[k]*self.sequences.inputs.p[k]
-                self.sequences.fluxes.pc[k] = d_pc
+                pc = self.parameters.control.kg[k]*self.sequences.inputs.p[k]
+                self.sequences.fluxes.pc[k] = pc
         <BLANKLINE>
 
         The second example shows that `float` and `Vector` annotations translate into
@@ -2985,7 +2985,7 @@ get_partialdischargedownstream()
             lines[0] = lines[0].replace(f", {name})", f", {cytype} {name})")
         code = inspect.getsource(self.realfunc)
         for name in self.untypedinternalvarnames:
-            if (f" {name}: float" in code) or name.startswith("d_"):
+            if f" {name}: float" in code:
                 cytype = TYPE2STR[float]
             else:
                 cytype = TYPE2STR[int]

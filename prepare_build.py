@@ -152,6 +152,8 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
                             pyxfile.write("        return 0.0\n")
                         elif typehints["return"] is int:
                             pyxfile.write("        return 0\n")
+                        elif typehints["return"] is bool:
+                            pyxfile.write("        return False\n")
                         else:
                             assert False
 

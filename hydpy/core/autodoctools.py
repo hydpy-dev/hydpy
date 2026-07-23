@@ -1,5 +1,5 @@
-"""This module implements tools for increasing the level of automation and
-standardisation of the online documentation generated with Sphinx."""
+"""This module implements tools to increase the level of automation and standardisation
+in the online documentation generated with Sphinx."""
 
 from __future__ import annotations
 import abc
@@ -45,7 +45,9 @@ from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import typingtools
+from hydpy.core import variabletools
 from hydpy.core.typingtools import *
+from hydpy.auxs import interptools
 
 if TYPE_CHECKING:
     from hydpy.cythons import annutils
@@ -63,6 +65,14 @@ else:
     from hydpy.cythons.autogen import quadutils
     from hydpy.cythons.autogen import rootutils
     from hydpy.cythons.autogen import smoothutils
+
+
+Member: TypeAlias = type[
+    variabletools.Variable
+    | interptools.BaseInterpolator
+    | modeltools.Method
+    | modeltools.Submodel
+]
 
 
 class Priority(enum.Enum):
@@ -252,6 +262,81 @@ def _add_lines(specification: str, module: types.ModuleType) -> list[str]:
     return lines
 
 
+def _get_member2applicationmodels(basemodelname: str) -> dict[Member, list[str]]:
+    """Determine which variable type, method type, or (old) submodel type is selected
+    (or "used") by which application models.
+
+    >>> from hydpy.core.autodoctools import _get_member2applicationmodels
+    >>> result = _get_member2applicationmodels("hland")
+    >>> from hydpy.models.hland.hland_control import Beta, K4, SG1Max
+    >>> result[Beta]
+    ['hland_96', 'hland_96c', 'hland_96p']
+    >>> result[K4]
+    ['hland_96', 'hland_96c']
+    >>> result[SG1Max]
+    ['hland_96p']
+    >>> from hydpy.models.hland.hland_model import Calc_LZ_V1
+    >>> result[Calc_LZ_V1]
+    ['hland_96']
+
+    >>> result = _get_member2applicationmodels("dam")
+    >>> from hydpy.models.dam.dam_control import WaterVolume2WaterLevel
+    >>> result[WaterVolume2WaterLevel]  # doctest: +ELLIPSIS
+    ['dam_detention', ...]
+    >>> from hydpy.models.dam.dam_model import PegasusWaterVolume
+    >>> result[PegasusWaterVolume]
+    ['dam_detention']
+    """
+    member2applicationmodels = collections.defaultdict(set)
+    basepath = models.__path__[0]
+    for filename in os.listdir(basepath):
+        filepath = os.path.join(basepath, filename)
+        if (
+            os.path.isfile(filepath)
+            and filename.startswith(basemodelname)
+            and filename.endswith(".py")
+        ):
+            applicationmodelname = filename.removesuffix(".py")
+            module = importlib.import_module(f"hydpy.models.{applicationmodelname}")
+            for handlername, tuplename in (
+                ("ControlParameters", "CLASSES"),
+                ("DerivedParameters", "CLASSES"),
+                ("FixedParameters", "CLASSES"),
+                ("SolverParameters", "CLASSES"),
+                ("InputSequences", "CLASSES"),
+                ("FactorSequences", "CLASSES"),
+                ("FluxSequences", "CLASSES"),
+                ("StateSequences", "CLASSES"),
+                ("LogSequences", "CLASSES"),
+                ("AideSequences", "CLASSES"),
+                ("InletSequences", "CLASSES"),
+                ("OutletSequences", "CLASSES"),
+                ("ReceiverSequences", "CLASSES"),
+                ("ObserverSequences", "CLASSES"),
+                ("SenderSequences", "CLASSES"),
+                ("Model", "SOLVERPARAMETERS"),
+                ("Model", "SOLVERSEQUENCES"),
+                ("Model", "ADD_METHODS"),
+                ("Model", "FULL_ODE_METHODS"),
+                ("Model", "INLET_METHODS"),
+                ("Model", "INTERFACE_METHODS"),
+                ("Model", "OBSERVER_METHODS"),
+                ("Model", "OUTLET_METHODS"),
+                ("Model", "PART_ODE_METHODS"),
+                ("Model", "RECEIVER_METHODS"),
+                ("Model", "RUN_METHODS"),
+                ("Model", "SENDER_METHODS"),
+                ("Model", "SUBMODELINTERFACES"),
+                ("Model", "SUBMODELS"),
+            ):
+                if (handler := getattr(module, handlername, None)) and (
+                    tuple_ := getattr(handler, tuplename, None)
+                ):
+                    for vt in tuple_:
+                        member2applicationmodels[vt].add(applicationmodelname)
+    return {m: sorted(ams) for m, ams in member2applicationmodels.items()}
+
+
 def autodoc_basemodel(module: types.ModuleType) -> None:
     """Add an exhaustive docstring to the given module of a basemodel.
 
@@ -263,6 +348,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
     moduledoc = namespace.get("__doc__")
     assert isinstance(moduledoc, str)
     basemodulename = namespace["__name__"].split(".")[-1]
+    member2applicationmodels = _get_member2applicationmodels(basemodulename)
     modules = {
         key: value
         for key, value in namespace.items()
@@ -284,7 +370,11 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
         assert issubclass(model, modeltools.Model)
         methods = tuple(model.get_methods())
     _extend_methoddocstrings(module)
-    _gain_and_insert_additional_information_into_docstrings(module, methods)
+    _gain_and_insert_additional_information_into_docstrings(
+        module=module,
+        allmethods=methods,
+        member2applicationmodels=member2applicationmodels,
+    )
     for title, spec2capt in (
         ("Variable Features", _VAR_SPEC2CAPT),
         ("Parameter Features", _PAR_SPEC2CAPT),
@@ -301,7 +391,11 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
                 new_lines += _add_title(caption, ".")
                 new_lines += _add_lines(specification, module)
                 substituter.add_module(module)
-                _gain_and_insert_additional_information_into_docstrings(module, methods)
+                _gain_and_insert_additional_information_into_docstrings(
+                    module=module,
+                    allmethods=methods,
+                    member2applicationmodels=member2applicationmodels,
+                )
         if found_module:
             lines += new_lines
     moduledoc += "\n".join(lines)
@@ -404,7 +498,10 @@ def _get_methoddocstringinsertions(method: modeltools.Method) -> list[str]:
 
 
 def _gain_and_insert_additional_information_into_docstrings(
-    module: types.ModuleType, allmethods: tuple[type[modeltools.Method], ...]
+    *,
+    module: types.ModuleType,
+    allmethods: tuple[type[modeltools.Method], ...],
+    member2applicationmodels: dict[Member, list[str]],
 ) -> None:
     for value in vars(module).values():
         insertions = []
@@ -433,6 +530,26 @@ def _gain_and_insert_additional_information_into_docstrings(
                 )
                 insertions.extend(sorted(subinsertions))
                 insertions.append("\n")
+
+        if (
+            inspect.isclass(value)
+            and issubclass(
+                value,
+                variabletools.Variable
+                | interptools.BaseInterpolator
+                | modeltools.Method
+                | modeltools.Submodel,
+            )
+            and (applicationmodels := member2applicationmodels.get(value))
+        ):
+            insertions.append(
+                f"    Used by the "
+                f"application model{_get_ending(applicationmodels)}:"
+            )
+            insertions.extend(
+                f"      :mod:`~hydpy.models.{am}`" for am in applicationmodels
+            )
+            insertions.append("\n")
 
         _insert_links_into_docstring(value, "\n".join(insertions))
 
@@ -1723,8 +1840,10 @@ class SubmodelGraph:
         >>> selected = tuple(selected.values())[0][0]
         >>> for model, subgraph in selected.items():
         ...     print(model.__HYDPY_NAME__, *(port.name for port in subgraph))
-        evap_aet_hbv96 intercmodel petmodel snowcovermodel soilwatermodel tempmodel
-        evap_aet_minhas intercmodel petmodel soilwatermodel
+        evap_aet_hbv96 intercmodel petmodel snowcovermodel snowycanopymodel \
+soilwatermodel tempmodel
+        evap_aet_minhas intercmodel petmodel snowcovermodel snowycanopymodel \
+soilwatermodel
         evap_aet_morsim intercmodel radiationmodel snowalbedomodel snowcovermodel \
 snowycanopymodel soilwatermodel tempmodel
 

@@ -73,9 +73,7 @@ Sequence1: TypeAlias = Union[T_inv, Sequence[T_inv]]
 Sequence2: TypeAlias = Union[T1, T2, Sequence[T1 | T2]]
 Sequence3: TypeAlias = Union[T1, T2, T3, Sequence[T1 | T2 | T3]]
 
-Float_co = TypeVar("Float_co", covariant=True)
-Float1 = TypeVar("Float1", bound=float)
-Float2 = TypeVar("Float2", bound=float)
+Float = TypeVar("Float", bound=float)
 
 Scalar = TypeVar(
     "Scalar",
@@ -302,6 +300,7 @@ __all__ = [
     "Collection3",
     "DeployMode",
     "Final",
+    "Float",
     "Generator",
     "Generic",
     "get_type_hints",

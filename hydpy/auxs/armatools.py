@@ -905,7 +905,7 @@ far.
         result = numpy.linalg.lstsq(
             self.get_a(values, ar_order), self.get_b(values, ar_order), rcond=-1
         )
-        self.ar_coefs = cast(VectorFloat, result[0])
+        self.ar_coefs = result[0]
         residuals = result[1]
         if len(residuals) == 1:
             self._rel_rmse = numpy.sqrt(residuals[0]) / numpy.sum(values)

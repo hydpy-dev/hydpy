@@ -62,6 +62,8 @@ evapotranspiration), air temperature, intercepted water, soil water, and snow co
 >>> with model.add_soilwatermodel_v1("dummy_soilwater"):
 ...     pass
 >>> with model.add_snowcovermodel_v1("dummy_snowcover"):
+...     computessnowevaporation(False)
+>>> with model.add_snowycanopymodel_v1("dummy_snowycanopy"):
 ...     pass
 
 Now, we can initialise an |IntegrationTest| object:
@@ -91,6 +93,7 @@ The first snow cover value represents summer conditions (like in the
 :ref:`hland_96_field` example), while the second represents winter conditions:
 
 >>> model.snowcovermodel.sequences.inputs.snowcover.series = [[0.0], [1.0]]
+>>> model.snowycanopymodel.sequences.inputs.snowycanopy.series = [[0.0], [1.0]]
 
 .. _evap_aet_hbv96_vegetated_soil:
 
@@ -112,10 +115,32 @@ evapotranspiration but does not affect interception evaporation:
 .. integration-test::
 
     >>> test()
-    |  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
-    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |               0.021469 |
-    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |                    0.0 |
+    |  date | airtemperature | interceptedwater | soilwater | snowcover | snowycanopy | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |         0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |               0.021469 |
+    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |         1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |                    0.0 |
+
+.. _evap_aet_hbv96_snow_evaporation:
+
+snow evaporation
+________________
+
+If the corresponding snow routine calculates snow evaporation separately,
+|evap_aet_hbv96| deviates from HBV96's behaviour by also reducing interception
+evaporation to prevent double counting (see method |Calc_InterceptionEvaporation_V1| for
+related special cases):
+
+>>> model.snowcovermodel.parameters.control.computessnowevaporation(True)
+
+.. integration-test::
+
+    >>> test()
+    |  date | airtemperature | interceptedwater | soilwater | snowcover | snowycanopy | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |         0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |               0.021469 |
+    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |         1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                     0.0 |                    0.0 |
+
+>>> model.snowcovermodel.parameters.control.computessnowevaporation(False)
 
 .. _evap_aet_hbv96_bare_soil:
 
@@ -135,10 +160,10 @@ evapotranspiration:
 .. integration-test::
 
     >>> test()
-    |  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
-    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                     0.0 |               0.042937 |
-    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                     0.0 |                    0.0 |
+    |  date | airtemperature | interceptedwater | soilwater | snowcover | snowycanopy | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |         0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                     0.0 |               0.042937 |
+    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |         1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                     0.0 |                    0.0 |
 
 .. _evap_aet_hbv96_sealed_soil:
 
@@ -156,10 +181,10 @@ The results are consistent with those of the previous examples:
 .. integration-test::
 
     >>> test()
-    |  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
-    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |                    0.0 |
-    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |                    0.0 |
+    |  date | airtemperature | interceptedwater | soilwater | snowcover | snowycanopy | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |         0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |                    0.0 |
+    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |         1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |                    0.0 |
 
 .. _evap_aet_hbv96_water_area:
 
@@ -179,10 +204,10 @@ evaporation:
 .. integration-test::
 
     >>> test()
-    |  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
-    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |          0.06896 |                     0.0 |                    0.0 |
-    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                     0.0 |                    0.0 |
+    |  date | airtemperature | interceptedwater | soilwater | snowcover | snowycanopy | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |         0.0 |                          0.06896 |                         0.06896 |                   0.06896 |          0.06896 |                     0.0 |                    0.0 |
+    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |         1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                     0.0 |                    0.0 |
 
 unequal potential values, soil
 ______________________________
@@ -250,6 +275,7 @@ degree correspond to the previous examples:
 >>> model.intercmodel.sequences.inputs.interceptedwater.series = 2.0
 >>> model.soilwatermodel.sequences.inputs.soilwater.series = 99.622389
 >>> model.snowcovermodel.sequences.inputs.snowcover.series = [[0.0], [1.0]]
+>>> model.snowycanopymodel.sequences.inputs.snowycanopy.series = [[0.0], [1.0]]
 
 The following results are comparable to the :ref:`evap_aet_hbv96_vegetated_soil`
 example:
@@ -260,10 +286,10 @@ example:
     >>> soil(True)
     >>> water(False)
     >>> test()
-    |  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
-    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          3.42978 |                        2.604398 |                       0.0 |              0.0 |                     2.0 |               1.422518 |
-    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                         0.482794 |                         0.30027 |                       0.0 |              0.0 |                0.482794 |                    0.0 |
+    |  date | airtemperature | interceptedwater | soilwater | snowcover | snowycanopy | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |         0.0 |                          3.42978 |                        2.604398 |                       0.0 |              0.0 |                     2.0 |               1.422518 |
+    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |         1.0 |                         0.482794 |                         0.30027 |                       0.0 |              0.0 |                0.482794 |                    0.0 |
 
 unequal potential values, water
 _______________________________
@@ -278,10 +304,10 @@ surface does not suppress evaporation:
     >>> soil(False)
     >>> water(True)
     >>> test()
-    |  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
-    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                              0.0 |                             0.0 |                  3.576338 |         3.576338 |                     0.0 |                    0.0 |
-    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                              0.0 |                             0.0 |                  0.449853 |              0.0 |                     0.0 |                    0.0 |
+    |  date | airtemperature | interceptedwater | soilwater | snowcover | snowycanopy | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |         0.0 |                              0.0 |                             0.0 |                  3.576338 |         3.576338 |                     0.0 |                    0.0 |
+    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |         1.0 |                              0.0 |                             0.0 |                  0.449853 |              0.0 |                     0.0 |                    0.0 |
 """
 
 from hydpy.core import modeltools
@@ -301,6 +327,7 @@ class Model(
     evap_model.Main_IntercModel_V1,
     evap_model.Main_SoilWaterModel_V1,
     evap_model.Main_SnowCoverModel_V1,
+    evap_model.Main_SnowyCanopyModel_V1,
     evap_model.Sub_ETModel,
     aetinterfaces.AETModel_V1,
 ):
@@ -339,7 +366,9 @@ class Model(
         evap_model.Calc_InterceptedWater_V1,
         evap_model.Calc_InterceptionEvaporation_V1,
         evap_model.Calc_SoilWater_V1,
+        evap_model.Has_SnowEvaporation_V1,
         evap_model.Calc_SnowCover_V1,
+        evap_model.Calc_SnowyCanopy_V1,
         evap_model.Calc_PotentialSoilEvapotranspiration_PETModel_V1,
         evap_model.Calc_PotentialSoilEvapotranspiration_PETModel_V2,
         evap_model.Calc_PotentialSoilEvapotranspiration_V2,
@@ -351,6 +380,7 @@ class Model(
         evap_model.Calc_InterceptedWater_IntercModel_V1,
         evap_model.Calc_SoilWater_SoilWaterModel_V1,
         evap_model.Calc_SnowCover_SnowCoverModel_V1,
+        evap_model.Calc_SnowyCanopy_SnowyCanopyModel_V1,
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
@@ -365,7 +395,12 @@ class Model(
     ](petinterfaces.PETModel_V1, petinterfaces.PETModel_V2)
     intercmodel = modeltools.SubmodelProperty(stateinterfaces.IntercModel_V1)
     soilwatermodel = modeltools.SubmodelProperty(stateinterfaces.SoilWaterModel_V1)
-    snowcovermodel = modeltools.SubmodelProperty(stateinterfaces.SnowCoverModel_V1)
+    snowcovermodel = modeltools.SubmodelProperty(
+        stateinterfaces.SnowCoverModel_V1, optional=True
+    )
+    snowycanopymodel = modeltools.SubmodelProperty(
+        stateinterfaces.SnowyCanopyModel_V1, optional=True
+    )
 
 
 tester = Tester()

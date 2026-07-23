@@ -1,6 +1,6 @@
 [Application]
 name = HydPy
-version = 6.3dev3-cp[auto]-win_amd64
+version = 6.5dev0-cp[auto]-win_amd64
 entry_point = execute_exe:execute_scriptfunction
 console = true
 icon = logo.ico
@@ -45,11 +45,9 @@ pypi_wheels =
     pyparsing==[auto]
     python-dateutil==[auto]
     pytokens==[auto]
-    pytz==[auto]
     scipy==[auto]
     setuptools==[auto]
     six==[auto]
-    tenacity==[auto]
     typeguard==[auto]
     typing_extensions==[auto]
     xmlschema==[auto]

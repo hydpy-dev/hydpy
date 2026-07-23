@@ -466,45 +466,45 @@ def check_threading(
     >>> kalk = hp.nodes.lahn_kalk
 
     >>> check_threading(hp, kalk.sequences.sim)
-    54.019337, 37.257561, 31.865308, 28.359542
+    54.019332, 37.257552, 31.865302, 28.359538
 
     >>> check_threading(hp, kalk.sequences.sim, "1996-01-03")
-    54.019337, 37.257561, 31.865308, 28.359542
+    54.019332, 37.257552, 31.865302, 28.359538
 
     >>> leun.deploymode = "oldsim"
     >>> leun.sequences.sim.series -= 10.0
     >>> check_threading(hp, kalk.sequences.sim)
-    44.019337, 27.257561, 21.865308, 18.359542
+    44.019332, 27.257552, 21.865302, 18.359538
 
     >>> leun.deploymode = "obs"
     >>> leun.sequences.obs.series = 0.0
     >>> check_threading(hp, kalk.sequences.sim)
-    11.672862, 10.100089, 8.984317, 8.202706
+    11.672862, 10.100089, 8.984318, 8.202706
 
     >>> leun.deploymode = "obs"
     >>> leun.sequences.obs.series = 0.0
     >>> check_threading(hp, kalk.sequences.sim)
-    11.672862, 10.100089, 8.984317, 8.202706
+    11.672862, 10.100089, 8.984318, 8.202706
 
     >>> from numpy import nan
     >>> with pub.options.checkseries(False):
     ...     leun.sequences.obs.series= 0.0, nan, 0.0, nan
     >>> check_threading(hp, kalk.sequences.sim)
-    11.672862, nan, 8.984317, nan
+    11.672862, nan, 8.984318, nan
 
     >>> leun.deploymode = "obs_newsim"
     >>> check_threading(hp, kalk.sequences.sim)
-    11.672862, 37.257561, 8.984317, 28.359542
+    11.672862, 37.257552, 8.984318, 28.359538
 
     >>> leun.deploymode = "obs_oldsim"
     >>> leun.sequences.sim.series = 32.3697, 17.210443, 12.930066, 10.20133
     >>> check_threading(hp, kalk.sequences.sim)
-    11.672862, 27.310532, 8.984317, 18.404036
+    11.672862, 27.310532, 8.984318, 18.404036
 
     >>> leun.deploymode = "newsim"
     >>> leun.sequences.sim.series = 32.3697, 17.210443, 12.930066, 10.20133
     >>> check_threading(hp, kalk.sequences.sim)
-    54.019337, 37.257561, 31.865308, 28.359542
+    54.019332, 37.257552, 31.865302, 28.359538
 
     Tests based on the interpolation example project (with the primary goal of checking
     if the input node mechanism is properly supported within the parallelisable part

@@ -1409,7 +1409,7 @@ attribute nor a rule object named `FC`...
     anymore:
 
     >>> round_(ci.result)
-    -0.854165
+    -0.854163
 
     Use method |CalibrationInterface.reset_parameters| to restore the initial states of
     all affected parameters:
@@ -1458,7 +1458,7 @@ attribute nor a rule object named `FC`...
     >>> ci.reset_parameters()
     >>> import math
     >>> round_(ci.perform_calibrationstep([100.0, 5.0, 0.3, math.log(0.04)]))
-    -0.854165
+    -0.854163
 
     Note that we passed the last value log-transformed because optimisers should only
     "see" the transformed (in this case, log-transformed) values.  If you want to check
@@ -1467,7 +1467,7 @@ attribute nor a rule object named `FC`...
 
     >>> ci.reset_parameters()
     >>> round_(ci.perform_calibrationstep([100.0, 5.0, 0.3, 0.04], transformed=False))
-    -0.854165
+    -0.854163
 
     Method |CalibrationInterface.perform_calibrationstep| writes intermediate results
     into a log file, if available.  Prepare it beforehand via method
@@ -1490,7 +1490,7 @@ attribute nor a rule object named `FC`...
     <BLANKLINE>
     NSE	fc	percmax	damp	k4
     parameterstep	None	1d	None	1d
-    -0.854165	100.0	5.0	0.3	0.04
+    -0.854163	100.0	5.0	0.3	0.04
     <BLANKLINE>
 
     To prevent (automatic) calibration runs from crashing due to IO problems, method
@@ -1512,8 +1512,8 @@ following problem occured: [Errno 2] No such file or directory: 'dirname1/filena
     ...     ci.update_logfile()
     ...     with open("dirname1/filename.log") as file_:
     ...         print(file_.read())
-    -0.854165	100.0	5.0	0.3	0.04
-    -0.854165	100.0	5.0	0.3	0.04
+    -0.854163	100.0	5.0	0.3	0.04
+    -0.854163	100.0	5.0	0.3	0.04
     <BLANKLINE>
 
     Call method |CalibrationInterface.finalise_logfile| to ensure the
@@ -1550,7 +1550,7 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     ...     ci.finalise_logfile()
     ...     with open("dirname2/filename.log") as file_:
     ...         print(file_.read())
-    -0.854165	100.0	5.0	0.3	0.04
+    -0.854163	100.0	5.0	0.3	0.04
     <BLANKLINE>
 
     >>> ci._logfilepath = "example_calibration.log"
@@ -1588,10 +1588,10 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     <BLANKLINE>
     NSE	fc	percmax	damp	k4
     parameterstep	None	1d	None	1d
-    -0.854165	100.0	5.0	0.3	0.04
-    -88.309474	50.0	1.0	0.0	0.005
-    -0.406115	200.0	10.0	0.5	0.05
-    -0.854165	100.0	5.0	0.3	0.04
+    -0.854163	100.0	5.0	0.3	0.04
+    -88.309478	50.0	1.0	0.0	0.005
+    -0.406116	200.0	10.0	0.5	0.05
+    -0.854163	100.0	5.0	0.3	0.04
     <BLANKLINE>
 
     Class |CalibrationInterface| also provides method
@@ -1610,9 +1610,9 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     >>> ci.k4.value
     0.05
     >>> round_(ci.result)
-    -0.406115
+    -0.406116
     >>> round_(ci.apply_values())
-    -0.406115
+    -0.406116
 
     On the contrary, if we set argument `maximisation` to |False|, method
     |CalibrationInterface.read_logfile| returns the worst result in our example:
@@ -1628,9 +1628,9 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     >>> ci.k4.value
     0.005
     >>> round_(ci.result)
-    -88.309474
+    -88.309478
     >>> round_(ci.apply_values())
-    -88.309474
+    -88.309478
 
     To prevent errors due to different parameter step sizes, method
     |CalibrationInterface.read_logfile| raises the following error whenever it detects

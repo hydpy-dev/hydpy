@@ -22,19 +22,18 @@ extension_modules = [
 
 setuptools.setup(
     name="HydPy",
-    version="6.3dev3",
+    version="6.5dev0",
     description="A framework for the development and application of hydrological "
     "models.",
     long_description=long_description,
     author="HydPy Developers",
     author_email="c.tyralla@bjoernsen.de",
     url="https://github.com/hydpy-dev/hydpy",
-    license="LGPL-3.0",
+    license_expression="LGPL-3.0-only",
     classifiers=[
         "Intended Audience :: Education",
         "Intended Audience :: End Users/Desktop",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Operating System :: POSIX :: Linux",
         "Operating System :: Microsoft :: Windows",
         "Programming Language :: Python :: 3.11",

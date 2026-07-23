@@ -2087,13 +2087,27 @@ following error occurred: Adding devices to immutable Elements objects is not al
             self._deploymode = "newsim"
             self.__blackhole = pointerutils.Double(0.0)
             delattr(self, "new_instance")
-        if (variable is not None) and (variable != self.variable):
-            raise ValueError(
-                f"The variable to be represented by a {type(self).__name__} instance "
-                f"cannot be changed.  The variable of node `{self.name}` is "
-                f"`{self.variable}` instead of `{variable}`.  Keep in mind, that "
-                f"`name` is the unique identifier of node objects."
-            )
+        if (new := variable) is not None:
+            old = self.variable
+            fused = FusedVariable
+            if ((isinstance(new, fused) + isinstance(old, fused)) == 1) or (new != old):
+                explanations = []
+                for var in [new, old]:
+                    if isinstance(var, str):
+                        explanations.append("text-based variable")
+                    elif isinstance(var, FusedVariable):
+                        explanations.append("fused variable")
+                    elif issubclass(var, sequencetools.Sequence_):
+                        explanations.append("normal variable")
+                    else:
+                        assert_never(var)
+                raise ValueError(
+                    f"The variable to be represented by a {type(self).__name__} "
+                    f"instance cannot be changed.  The {explanations[1]} of node "
+                    f"`{self.name}` is `{old}` instead of the {explanations[0]} "
+                    f"`{new}`.  Keep in mind, that `name` is the unique identifier of "
+                    f"node objects."
+                )
         if keywords is not None:
             self.keywords = keywords
 
@@ -2128,8 +2142,8 @@ following error occurred: Adding devices to immutable Elements objects is not al
         Each other string, as well as each |InputSequence| subclass, is acceptable (for
         further information, see the documentation on method |Model.connect|):
 
-        >>> Node("test2", variable="H")
-        Node("test2", variable="H")
+        >>> Node("test2", variable="WaterLevel")
+        Node("test2", variable="WaterLevel")
         >>> from hydpy.models.hland.hland_inputs import T
         >>> Node("test3", variable=T)
         Node("test3", variable=hland_inputs_T)
@@ -2154,16 +2168,36 @@ following error occurred: Adding devices to immutable Elements objects is not al
 
         To avoid confusion, one cannot change |Node.variable|:
 
-        >>> node.variable = "H"  # doctest: +ELLIPSIS
+        >>> node.variable = "WaterLevel"  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         AttributeError: ...
-        >>> Node("test1", variable="H")
+
+        >>> Node("test1", variable="WaterLevel")
         Traceback (most recent call last):
         ...
         ValueError: The variable to be represented by a Node instance cannot be \
-changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, that \
-`name` is the unique identifier of node objects.
+changed.  The text-based variable of node `test1` is `Q` instead of the text-based \
+variable `WaterLevel`.  Keep in mind, that `name` is the unique identifier of node \
+objects.
+
+        >>> from hydpy.aliases import dam_factors_WaterLevel, wland_states_HS
+        >>> stage = FusedVariable("stage", dam_factors_WaterLevel, wland_states_HS)
+        >>> Node("test2", variable=stage)
+        Traceback (most recent call last):
+        ...
+        ValueError: The variable to be represented by a Node instance cannot be \
+changed.  The text-based variable of node `test2` is `WaterLevel` instead of the \
+fused variable `stage`.  Keep in mind, that `name` is the unique identifier of node \
+objects.
+
+        >>> Node("test2", variable=dam_factors_WaterLevel)
+        Traceback (most recent call last):
+        ...
+        ValueError: The variable to be represented by a Node instance cannot be \
+changed.  The text-based variable of node `test2` is `WaterLevel` instead of the \
+normal variable `<class 'hydpy.models.dam.dam_factors.WaterLevel'>`.  Keep in mind, \
+that `name` is the unique identifier of node objects.
         """
         return self._variable
 
@@ -2655,7 +2689,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
                 ps.plot(ax=pyplot.gca(), **kwargs)
             pyplot.legend()
             if not focus:
-                pyplot.ylim((0.0, None))
+                pyplot.ylim((0.0, None))  # type: ignore[arg-type]
             if pyplot.get_fignums():
                 pyplot.ylabel(self._ylabel)
             return pyplot.gcf()
@@ -2736,8 +2770,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         ...
         ValueError: While trying to plot the duration curves of the sequences obs and \
 sim of node `dill_assl` for the period `1996-01-01 00:00:00` to `1996-06-01 00:00:00`, \
-the following error occurred: '.' is not a valid value for ls; supported values are \
-'-', '--', '-.', ':', 'None', ' ', '', 'solid', 'dashed', 'dashdot', 'dotted'
+the following error occurred: '.' is not a valid value for ls. Did you mean: '-.'?
         """
 
         t = TypeVar("t", str, int)
@@ -3729,7 +3762,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         lines = [l for l in pyplot.legend().get_lines() if l.get_label() != "None"]
         pyplot.legend(handles=lines)
         if not focus:
-            pyplot.ylim((0.0, None))
+            pyplot.ylim((0.0, None))  # type: ignore[arg-type]
         return pyplot.gcf()
 
     def _query_iosequences(

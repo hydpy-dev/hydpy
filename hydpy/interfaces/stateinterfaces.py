@@ -45,6 +45,11 @@ class SnowCoverModel_V1(modeltools.SubmodelInterface):
         """Set the number of zones in which the actual calculations take place."""
 
     @modeltools.abstractmodelmethod
+    def computes_snowevaporation(self) -> bool:
+        """Flag that indicates whether the relevant snow model computes snow
+        evaporation."""
+
+    @modeltools.abstractmodelmethod
     def get_snowcover(self, k: int) -> float:
         """Get the selected zone's snow cover degree as a fraction."""
 

@@ -274,7 +274,7 @@ given.
                 )
             idx0 = date0.to_string(style="iso1")
             idx1 = (date1 - tg.stepsize).to_string(style="iso1")
-            selected_dates = dataframe.loc[idx0:idx1]  # type: ignore[misc]
+            selected_dates = dataframe.loc[idx0:idx1]
             dataframe_selected = pandas.concat([selected_dates, dataframe_selected])
     elif (date_ranges is None) and (months is not None):
         for month in months:

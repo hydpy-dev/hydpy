@@ -188,13 +188,13 @@ class Determine_Outflow_V2(modeltools.Method):
             for _ in range(con.nmbsteps):
                 sta.sc[0] += der.dt * flu.inflow
                 for j in range(con.nmbstorages - 1):
-                    d_q = min(der.dt * der.ksc * sta.sc[j], sta.sc[j])
-                    sta.sc[j] -= d_q
-                    sta.sc[j + 1] += d_q
+                    q: float = min(der.dt * der.ksc * sta.sc[j], sta.sc[j])
+                    sta.sc[j] -= q
+                    sta.sc[j + 1] += q
                 j = con.nmbstorages - 1
-                d_q = min(der.dt * der.ksc * sta.sc[j], sta.sc[j])
-                sta.sc[j] -= d_q
-                flu.outflow += d_q
+                q = min(der.dt * der.ksc * sta.sc[j], sta.sc[j])
+                sta.sc[j] -= q
+                flu.outflow += q
 
 
 class Set_Inflow_V1(modeltools.Method):

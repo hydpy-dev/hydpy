@@ -244,6 +244,8 @@ import contextlib
 import itertools
 import math
 import os
+import shutil
+import tempfile
 import time
 import warnings
 
@@ -424,7 +426,7 @@ def summarise_ncfile(ncfile: netcdf4.Dataset | str, /) -> str:
         return "\n".join(lines)
 
     if isinstance(ncfile, str):
-        with netcdf4.Dataset(ncfile, "r") as ncfile_:
+        with _netcdf_dataset_context(ncfile, "r") as ncfile_:
             return _summarize(ncfile_)
     return _summarize(ncfile)
 
@@ -510,6 +512,22 @@ def write_ncfile(
              "1d")
     series_1: 1.0, 2.0, 3.0
     series_2: 2.0, 3.0, 4.0
+
+    The same works for paths containing non-ASCII characters:
+
+    >>> import os
+    >>> with TestIO():
+    ...     os.mkdir("ärgerlich")
+    ...     write_ncfile(
+    ...         filepath="ärgerlich/my_ncfile.nc",
+    ...         sequence="my_sequence",
+    ...         data=[("series_1", [1.0, 2.0, 3.0]), ("series_2", [2.0, 3.0, 4.0])],
+    ...         timegrid=Timegrid("2000-01-01", "2000-01-04", "1d"),
+    ...     )
+    ...     os.chdir("ärgerlich")
+    ...     with Dataset("my_ncfile.nc") as ncfile:
+    ...          print_vector(ncfile["my_sequence"][:, 0])
+    1.0, 2.0, 3.0
 
     Function |write_ncfile| checks if all time series fit the given |Timegrid|
     instance:
@@ -1139,6 +1157,118 @@ def get_filepath(ncfile: netcdf4.Dataset) -> str:
     return cast(str, filepath)
 
 
+def _contains_nonascii(string: str) -> bool:
+    try:
+        string.encode("ascii")
+    except UnicodeEncodeError:
+        return True
+    return False
+
+
+def _query_ascii_tempdir() -> str:
+    tempdir = tempfile.gettempdir()
+    if _contains_nonascii(tempdir):
+        tempdir = os.path.abspath(os.sep)
+    return os.path.join(tempdir, "HydPy_NetCDF")
+
+
+class _NetCDFDatasetHandle:
+    """Handle NetCDF files with fallback support for non-ASCII paths."""
+
+    _filepath_temp: str | None
+    _filepath_target: str | None
+    _writeback: bool
+
+    def __init__(
+        self,
+        dataset: netcdf4.Dataset,
+        filepath_temp: str | None = None,
+        filepath_target: str | None = None,
+        writeback: bool = False,
+    ) -> None:
+        self.dataset = dataset
+        self._filepath_temp = filepath_temp
+        self._filepath_target = filepath_target
+        self._writeback = writeback
+
+    def close(self) -> None:
+        self.dataset.close()
+        if self._writeback and self._filepath_temp and self._filepath_target:
+            os.makedirs(os.path.dirname(self._filepath_target) or ".", exist_ok=True)
+            os.replace(self._filepath_temp, self._filepath_target)
+            self._filepath_temp = None
+        if self._filepath_temp and os.path.exists(self._filepath_temp):
+            os.remove(self._filepath_temp)
+
+
+def _open_netcdf_dataset_via_temporary_file(
+    filepath: str, mode: Literal["r", "w", "r+"]
+) -> _NetCDFDatasetHandle:
+    tempdir = _query_ascii_tempdir()
+    os.makedirs(tempdir, exist_ok=True)
+    _, ext = os.path.splitext(filepath)
+    with tempfile.NamedTemporaryFile(
+        prefix="hydpy_netcdf_", suffix=ext or ".nc", dir=tempdir, delete=False
+    ) as temp_file:
+        filepath_temp = temp_file.name
+    if mode == "w":
+        os.remove(filepath_temp)
+    else:
+        shutil.copyfile(filepath, filepath_temp)
+    return _NetCDFDatasetHandle(
+        netcdf4.Dataset(filepath_temp, mode),
+        filepath_temp=filepath_temp,
+        filepath_target=filepath,
+        writeback=mode in ("w", "r+"),
+    )
+
+
+def open_netcdf_dataset(
+    filepath: str, mode: Literal["r", "w", "r+"]
+) -> _NetCDFDatasetHandle:
+    """Open a NetCDF file while working around known non-ASCII path issues.
+
+    >>> from hydpy import TestIO
+    >>> from hydpy.core.netcdftools import open_netcdf_dataset
+    >>> from hydpy.core.netcdftools import netcdf4
+    >>> class DummyDataset:
+    ...     def __init__(self, filepath, mode):
+    ...         if ("ä" in filepath) and ("HydPy_netcdf" not in filepath):
+    ...             raise FileNotFoundError(2, "No such file or directory", filepath)
+    ...         self.filepath = filepath
+    ...     def __getitem__(self, key):
+    ...         return None
+    ...     def close(self):
+    ...         return None
+    >>> dataset = netcdf4.Dataset
+    >>> netcdf4.Dataset = DummyDataset
+    >>> with TestIO():
+    ...     with open("ärgerlich.nc", "w", encoding="utf-8") as file_:
+    ...         _ = file_.write("test")
+    ...     handle = open_netcdf_dataset("ärgerlich.nc", "r")
+    ...     print("HydPy_netcdf" in handle.dataset.filepath)
+    ...     handle.close()
+    True
+    >>> netcdf4.Dataset = dataset
+    """
+    if _contains_nonascii(filepath):
+        if mode in ("r", "r+") and not os.path.exists(filepath):
+            return _NetCDFDatasetHandle(netcdf4.Dataset(filepath, mode))
+        return _open_netcdf_dataset_via_temporary_file(filepath, mode)
+    return _NetCDFDatasetHandle(netcdf4.Dataset(filepath, mode))
+
+
+@contextlib.contextmanager
+def _netcdf_dataset_context(
+    filepath: str, mode: Literal["r", "w", "r+"]
+) -> Iterator[netcdf4.Dataset]:
+    handle = open_netcdf_dataset(filepath, mode)
+    try:
+        yield handle.dataset
+    finally:
+        handle.close()
+
+
 def _timereference_currenttime(sequence: sequencetools.IOSequence) -> bool:
     return isinstance(sequence, sequencetools.StateSequence)
 
@@ -1692,7 +1822,7 @@ handle a sequence for the (sub)device `element2` nor define a member named \
         See the general documentation on class |NetCDFVariableFlat| for some examples.
         """
         try:
-            with netcdf4.Dataset(self.filepath, "r") as ncfile:
+            with _netcdf_dataset_context(self.filepath, "r") as ncfile:
                 timegrid = query_timegrid(ncfile, self._anysequence)
                 array = query_array(ncfile, self.name)
                 idxs: tuple[Any] = (slice(None),)
@@ -1883,7 +2013,7 @@ series data for the (sub)device `element2` nor define a member named `element2`.
         history: str | None,
     ) -> None:
 
-        with netcdf4.Dataset(filepath, "w") as ncfile:
+        with _netcdf_dataset_context(filepath, "w") as ncfile:
 
             if history:
                 ncfile.history = history
@@ -2771,12 +2901,42 @@ data for (sub)device `land_lahn_kalk_0` is available in NetCDF file \
         54.019332, 37.257552, 31.865302, 28.359538
         42.34647, 27.157463, 22.880985, 20.156832
         0.0, 0.0, 0.0, 0.0
+
+        Finally, we verify that this also works from non-ASCII paths and that JIT
+        writing changes the NetCDF file content:
+
+        >>> from hydpy.core.testtools import prepare_full_example_1
+        >>> from hydpy import HydPy, pub, TestIO
+        >>> import os, shutil
+        >>> from hydpy import print_vector
+        >>> from hydpy.core.netcdftools import open_netcdf_dataset
+        >>> with TestIO(), pub.options.threads(0):
+        ...     dirname = "äpfel"
+        ...     if os.path.exists(dirname):
+        ...         shutil.rmtree(dirname)
+        ...     prepare_full_example_1(dirname)
+        ...     hp = HydPy(f"{dirname}/HydPy-H-Lahn")
+        ...     pub.timegrids = "1996-01-01", "1996-01-05", "1d"
+        ...     hp.prepare_network()
+        ...     hp.prepare_models()
+        ...     hp.load_conditions()
+        ...     hp.prepare_inputseries(allocate_ram=False, read_jit=True)
+        ...     hp.prepare_factorseries(allocate_ram=True, write_jit=True)
+        ...     hp.simulate()
+        >>> filepath = "äpfel/HydPy-H-Lahn/series/default/hland_96_factor_tc.nc"
+        >>> with TestIO():
+        ...     handle = open_netcdf_dataset(filepath, "r")
+        ...     print_vector(handle.dataset["hland_96_factor_tc"][:, 0])
+        ...     handle.close()
+        1.323207, 0.823207, -1.076793, -5.476793
+        >>> hp.prepare_factorseries(allocate_ram=False, write_jit=False)
         """
 
         readers: list[JITAccessInfo] = []
         writers: list[JITAccessInfo] = []
         variable2readmode: dict[FlatUnion, bool] = {}
         variable2ncfile: dict[FlatUnion, netcdf4.Dataset] = {}
+        variable2nchandle: dict[FlatUnion, _NetCDFDatasetHandle] = {}
         variable2infos: dict[FlatUnion, list[JITAccessInfo]] = {}
         variable2sequences: collections.defaultdict[
             FlatUnion, list[sequencetools.IOSequence]
@@ -2825,8 +2985,10 @@ data for (sub)device `land_lahn_kalk_0` is available in NetCDF file \
                                         disabled[sequence] = sequence.seriesmode
                                 continue
                             variable.write()
-                        ncfile = netcdf4.Dataset(filepath, "r+")
+                        nchandle = open_netcdf_dataset(filepath, "r+")
+                        ncfile = nchandle.dataset
                         variable2ncfile[variable] = ncfile
+                        variable2nchandle[variable] = nchandle
                         sequence = variable2sequences[variable][0]
                         tg_variable = query_timegrid(ncfile, sequence)
                         if tg_sim not in tg_variable:
@@ -2881,8 +3043,8 @@ data for (sub)device `land_lahn_kalk_0` is available in NetCDF file \
         finally:
             for sequence, seriesmode in disabled.items():
                 sequence.seriesmode = seriesmode
-            for ncfile in variable2ncfile.values():
-                ncfile.close()
+            for nchandle in variable2nchandle.values():
+                nchandle.close()
 
 
 def add_netcdfreading(wrapped: Callable[P_, None]) -> Callable[P_, None]:

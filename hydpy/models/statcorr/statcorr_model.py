@@ -242,37 +242,6 @@ class Calc_OutputCorr_V1(modeltools.Method):
                 ).get_correctedoutput()
 
 
-class Pass_Q_V1(modeltools.Method):
-    """Update the outlet link sequence.
-
-    Basic equation:
-        :math:`Q_{outlets} = Q_{fluxes} + Q_{inputs}`
-
-    |Pass_Q_V1| is used, for example, by |statcorr_test|, not by |statcorr| itself
-    (which uses |Pass_CorrectedQ_V1| instead):
-
-    Example:
-
-        >>> from hydpy.models.statcorr_test import *
-        >>> parameterstep()
-        >>> fluxes.inflow = 2.0
-        >>> inputs.discharge = 1.0
-        >>> model.pass_q_v1()
-        >>> outlets.q
-        q(3.0)
-    """
-
-    REQUIREDSEQUENCES = (statcorr_fluxes.Inflow, statcorr_inputs.Discharge)
-    RESULTSEQUENCES = (statcorr_outlets.Q,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, /) -> None:
-        flu = model.sequences.fluxes.fastaccess
-        inp = model.sequences.inputs.fastaccess
-        out = model.sequences.outlets.fastaccess
-        out.q = flu.inflow + inp.discharge
-
-
 class Pass_CorrectedQ_V1(modeltools.Method):
     """Pass the corrected discharge on to the outlet link sequence, unless
     |PropagateCorrection| is |False|, in which case the uncorrected inflow is

@@ -325,7 +325,7 @@ class Model(modeltools.AdHocModel):
         statcorrinterfaces.OutputCorrModel_V1
     )
 
-    @importtools.prepare_submodel(
+    @importtools.prepare_submodel(  # type: ignore[call-overload]
         "outputcorrmodels",
         statcorrinterfaces.OutputCorrModel_V1,
         statcorrinterfaces.OutputCorrModel_V1.prepare_nmblogentries,

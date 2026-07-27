@@ -1,7 +1,7 @@
 # pylint: disable=missing-module-docstring
 
 from hydpy.core import exceptiontools
-from hydpy.core import parametertools, timetools
+from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
 

@@ -588,6 +588,7 @@ correctly refer to one of the available XML schema files \
             parameterstep -> Period("1d")
             printprogress -> FALSE
             reprdigits -> 6
+            simulationmode -> 'historical'
             simulationstep -> Period()
             threads -> 0
             timestampleft -> TRUE

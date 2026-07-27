@@ -53,7 +53,7 @@ class NmbLogEntries(parametertools.Parameter):
         The number of the required log entries depends on the
         parameter |LoggingWindow| and the simulation step size:
 
-        >>> from hydpy.models.statcorr import *
+        >>> from hydpy.models.statcorr_arima010 import *
         >>> parameterstep()
         >>> from hydpy import pub
         >>> from hydpy.core.timetools import Period
@@ -63,12 +63,12 @@ class NmbLogEntries(parametertools.Parameter):
         >>> derived.nmblogentries
         nmblogentries(24)
         >>> logs  # doctest: +ELLIPSIS
-        loggedobserveddischarge(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                                nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                                nan, nan, nan, nan)
-        loggedsimulateddischarge(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                                 nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                                 nan, nan, nan, nan)
+        loggedobserveddischarge(nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                                nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                                nan, nan, nan, nan, nan, nan)
+        loggedsimulateddischarge(nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                                 nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                                 nan, nan, nan, nan, nan, nan)
 
         To prevent losing information, updating parameter |NmbLogEntries| resets the
         shape of the relevant log sequences only when necessary:
@@ -76,12 +76,12 @@ class NmbLogEntries(parametertools.Parameter):
         >>> logs.loggedobserveddischarge = 1.0
         >>> derived.nmblogentries(24)
         >>> logs  # doctest: +ELLIPSIS
-        loggedobserveddischarge(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                                1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                                1.0, 1.0, 1.0, 1.0)
-        loggedsimulateddischarge(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                                 nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                                 nan, nan, nan, nan)
+        loggedobserveddischarge(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                                1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+                                1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        loggedsimulateddischarge(nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                                 nan, nan, nan, nan, nan, nan, nan, nan, nan,
+                                 nan, nan, nan, nan, nan, nan)
 
         .. testsetup::
 

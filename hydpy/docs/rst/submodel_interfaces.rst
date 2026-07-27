@@ -29,5 +29,6 @@ available in the :ref:`model_overview` section, which covers all user-relevant m
    rconcinterfaces
    routinginterfaces
    soilinterfaces
+   statcorrinterfaces
    stateinterfaces
    tempinterfaces

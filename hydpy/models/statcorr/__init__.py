@@ -11,7 +11,9 @@ ADDITIONAL_CONTROLPARAMETERS = (
     statcorr_control.PropagateCorrection,
 )
 
-from hydpy.models.statcorr.statcorr_model import Model
+from hydpy.models.statcorr.statcorr_model import (  # pylint: disable=wrong-import-position
+    Model,
+)
 
 tester = Tester()
 cythonizer = Cythonizer()

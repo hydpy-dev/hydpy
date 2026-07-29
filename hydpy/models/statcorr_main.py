@@ -98,7 +98,7 @@ class Model(modeltools.AdHocModel):
     """|statcorr_main.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
-        short="Statcorr-Main",
+        short="StatCorr-Main",
         description="main statistical output correction model for discharge forecasts",
     )
     __HYDPY_ROOTMODEL__ = True
@@ -128,7 +128,7 @@ class Model(modeltools.AdHocModel):
         self,
         outputcorrmodel: statcorrinterfaces.OutputCorrModel_V1,
         *,
-        position: int,
+        position: int,  # pylint: disable=unused-argument
         refresh: bool,  # pylint: disable=unused-argument
     ) -> None:
         """Initialise the given submodel that follows the |OutputCorrModel_V1|

@@ -307,7 +307,7 @@ class Get_Discharge_V1(modeltools.Method):
 class Model(modeltools.AdHocModel):
     """|statcorr.DOCNAME.complete|."""
 
-    DOCNAME = modeltools.DocName(short="statcorr")
+    DOCNAME = modeltools.DocName(short="StatCorr")
     __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_Inflow_V1,)
@@ -335,7 +335,7 @@ class Model(modeltools.AdHocModel):
         self,
         outputcorrmodel: statcorrinterfaces.OutputCorrModel_V1,
         *,
-        position: int,
+        position: int,  # pylint: disable=unused-argument
         refresh: bool,  # pylint: disable=unused-argument
     ) -> None:
         """Initialise the given submodel that follows the |OutputCorrModel_V1|
@@ -995,11 +995,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
                 flow_condition = 2
             sta.flowcondition = float(flow_condition)
 
-        if (
-            (flow_condition == 0 and con.corrnq is False)
-            or (flow_condition == 1 and con.corrmq is False)
-            or (flow_condition == 2 and con.corrhq is False)
-        ):
+        corr_active = (con.corrnq, con.corrmq, con.corrhq)[flow_condition]
+        if corr_active is False:
             flu.correctedq = log.loggedsimulateddischarge[0]
             return
 

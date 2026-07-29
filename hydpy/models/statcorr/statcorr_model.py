@@ -995,8 +995,11 @@ class Determine_OutputCorrection_V1(modeltools.Method):
                 flow_condition = 2
             sta.flowcondition = float(flow_condition)
 
-        corr_active = (con.corrnq, con.corrmq, con.corrhq)[flow_condition]
-        if corr_active is False:
+        if (  # pylint: disable=too-many-boolean-expressions
+            (flow_condition == 0 and con.corrnq is False)
+            or (flow_condition == 1 and con.corrmq is False)
+            or (flow_condition == 2 and con.corrhq is False)
+        ):
             flu.correctedq = log.loggedsimulateddischarge[0]
             return
 

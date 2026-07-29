@@ -1,3 +1,5 @@
+# pylint: disable=missing-module-docstring
+
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 

@@ -100,7 +100,7 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
     """|statcorr_arima010.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
-        short="Statcorr-ARIMA010",
+        short="StatCorr-ARIMA010",
         description="ARIMA(0,1,0) — random walk — output correction for discharge",
     )
     __HYDPY_ROOTMODEL__ = False

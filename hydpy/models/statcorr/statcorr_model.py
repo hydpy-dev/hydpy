@@ -995,13 +995,15 @@ class Determine_OutputCorrection_V1(modeltools.Method):
                 flow_condition = 2
             sta.flowcondition = float(flow_condition)
 
-        if (  # pylint: disable=too-many-boolean-expressions
+        # pylint: disable=too-many-boolean-expressions
+        if (
             (flow_condition == 0 and con.corrnq is False)
             or (flow_condition == 1 and con.corrmq is False)
             or (flow_condition == 2 and con.corrhq is False)
         ):
             flu.correctedq = log.loggedsimulateddischarge[0]
             return
+        # pylint: enable=too-many-boolean-expressions
 
         residual: float = 0.0
         sim_anchor: float = 0.0

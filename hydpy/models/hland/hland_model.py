@@ -331,6 +331,7 @@ class Calc_EI_Ic_AETModel_V1(modeltools.Method):
         >>> zonez(5.0)
         >>> icmax(3.0)
         >>> fc(50.0)
+        >>> psi(1.0)
         >>> fluxes.tf = 0.5
         >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
         ...     with model.add_petmodel_v1("evap_ret_io"):
@@ -1939,6 +1940,7 @@ class Calc_EA_SM_AETModel_V1(modeltools.Method):
         >>> zonearea(0.05, 0.1, 0.2, 0.3, 0.35)
         >>> zonez(5.0)
         >>> fc(50.0)
+        >>> psi(1.0)
         >>> fluxes.r = 0.5
         >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
         ...     soilmoisturelimit(0.0)
@@ -3396,6 +3398,7 @@ class Calc_EL_SG2_SG3_AETModel_V1(modeltools.Method):
         >>> psi(1.0)
         >>> zonez(5.0)
         >>> fc(50.0)
+        >>> psi(1.0)
         >>> derived.relzoneareas.update()
         >>> derived.rellowerzonearea.update()
         >>> factors.tc = 10.0
@@ -3685,6 +3688,7 @@ class Calc_EL_LZ_AETModel_V1(modeltools.Method):
         >>> psi(1.0)
         >>> zonez(5.0)
         >>> fc(50.0)
+        >>> psi(1.0)
         >>> derived.relzoneareas.update()
         >>> derived.rellowerzonearea.update()
         >>> factors.tc = 10.0
@@ -4503,7 +4507,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         aetinterfaces.AETModel_V1.prepare_tree,
         landtype_constants=hland_constants.CONSTANTS,
         landtype_refindices=hland_control.ZoneType,
-        refweights=hland_control.ZoneArea,
+        refweights=hland_derived.RelZoneAreas,
     )
     def add_aetmodel_v1(
         self,
@@ -4524,6 +4528,7 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         >>> zonearea(2.0)
         >>> zonez(3.0)
         >>> fc(200.0)
+        >>> psi(1.0)
         >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
         ...     nmbhru
         ...     water
@@ -4563,12 +4568,14 @@ class Main_AETModel_V1(modeltools.AdHocModel):
         0.75
         """
         control = self.parameters.control
+        derived = self.parameters.derived
         nmbzones = control.nmbzones.value
         zonetype = control.zonetype.values
 
         aetmodel.prepare_nmbzones(nmbzones)
         aetmodel.prepare_zonetypes(zonetype)
-        aetmodel.prepare_subareas(control.zonearea.value)
+        derived.relzoneareas.update()
+        aetmodel.prepare_subareas(control.area.value * derived.relzoneareas.values)
         aetmodel.prepare_elevations(100.0 * control.zonez.values)
         aetmodel.prepare_maxsoilwater(control.fc.values)
         sel = numpy.full(nmbzones, False, dtype=config.NP_BOOL)

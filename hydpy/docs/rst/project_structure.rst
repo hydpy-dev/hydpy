@@ -247,6 +247,7 @@ instance (and configures its Unit Hydrograph ordinates in a triangle shape):
 
 Adding a sub-submodel to a submodel works via nested `with blocks`:
 
+>>> psi(1.0)
 >>> with model.add_aetmodel_v1(evap_aet_hbv96):
 ...     temperaturethresholdice(nan)
 ...     soilmoisturelimit(0.9)

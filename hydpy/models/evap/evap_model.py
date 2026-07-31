@@ -41,6 +41,7 @@ class Calc_AirTemperature_TempModel_V1(modeltools.Method):
         >>> zonetype(FIELD)
         >>> zonez(2.0)
         >>> fc(100.0)
+        >>> psi(1.0)
         >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
         ...     pass
         >>> factors.tc = 2.0, 0.0, 5.0
@@ -222,6 +223,7 @@ class Calc_MeanAirTemperature_TempModel_V1(modeltools.Method):
         >>> zonetype(FIELD)
         >>> zonez(2.0)
         >>> fc(200.0)
+        >>> psi(1.0)
         >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
         ...     with model.add_petmodel_v1("evap_pet_hbv96"):
         ...         pass
@@ -4048,6 +4050,7 @@ class Calc_Precipitation_PrecipModel_V1(modeltools.Method):
         >>> zonetype(FIELD)
         >>> zonez(2.0)
         >>> fc(200.0)
+        >>> psi(1.0)
         >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
         ...     with model.add_petmodel_v1("evap_pet_hbv96"):
         ...         pass
@@ -4147,6 +4150,7 @@ class Calc_InterceptedWater_IntercModel_V1(modeltools.Method):
         >>> zonetype(FIELD)
         >>> zonez(2.0)
         >>> fc(100.0)
+        >>> psi(1.0)
         >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
         ...     pass
         >>> states.ic = 1.0, 3.0, 2.0
@@ -4284,6 +4288,7 @@ class Calc_SoilWater_SoilWaterModel_V1(modeltools.Method):
         >>> zonetype(FIELD)
         >>> zonez(2.0)
         >>> fc(100.0)
+        >>> psi(1.0)
         >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
         ...     pass
         >>> states.sm = 10.0, 30.0, 20.0
@@ -4359,6 +4364,7 @@ class Calc_SnowCover_V1(modeltools.Method):
         >>> zonetype(FIELD)
         >>> zonez(2.0)
         >>> fc(100.0)
+        >>> psi(1.0)
         >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
         ...     pass
         >>> states.sp = [[0.0, 0.0, 1.0], [0.0, 1.0, 1.0]]

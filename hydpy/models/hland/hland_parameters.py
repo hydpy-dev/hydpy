@@ -10,7 +10,7 @@ from hydpy.models.hland.hland_constants import CONSTANTS
 from hydpy.models.hland import hland_masks
 
 if TYPE_CHECKING:
-    from hydpy.models.hland import hland_control
+    from hydpy.models.hland import hland_derived
 
 
 class ParameterBase(parametertools.ZipParameter):
@@ -19,14 +19,14 @@ class ParameterBase(parametertools.ZipParameter):
     constants = CONSTANTS
 
     @property
-    def refweights(self) -> hland_control.ZoneArea:
+    def refweights(self) -> hland_derived.RelZoneAreas:
         """Reference to the associated instance of |RelZoneAreas| for calculating areal
         mean values."""
         # pylint: disable=import-outside-toplevel
         from hydpy.models.hland import hland_model
 
         model = cast(hland_model.Model, self.subpars.pars.model)
-        return model.parameters.control.zonearea
+        return model.parameters.derived.relzoneareas
 
 
 class ParameterComplete(ParameterBase):
@@ -51,22 +51,22 @@ class ParameterComplete(ParameterBase):
     >>> print_vector(pcorr.values)
     2.0, 1.0, 4.0, 3.0, 2.0, 5.0
 
-    Parameter |ZoneArea| serves for calculating areal means (see the documentation on
-    |property| |ParameterBase.refweights|):
+    Parameter |RelZoneAreas| serves for calculating areal means (see the documentation
+    on |property| |ParameterBase.refweights|):
 
-    >>> zonearea.values = 0.0, 1.0, 2.0, 3.0, 4.0, 5.0
+    >>> derived.relzoneareas(0.0, 0.1, 0.2, 0.3, 0.15, 0.25)
     >>> round_(pcorr.average_values())
-    3.4
+    3.35
 
-    Alternatively, pass other masks defined in module |hland_masks| to take only
-    certain types of zones into account:
+    Alternatively, pass other masks defined in module |hland_masks| to take only certain
+    types of zones into account:
 
     >>> round_(pcorr.average_values(model.masks.field))
     2.0
     >>> round_(pcorr.average_values("soil"))
-    1.8
+    1.6
     >>> round_(pcorr.average_values(model.masks.field, "forest"))
-    1.8
+    1.6
 
     All other masks (for example, |hland_masks.Soil|, being used by |ParameterSoil|
     subclasses as |hland_control.IcMax|) are subsets of mask |hland_masks.Complete|:
@@ -97,7 +97,7 @@ class ParameterLand(ParameterBase):
     >>> whc(field=2.0, default=9.0)
     >>> whc
     whc(field=2.0, forest=9.0, glacier=9.0)
-    >>> zonearea.values = 1.0, 1.0, 1.0, nan, 1.0
+    >>> derived.relzoneareas(0.2, 0.2, 0.2, nan, 0.2)
     >>> from hydpy import round_
     >>> round_(whc.average_values())
     5.5
@@ -123,10 +123,10 @@ class ParameterInterception(ParameterBase):
     >>> icmax(field=2.0, default=8.0, sealed=3.0)
     >>> icmax
     icmax(field=2.0, forest=8.0, sealed=3.0)
-    >>> zonearea.values = 1.0, 2.0, nan, nan, 3.0
+    >>> derived.relzoneareas(0.2, 0.3, nan, nan, 0.5)
     >>> from hydpy import round_
     >>> round_(icmax.average_values())
-    4.5
+    4.3
     """
 
     mask = hland_masks.Interception()
@@ -148,7 +148,7 @@ class ParameterSoil(ParameterBase):
     >>> icmax(field=2.0, default=9.0)
     >>> icmax
     icmax(field=2.0, forest=9.0)
-    >>> zonearea.values = 0.0, 1.0, nan, nan, 3.0
+    >>> derived.relzoneareas(0.0, 0.25, nan, nan, 0.75)
     >>> from hydpy import round_
     >>> round_(icmax.average_values())
     3.75
@@ -174,7 +174,7 @@ class ParameterUpperZone(ParameterBase):
     >>> h1(field=2.0, default=9.0)
     >>> h1
     h1(field=2.0, forest=9.0, glacier=9.0)
-    >>> zonearea.values = 1.0, 1.0, 1.0, nan, 1.0, nan
+    >>> derived.relzoneareas(0.2, 0.2, 0.2, nan, 0.2, nan)
     >>> from hydpy import round_
     >>> round_(h1.average_values())
     5.5
@@ -200,7 +200,7 @@ class ParameterGlacier(ParameterBase):
     >>> gmelt(field=2.0, forest=9.0, default=8.0)
     >>> gmelt
     gmelt(8.0)
-    >>> zonearea.values = 1.0, nan, nan, 1.0, nan
+    >>> derived.relzoneareas(0.2, nan, nan, 0.2, nan)
     >>> from hydpy import round_
     >>> round_(gmelt.average_values())
     8.0
@@ -226,7 +226,7 @@ class ParameterNoGlacier(ParameterBase):
     >>> tcorr(field=2.0, default=9.0)
     >>> tcorr
     tcorr(field=2.0, forest=9.0, ilake=9.0)
-    >>> zonearea.values = 1.0, 1.0, nan, 1.0, 1.0
+    >>> derived.relzoneareas(0.2, 0.2, nan, 0.2, 0.2)
     >>> from hydpy import round_
     >>> round_(tcorr.average_values())
     5.5

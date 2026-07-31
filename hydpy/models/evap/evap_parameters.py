@@ -61,6 +61,7 @@ class ZipParameter1D(parametertools.ZipParameter):
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
     >>> zonez(2.0)
     >>> fc(200.0)
+    >>> psi(1.0)
     >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
     ...     soil
     soil(field=True, forest=True, glacier=False, ilake=False, sealed=False)
@@ -86,11 +87,13 @@ class SoilParameter1D(ZipParameter1D):
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED, FIELD)
     >>> zonez(2.0)
     >>> fc(200.0)
+    >>> psi(1.0)
     >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
     ...     excessreduction(field=1.0, forest=0.5)
     >>> model.aetmodel.parameters.control.excessreduction
     excessreduction(field=1.0, forest=0.5)
-    >>> model.aetmodel.parameters.control.excessreduction.average_values()
+    >>> from hydpy import round_
+    >>> round_(model.aetmodel.parameters.control.excessreduction.average_values())
     0.75
     """
 
@@ -139,6 +142,7 @@ class WaterParameter1D(ZipParameter1D):
     >>> zonetype(ILAKE, FOREST, GLACIER, ILAKE, SEALED)
     >>> zonez(2.0)
     >>> fc(200.0)
+    >>> psi(1.0)
     >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
     ...     temperaturethresholdice(ilake=1.0)
     >>> model.aetmodel.parameters.control.temperaturethresholdice

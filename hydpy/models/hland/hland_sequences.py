@@ -5,22 +5,22 @@ import numpy
 from hydpy.core.typingtools import *
 from hydpy.core import sequencetools
 from hydpy.models.hland import hland_model
-from hydpy.models.hland import hland_control
+from hydpy.models.hland import hland_derived
 
 
 class Factor1DSequence(sequencetools.FactorSequence):
     """Base class for 1-dimensional factor subclasses that support aggregation with
-    respect to |ZoneArea|.
+    respect to |RelZoneAreas|.
 
     All |Factor1DSequence| subclasses must implement fitting mask objects individually.
 
     The following example shows how the subclass |TC| works:
 
     >>> from hydpy.models.hland import *
-    >>> parameterstep("1d")
+    >>> parameterstep()
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-    >>> zonearea.values = 10.0, 20.0, 30.0, 35.0, 5.0
+    >>> derived.relzoneareas(0.1, 0.2, 0.3, 0.35, 0.05)
     >>> factors.tc(5.0, 2.0, 4.0, 1.0, 6.0)
     >>> from hydpy import round_
     >>> round_(factors.tc.average_values())
@@ -30,16 +30,16 @@ class Factor1DSequence(sequencetools.FactorSequence):
     NDIM: Final[Literal[1]] = 1
 
     @property
-    def refweights(self) -> hland_control.ZoneArea:
-        """Alias for the associated instance of |ZoneArea| for calculating areal
+    def refweights(self) -> hland_derived.RelZoneAreas:
+        """Alias for the associated instance of |RelZoneAreas| for calculating areal
         values."""
         model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.control.zonearea
+        return model.parameters.derived.relzoneareas
 
 
 class Factor2DSequence(sequencetools.FactorSequence):
     """Base class for 2-dimensional factor subclasses that support aggregation with
-    respect to |ZoneArea|.
+    respect to |RelZoneAreas|.
 
     All |Factor2DSequence| subclasses must implement fitting mask objects individually.
 
@@ -50,7 +50,7 @@ class Factor2DSequence(sequencetools.FactorSequence):
     >>> nmbzones(5)
     >>> sclass(2)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-    >>> zonearea.values = 10.0, 20.0, 30.0, 40.0, 60.0
+    >>> derived.relzoneareas(0.0625, 0.125, 0.1875, 0.25, 0.375)
     >>> factors.swe = [[40.0, 10.0, 30.0, nan, 0.0],
     ...                [60.0, 30.0, 50.0, nan, 20.0]]
     >>> from hydpy import round_
@@ -61,11 +61,11 @@ class Factor2DSequence(sequencetools.FactorSequence):
     NDIM: Final[Literal[2]] = 2
 
     @property
-    def refweights(self) -> hland_control.ZoneArea:
-        """Alias for the associated instance of |ZoneArea| for calculating areal
+    def refweights(self) -> hland_derived.RelZoneAreas:
+        """Alias for the associated instance of |RelZoneAreas| for calculating areal
         values."""
         model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.control.zonearea
+        return model.parameters.derived.relzoneareas
 
     @property
     def valuevector(self) -> VectorFloat:
@@ -79,7 +79,7 @@ class Factor2DSequence(sequencetools.FactorSequence):
         >>> nmbzones(3)
         >>> sclass(2)
         >>> zonetype(FIELD)
-        >>> zonearea.values = 1.0, 1.0, 1.0
+        >>> derived.relzoneareas(1.0 / 3.0)
         >>> factors.swe = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
         >>> from hydpy import print_vector
         >>> print_vector(factors.swe.valuevector)
@@ -108,7 +108,7 @@ class Factor2DSequence(sequencetools.FactorSequence):
         >>> nmbzones(3)
         >>> sclass(2)
         >>> zonetype(FIELD)
-        >>> zonearea.values = 1.0, 1.0, 1.0
+        >>> derived.relzoneareas(1.0 / 3.0)
         >>> factors.swe.prepare_series()
         >>> factors.swe.series = [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
         ...                     [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],
@@ -134,7 +134,7 @@ class Factor2DSequence(sequencetools.FactorSequence):
 
 class Flux1DSequence(sequencetools.FluxSequence):
     """Base class for 1-dimensional flux subclasses that support aggregation with
-    respect to |ZoneArea|.
+    respect to |RelZoneAreas|.
 
     All |Flux1DSequence| subclasses must implement fitting mask objects individually.
 
@@ -144,7 +144,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
     >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-    >>> zonearea.values = 10.0, 20.0, 30.0, 35.0, 5.0
+    >>> derived.relzoneareas(0.1, 0.2, 0.3, 0.35, 0.05)
     >>> fluxes.pc(5.0, 2.0, 4.0, 1.0, 6.0)
     >>> from hydpy import round_
     >>> round_(fluxes.pc.average_values())
@@ -154,16 +154,16 @@ class Flux1DSequence(sequencetools.FluxSequence):
     NDIM: Final[Literal[1]] = 1
 
     @property
-    def refweights(self) -> hland_control.ZoneArea:
-        """Alias for the associated instance of |ZoneArea| for calculating areal
+    def refweights(self) -> hland_derived.RelZoneAreas:
+        """Alias for the associated instance of |RelZoneAreas| for calculating areal
         values."""
         model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.control.zonearea
+        return model.parameters.derived.relzoneareas
 
 
 class Flux2DSequence(sequencetools.FluxSequence):
     """Base class for 2-dimensional flux subclasses that support aggregation with
-    respect to |ZoneArea|.
+    respect to |RelZoneAreas|.
 
     All |Flux2DSequence| subclasses must implement fitting mask objects individually.
 
@@ -174,7 +174,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
     >>> nmbzones(5)
     >>> sclass(2)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-    >>> zonearea.values = 10.0, 20.0, 30.0, 40.0, 60.0
+    >>> derived.relzoneareas(0.0625, 0.125, 0.1875, 0.25, 0.375)
     >>> fluxes.melt = [[40.0, 10.0, 30.0, nan, 0.0],
     ...                [60.0, 30.0, 50.0, nan, 20.0]]
     >>> from hydpy import round_
@@ -185,11 +185,11 @@ class Flux2DSequence(sequencetools.FluxSequence):
     NDIM: Final[Literal[2]] = 2
 
     @property
-    def refweights(self) -> hland_control.ZoneArea:
-        """Alias for the associated instance of |ZoneArea| for calculating areal
+    def refweights(self) -> hland_derived.RelZoneAreas:
+        """Alias for the associated instance of |RelZoneAreas| for calculating areal
         values."""
         model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.control.zonearea
+        return model.parameters.derived.relzoneareas
 
     @property
     def valuevector(self) -> VectorFloat:
@@ -203,7 +203,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
         >>> nmbzones(3)
         >>> sclass(2)
         >>> zonetype(FIELD)
-        >>> zonearea.values = 1.0, 1.0, 1.0
+        >>> derived.relzoneareas(1.0 / 3.0)
         >>> fluxes.melt = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
         >>> from hydpy import print_vector
         >>> print_vector(fluxes.melt.valuevector)
@@ -232,7 +232,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
         >>> nmbzones(3)
         >>> sclass(2)
         >>> zonetype(FIELD)
-        >>> zonearea.values = 1.0, 1.0, 1.0
+        >>> derived.relzoneareas(1.0 / 3.0)
         >>> fluxes.melt.prepare_series()
         >>> fluxes.melt.series = [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
         ...                     [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],
@@ -258,7 +258,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
 
 class State1DSequence(sequencetools.StateSequence):
     """Base class for 1-dimensional state subclasses that support aggregation with
-    respect to |ZoneArea|.
+    respect to |RelZoneAreas|.
 
     All |State1DSequence| subclasses must implement fitting mask objects individually.
 
@@ -268,7 +268,7 @@ class State1DSequence(sequencetools.StateSequence):
     >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-    >>> zonearea.values = 10.0, 20.0, 30.0, 40.0, 50.0
+    >>> derived.relzoneareas(0.0625, 0.125, 0.1875, 0.25, 0.375)
     >>> fc(100.0)
     >>> states.sm = 50.0, 20.0, 40.0, 10.0, nan
     >>> from hydpy import round_
@@ -279,16 +279,16 @@ class State1DSequence(sequencetools.StateSequence):
     NDIM: Final[Literal[1]] = 1
 
     @property
-    def refweights(self) -> hland_control.ZoneArea:
-        """Alias for the associated instance of |ZoneArea| for calculating
+    def refweights(self) -> hland_derived.RelZoneAreas:
+        """Alias for the associated instance of |RelZoneAreas| for calculating
         areal values."""
         model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.control.zonearea
+        return model.parameters.derived.relzoneareas
 
 
 class State2DSequence(sequencetools.StateSequence):
     """Base class for 2-dimensional state subclasses that support aggregation with
-    respect to |ZoneArea|.
+    respect to |RelZoneAreas|.
 
     All |State2DSequence| subclasses must implement fitting mask objects individually.
 
@@ -299,7 +299,7 @@ class State2DSequence(sequencetools.StateSequence):
     >>> nmbzones(5)
     >>> sclass(2)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)
-    >>> zonearea.values = 10.0, 20.0, 30.0, 40.0, 60.0
+    >>> derived.relzoneareas(0.0625, 0.125, 0.1875, 0.25, 0.375)
     >>> states.sp = [[40.0, 10.0, 30.0, nan, 0.0],
     ...              [60.0, 30.0, 50.0, nan, 20.0]]
     >>> from hydpy import round_
@@ -310,11 +310,11 @@ class State2DSequence(sequencetools.StateSequence):
     NDIM: Final[Literal[2]] = 2
 
     @property
-    def refweights(self) -> hland_control.ZoneArea:
-        """Alias for the associated instance of |ZoneArea| for calculating areal
+    def refweights(self) -> hland_derived.RelZoneAreas:
+        """Alias for the associated instance of |RelZoneAreas| for calculating areal
         values."""
         model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.control.zonearea
+        return model.parameters.derived.relzoneareas
 
     @property
     def valuevector(self) -> VectorFloat:
@@ -328,7 +328,7 @@ class State2DSequence(sequencetools.StateSequence):
         >>> nmbzones(3)
         >>> sclass(2)
         >>> zonetype(FIELD)
-        >>> zonearea.values = 1.0, 1.0, 1.0
+        >>> derived.relzoneareas(1.0 / 3.0)
         >>> states.sp = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
         >>> from hydpy import print_vector
         >>> print_vector(states.sp.valuevector)
@@ -357,7 +357,7 @@ class State2DSequence(sequencetools.StateSequence):
         >>> nmbzones(3)
         >>> sclass(2)
         >>> zonetype(FIELD)
-        >>> zonearea.values = 1.0, 1.0, 1.0
+        >>> derived.relzoneareas(1.0 / 3.0)
         >>> states.sp.prepare_series()
         >>> states.sp.series = [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
         ...                     [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],

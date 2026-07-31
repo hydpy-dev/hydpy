@@ -2398,6 +2398,8 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     control4.sclass(2)
     control4.zonetype(hland_constants.FIELD)
     control4.zonearea.values = 10.0
+    derived4 = element4.model.parameters.derived
+    derived4.relzoneareas.values = 1.0 / 3.0
 
     with hydpy.pub.options.printprogress(False):
         nodes.prepare_simseries(allocate_ram=False)  # ToDo: add option "reset"

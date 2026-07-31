@@ -1090,7 +1090,7 @@ class Model:
 
     >>> nmbzones(4)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
-    >>> zonearea.values = 1.0
+    >>> derived.relzoneareas(0.25)
     >>> fluxes.pc = 1.0, 3.0, 5.0, 7.0
     >>> fluxes.pc.average_values()
     4.0

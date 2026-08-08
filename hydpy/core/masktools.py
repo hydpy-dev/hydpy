@@ -6,6 +6,7 @@ import inspect
 
 import numpy
 
+from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 
@@ -176,7 +177,7 @@ class DefaultMask(BaseMask):
 
 
 class IndexMask(DefaultMask):
-    """A mask that depends on a referenced index parameter.
+    """A mask that adapts to different kinds of model-specific information.
 
     |IndexMask| must be subclassed.  See the masks |hland_masks.Complete| and
     |hland_masks.Soil| of base model |hland| for two concrete example classes, which
@@ -193,15 +194,10 @@ class IndexMask(DefaultMask):
 
     @classmethod
     def new(cls, variable: variabletools.Variable, **kwargs) -> Self:
-        """Return a new |IndexMask| object of the same shape as the parameter
-        referenced by |property| |IndexMask.refindices|.
+        """Return a properly prepared |IndexMask| object.
 
-        Entries are only |True| if the integer values of the respective entries of the
-        referenced index parameter are members of the class attribute tuple
-        |IndexMask.relevant|.
-
-        Before calling new (explicitly or implicitly), one must prepare the variable
-        returned by property |IndexMask.refindices|:
+        If an |IndexMask| relies on a "reference index parameter", one must prepare this
+        parameter before the mask is usable:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep()
@@ -224,21 +220,25 @@ as long as parameter `zonetype` is not prepared properly.
         >>> states.sm.mask
         Soil([])
         """
-        indices = cls.get_refindices(variable)
-        values = exceptiontools.getattr_(indices, "values", None)
-        if (values is None) or ((len(values) > 0) and (numpy.min(values) < 1)):
-            raise RuntimeError(
-                f"The mask of parameter {objecttools.elementphrase(variable)} cannot "
-                f"be determined as long as parameter `{indices.name}` is not prepared "
-                f"properly."
+        if (indices := cls.get_refindices(variable)) is None:
+            mask = cls.array2mask(
+                numpy.full(variable.valuevector.shape, config.NP_BOOL), **kwargs
             )
-        if isinstance(variable, parametertools.ZipParameter) and (
-            variable.relevant is not None
-        ):
-            relevant = variable.relevant  # ToDo: add an hland evap_hbv example
         else:
-            relevant = cls.relevant
-        mask = cls.array2mask(numpy.isin(indices.values, relevant), **kwargs)
+            values = exceptiontools.getattr_(indices, "values", None)
+            if (values is None) or ((len(values) > 0) and (numpy.min(values) < 1)):
+                raise RuntimeError(
+                    f"The mask of parameter {objecttools.elementphrase(variable)} "
+                    f"cannot be determined as long as parameter `{indices.name}` is "
+                    f"not prepared properly."
+                )
+            if isinstance(variable, parametertools.ZipParameter) and (
+                variable.relevant is not None
+            ):
+                relevant = variable.relevant
+            else:
+                relevant = cls.relevant
+            mask = cls.array2mask(numpy.isin(indices.values, relevant), **kwargs)
         if (refinement := cls.get_refinement(variable)) is not None:
             mask[~refinement.values] = False
         return mask
@@ -246,9 +246,9 @@ as long as parameter `zonetype` is not prepared properly.
     @classmethod
     def get_refindices(
         cls, variable: variabletools.Variable
-    ) -> parametertools.NameParameter:
-        """Return the |Parameter| object to determine which entries of |IndexMask|
-        must be |True| and which |False|.
+    ) -> parametertools.NameParameter | None:
+        """If available, return the |Parameter| object to determine which entries of
+        |IndexMask| must be |True| and which |False|.
 
         The given `variable` must be the concrete |Variable| object the |IndexMask| is
         responsible for.
@@ -275,8 +275,28 @@ overridden, which is not the case for class `IndexMask`.
     @property
     def refindices(self) -> parametertools.NameParameter:
         """|Parameter| object for determining which entries of |IndexMask| are |True|
-        and which |False|."""
-        return self.get_refindices(self.variable)
+        and which |False|.
+
+        Property |IndexMask.refindices| raises the following error if an |IndexMask| is
+        not connected to a referenced index parameter:
+
+        >>> from hydpy.core.masktools import IndexMask
+        >>> class IM(IndexMask):
+        ...     def get_refindices(cls, variable):
+        ...         return None
+        >>> IM().refindices
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: The index mask IM is not connected to a referenced index \
+parameter.
+        """
+        refindices = self.get_refindices(self.variable)
+        if refindices is None:
+            raise NotImplementedError(
+                f"The index mask {type(self).__name__} is not connected to a "
+                "referenced index parameter."
+            )
+        return refindices
 
     @staticmethod
     def get_refinement(
@@ -303,25 +323,27 @@ overridden, which is not the case for class `IndexMask`.
 
 
 class SubmodelIndexMask(IndexMask):
-    """A mask that depends on a referenced index parameter of another model."""
+    """|IndexMask| version for submodels."""
 
     @classmethod
     def get_refindices(
         cls, variable: variabletools.Variable
-    ) -> parametertools.NameParameter:
-        """Return the |Parameter| object to determine which entries of
+    ) -> parametertools.NameParameter | None:
+        """If available, return the |Parameter| object to determine which entries of
         |SubmodelIndexMask| must be |True| and which |False|.
 
-        |SubmodelIndexMask| works only for given |ZipParameter| instances and tries to
-        return the currently handled |ZipParameter.refindices| parameter instance.
+        For |ZipParameter| instances, |SubmodelIndexMask| tries to return the currently
+        handled |ZipParameter.refindices| parameter instance and returns |None| for all
+        other |Variable| subclasses.
         """
-        assert isinstance(variable, parametertools.ZipParameter)
-        if (refindices := variable.refindices) is None:  # ToDo: hbv-based example
-            raise RuntimeError(
-                f"Variable {objecttools.elementphrase(variable)} does currently not "
-                f"reference an instance-specific index parameter."
-            )
-        return refindices
+        if isinstance(variable, parametertools.ZipParameter):
+            if (refindices := variable.refindices) is None:
+                raise RuntimeError(
+                    f"Variable {objecttools.elementphrase(variable)} does currently "
+                    f"not reference an instance-specific index parameter."
+                )
+            return refindices
+        return None
 
 
 class Masks:

@@ -38,10 +38,19 @@ testing it does not require additional explanations:
     | 2000-02-01 |                         2.0 | 1.6                          2.4 |                            2.24 |
 """
 
+from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces
+from hydpy.models.evap import evap_control
+from hydpy.models.evap import evap_masks
 from hydpy.models.evap import evap_model
+
+ADDITIONAL_CONTROLPARAMETERS = (
+    evap_control.Soil,
+    evap_control.Plant,
+    evap_control.Water,
+)
 
 
 class Model(evap_model.Sub_ETModel, petinterfaces.PETModel_V1):
@@ -68,6 +77,12 @@ class Model(evap_model.Sub_ETModel, petinterfaces.PETModel_V1):
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
+
+
+class Masks(masktools.Masks):
+    """Masks applicable to |evap_ret_io|."""
+
+    CLASSES = evap_masks.Masks.CLASSES
 
 
 tester = Tester()

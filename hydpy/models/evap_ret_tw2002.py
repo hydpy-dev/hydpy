@@ -100,12 +100,21 @@ calculates the same potential evapotranspiration value:
 
 """
 
+from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import radiationinterfaces
 from hydpy.interfaces import tempinterfaces
+from hydpy.models.evap import evap_control
+from hydpy.models.evap import evap_masks
 from hydpy.models.evap import evap_model
+
+ADDITIONAL_CONTROLPARAMETERS = (
+    evap_control.Soil,
+    evap_control.Plant,
+    evap_control.Water,
+)
 
 
 class Model(
@@ -159,6 +168,12 @@ class Model(
     radiationmodel = modeltools.SubmodelProperty[
         radiationinterfaces.RadiationModel_V1 | radiationinterfaces.RadiationModel_V2
     ](radiationinterfaces.RadiationModel_V1, radiationinterfaces.RadiationModel_V2)
+
+
+class Masks(masktools.Masks):
+    """Masks applicable to |evap_ret_tw2002|."""
+
+    CLASSES = evap_masks.Masks.CLASSES
 
 
 tester = Tester()

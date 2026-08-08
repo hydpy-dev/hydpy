@@ -80,12 +80,21 @@ estimate is the same in both tables:
     | 02/01 00:00 |                 18.2 |                 0.097474 |               19.2 |         0.847 |                    0.075055 |                     0.06896 |                         0.06896 |
 """
 
+from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import tempinterfaces
+from hydpy.models.evap import evap_control
+from hydpy.models.evap import evap_masks
 from hydpy.models.evap import evap_model
+
+ADDITIONAL_CONTROLPARAMETERS = (
+    evap_control.Soil,
+    evap_control.Plant,
+    evap_control.Water,
+)
 
 
 class Model(
@@ -141,6 +150,12 @@ class Model(
     precipmodel = modeltools.SubmodelProperty[
         precipinterfaces.PrecipModel_V1 | precipinterfaces.PrecipModel_V2
     ](precipinterfaces.PrecipModel_V1, precipinterfaces.PrecipModel_V2)
+
+
+class Masks(masktools.Masks):
+    """Masks applicable to |evap_pet_hbv96|."""
+
+    CLASSES = evap_masks.Masks.CLASSES
 
 
 tester = Tester()

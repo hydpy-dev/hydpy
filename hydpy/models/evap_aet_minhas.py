@@ -313,12 +313,17 @@ For water areas, |evap_aet_minhas| takes the potential water evaporation calcula
     | 03/01 |              2.0 |     100.0 |       0.0 |         1.0 |                              0.0 |                             0.0 |                  3.142563 |         3.142563 |                     0.0 |                    0.0 |
 """
 
+from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import stateinterfaces
+from hydpy.models.evap import evap_control
+from hydpy.models.evap import evap_masks
 from hydpy.models.evap import evap_model
+
+ADDITIONAL_CONTROLPARAMETERS = (evap_control.Plant,)
 
 
 class Model(
@@ -396,6 +401,12 @@ class Model(
     snowycanopymodel = modeltools.SubmodelProperty(
         stateinterfaces.SnowyCanopyModel_V1, optional=True
     )
+
+
+class Masks(masktools.Masks):
+    """Masks applicable to |evap_aet_minhas|."""
+
+    CLASSES = evap_masks.Masks.CLASSES
 
 
 tester = Tester()

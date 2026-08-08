@@ -1,6 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-from hydpy.core import masktools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.evap import evap_masks
@@ -49,9 +48,15 @@ class LandMonthParameter(parametertools.KeywordParameter2D):
     rownames: tuple[str, ...] = ("ANY",)
 
 
-class ZipParameter1D(parametertools.ZipParameter):
+class BaseZipParameter1D(parametertools.ZipParameter):
     """Base class for 1-dimensional parameters that provide additional keyword-based
-    zipping functionalities.
+    zipping functionalities."""
+
+    constants = {}
+
+
+class CompleteZipParameter1D(BaseZipParameter1D):
+    """Base class for unrestricted 1-dimensional parameters.
 
     >>> from hydpy.models.hland_96 import *
     >>> parameterstep()
@@ -68,15 +73,17 @@ class ZipParameter1D(parametertools.ZipParameter):
     >>> model.aetmodel.parameters.control.water
     water(field=False, forest=False, glacier=False, ilake=True,
           sealed=False)
-    >>> model.aetmodel.parameters.control.water.average_values()
+    >>> water = model.aetmodel.parameters.control.water
+    >>> water.average_values()
     0.1
+    >>> water.average_values(water.availablemasks.water)
+    1.0
     """
 
-    constants = {}
-    mask = masktools.SubmodelIndexMask()
+    mask = evap_masks.Complete()
 
 
-class SoilParameter1D(ZipParameter1D):
+class SoilParameter1D(BaseZipParameter1D):
     """Base class for soil-related 1-dimensional parameters.
 
     >>> from hydpy.models.hland_96 import *
@@ -93,14 +100,17 @@ class SoilParameter1D(ZipParameter1D):
     >>> model.aetmodel.parameters.control.excessreduction
     excessreduction(field=1.0, forest=0.5)
     >>> from hydpy import round_
-    >>> round_(model.aetmodel.parameters.control.excessreduction.average_values())
+    >>> excessreduction = model.aetmodel.parameters.control.excessreduction
+    >>> round_(excessreduction.average_values())
+    0.75
+    >>> round_(excessreduction.average_values(excessreduction.availablemasks.soil))
     0.75
     """
 
     mask = evap_masks.Soil()
 
 
-class PlantParameter1D(ZipParameter1D):
+class PlantParameter1D(BaseZipParameter1D):
     """Base class for plant-related 1-dimensional parameters.
 
     >>> from hydpy.models.lland_dd import *
@@ -116,11 +126,13 @@ class PlantParameter1D(ZipParameter1D):
     >>> with model.add_aetmodel_v1("evap_aet_minhas"):
     ...     with model.add_petmodel_v2("evap_pet_ambav1"):
     ...         leafresistance(acker=30.0, baumb=40.0, mischw=50.0)
-    >>> r = model.aetmodel.petmodel.parameters.control.leafresistance
-    >>> r
+    >>> leafresistance = model.aetmodel.petmodel.parameters.control.leafresistance
+    >>> leafresistance
     leafresistance(acker=30.0, baumb=40.0, mischw=50.0)
     >>> from hydpy import round_
-    >>> round_(r.average_values())
+    >>> round_(leafresistance.average_values())
+    41.666667
+    >>> round_(leafresistance.average_values(leafresistance.availablemasks.plant))
     41.666667
 
     .. testsetup::
@@ -131,7 +143,7 @@ class PlantParameter1D(ZipParameter1D):
     mask = evap_masks.Plant()
 
 
-class WaterParameter1D(ZipParameter1D):
+class WaterParameter1D(BaseZipParameter1D):
     """Base class for water area-related 1-dimensional parameters.
 
     >>> from hydpy.models.hland_96 import *
@@ -145,9 +157,12 @@ class WaterParameter1D(ZipParameter1D):
     >>> psi(1.0)
     >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
     ...     temperaturethresholdice(ilake=1.0)
-    >>> model.aetmodel.parameters.control.temperaturethresholdice
+    >>> t = model.aetmodel.parameters.control.temperaturethresholdice
+    >>> t
     temperaturethresholdice(1.0)
-    >>> model.aetmodel.parameters.control.temperaturethresholdice.average_values()
+    >>> t.average_values()
+    1.0
+    >>> t.average_values(t.availablemasks.water)
     1.0
     """
 

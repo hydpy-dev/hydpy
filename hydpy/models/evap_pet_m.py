@@ -50,10 +50,19 @@ factors for both months and "damps" the second unit's result value:
     | 2000-01-02 | 1.6                          2.4 | 3.2                          2.7 |                             2.8 |
 """
 
+from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces
+from hydpy.models.evap import evap_control
+from hydpy.models.evap import evap_masks
 from hydpy.models.evap import evap_model
+
+ADDITIONAL_CONTROLPARAMETERS = (
+    evap_control.Soil,
+    evap_control.Plant,
+    evap_control.Water,
+)
 
 
 class Model(
@@ -88,6 +97,12 @@ class Model(
     SUBMODELS = ()
 
     retmodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1)
+
+
+class Masks(masktools.Masks):
+    """Masks applicable to |evap_pet_m|."""
+
+    CLASSES = evap_masks.Masks.CLASSES
 
 
 tester = Tester()

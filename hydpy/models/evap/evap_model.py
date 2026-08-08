@@ -8249,10 +8249,10 @@ class Sub_ETModel(modeltools.AdHocModel):
         """Take the `landtype_constants` data to adjust the parameters
         |evap_control.HRUType| and |evap_control.LandMonthFactor|, the
         `landtype_refindices` parameter instance to adjust the index references of all
-        parameters inherited from |evap_parameters.ZipParameter1D| and the `refweights`
-        parameter instance to adjust the weight references of all sequences inherited
-        from |evap_sequences.FactorSequence1D| or |evap_sequences.FluxSequence1D|,
-        temporarily:
+        parameters inherited from |evap_parameters.BaseZipParameter1D| and the
+        `refweights` parameter instance to adjust the weight references of all sequences
+        inherited from |evap_sequences.FactorSequence1D| or
+        |evap_sequences.FluxSequence1D|, temporarily:
 
         >>> from hydpy.core.parametertools import Constants, NameParameter, Parameter
         >>> consts = Constants(GRASS=1, TREES=3, WATER=2)
@@ -8269,9 +8269,9 @@ class Sub_ETModel(modeltools.AdHocModel):
         ...     from hydpy.models.evap.evap_control import HRUType, LandMonthFactor
         ...     HRUType.constants
         ...     LandMonthFactor.rowmin, LandMonthFactor.rownames
-        ...     from hydpy.models.evap.evap_parameters import ZipParameter1D
-        ...     ZipParameter1D.refindices.__name__
-        ...     ZipParameter1D._refweights.__name__
+        ...     from hydpy.models.evap.evap_parameters import CompleteZipParameter1D
+        ...     CompleteZipParameter1D.refindices.__name__
+        ...     CompleteZipParameter1D._refweights.__name__
         ...     from hydpy.models.evap.evap_sequences import FactorSequence1D, \
 FluxSequence1D
         ...     FactorSequence1D._refweights.__name__
@@ -8286,8 +8286,8 @@ FluxSequence1D
         {'ANY': 0}
         >>> LandMonthFactor.rowmin, LandMonthFactor.rownames
         (0, ('ANY',))
-        >>> ZipParameter1D.refindices
-        >>> ZipParameter1D._refweights
+        >>> CompleteZipParameter1D.refindices
+        >>> CompleteZipParameter1D._refweights
         >>> FactorSequence1D._refweights
         >>> FluxSequence1D._refweights
         """
@@ -8295,11 +8295,9 @@ FluxSequence1D
             sharable_configuration["landtype_constants"]
         ), evap_parameters.LandMonthParameter.modify_rows(
             sharable_configuration["landtype_constants"]
-        ), evap_parameters.ZipParameter1D.modify_refindices(
+        ), evap_parameters.BaseZipParameter1D.modify_refindices(
             sharable_configuration["landtype_refindices"]
-        ), evap_parameters.ZipParameter1D.modify_refweights(
-            sharable_configuration["refweights"]
-        ), evap_parameters.ZipParameter1D.modify_refweights(
+        ), evap_parameters.BaseZipParameter1D.modify_refweights(
             sharable_configuration["refweights"]
         ), evap_sequences.FactorSequence1D.modify_refweights(
             sharable_configuration["refweights"]

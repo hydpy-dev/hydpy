@@ -10,6 +10,10 @@ if TYPE_CHECKING:
     from hydpy.models.evap import evap_control
 
 
+class Complete(masktools.SubmodelIndexMask):
+    """Mask without any restrictions."""
+
+
 class Soil(masktools.SubmodelIndexMask):
     """Mask including hydrological response units where evapotranspiration from soils
     occurs."""
@@ -42,4 +46,4 @@ class Water(masktools.SubmodelIndexMask):
 class Masks(masktools.Masks):
     """Masks of base model |evap|."""
 
-    CLASSES = (Soil, Plant, Water)
+    CLASSES = (Complete, Soil, Plant, Water)

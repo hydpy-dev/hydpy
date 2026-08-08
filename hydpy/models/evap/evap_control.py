@@ -42,14 +42,14 @@ class HRUType(parametertools.NameParameter):
     constants = parametertools.Constants(ANY=0)
 
 
-class Water(evap_parameters.ZipParameter1D):
+class Water(evap_parameters.CompleteZipParameter1D):
     """A flag that indicates whether the individual zones are water areas or not."""
 
     TYPE: Final = bool
     SPAN = (False, True)
 
 
-class Interception(evap_parameters.ZipParameter1D):
+class Interception(evap_parameters.CompleteZipParameter1D):
     """A flag that indicates whether interception evaporation is relevant for the
     individual zones."""
 
@@ -57,7 +57,7 @@ class Interception(evap_parameters.ZipParameter1D):
     SPAN = (False, True)
 
 
-class Soil(evap_parameters.ZipParameter1D):
+class Soil(evap_parameters.CompleteZipParameter1D):
     """A flag that indicates whether soil evapotranspiration is relevant for the
     individual zones."""
 
@@ -65,14 +65,14 @@ class Soil(evap_parameters.ZipParameter1D):
     SPAN = (False, True)
 
 
-class Plant(evap_parameters.ZipParameter1D):
+class Plant(evap_parameters.CompleteZipParameter1D):
     """A flag that indicates whether the individual zones contain any vegetation."""
 
     TYPE: Final = bool
     SPAN = (False, True)
 
 
-class Tree(evap_parameters.ZipParameter1D):
+class Tree(evap_parameters.CompleteZipParameter1D):
     """A flag that indicates whether the individual zones contain tree-like
     vegetation."""
 
@@ -80,7 +80,7 @@ class Tree(evap_parameters.ZipParameter1D):
     SPAN = (False, True)
 
 
-class Conifer(evap_parameters.ZipParameter1D):
+class Conifer(evap_parameters.CompleteZipParameter1D):
     """A flag that indicates whether the individual zones contain conifer-like
     vegetation."""
 
@@ -96,7 +96,7 @@ class HRUArea(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class HRUAltitude(evap_parameters.ZipParameter1D):
+class HRUAltitude(evap_parameters.CompleteZipParameter1D):
     """The altitude of each hydrological response unit [m]."""
 
     TYPE: Final = float
@@ -112,14 +112,14 @@ class MeasuringHeightWindSpeed(parametertools.Parameter):
     INIT = 10.0
 
 
-class AirTemperatureAddend(evap_parameters.ZipParameter1D):
+class AirTemperatureAddend(evap_parameters.CompleteZipParameter1D):
     """Adjustment addend for air temperature [K]."""
 
     TYPE: Final = float
     INIT = 0.0
 
 
-class CoastFactor(evap_parameters.ZipParameter1D):
+class CoastFactor(evap_parameters.CompleteZipParameter1D):
     """The "coast factor" of Turc-Wendling's reference evapotranspiration equation
     [-]."""
 
@@ -135,7 +135,7 @@ class Albedo(evap_parameters.LandMonthParameter):
     INIT = 0.5
 
 
-class GroundAlbedo(evap_parameters.ZipParameter1D):
+class GroundAlbedo(evap_parameters.CompleteZipParameter1D):
     """The albedo of the snow-free ground (including soils, sealed surfaces, and water
     areas) [-]."""
 
@@ -144,7 +144,7 @@ class GroundAlbedo(evap_parameters.ZipParameter1D):
     INIT = 0.2
 
 
-class GroundAlbedoSnow(evap_parameters.ZipParameter1D):
+class GroundAlbedoSnow(evap_parameters.CompleteZipParameter1D):
     """The albedo of the snow-covered ground (including soils and sealed surfaces)
     [-]."""
 
@@ -262,7 +262,7 @@ class LeafResistance(evap_parameters.PlantParameter1D):
     INIT = 100.0
 
 
-class EvapotranspirationFactor(evap_parameters.ZipParameter1D):
+class EvapotranspirationFactor(evap_parameters.CompleteZipParameter1D):
     """The adjustment factor for potential evapotranspiration [-]."""
 
     TYPE: Final = float
@@ -287,7 +287,7 @@ class LandMonthFactor(evap_parameters.LandMonthParameter):
     SPAN = (0.0, None)
 
 
-class AltitudeFactor(evap_parameters.ZipParameter1D):
+class AltitudeFactor(evap_parameters.CompleteZipParameter1D):
     """Decrease of potential evapotranspiration with altitude [-1/100m].
 
     In the terminology of HBV96: ECAlt."""
@@ -296,7 +296,7 @@ class AltitudeFactor(evap_parameters.ZipParameter1D):
     INIT = 0.1
 
 
-class PrecipitationFactor(evap_parameters.ZipParameter1D):
+class PrecipitationFactor(evap_parameters.CompleteZipParameter1D):
     """Decrease in potential evapotranspiration due to precipitation [T/mm].
 
     In the terminology of HBV96: EPF.
@@ -308,7 +308,7 @@ class PrecipitationFactor(evap_parameters.ZipParameter1D):
     INIT = 0.0
 
 
-class AirTemperatureFactor(evap_parameters.ZipParameter1D):
+class AirTemperatureFactor(evap_parameters.CompleteZipParameter1D):
     """Temperature factor related to the difference of current reference
     evapotranspiration and normal reference evapotranspiration [1/°C].
 
@@ -319,7 +319,7 @@ class AirTemperatureFactor(evap_parameters.ZipParameter1D):
     INIT = 0.1
 
 
-class DampingFactor(evap_parameters.ZipParameter1D):
+class DampingFactor(evap_parameters.CompleteZipParameter1D):
     """Damping factor (temporal weighting factor) for potential evapotranspiration
     [-]."""
 

@@ -1,0 +1,14 @@
+.. |dam_pump| replace:: :mod:`~hydpy.models.dam_pump`
+.. |exch_waterlevel.DOCNAME.complete| replace:: HydPy-Exch-WL (submodel for querying the water level from a remote node)
+.. |exch_waterlevel| replace:: :mod:`~hydpy.models.exch_waterlevel`
+.. |wland_wag| replace:: :mod:`~hydpy.models.wland_wag`
+
+.. _exch_waterlevel:
+
+exch_waterlevel
+===============
+
+.. automodule:: hydpy.models.exch_waterlevel
+    :members:
+    :show-inheritance:
+    :exclude-members: Sequence, Callable, is_typeddict, SenderSequences, OutletSequences, AsyncContextManager, Never, SOLVERPARAMETERS, TypeVar, NamedTuple, ItemsView, SupportsBytes, Writer, fastaccess, overload, AsyncGenerator, Container, Iterator, Generic, no_type_check, Optional, TypeVarTuple, SOLVERSEQUENCES, Hashable, Collection, pars, SupportsAbs, type_repr, Sentinel, RESULTSEQUENCES, dataclass_transform, deprecated, CLASSES, InputSequences, Concatenate, ValuesView, subpars, ObserverSequences, TypeGuard, ParamSpec, Deque, SENDER_METHODS, MutableSequence, List, get_protocol_members, NoExtraItems, AbstractSet, AnyStr, SupportsComplex, SUBMETHODS, subvars, Tuple, evaluate_forward_ref, LiteralString, fastaccess_new, NewType, KeysView, seqs, FIXEDPARAMETERS, UPDATEDSEQUENCES, Set, Buffer, Doc, no_type_check_decorator, TypeAliasType, NoDefault, FluxSequences, Final, disjoint_base, Counter, assert_type, final, TYPE_CHECKING, ChainMap, OUTLET_METHODS, DERIVEDPARAMETERS, Reader, Awaitable, SupportsIndex, SupportsInt, Union, RUN_METHODS, get_annotations, DefaultDict, Required, AideSequences, NotRequired, CapsuleType, fastaccess_old, AsyncIterable, assert_never, reveal_type, OBSERVER_METHODS, Self, get_overloads, cast, Protocol, runtime_checkable, Reversible, get_type_hints, ADD_METHODS, INLET_METHODS, ByteString, ForwardRef, IO, Coroutine, SupportsFloat, CONTROLPARAMETERS, Iterable, OrderedDict, Generator, ParamSpecKwargs, get_origin, FactorSequences, Type, ParamSpecArgs, ReadOnly, SUBMODELINTERFACES, Pattern, MutableMapping, TextIO, SupportsRound, TypeIs, Dict, is_protocol, SUBMODELS, Mapping, runtime, Format, INTERFACE_METHODS, Annotated, TypeAlias, REQUIREDSEQUENCES, clear_overloads, Literal, get_original_bases, get_args, TypedDict, override, PART_ODE_METHODS, AsyncIterator, InletSequences, Unpack, ClassVar, Match, TypeForm, MutableSet, ContextManager, MappingView, BinaryIO, subseqs, IntVar, Any, NoReturn, Sized, StateSequences, FULL_ODE_METHODS, RECEIVER_METHODS, Text, FrozenSet

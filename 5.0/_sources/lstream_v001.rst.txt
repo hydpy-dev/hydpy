@@ -1,0 +1,30 @@
+.. |AbsErrorMax| replace:: :class:`~hydpy.models.lstream.lstream_solver.AbsErrorMax`
+.. |Characteristics| replace:: :class:`~hydpy.models.lstream_v001.Characteristics`
+.. |ELSModel| replace:: :class:`~hydpy.core.modeltools.ELSModel`
+.. |GTS| replace:: :class:`~hydpy.models.lstream.lstream_control.GTS`
+.. |HM| replace:: :class:`~hydpy.models.lstream.lstream_control.HM`
+.. |HR| replace:: :class:`~hydpy.models.lstream.lstream_control.HR`
+.. |H| replace:: :class:`~hydpy.models.lstream.lstream_states.H`
+.. |LinearStorageCascade| replace:: :class:`~hydpy.auxs.iuhtools.LinearStorageCascade`
+.. |Model.calculate_characteristiclength| replace:: :func:`~hydpy.models.lstream_v001.Model.calculate_characteristiclength`
+.. |QG| replace:: :class:`~hydpy.models.lstream.lstream_fluxes.QG`
+.. |RHLVR| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHLVR`
+.. |RHM| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHM`
+.. |RHRVR| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHRVR`
+.. |RHV| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHV`
+.. |RelErrorMax| replace:: :class:`~hydpy.models.lstream.lstream_solver.RelErrorMax`
+.. |WBMin| replace:: :class:`~hydpy.models.lstream.lstream_fixed.WBMin`
+.. |arma_v1| replace:: :mod:`~hydpy.models.arma_v1`
+.. |lstream_v001| replace:: :mod:`~hydpy.models.lstream_v001`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |lstream_model.Return_H_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Return_H_V1`
+
+.. _lstream_v001:
+
+lstream_v001
+============
+
+.. automodule:: hydpy.models.lstream_v001
+    :members:
+    :show-inheritance:
+    :exclude-members: Self, Reversible, Generic, Sized, Awaitable, IntVar, clear_overloads, TypeAlias, Sequence, Hashable, SenderSequences, SUBMETHODS, SupportsAbs, AnyStr, assert_never, InputSequences, reveal_type, CLASSES, REQUIREDSEQUENCES, ItemsView, Union, SupportsFloat, get_overloads, get_origin, OUTLET_METHODS, NoReturn, no_type_check, Type, Final, PART_ODE_METHODS, RECEIVER_METHODS, Tuple, AbstractSet, ByteString, MappingView, subpars, MutableSequence, MutableSet, SupportsRound, CONTROLPARAMETERS, INLET_METHODS, get_protocol_members, SOLVERSEQUENCES, FrozenSet, no_type_check_decorator, fastaccess_old, Mapping, FIXEDPARAMETERS, seqs, KeysView, SUBMODELS, Protocol, SupportsComplex, SENDER_METHODS, ContextManager, deprecated, SupportsBytes, get_original_bases, Iterator, is_protocol, TypeGuard, DefaultDict, LiteralString, Required, TextIO, TYPE_CHECKING, AsyncContextManager, fastaccess_new, FULL_ODE_METHODS, SOLVERPARAMETERS, BinaryIO, fastaccess, runtime, IO, Text, TypeVarTuple, ValuesView, AsyncIterable, Generator, Optional, assert_type, Literal, dataclass_transform, subvars, pars, get_args, ParamSpec, Annotated, cast, final, subseqs, ClassVar, Any, Unpack, Coroutine, is_typeddict, Counter, UPDATEDSEQUENCES, Callable, Dict, NamedTuple, overload, OrderedDict, Set, ADD_METHODS, Collection, Pattern, List, get_type_hints, Concatenate, ParamSpecKwargs, DERIVEDPARAMETERS, AsyncGenerator, override, Container, RUN_METHODS, NotRequired, NewType, RESULTSEQUENCES, SupportsInt, Buffer, Iterable, TypeVar, SupportsIndex, MutableMapping, ChainMap, FactorSequences, ForwardRef, TypeAliasType, AsyncIterator, Never, ParamSpecArgs, Match, LogSequences, Deque, TypedDict, ReceiverSequences, runtime_checkable

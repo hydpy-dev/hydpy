@@ -1,0 +1,17 @@
+.. |Options.printprogress| replace:: :const:`~hydpy.core.optiontools.Options.printprogress`
+.. |print_progress| replace:: :func:`~hydpy.core.printtools.print_progress`
+.. |progressbar| replace:: :func:`~hydpy.core.printtools.progressbar`
+.. |range| replace:: :class:`range`
+.. |time| replace:: :mod:`~time`
+.. |time.perf_counter| replace:: :func:`~time.perf_counter`
+.. |time.strftime| replace:: :func:`~time.strftime`
+
+.. _printtools:
+
+printtools
+==========
+
+.. automodule:: hydpy.core.printtools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

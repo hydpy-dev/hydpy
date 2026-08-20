@@ -1,0 +1,69 @@
+.. |ConditionManager.inputpath| replace:: :const:`~hydpy.core.filetools.ConditionManager.inputpath`
+.. |ConditionManager.outputpath| replace:: :const:`~hydpy.core.filetools.ConditionManager.outputpath`
+.. |ConditionManager| replace:: :class:`~hydpy.core.filetools.ConditionManager`
+.. |ControlManager.clear_registry| replace:: :func:`~hydpy.core.filetools.ControlManager.clear_registry`
+.. |ControlManager.load_file| replace:: :func:`~hydpy.core.filetools.ControlManager.load_file`
+.. |ControlManager| replace:: :class:`~hydpy.core.filetools.ControlManager`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |FileManager.availabledirs| replace:: :const:`~hydpy.core.filetools.FileManager.availabledirs`
+.. |FileManager.basepath| replace:: :const:`~hydpy.core.filetools.FileManager.basepath`
+.. |FileManager.currentdir| replace:: :const:`~hydpy.core.filetools.FileManager.currentdir`
+.. |FileManager.filenames| replace:: :const:`~hydpy.core.filetools.FileManager.filenames`
+.. |FileManager.projectdir| replace:: :const:`~hydpy.core.filetools.FileManager.projectdir`
+.. |FileManager.zip_currentdir| replace:: :func:`~hydpy.core.filetools.FileManager.zip_currentdir`
+.. |FileManager| replace:: :class:`~hydpy.core.filetools.FileManager`
+.. |Folder2Path| replace:: :class:`~hydpy.core.filetools.Folder2Path`
+.. |HydPy.prepare_models| replace:: :func:`~hydpy.core.hydpytools.HydPy.prepare_models`
+.. |HydPy| replace:: :class:`~hydpy.core.hydpytools.HydPy`
+.. |IOSequence.average_series| replace:: :func:`~hydpy.core.sequencetools.IOSequence.average_series`
+.. |IOSequence.save_mean| replace:: :func:`~hydpy.core.sequencetools.IOSequence.save_mean`
+.. |IOSequence.save_series| replace:: :func:`~hydpy.core.sequencetools.IOSequence.save_series`
+.. |IOSequence.series| replace:: :const:`~hydpy.core.sequencetools.IOSequence.series`
+.. |IOSequence| replace:: :class:`~hydpy.core.sequencetools.IOSequence`
+.. |NetCDFInterface| replace:: :class:`~hydpy.core.netcdftools.NetCDFInterface`
+.. |NetworkManager.delete_files| replace:: :func:`~hydpy.core.filetools.NetworkManager.delete_files`
+.. |NetworkManager.load_files| replace:: :func:`~hydpy.core.filetools.NetworkManager.load_files`
+.. |NetworkManager.save_files| replace:: :func:`~hydpy.core.filetools.NetworkManager.save_files`
+.. |NetworkManager| replace:: :class:`~hydpy.core.filetools.NetworkManager`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |None| replace:: :const:`None`
+.. |OptionPropertyBool| replace:: :class:`~hydpy.core.optiontools.OptionPropertyBool`
+.. |OptionPropertySeriesAggregation| replace:: :class:`~hydpy.core.optiontools.OptionPropertySeriesAggregation`
+.. |OptionPropertySeriesFileType| replace:: :class:`~hydpy.core.optiontools.OptionPropertySeriesFileType`
+.. |Selections| replace:: :class:`~hydpy.core.selectiontools.Selections`
+.. |Selection| replace:: :class:`~hydpy.core.selectiontools.Selection`
+.. |SequenceManager.aggregation| replace:: :const:`~hydpy.core.filetools.SequenceManager.aggregation`
+.. |SequenceManager.close_netcdfreader| replace:: :func:`~hydpy.core.filetools.SequenceManager.close_netcdfreader`
+.. |SequenceManager.close_netcdfwriter| replace:: :func:`~hydpy.core.filetools.SequenceManager.close_netcdfwriter`
+.. |SequenceManager.filetype| replace:: :const:`~hydpy.core.filetools.SequenceManager.filetype`
+.. |SequenceManager.open_netcdfreader| replace:: :func:`~hydpy.core.filetools.SequenceManager.open_netcdfreader`
+.. |SequenceManager.open_netcdfwriter| replace:: :func:`~hydpy.core.filetools.SequenceManager.open_netcdfwriter`
+.. |SequenceManager.overwrite| replace:: :const:`~hydpy.core.filetools.SequenceManager.overwrite`
+.. |SequenceManager.save_file| replace:: :func:`~hydpy.core.filetools.SequenceManager.save_file`
+.. |SequenceManager| replace:: :class:`~hydpy.core.filetools.SequenceManager`
+.. |Sim| replace:: :class:`~hydpy.core.sequencetools.Sim`
+.. |Timegrids| replace:: :class:`~hydpy.core.timetools.Timegrids`
+.. |Variable.refweights| replace:: :const:`~hydpy.core.variabletools.Variable.refweights`
+.. |dict| replace:: :class:`dict`
+.. |list| replace:: :class:`list`
+.. |numpy| replace:: :mod:`~numpy`
+.. |prepare_full_example_1| replace:: :func:`~hydpy.examples.prepare_full_example_1`
+.. |prepare_io_example_1| replace:: :func:`~hydpy.examples.prepare_io_example_1`
+.. |property| replace:: :class:`property`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |str| replace:: :class:`str`
+.. |lland_constants.ACKER| replace:: :const:`~hydpy.models.lland.lland_constants.ACKER`
+.. |lland_constants.WASSER| replace:: :const:`~hydpy.models.lland.lland_constants.WASSER`
+.. |lland_control.Lnk| replace:: :class:`~hydpy.models.lland.lland_control.Lnk`
+.. |lland_fluxes.NKor| replace:: :class:`~hydpy.models.lland.lland_fluxes.NKor`
+.. |selectiontools.Selections| replace:: :class:`~hydpy.core.selectiontools.Selections`
+
+.. _filetools:
+
+filetools
+=========
+
+.. automodule:: hydpy.core.filetools
+    :members:
+    :show-inheritance:
+    :exclude-members: Self, Reversible, Generic, Sized, Awaitable, IntVar, clear_overloads, TypeAlias, Sequence, Hashable, SUBMETHODS, SupportsAbs, AnyStr, assert_never, reveal_type, CLASSES, REQUIREDSEQUENCES, ItemsView, Union, SupportsFloat, get_overloads, get_origin, OUTLET_METHODS, NoReturn, no_type_check, Type, Final, PART_ODE_METHODS, RECEIVER_METHODS, Tuple, AbstractSet, ByteString, MappingView, subpars, MutableSequence, MutableSet, SupportsRound, CONTROLPARAMETERS, INLET_METHODS, get_protocol_members, SOLVERSEQUENCES, FrozenSet, no_type_check_decorator, fastaccess_old, Mapping, FIXEDPARAMETERS, seqs, KeysView, SUBMODELS, Protocol, SupportsComplex, SENDER_METHODS, ContextManager, deprecated, SupportsBytes, get_original_bases, Iterator, is_protocol, TypeGuard, DefaultDict, LiteralString, Required, TextIO, TYPE_CHECKING, AsyncContextManager, fastaccess_new, FULL_ODE_METHODS, SOLVERPARAMETERS, BinaryIO, fastaccess, runtime, IO, Text, TypeVarTuple, ValuesView, AsyncIterable, Generator, Optional, assert_type, Literal, dataclass_transform, subvars, pars, get_args, ParamSpec, Annotated, cast, final, subseqs, ClassVar, Any, Unpack, Coroutine, is_typeddict, Counter, UPDATEDSEQUENCES, Callable, Dict, NamedTuple, overload, OrderedDict, Set, ADD_METHODS, Collection, Pattern, List, get_type_hints, Concatenate, ParamSpecKwargs, DERIVEDPARAMETERS, AsyncGenerator, override, Container, RUN_METHODS, NotRequired, NewType, RESULTSEQUENCES, SupportsInt, Buffer, Iterable, TypeVar, SupportsIndex, MutableMapping, ChainMap, ForwardRef, TypeAliasType, AsyncIterator, Never, ParamSpecArgs, Match, Deque, TypedDict, runtime_checkable

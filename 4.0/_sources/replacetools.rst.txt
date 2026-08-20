@@ -1,0 +1,13 @@
+.. |hyd| replace:: :mod:`~hydpy.exe.hyd`
+.. |str| replace:: :class:`str`
+.. |xml_replace| replace:: :func:`~hydpy.exe.replacetools.xml_replace`
+
+.. _replacetools:
+
+replacetools
+============
+
+.. automodule:: hydpy.exe.replacetools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

@@ -1,0 +1,160 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>modelimports &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="replacetools" href="replacetools.html" />
+    <link rel="prev" title="hyd" href="hyd.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="replacetools.html" title="replacetools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="hyd.html" title="hyd"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="execution.html" accesskey="U">Execution Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">modelimports</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="modelimports">
+<span id="id1"></span><h1>modelimports<a class="headerlink" href="#modelimports" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.exe.modelimports"></span><p>This module bundles imports generally required for implementing new models.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.exe.modelimports" title="hydpy.exe.modelimports"><code class="xref py py-mod docutils literal notranslate"><span class="pre">modelimports</span></code></a> is supposed to shorten the import section
+of base and application models implemented.  Just write:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.exe.modelimports</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Thereafter, the following objects are available:</dt><dd><ul class="simple">
+<li><p>module <a class="reference external" href="https://numpy.org/doc/stable/reference/index.html#module-numpy" title="(in NumPy v1.20)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">numpy</span></code></a></p></li>
+<li><p>numpys <code class="xref py py-const docutils literal notranslate"><span class="pre">nan</span></code> and <code class="xref py py-const docutils literal notranslate"><span class="pre">inf</span></code></p></li>
+<li><p>functions <a class="reference internal" href="importtools.html#hydpy.core.importtools.parameterstep" title="hydpy.core.importtools.parameterstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">parameterstep()</span></code></a>, <a class="reference internal" href="importtools.html#hydpy.core.importtools.simulationstep" title="hydpy.core.importtools.simulationstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">simulationstep()</span></code></a>, and <a class="reference internal" href="importtools.html#hydpy.core.importtools.controlcheck" title="hydpy.core.importtools.controlcheck"><code class="xref py py-func docutils literal notranslate"><span class="pre">controlcheck()</span></code></a>
+of module <a class="reference internal" href="importtools.html#module-hydpy.core.importtools" title="hydpy.core.importtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importtools</span></code></a></p></li>
+<li><p>class <a class="reference internal" href="testtools.html#hydpy.core.testtools.Tester" title="hydpy.core.testtools.Tester"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tester</span></code></a> of module <a class="reference internal" href="testtools.html#module-hydpy.core.testtools" title="hydpy.core.testtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">testtools</span></code></a></p></li>
+<li><p>class <a class="reference internal" href="modelutils.html#hydpy.cythons.modelutils.Cythonizer" title="hydpy.cythons.modelutils.Cythonizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cythonizer</span></code></a> of module <a class="reference internal" href="modelutils.html#module-hydpy.cythons.modelutils" title="hydpy.cythons.modelutils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">modelutils</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="execution.html">Execution Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="commandtools.html">commandtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyd.html">hyd</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">modelimports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="replacetools.html">replacetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="servertools.html">servertools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="hyd.html"
+                        title="previous chapter">hyd</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="replacetools.html"
+                        title="next chapter">replacetools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/modelimports.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="replacetools.html" title="replacetools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="hyd.html" title="hyd"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="execution.html" >Execution Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">modelimports</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,224 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Installation Instructions &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quick Start" href="quickstart.html" />
+    <link rel="prev" title="Introduction" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="quickstart.html" title="Quick Start"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Introduction"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Installation Instructions</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installation-instructions">
+<span id="install"></span><h1>Installation Instructions<a class="headerlink" href="#installation-instructions" title="Permalink to this headline">¶</a></h1>
+<p>Starting with version 3.0 <em>HydPy</em> is available on the <a class="reference external" href="https://pypi.org/project/HydPy/">Python Package Index</a>.
+That means, with <a class="reference external" href="https://www.python.org/downloads/">Python 3.6, 3.7, 3.8, or 3.9</a> on your computer and having
+access to the internet you only have to type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">hydpy</span>
+</pre></div>
+</div>
+<p>into your command-line tool to install the latest version of <em>HydPy</em> on your
+computer.  <cite>pip</cite> then installs necessary site-packages like <a class="reference external" href="http://www.numpy.org/">numpy</a> on-the-fly.</p>
+<p>For 64 bit Windows, the <a class="reference external" href="https://pypi.org/project/HydPy/">Python Package Index</a> provides so-called “wheels”,
+which include pre-compiled binaries and simplify installing a lot.  On Linux
+systems, you have to install “from source” at the moment, as explained below.</p>
+<p>Starting with version 4.0 <em>HydPy</em> also comes as an installer for Windows,
+including Python itself and all required and optional dependencies.
+You may find it useful if new to Python and want to check out <em>HydPy</em>
+before installing a complete Python distribution, or if you are afraid to
+mess up your current Python installation (but then you should probably
+prefer to work in a virtual environment).  Additionally, the closedness
+of the installer might be preferable when coupling <em>HydPy</em> to other
+software systems such as <a class="reference external" href="https://kalypso.bjoernsen.de/index.php?id=382&amp;L=1">Kalypso</a> or <a class="reference external" href="https://oss.deltares.nl/web/delft-fews">Delft-FEWS</a>.  See <a class="reference external" href="https://github.com/hydpy-dev/hydpy/releases">releases</a>
+for the latest version of the <em>HydPy</em> installer.</p>
+<div class="section" id="selecting-a-python-distribution">
+<h2>Selecting a Python distribution<a class="headerlink" href="#selecting-a-python-distribution" title="Permalink to this headline">¶</a></h2>
+<p>Using <em>HydPy</em> requires installing <a class="reference external" href="https://www.python.org/downloads/">Python 3.6, 3.7, 3.8, or 3.9</a> first.
+You should favour the latest Python version unless you plan to use other
+libraries still only available for earlier versions.  Alternatively, consider
+installing a more comprehensive Python distribution like <a class="reference external" href="https://www.anaconda.com/what-is-anaconda/">Anaconda</a>, already
+containing many scientific and mathematical tools.</p>
+<p>Note that these Python distributions do not include the most powerful
+integrated development environments.  For simple tasks, the lightweight IDE
+<a class="reference external" href="https://docs.python.org/3/library/idle.html">IDLE</a> of the original Python distribution might be sufficient.  <a class="reference external" href="https://www.anaconda.com/what-is-anaconda/">Anaconda</a>
+also comes with <a class="reference external" href="https://www.spyder-ide.org/">Spyder</a>, which helps to structure medium-sized projects.
+External IDEs like <a class="reference external" href="https://www.jetbrains.com/pycharm/download/#section=windows">PyCharm</a>, on the other hand, offer significantly more
+comfort, so that the initial installation and configuration effort required
+should quickly pay for itself.</p>
+</div>
+<div class="section" id="selecting-a-hydpy-distribution">
+<h2>Selecting a HydPy distribution<a class="headerlink" href="#selecting-a-hydpy-distribution" title="Permalink to this headline">¶</a></h2>
+<p>If you want to contribute to the development of  <em>HydPy</em> or implement
+new models, please see the <a class="reference internal" href="development.html#development"><span class="std std-ref">Development</span></a> section.  If you want to
+apply <em>HydPy</em> only, you should start with a stable version available
+under <a class="reference external" href="https://github.com/hydpy-dev/hydpy/releases">releases</a>.</p>
+<p>You are probably interested in using the latest version of <em>HydPy</em>,
+which is the one with the highest version number.  HydPy’s version numbers
+consist of three separate numbers. In “X.Y.Z.”, “X” is the major number.
+There can be substantial differences between <em>HydPy</em> versions with
+different major numbers, possibly resulting in incompatibility issues
+with interfacing systems.  “Y” is the minor revision number, indicating
+some improvements, but no potentially problematic changes, e.g. the
+implementation of additional models.  “Z” is the revision number,
+indicating some necessary corrections of the framework or its implemented
+models.  In any case, you should make sure to select the highest revision
+number available, meaning you should prefer using “X.Y.1” over “X.Y.0”.</p>
+<p>Each release is available in different compressed archives,
+corresponding to different environments.  Currently, we distribute
+pre-compiled binaries for 64-bit Windows only (see above).
+For all other operating systems and Python versions, you have to build
+binaries yourself.  Principally, this should be simple, but Windows users
+might need to install the suitable compiler first (see below).  Download
+and uncompress the <cite>source code</cite> archive in an arbitrary folder and open
+the command line interface within the uncompressed <cite>hydpy</cite> folder.
+Then write:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+</pre></div>
+</div>
+<p>This command starts copying all available files to your site-packages folder
+and generating the necessary system-dependent binary files.  Additionally,
+the testing system of <em>HydPy</em> is triggered. If everything works well,
+you finally get the message:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">test_everything</span><span class="o">.</span><span class="n">py</span> <span class="n">resulted</span> <span class="ow">in</span> <span class="mi">0</span> <span class="n">failing</span> <span class="n">unit</span> <span class="n">test</span> <span class="n">suites</span><span class="p">,</span>
+<span class="mi">0</span> <span class="n">failing</span> <span class="n">doctest</span> <span class="n">suites</span> <span class="ow">in</span> <span class="n">Python</span> <span class="n">mode</span> <span class="ow">and</span> <span class="mi">0</span> <span class="n">failing</span> <span class="n">doctest</span>
+<span class="n">suites</span> <span class="ow">in</span> <span class="n">Cython</span> <span class="n">mode</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>If a test suit fails, you get an additional warning message.  Then see the
+more detailed test report above for further information.  If there seems to
+be a severe problem, check if it is already a known (and possibly solved)
+<a class="reference external" href="https://github.com/hydpy-dev/hydpy/issues">issue</a>.  If not, please raise a new one.</p>
+</div>
+<div class="section" id="selecting-a-c-compiler">
+<h2>Selecting a C Compiler<a class="headerlink" href="#selecting-a-c-compiler" title="Permalink to this headline">¶</a></h2>
+<p>You only need to care about selecting a C compiler, if no pre-compiled
+binaries are available for your system or if you want to implement
+new models into the <em>HydPy</em> framework.  Also, Linux users should
+have no trouble, as the <a class="reference external" href="https://gcc.gnu.org/">GNU Compiler Collection</a> is ready for
+use on standard Linux distributions.  Unfortunately, Windows does not
+include compilers by default.  Search <a class="reference external" href="https://wiki.python.org/moin/WindowsCompilers">Windows Compilers page</a> on how
+to select and install the correct compiler.</p>
+<p>After installing the required compiler successfully on Windows, you
+might eventually have to deal with the <strong>unable to find vcvarsall.bat</strong>
+problem.  <cite>vcvarsall</cite> is a batch file Python needs to control the installed
+Visual Studio compiler.  Find this file on your system and set a new
+system variable pointing to its path.  A quick search on the internet
+should provide you with the required information.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation Instructions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#selecting-a-python-distribution">Selecting a Python distribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#selecting-a-hydpy-distribution">Selecting a HydPy distribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#selecting-a-c-compiler">Selecting a C Compiler</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Introduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="quickstart.html"
+                        title="next chapter">Quick Start</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/install.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="quickstart.html" title="Quick Start"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Introduction"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Installation Instructions</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

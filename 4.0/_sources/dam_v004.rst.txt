@@ -1,0 +1,34 @@
+.. |ActualRemoteRelease| replace:: :class:`~hydpy.models.dam.dam_fluxes.ActualRemoteRelease`
+.. |ActualRemoteRelieve| replace:: :class:`~hydpy.models.dam.dam_fluxes.ActualRemoteRelieve`
+.. |AllowedRemoteRelieve| replace:: :class:`~hydpy.models.dam.dam_fluxes.AllowedRemoteRelieve`
+.. |HighestRemoteDischarge| replace:: :class:`~hydpy.models.dam.dam_control.HighestRemoteDischarge`
+.. |HighestRemoteTolerance| replace:: :class:`~hydpy.models.dam.dam_control.HighestRemoteTolerance`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |NearDischargeMinimumThreshold| replace:: :class:`~hydpy.models.dam.dam_control.NearDischargeMinimumThreshold`
+.. |RemoteRelieveTolerance| replace:: :class:`~hydpy.models.dam.dam_control.RemoteRelieveTolerance`
+.. |RequiredRemoteRelease| replace:: :class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease`
+.. |WaterLevel2PossibleRemoteRelieve| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevel2PossibleRemoteRelieve`
+.. |WaterLevelMinimumRemoteTolerance| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumRemoteTolerance`
+.. |WaterLevelMinimumTolerance| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumTolerance`
+.. |dam_v001| replace:: :mod:`~hydpy.models.dam_v001`
+.. |dam_v002| replace:: :mod:`~hydpy.models.dam_v002`
+.. |dam_v003| replace:: :mod:`~hydpy.models.dam_v003`
+.. |dam_v004| replace:: :mod:`~hydpy.models.dam_v004`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |smooth_min1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_min1`
+.. |anntools.SeasonalANN| replace:: :class:`~hydpy.auxs.anntools.SeasonalANN`
+.. |dam_outlets.Q| replace:: :class:`~hydpy.models.dam.dam_outlets.Q`
+.. |dam_outlets.R| replace:: :class:`~hydpy.models.dam.dam_outlets.R`
+.. |dam_outlets.S| replace:: :class:`~hydpy.models.dam.dam_outlets.S`
+
+.. _dam_v004:
+
+dam_v004
+========
+
+.. automodule:: hydpy.models.dam_v004
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, InputSequences, SenderSequences

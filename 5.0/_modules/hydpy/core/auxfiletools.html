@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.auxfiletools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.auxfiletools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.auxfiletools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module supports writing auxiliary files.</span>
+
+<span class="sd">In *HydPy*, parameter values are usually not shared between different model</span>
+<span class="sd">objects handled by different elements, even if the model objects are of the</span>
+<span class="sd">same type (e.g. |lland_v1|).  This approach offers flexibility in applying</span>
+<span class="sd">different parameterisation schemes.  However, often modellers prefer to use</span>
+<span class="sd">a minimal amount of values for specific parameters  (at least within</span>
+<span class="sd">hydrologically homogeneous regions).  Hence, the downside of this flexibility</span>
+<span class="sd">is that the same parameter values might appear in hundreds or even thousands</span>
+<span class="sd">of parameter control files (one file for each model/element).</span>
+
+<span class="sd">To decrease this redundancy, *HydPy* allows for passing names of auxiliary</span>
+<span class="sd">control files to parameters defined within regular control files.  *HydPy*</span>
+<span class="sd">then reads the actual parameter values from the auxiliary files, each one</span>
+<span class="sd">possibly referenced within a large number of control files.</span>
+
+<span class="sd">Reading parameters from regular and from auxiliary control files is straightforward.</span>
+<span class="sd">However, storing some parameters in a large number of regular control files and</span>
+<span class="sd">some other parameters in a small number of auxiliary files can be complicated.</span>
+<span class="sd">The features implemented in module |auxfiletools| are a means to perform such</span>
+<span class="sd">actions in a semi-automated manner (other means are the selection mechanism</span>
+<span class="sd">implemented in module |selectiontools|).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NoReturn</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">importtools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">variabletools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core.typingtools</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">timetools</span>
+
+
+<span class="n">Reference</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="Auxfiler">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.Auxfiler">[docs]</a>
+<span class="k">class</span> <span class="nc">Auxfiler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Structures auxiliary file information.</span>
+
+<span class="sd">    For writing some parameter information to auxiliary files, it is advisable</span>
+<span class="sd">    to prepare (only) one |Auxfiler| object:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import Auxfiler</span>
+<span class="sd">    &gt;&gt;&gt; auxfiler = Auxfiler()</span>
+
+<span class="sd">    Each |Auxfiler| object is capable of handling parameter information for</span>
+<span class="sd">    different kinds of models and performs some plausibility checks on added data.</span>
+<span class="sd">    Assume, we want to store the control files of a &quot;LARSIM type&quot; HydPy project</span>
+<span class="sd">    involving the application models |lland_v1|, |lland_v2| and |lstream_v001|.</span>
+<span class="sd">    The following example shows how we add these models to the |Auxfiler| object</span>
+<span class="sd">    by passing through module (|lland_v1|), a working model object (|lland_v2|)</span>
+<span class="sd">    or their name (|lstream_v001|):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models import lland_v1 as module</span>
+<span class="sd">    &gt;&gt;&gt; model = prepare_model(&quot;lland_v2&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; string = &quot;lstream_v001&quot;</span>
+
+<span class="sd">    You can add all model types individually or in groups:</span>
+
+<span class="sd">    &gt;&gt;&gt; auxfiler.add_models(module)</span>
+<span class="sd">    &gt;&gt;&gt; auxfiler.add_models(model, string)</span>
+<span class="sd">    &gt;&gt;&gt; auxfiler</span>
+<span class="sd">    Auxfiler(&quot;lland_v1&quot;, &quot;lland_v2&quot;, &quot;lstream_v001&quot;)</span>
+
+<span class="sd">    Alternatively, you can pass the models directly to the constructor:</span>
+
+<span class="sd">    &gt;&gt;&gt; Auxfiler(model, string, module)</span>
+<span class="sd">    Auxfiler(&quot;lland_v1&quot;, &quot;lland_v2&quot;, &quot;lstream_v001&quot;)</span>
+
+<span class="sd">    Wrong model specifications result in errors like the following:</span>
+
+<span class="sd">    &gt;&gt;&gt; auxfiler.add_models(&quot;asdf&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ModuleNotFoundError: While trying to add one ore more models to the actual \</span>
+<span class="sd">`Auxfiler` object, the following error occurred: No module named &#39;hydpy.models.asdf&#39;</span>
+
+<span class="sd">    The |Auxfiler| object allocates a separate |SubAuxfiler| object to each model</span>
+<span class="sd">    type.  These are available via keyword and attribute access:</span>
+
+<span class="sd">    &gt;&gt;&gt; auxfiler[&quot;lland_v1&quot;]</span>
+<span class="sd">    SubAuxfiler()</span>
+<span class="sd">    &gt;&gt;&gt; auxfiler.lland_v2</span>
+<span class="sd">    SubAuxfiler()</span>
+
+<span class="sd">    Adding new and deleting existing |SubAuxfiler| objects via attribute access</span>
+<span class="sd">    is disabled for safety purposes:</span>
+
+<span class="sd">    &gt;&gt;&gt; auxfiler.lland_v2 = auxfiler.lland_v1</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: Class `Auxfiler` does not support adding `SubAuxfiler` \</span>
+<span class="sd">objects via attribute access.  Use method `add_models` to register additional models.</span>
+
+<span class="sd">    &gt;&gt;&gt; del auxfiler.lland_v1</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: Class `Auxfiler` does not support deleting `SubAuxfiler` \</span>
+<span class="sd">objects via attribute access.  Use method `remove_models` to remove registered models.</span>
+
+<span class="sd">    As stated by the last error message, you should remove models and their</span>
+<span class="sd">    |SubAuxfiler| objects via method |Auxfiler.remove_models|:</span>
+
+<span class="sd">    &gt;&gt;&gt; auxfiler.remove_models(module, string)</span>
+<span class="sd">    &gt;&gt;&gt; auxfiler</span>
+<span class="sd">    Auxfiler(&quot;lland_v2&quot;)</span>
+
+<span class="sd">    &gt;&gt;&gt; auxfiler.remove_models(module, string)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to remove one or more models from the actual `Auxfiler` \</span>
+<span class="sd">object, the following error occurred: Model `lland_v1` is currently not registered.</span>
+
+<span class="sd">    &gt;&gt;&gt; auxfiler.lland_v1</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: The actual `Auxfiler` object does neither have a normal \</span>
+<span class="sd">attribute nor does it handle a model named `lland_v1`.</span>
+
+<span class="sd">    &gt;&gt;&gt; auxfiler[&quot;lland_v1&quot;]</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    KeyError: &#39;The actual `Auxfiler` object does not handle a model named `lland_v1`.&#39;</span>
+
+<span class="sd">    For other types, attribute access works as usual:</span>
+
+<span class="sd">    &gt;&gt;&gt; auxfiler.test = 123</span>
+<span class="sd">    &gt;&gt;&gt; hasattr(auxfiler, &quot;test&quot;)</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; del auxfiler.test</span>
+<span class="sd">    &gt;&gt;&gt; hasattr(auxfiler, &quot;test&quot;)</span>
+<span class="sd">    False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_model2subauxfiler</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;SubAuxfiler&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">models</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model2subauxfiler</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_models</span><span class="p">(</span><span class="o">*</span><span class="n">models</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Auxfiler.add_models">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.Auxfiler.add_models">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_models</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">models</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register an arbitrary number of |Model| types.</span>
+
+<span class="sd">        For further information, see the main documentation on class |Auxfiler|.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+                <span class="n">model_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_model2subauxfiler</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">model_</span><span class="p">)]</span> <span class="o">=</span> <span class="n">SubAuxfiler</span><span class="p">(</span>
+                    <span class="n">master</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_model</span><span class="p">(</span><span class="n">model_</span><span class="p">),</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to add one ore more models to &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;the actual `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` object&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Auxfiler.remove_models">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.Auxfiler.remove_models">[docs]</a>
+    <span class="k">def</span> <span class="nf">remove_models</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">models</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Unregister an arbitrary number of |Model| classes.</span>
+
+<span class="sd">        For further information, see the main documentation on class |Auxfiler|.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+                <span class="n">model_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model2subauxfiler</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">model_</span><span class="p">)]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Model `</span><span class="si">{</span><span class="n">model_</span><span class="si">}</span><span class="s2">` is currently not registered.&quot;</span>
+                    <span class="p">)</span> <span class="kn">from</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to remove one or more models from &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;the actual `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` object&quot;</span>
+            <span class="p">)</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_model</span><span class="p">(</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">importtools</span><span class="o">.</span><span class="n">prepare_model</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Auxfiler.get">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.Auxfiler.get">[docs]</a>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;SubAuxfiler&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the |SubAuxfiler| object related to the given |Model| type.</span>
+
+<span class="sd">        In contrast to attribute and keyword access, method |Auxfiler.get| returns</span>
+<span class="sd">        |None| when it does not handle the requested |SubAuxfiler| object:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Auxfiler</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler = Auxfiler(&quot;lland_v1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler.get(&quot;lland_v1&quot;)</span>
+<span class="sd">        SubAuxfiler()</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler.get(&quot;lland_v2&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model2subauxfiler</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="p">))</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SubAuxfiler&quot;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model2subauxfiler</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The actual `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` object &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;does not handle a model named `</span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">`.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">modelnames</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A sorted |tuple| of all names of the handled models.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Auxfiler</span>
+<span class="sd">        &gt;&gt;&gt; Auxfiler(&quot;lland_v2&quot;, &quot;lstream_v001&quot;, &quot;lland_v1&quot;).modelnames</span>
+<span class="sd">        (&#39;lland_v1&#39;, &#39;lland_v2&#39;, &#39;lstream_v001&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model2subauxfiler</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+<div class="viewcode-block" id="Auxfiler.write">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.Auxfiler.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">parameterstep</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;timetools.PeriodConstrArg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">simulationstep</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;timetools.PeriodConstrArg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write all defined auxiliary control files.</span>
+
+<span class="sd">        Before being able to write parameter information into auxiliary files, you</span>
+<span class="sd">        need to know how to add this information to your |Auxfiler| object.  Hence,</span>
+<span class="sd">        please read the documentation on method |SubAuxfiler.add_parameter|</span>
+<span class="sd">        of class |SubAuxfiler| first, from which we borrow the following</span>
+<span class="sd">        (slightly modified) test-setting:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nhru(4)</span>
+<span class="sd">        &gt;&gt;&gt; lnk(ACKER, LAUBW, WASSER, ACKER)</span>
+<span class="sd">        &gt;&gt;&gt; treft(acker=2.0, laubw=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqd1(200.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqd2(100.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Auxfiler</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler = Auxfiler(&quot;lland_v1&quot;, &quot;lland_v2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.add_parameter(eqd1, filename=&quot;file1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.add_parameter(parameter=treft,</span>
+<span class="sd">        ...                                 filename=&quot;file1&quot;,</span>
+<span class="sd">        ...                                 keywordarguments=treft.keywordarguments)</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v2.add_parameters(eqd1, eqd2, filename=&quot;file2&quot;)</span>
+
+<span class="sd">        Class |Auxfiler| takes the target path from the |ControlManager| object</span>
+<span class="sd">        stored in the global |pub| object.  For testing, we initialise one and</span>
+<span class="sd">        override its |property| |FileManager.currentpath| with a simple |str|</span>
+<span class="sd">        object defining the test target path:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.projectname = &quot;test&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.filetools import ControlManager</span>
+<span class="sd">        &gt;&gt;&gt; class Test(ControlManager):</span>
+<span class="sd">        ...     currentpath = &quot;test_directory&quot;</span>
+<span class="sd">        &gt;&gt;&gt; pub.controlmanager = Test()</span>
+
+<span class="sd">        Usually, |Auxfiler| objects write control files to disk, of course.</span>
+<span class="sd">        But to show (and to test) the results in the following test, we</span>
+<span class="sd">        redirected file writing via class |Open|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Open</span>
+<span class="sd">        &gt;&gt;&gt; with Open():</span>
+<span class="sd">        ...     auxfiler.write(parameterstep=&quot;1d&quot;, simulationstep=&quot;12h&quot;)</span>
+<span class="sd">        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd">        test_directory/file1.py</span>
+<span class="sd">        -----------------------------------</span>
+<span class="sd">        # -*- coding: utf-8 -*-</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        from hydpy.models.lland_v1 import *</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        simulationstep(&quot;12h&quot;)</span>
+<span class="sd">        parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        treft(acker=2.0, laubw=1.0)</span>
+<span class="sd">        eqd1(200.0)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd">        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd">        test_directory/file2.py</span>
+<span class="sd">        -----------------------------------</span>
+<span class="sd">        # -*- coding: utf-8 -*-</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        from hydpy.models.lland_v2 import *</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        simulationstep(&quot;12h&quot;)</span>
+<span class="sd">        parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        eqd1(200.0)</span>
+<span class="sd">        eqd2(100.0)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span>
+        <span class="k">for</span> <span class="n">modelname</span><span class="p">,</span> <span class="n">subauxfiler</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filenames</span><span class="p">():</span>
+                <span class="k">with</span> <span class="n">options</span><span class="o">.</span><span class="n">parameterstep</span><span class="p">(</span><span class="n">parameterstep</span><span class="p">),</span> <span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span><span class="p">(</span>
+                    <span class="n">simulationstep</span>
+                <span class="p">):</span>
+                    <span class="n">header</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">get_controlfileheader</span><span class="p">(</span>
+                        <span class="n">model</span><span class="o">=</span><span class="n">modelname</span><span class="p">,</span>
+                        <span class="n">parameterstep</span><span class="o">=</span><span class="n">parameterstep</span><span class="p">,</span>
+                        <span class="n">simulationstep</span><span class="o">=</span><span class="n">simulationstep</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">body</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_parameterstrings</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">controlmanager</span><span class="o">.</span><span class="n">save_file</span><span class="p">(</span>
+                    <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">text</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">header</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)),</span>
+                <span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SubAuxfiler&quot;</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model2subauxfiler</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The actual `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` object does neither have a &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;normal attribute nor does it handle a model named `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">`.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">SubAuxfiler</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Class `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` does not support adding &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;`SubAuxfiler` objects via attribute access.  &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Use method `add_models` to register additional models.&quot;</span>
+            <span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model2subauxfiler</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Class `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` does not support deleting &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;`SubAuxfiler` objects via attribute access.  &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Use method `remove_models` to remove registered models.&quot;</span>
+            <span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__delattr__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;SubAuxfiler&quot;</span><span class="p">]]:</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model2subauxfiler</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">yield</span> <span class="n">item</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">apply_black</span><span class="p">(</span>
+            <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+            <span class="o">*</span><span class="nb">sorted</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelnames</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; aux = Auxfiler()</span>
+<span class="sd">        &gt;&gt;&gt; aux.add_models(&quot;llake_v1&quot;, &quot;lland_v1&quot;, &quot;lstream_v001&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; sorted(set(dir(aux)) - set(object.__dir__(aux)))</span>
+<span class="sd">        [&#39;llake_v1&#39;, &#39;lland_v1&#39;, &#39;lstream_v001&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modelnames</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SubAuxfiler">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.SubAuxfiler">[docs]</a>
+<span class="k">class</span> <span class="nc">SubAuxfiler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map different |Parameter| objects to the names of auxiliary files.</span>
+
+<span class="sd">    Usually, |SubAuxfiler| objects are not initialised by the user explicitly</span>
+<span class="sd">    but made available by their master |Auxfiler| object.  After that, users can</span>
+<span class="sd">    access them and subsequently register different |Parameter| objects.  See the</span>
+<span class="sd">    documentation on method |SubAuxfiler.add_parameter| for further information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_master</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Auxfiler</span><span class="p">]</span>
+    <span class="n">_model</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">]</span>
+    <span class="n">_type2filename2reference</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Reference</span><span class="p">]]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">master</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Auxfiler</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_master</span> <span class="o">=</span> <span class="n">master</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2reference</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="SubAuxfiler.add_parameter">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.SubAuxfiler.add_parameter">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_parameter</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">parameter</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span>
+        <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">keywordarguments</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">[</span><span class="n">T</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a single |Parameter| to the actual |SubAuxfiler| object.</span>
+
+<span class="sd">        To show how |SubAuxfiler| works, we first prepare an instance of</span>
+<span class="sd">        application model |lland_v1| and define the values of some of its parameters:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nhru(4)</span>
+<span class="sd">        &gt;&gt;&gt; lnk(ACKER, LAUBW, WASSER, ACKER)</span>
+<span class="sd">        &gt;&gt;&gt; treft(acker=2.0, laubw=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqb(5000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqi1(2000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqi2(1000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqd1(100.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqd2(50.0)</span>
+
+<span class="sd">        Next, we initialise an |Auxfiler| object handling a single |SubAuxfiler|</span>
+<span class="sd">        object.  The purpose of the |SubAuxfiler| object is to allocate the</span>
+<span class="sd">        above parameters to two auxiliary files named `file1` and `file2`:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Auxfiler</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler = Auxfiler(model)</span>
+
+<span class="sd">        Auxiliary file `file1` shall contain the actual values of parameters</span>
+<span class="sd">        |lland_control.EQB|, |lland_control.EQI1|, and |lland_control.EQI2|:</span>
+
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.add_parameters(eqb, eqi1, eqi2, filename=&quot;file1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.file1</span>
+<span class="sd">        (eqb(5000.0), eqi1(2000.0), eqi2(1000.0))</span>
+
+<span class="sd">        Auxiliary file `file2` shall contain the actual values of parameters</span>
+<span class="sd">        |lland_control.EQD1|, |lland_control.EQD2|, and (also!) of parameter</span>
+<span class="sd">        |lland_control.EQB|:</span>
+
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.add_parameters(eqd1, eqd2, filename=&quot;file2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.add_parameter(eqb, filename=&quot;file2&quot;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to extend the range of parameters handled by the \</span>
+<span class="sd">actual `SubAuxfiler` object, the following error occurred: You tried to \</span>
+<span class="sd">allocate parameter `eqb(5000.0)` to filename `file2`, but an equal `EQB` object \</span>
+<span class="sd">has already been allocated to filename `file1`.</span>
+
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.file2</span>
+<span class="sd">        (eqd1(100.0), eqd2(50.0))</span>
+
+<span class="sd">        As explained by the error message, allocating the same parameter type</span>
+<span class="sd">        with equal values to two different auxiliary files is not allowed.</span>
+<span class="sd">        Nevertheless, after changing the value of parameter |lland_control.EQB|,</span>
+<span class="sd">        it can be allocated to filename `file2`:</span>
+
+<span class="sd">        &gt;&gt;&gt; eqb *= 2</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.add_parameter(eqb, filename=&quot;file2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.file2</span>
+<span class="sd">        (eqb(10000.0), eqd1(100.0), eqd2(50.0))</span>
+
+<span class="sd">        The following example shows that parameter |lland_control.EQB| already</span>
+<span class="sd">        allocated to `file1` has still the same value (we implemented this safety</span>
+<span class="sd">        mechanism via deep copying) and that one can view all registered parameters</span>
+<span class="sd">        by using their names as attribute names:</span>
+
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.eqb</span>
+<span class="sd">        (eqb(10000.0), eqb(5000.0))</span>
+
+<span class="sd">        During adding parameters method |SubAuxfiler.add_parameter| performs some</span>
+<span class="sd">        additional plausibility checks.  First, it prevents from using the same</span>
+<span class="sd">        filename twice:</span>
+
+<span class="sd">        &gt;&gt;&gt; auxfiler.add_models(&quot;lstream_v001&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler.lstream_v001.add_parameter(treft, filename=&quot;file1&quot;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to extend the range of parameters handled by the \</span>
+<span class="sd">actual `SubAuxfiler` object, the following error occurred: Filename `file1` \</span>
+<span class="sd">is already allocated to another `SubAuxfiler` object.</span>
+
+<span class="sd">        Second, it checks that an assigned parameter belongs to the corresponding model:</span>
+
+<span class="sd">        &gt;&gt;&gt; auxfiler.lstream_v001.add_parameter(treft, filename=&quot;file3&quot;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        TypeError: While trying to extend the range of parameters handled by the \</span>
+<span class="sd">actual `SubAuxfiler` object, the following error occurred: Variable type \</span>
+<span class="sd">`TRefT` is not handled by model `lstream_v001`.</span>
+
+<span class="sd">        The examples above deal with simple 0-dimensional |Parameter| subclasses</span>
+<span class="sd">        where there is no question in how to define equality.  However, for</span>
+<span class="sd">        multidimensional |Parameter| subclasses requiring that the shape and all</span>
+<span class="sd">        values are equal might often be too strict.</span>
+
+<span class="sd">        The auxiliary file functionalities of *HydPy* allow using the</span>
+<span class="sd">        |Parameter.keywordarguments| property of a parameter to check for equality</span>
+<span class="sd">        instead (put more concretely, method |SubAuxfiler.get_parameterstrings|</span>
+<span class="sd">        uses method |KeywordArguments.subset_of| of class |KeywordArguments| for</span>
+<span class="sd">        comparisons). If we want to apply this feature for the instances of the</span>
+<span class="sd">        |ZipParameter| subclass |lland_control.TRefT|, we need to additionally</span>
+<span class="sd">        pass a |KeywordArguments| object to method |SubAuxfiler.add_parameter|:</span>
+
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.add_parameter(</span>
+<span class="sd">        ...     treft, filename=&quot;file1&quot;, keywordarguments=treft.keywordarguments)</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.treft</span>
+<span class="sd">        (KeywordArguments(acker=2.0, laubw=1.0),)</span>
+
+<span class="sd">        Alternatively, we can also pass a manually defined |KeywordArguments| object</span>
+<span class="sd">        (for which we perform similar plausibility checks as discussed above):</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import KeywordArguments</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.add_parameter(</span>
+<span class="sd">        ...     treft, filename=&quot;file2&quot;,</span>
+<span class="sd">        ...     keywordarguments=KeywordArguments(acker=2.0, laubw=1.0))</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to extend the range of parameters handled by the \</span>
+<span class="sd">actual `SubAuxfiler` object, the following error occurred: You tried to allocate \</span>
+<span class="sd">parameter `treft(acker=2.0, laubw=1.0)` with keyword arguments \</span>
+<span class="sd">`KeywordArguments(acker=2.0, laubw=1.0)` to filename `file2`, but an `TRefT` with \</span>
+<span class="sd">equal keyword arguments has already been allocated to filename `file1`.</span>
+
+<span class="sd">        Often, we want such a manually defined |KeywordArguments| object to be more</span>
+<span class="sd">        general so that it covers as many actual parameter objects as possible:</span>
+
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.add_parameter(</span>
+<span class="sd">        ...     treft, filename=&quot;file2&quot;,</span>
+<span class="sd">        ...     keywordarguments=KeywordArguments(acker=2.0, laubw=1.0, nadelw=0.0))</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.treft</span>
+<span class="sd">        (KeywordArguments(acker=2.0, laubw=1.0), \</span>
+<span class="sd">KeywordArguments(acker=2.0, laubw=1.0, nadelw=0.0))</span>
+
+<span class="sd">        Note that due to the current implementation of method</span>
+<span class="sd">        |SubAuxfiler.get_parameterstrings| the final state of the |Auxfiler|</span>
+<span class="sd">        object results in some ambiguity (see the documentation on method</span>
+<span class="sd">        |SubAuxfiler.get_parameterstrings| for further information).  Hence,</span>
+<span class="sd">        we might add more detailed plausibility checks regarding equality</span>
+<span class="sd">        of |KeywordArguments| objects in the future.</span>
+
+<span class="sd">        Unfortunately, the string representations of |SubAuxfiler| objects</span>
+<span class="sd">        are not executable at the moment:</span>
+
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1</span>
+<span class="sd">        SubAuxfiler(file1, file2)</span>
+
+<span class="sd">        Erroneous attribute access results in the following error:</span>
+
+<span class="sd">        &gt;&gt;&gt; auxfiler.lland_v1.wrong</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        AttributeError: `wrong` is neither a filename nor a name of a \</span>
+<span class="sd">parameter handled by the actual `SubAuxfiler` object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_filename</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_parameter</span><span class="p">(</span><span class="n">parameter</span><span class="o">=</span><span class="n">parameter</span><span class="p">)</span>
+            <span class="n">filename2reference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2reference</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">),</span> <span class="p">{})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_check_duplicate</span><span class="p">(</span>
+                <span class="n">filename2reference</span><span class="o">=</span><span class="n">filename2reference</span><span class="p">,</span>
+                <span class="n">parameter</span><span class="o">=</span><span class="n">parameter</span><span class="p">,</span>
+                <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+                <span class="n">keywordarguments</span><span class="o">=</span><span class="n">keywordarguments</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">keywordarguments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">filename2reference</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">filename2reference</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">keywordarguments</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2reference</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">)]</span> <span class="o">=</span> <span class="n">filename2reference</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to extend the range of parameters handled by &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;the actual `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` object&quot;</span>
+            <span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_check_filename</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">objecttools</span><span class="o">.</span><span class="n">valid_variable_identifier</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_master</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">subauxf</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_master</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">subauxf</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">filename</span> <span class="ow">in</span> <span class="n">subauxf</span><span class="o">.</span><span class="n">get_filenames</span><span class="p">()):</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Filename `</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">` is already allocated to &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;another `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` object.&quot;</span>
+                    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_check_parameter</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">parameter</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">parameter</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">CLASSES</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Variable type `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` is &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;not handled by model `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="si">}</span><span class="s2">`.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_check_duplicate</span><span class="p">(</span>
+        <span class="n">filename2reference</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Reference</span><span class="p">],</span>
+        <span class="n">parameter</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span>
+        <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">keywordarguments</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">[</span><span class="n">T</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">fn</span><span class="p">,</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">filename2reference</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">fn</span> <span class="o">!=</span> <span class="n">filename</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">keywordarguments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ref</span> <span class="o">==</span> <span class="n">parameter</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;You tried to allocate parameter `</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span><span class="si">}</span><span class="s2">` to &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;filename `</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">`, but an equal &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` object has already been &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;allocated to filename `</span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2">`.&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">keywordarguments</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ref</span> <span class="o">==</span> <span class="n">keywordarguments</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;You tried to allocate parameter `</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span><span class="si">}</span><span class="s2">` with &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;keyword arguments `</span><span class="si">{</span><span class="n">keywordarguments</span><span class="si">}</span><span class="s2">` to filename &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">`, but an `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` with &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;equal keyword arguments has already been allocated to &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;filename `</span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2">`.&quot;</span>
+                    <span class="p">)</span>
+
+<div class="viewcode-block" id="SubAuxfiler.add_parameters">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.SubAuxfiler.add_parameters">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_parameters</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">parameters</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span>
+        <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add an arbitrary number of |Parameter| objects to the actual</span>
+<span class="sd">        |SubAuxfiler| object.</span>
+
+<span class="sd">        Method |SubAuxfiler.add_parameters| works like method</span>
+<span class="sd">        |SubAuxfiler.add_parameter| but allows to add multiple parameters</span>
+<span class="sd">        at once.  On the downside, it does not allow to define alternative</span>
+<span class="sd">        keyword arguments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+                <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+                <span class="n">parameter</span><span class="o">=</span><span class="n">parameter</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SubAuxfiler.remove_parameters">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.SubAuxfiler.remove_parameters">[docs]</a>
+    <span class="k">def</span> <span class="nf">remove_parameters</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">parametertype</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">filename</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove the registered |Parameter| objects of the given type related to the</span>
+<span class="sd">        given filename.</span>
+
+<span class="sd">        The following (slightly modified) test-setting stems from the documentation</span>
+<span class="sd">        on method |SubAuxfiler.add_parameter|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nhru(4)</span>
+<span class="sd">        &gt;&gt;&gt; lnk(ACKER, LAUBW, WASSER, ACKER)</span>
+<span class="sd">        &gt;&gt;&gt; treft(acker=2.0, laubw=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqb(5000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqi1(2000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqd1(100.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Auxfiler</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler = Auxfiler(model)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler = auxfiler.lland_v1</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqi1, filename=&quot;file1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameter(</span>
+<span class="sd">        ...     treft, filename=&quot;file1&quot;, keywordarguments=treft.keywordarguments)</span>
+<span class="sd">        &gt;&gt;&gt; eqb *= 2.0</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqd1, filename=&quot;file2&quot;)</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler.file1</span>
+<span class="sd">        (KeywordArguments(acker=2.0, laubw=1.0), eqb(5000.0), eqi1(2000.0))</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.file2</span>
+<span class="sd">        (eqb(10000.0), eqd1(100.0))</span>
+
+<span class="sd">        To be able to start from this setting repeatedly, we make a deep copy</span>
+<span class="sd">        of an internal dictionary:</span>
+
+<span class="sd">        &gt;&gt;&gt; from copy import deepcopy</span>
+<span class="sd">        &gt;&gt;&gt; copy = deepcopy(subauxfiler._type2filename2reference)</span>
+
+<span class="sd">        First, you can remove all parameters related to a specific filename:</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler.remove_parameters(filename=&quot;file1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_filenames()</span>
+<span class="sd">        (&#39;file2&#39;,)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.file2</span>
+<span class="sd">        (eqb(10000.0), eqd1(100.0))</span>
+
+<span class="sd">        Second, you can remove all parameters of a specific type:</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler._type2filename2reference = deepcopy(copy)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.remove_parameters(parametertype=type(eqb))</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.file1</span>
+<span class="sd">        (KeywordArguments(acker=2.0, laubw=1.0), eqi1(2000.0))</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.file2</span>
+<span class="sd">        (eqd1(100.0),)</span>
+
+<span class="sd">        Third, you can remove a specific parameter object by defining both its</span>
+<span class="sd">        time and its filename:</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler._type2filename2reference = deepcopy(copy)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.remove_parameters(parametertype=type(eqb), filename=&quot;file1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.file1</span>
+<span class="sd">        (KeywordArguments(acker=2.0, laubw=1.0), eqi1(2000.0))</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.file2</span>
+<span class="sd">        (eqb(10000.0), eqd1(100.0))</span>
+
+<span class="sd">        Fourth, you can remove all parameters at once:</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler._type2filename2reference = deepcopy(copy)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.remove_parameters()</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_filenames()</span>
+<span class="sd">        ()</span>
+
+<span class="sd">        Each combination of arguments comes with a particular error message:</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler.remove_parameters(filename=&quot;file2&quot;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to remove the parameter object(s) allocated to \</span>
+<span class="sd">filename `file2`, the following error occurred: No such parameter object(s) available.</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler.remove_parameters(parametertype=type(eqd2))</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to remove the parameter object(s) of type `EQD2`, \</span>
+<span class="sd">the following error occurred: No such parameter object(s) available.</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler.remove_parameters(parametertype=type(eqd2), filename=&quot;file2&quot;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to remove a parameter object of type `EQD2` \</span>
+<span class="sd">allocated to filename `file2`, the following error occurred: No such parameter \</span>
+<span class="sd">object(s) available.</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler._type2filename2reference = None</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.remove_parameters()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        AttributeError: While trying to remove all parameter objects, the following \</span>
+<span class="sd">error occurred: &#39;NoneType&#39; object has no attribute &#39;items&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">deleted_something</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">fn2ref</span> <span class="ow">in</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2reference</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                <span class="k">for</span> <span class="n">filename_</span> <span class="ow">in</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">fn2ref</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">parametertype</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+                        <span class="n">filename</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">filename_</span><span class="p">)</span>
+                    <span class="p">):</span>
+                        <span class="k">del</span> <span class="n">fn2ref</span><span class="p">[</span><span class="n">filename_</span><span class="p">]</span>
+                        <span class="n">deleted_something</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">fn2ref</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2reference</span><span class="p">[</span><span class="n">type_</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">deleted_something</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No such parameter object(s) available.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">parametertype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                    <span class="s2">&quot;While trying to remove all parameter objects&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">parametertype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;While trying to remove the parameter object(s) &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;allocated to filename `</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">`&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;While trying to remove the parameter object(s) &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;of type `</span><span class="si">{</span><span class="n">parametertype</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`&quot;</span>
+                <span class="p">)</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to remove a parameter object &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;of type `</span><span class="si">{</span><span class="n">parametertype</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;allocated to filename `</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">`&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SubAuxfiler.get_filenames">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.SubAuxfiler.get_filenames">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_filenames</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">parametertype</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a |tuple| of all or a selection of the handled auxiliary file names.</span>
+
+<span class="sd">        The following (slightly modified) test-setting stems from the documentation</span>
+<span class="sd">        on method |SubAuxfiler.add_parameter|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nhru(4)</span>
+<span class="sd">        &gt;&gt;&gt; lnk(ACKER, LAUBW, WASSER, ACKER)</span>
+<span class="sd">        &gt;&gt;&gt; treft(acker=2.0, laubw=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqb(5000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqi1(2000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqd1(100.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Auxfiler</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler = Auxfiler(model)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler = auxfiler.lland_v1</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqi1, filename=&quot;file1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameter(</span>
+<span class="sd">        ...     treft, filename=&quot;file1&quot;, keywordarguments=treft.keywordarguments)</span>
+<span class="sd">        &gt;&gt;&gt; eqb *= 2.0</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqd1, filename=&quot;file2&quot;)</span>
+
+<span class="sd">        Without an argument, method |SubAuxfiler.get_filenames| returns</span>
+<span class="sd">        all auxiliary filenames:</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_filenames()</span>
+<span class="sd">        (&#39;file1&#39;, &#39;file2&#39;)</span>
+
+<span class="sd">        For a given parameter type, method |SubAuxfiler.get_filenames| returns</span>
+<span class="sd">        only the auxiliary filenames allocating such a type:</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_filenames(parametertype=type(eqi1))</span>
+<span class="sd">        (&#39;file1&#39;,)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filenames</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">filename2reference</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2reference</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">parametertype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">parametertype</span><span class="p">,</span> <span class="n">type_</span><span class="p">):</span>
+                <span class="n">filenames</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">filename2reference</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">filenames</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="SubAuxfiler.get_parametertypes">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.SubAuxfiler.get_parametertypes">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_parametertypes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">filename</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">],</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a |tuple| of all or a selection of the handled parameter types.</span>
+
+<span class="sd">        The following (slightly modified) test-setting stems from the documentation on</span>
+<span class="sd">        method |SubAuxfiler.add_parameter|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nhru(4)</span>
+<span class="sd">        &gt;&gt;&gt; lnk(ACKER, LAUBW, WASSER, ACKER)</span>
+<span class="sd">        &gt;&gt;&gt; treft(acker=2.0, laubw=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqb(5000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqi1(2000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqd1(100.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Auxfiler</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler = Auxfiler(model)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler = auxfiler.lland_v1</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqi1, filename=&quot;file1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameter(</span>
+<span class="sd">        ...     treft, filename=&quot;file1&quot;, keywordarguments=treft.keywordarguments)</span>
+<span class="sd">        &gt;&gt;&gt; eqb *= 2.0</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqd1, filename=&quot;file2&quot;)</span>
+
+<span class="sd">        Without an argument, method |SubAuxfiler.get_parametertypes| returns all</span>
+<span class="sd">        registered parameter types:</span>
+
+<span class="sd">        &gt;&gt;&gt; for parametertype in subauxfiler.get_parametertypes():</span>
+<span class="sd">        ...     print(parametertype.__name__)</span>
+<span class="sd">        TRefT</span>
+<span class="sd">        EQB</span>
+<span class="sd">        EQI1</span>
+<span class="sd">        EQD1</span>
+
+<span class="sd">        For a given filename, method |SubAuxfiler.get_parametertypes| returns</span>
+<span class="sd">        only the registered parameter types allocated for this filename:</span>
+
+<span class="sd">        &gt;&gt;&gt; for parametertype in subauxfiler.get_parametertypes(filename=&quot;file1&quot;):</span>
+<span class="sd">        ...     print(parametertype.__name__)</span>
+<span class="sd">        TRefT</span>
+<span class="sd">        EQB</span>
+<span class="sd">        EQI1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">variabletools</span><span class="o">.</span><span class="n">sort_variables</span><span class="p">(</span>
+            <span class="n">type_</span>
+            <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">filename2reference</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2reference</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">filename</span> <span class="ow">in</span> <span class="n">filename2reference</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SubAuxfiler.get_parameterstrings">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_parameterstrings</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">filename</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">parametertype</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a |tuple| of string representations of all or a selection of the</span>
+<span class="sd">        handled parameter objects.</span>
+
+<span class="sd">        The following (slightly modified) test-setting stems from the documentation</span>
+<span class="sd">        on method |SubAuxfiler.add_parameter|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nhru(4)</span>
+<span class="sd">        &gt;&gt;&gt; lnk(ACKER, LAUBW, WASSER, ACKER)</span>
+<span class="sd">        &gt;&gt;&gt; treft(acker=2.0, laubw=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqb(5000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqi1(2000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqd1(100.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Auxfiler</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler = Auxfiler(model)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler = auxfiler.lland_v1</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqi1, filename=&quot;file1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameter(</span>
+<span class="sd">        ...     treft, filename=&quot;file1&quot;, keywordarguments=treft.keywordarguments)</span>
+<span class="sd">        &gt;&gt;&gt; eqb *= 2.0</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqd1, filename=&quot;file2&quot;)</span>
+
+<span class="sd">        Without an argument, method |SubAuxfiler.get_parameterstrings| returns</span>
+<span class="sd">        the string representations of all registered parameter objects:</span>
+
+<span class="sd">        &gt;&gt;&gt; for string in subauxfiler.get_parameterstrings():</span>
+<span class="sd">        ...     print(string)</span>
+<span class="sd">        treft(acker=2.0, laubw=1.0)</span>
+<span class="sd">        eqb(5000.0)</span>
+<span class="sd">        eqb(10000.0)</span>
+<span class="sd">        eqi1(2000.0)</span>
+<span class="sd">        eqd1(100.0)</span>
+
+<span class="sd">        For a given filename, method |SubAuxfiler.get_parameterstrings| returns</span>
+<span class="sd">        only the string representations of the registered parameter objects</span>
+<span class="sd">        allocated for this filename:</span>
+
+<span class="sd">        &gt;&gt;&gt; for string in subauxfiler.get_parameterstrings(filename=&quot;file1&quot;):</span>
+<span class="sd">        ...     print(string)</span>
+<span class="sd">        treft(acker=2.0, laubw=1.0)</span>
+<span class="sd">        eqb(5000.0)</span>
+<span class="sd">        eqi1(2000.0)</span>
+
+<span class="sd">        For a given parameter type, method |SubAuxfiler.get_parameterstrings|</span>
+<span class="sd">        returns only the string representations of the registered parameter</span>
+<span class="sd">        objects of such a type:</span>
+
+<span class="sd">        &gt;&gt;&gt; for string in subauxfiler.get_parameterstrings(parametertype=type(eqb)):</span>
+<span class="sd">        ...     print(string)</span>
+<span class="sd">        eqb(5000.0)</span>
+<span class="sd">        eqb(10000.0)</span>
+
+<span class="sd">        For a given filename and a given parameter type, method</span>
+<span class="sd">        |SubAuxfiler.get_parameterstrings| returns only the string representation</span>
+<span class="sd">        of the registered parameter object of such a type allocated by such a filename:</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_parameterstrings(filename=&quot;file1&quot;, parametertype=type(eqb))</span>
+<span class="sd">        (&#39;eqb(5000.0)&#39;,)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">strings</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">fn2ref</span> <span class="ow">in</span> <span class="n">variabletools</span><span class="o">.</span><span class="n">sort_variables</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2reference</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">):</span>
+            <span class="k">for</span> <span class="n">fn</span><span class="p">,</span> <span class="n">ref</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">fn2ref</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="n">parametertype</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span> <span class="ow">and</span> <span class="n">filename</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">):</span>
+                        <span class="n">strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="n">objecttools</span><span class="o">.</span><span class="n">apply_black</span><span class="p">(</span><span class="n">type_</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">ref</span><span class="p">))</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">ref</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">strings</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SubAuxfiler.get_references">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.SubAuxfiler.get_references">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_references</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">filename</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">parametertype</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Reference</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a |tuple| of all or a selection of the reference parameter objects</span>
+<span class="sd">        or their related reference keyword arguments.</span>
+
+<span class="sd">        The following (slightly modified) test-setting stems from the documentation</span>
+<span class="sd">        on method |SubAuxfiler.add_parameter|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nhru(4)</span>
+<span class="sd">        &gt;&gt;&gt; lnk(ACKER, LAUBW, WASSER, ACKER)</span>
+<span class="sd">        &gt;&gt;&gt; treft(acker=2.0, laubw=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqb(5000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqi1(2000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqd1(100.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Auxfiler</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler = Auxfiler(model)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler = auxfiler.lland_v1</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqi1, filename=&quot;file1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameter(</span>
+<span class="sd">        ...     treft, filename=&quot;file1&quot;, keywordarguments=treft.keywordarguments)</span>
+<span class="sd">        &gt;&gt;&gt; eqb *= 2.0</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqd1, filename=&quot;file2&quot;)</span>
+
+<span class="sd">        Despite returning the reference objects instead of parameter string</span>
+<span class="sd">        representations, method |SubAuxfiler.get_references| works precisely</span>
+<span class="sd">        like method |SubAuxfiler.get_parameterstrings|:</span>
+
+<span class="sd">        &gt;&gt;&gt; for reference in subauxfiler.get_references():</span>
+<span class="sd">        ...     print(reference)</span>
+<span class="sd">        KeywordArguments(acker=2.0, laubw=1.0)</span>
+<span class="sd">        eqb(5000.0)</span>
+<span class="sd">        eqb(10000.0)</span>
+<span class="sd">        eqi1(2000.0)</span>
+<span class="sd">        eqd1(100.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; for reference in subauxfiler.get_references(filename=&quot;file1&quot;):</span>
+<span class="sd">        ...     print(reference)</span>
+<span class="sd">        KeywordArguments(acker=2.0, laubw=1.0)</span>
+<span class="sd">        eqb(5000.0)</span>
+<span class="sd">        eqi1(2000.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; for reference in subauxfiler.get_references(parametertype=type(eqb)):</span>
+<span class="sd">        ...     print(reference)</span>
+<span class="sd">        eqb(5000.0)</span>
+<span class="sd">        eqb(10000.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_references(filename=&quot;file1&quot;, parametertype=type(eqb))</span>
+<span class="sd">        (eqb(5000.0),)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">references</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Reference</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">fn2ref</span> <span class="ow">in</span> <span class="n">variabletools</span><span class="o">.</span><span class="n">sort_variables</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2reference</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">):</span>
+            <span class="k">for</span> <span class="n">fn</span><span class="p">,</span> <span class="n">ref</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">fn2ref</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="n">parametertype</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">type_</span><span class="p">)</span> <span class="ow">and</span> <span class="n">filename</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+                    <span class="n">references</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">references</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SubAuxfiler.get_filename">
+<a class="viewcode-back" href="../../../auxfiletools.html#hydpy.core.auxfiletools.SubAuxfiler.get_filename">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_filename</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">parameter</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;If possible, return an auxiliary filename suitable for the given parameter</span>
+<span class="sd">        object.</span>
+
+<span class="sd">        The following (slightly modified) test-setting stems from the documentation</span>
+<span class="sd">        on method |SubAuxfiler.add_parameter|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nhru(4)</span>
+<span class="sd">        &gt;&gt;&gt; lnk(ACKER, LAUBW, WASSER, ACKER)</span>
+<span class="sd">        &gt;&gt;&gt; treft(acker=2.0, laubw=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqb(5000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqi1(2000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqd1(100.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Auxfiler</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler = Auxfiler(model)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler = auxfiler.lland_v1</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqi1, filename=&quot;file1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameter(</span>
+<span class="sd">        ...     treft, filename=&quot;file1&quot;, keywordarguments=treft.keywordarguments)</span>
+<span class="sd">        &gt;&gt;&gt; eqb *= 2.0</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqd1, filename=&quot;file2&quot;)</span>
+
+<span class="sd">        In simple cases, method |SubAuxfiler.get_filename| searches for an equal</span>
+<span class="sd">        reference parameter object and returns the related auxiliary filename:</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_filename(eqb)</span>
+<span class="sd">        &#39;file2&#39;</span>
+<span class="sd">        &gt;&gt;&gt; eqb /= 2.0</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_filename(eqb)</span>
+<span class="sd">        &#39;file1&#39;</span>
+
+<span class="sd">        If it cannot find an equal reference parameter, it returns |None|:</span>
+
+<span class="sd">        &gt;&gt;&gt; eqb /= 2.0</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_filename(eqb)</span>
+
+<span class="sd">        If a registered parameter object is associated with a |KeywordArguments| object</span>
+<span class="sd">        (see the documentation on method |SubAuxfiler.add_parameter| on how to do this),</span>
+<span class="sd">        |SubAuxfiler.get_filename| does not check for equality.  Instead,  it uses</span>
+<span class="sd">        method |KeywordArguments.subset_of| to check if the keyword arguments of the</span>
+<span class="sd">        given parameter are a subset of keyword arguments of the registered parameter:</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_filename(treft)</span>
+<span class="sd">        &#39;file1&#39;</span>
+<span class="sd">        &gt;&gt;&gt; treft(acker=2.0, laubw=0.0)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_filename(treft)</span>
+
+<span class="sd">        As a result, auxiliary file `file1` is also considered suitable for a</span>
+<span class="sd">        |lland_control.TRefT| object related to land-use type |lland_constants.ACKER|</span>
+<span class="sd">        (acre) only:</span>
+
+<span class="sd">        &gt;&gt;&gt; lnk(ACKER)</span>
+<span class="sd">        &gt;&gt;&gt; treft(acker=3.0)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_filename(treft)</span>
+<span class="sd">        &gt;&gt;&gt; treft(acker=2.0)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_filename(treft)</span>
+<span class="sd">        &#39;file1&#39;</span>
+
+<span class="sd">        The above mechanism is convenient (and possibly even necessary to make</span>
+<span class="sd">        writing auxiliary files feasible for many parameter types) but can lead</span>
+<span class="sd">        to ambiguous situations.  To demonstrate this, we register the currently</span>
+<span class="sd">        relevant keyword arguments of parameter |lland_control.TRefT|:</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameter(</span>
+<span class="sd">        ...     treft, filename=&quot;file2&quot;, keywordarguments=treft.keywordarguments)</span>
+
+<span class="sd">        Now, the keyword arguments of |lland_control.TRefT| are a subset of</span>
+<span class="sd">        both registered |KeywordArguments| objects:</span>
+
+<span class="sd">        &gt;&gt;&gt; treft.keywordarguments</span>
+<span class="sd">        KeywordArguments(acker=2.0)</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = subauxfiler.get_references(</span>
+<span class="sd">        ...     parametertype=type(treft), filename=&quot;file1&quot;)[0]</span>
+<span class="sd">        &gt;&gt;&gt; kwargs</span>
+<span class="sd">        KeywordArguments(acker=2.0, laubw=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; treft.keywordarguments.subset_of(kwargs)</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; kwargs = subauxfiler.get_references(</span>
+<span class="sd">        ...     parametertype=type(treft), filename=&quot;file2&quot;)[0]</span>
+<span class="sd">        &gt;&gt;&gt; kwargs</span>
+<span class="sd">        KeywordArguments(acker=2.0)</span>
+<span class="sd">        &gt;&gt;&gt; treft.keywordarguments.subset_of(kwargs)</span>
+<span class="sd">        True</span>
+
+<span class="sd">        Method |SubAuxfiler.get_filename| emits a warning when it finds multiple</span>
+<span class="sd">        suitable auxiliary files:</span>
+
+<span class="sd">        &gt;&gt;&gt; subauxfiler.get_filename(treft)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        UserWarning: Parameter `treft(2.0)` matches several auxiliary files: \</span>
+<span class="sd">file1 and file2</span>
+
+<span class="sd">        Nevertheless, it returns the first match (which might be confusing due to</span>
+<span class="sd">        its arbitrariness but at least results in a working project configuration):</span>
+
+<span class="sd">        &gt;&gt;&gt; import warnings</span>
+<span class="sd">        &gt;&gt;&gt; with warnings.catch_warnings() :</span>
+<span class="sd">        ...     warnings.filterwarnings(&quot;ignore&quot;)</span>
+<span class="sd">        ...     subauxfiler.get_filename(treft)</span>
+<span class="sd">        &#39;file1&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">filenames</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">filename2reference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2reference</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">parameter</span><span class="p">),</span> <span class="p">{})</span>
+        <span class="k">for</span> <span class="n">filename</span><span class="p">,</span> <span class="n">reference</span> <span class="ow">in</span> <span class="n">filename2reference</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="n">parameter</span><span class="o">.</span><span class="n">keywordarguments</span><span class="o">.</span><span class="n">subset_of</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+            <span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">parameter</span> <span class="o">==</span> <span class="n">reference</span><span class="p">):</span>
+                <span class="n">filenames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">filenames</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filenames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Parameter `</span><span class="si">{</span><span class="n">parameter</span><span class="si">}</span><span class="s2">` matches several auxiliary files: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">filenames</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">filenames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Reference</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+        <span class="n">type2ref</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">fn2ref</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type2filename2reference</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">type_</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">fn2ref</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">fn2ref</span><span class="p">:</span>
+                <span class="n">type2ref</span><span class="p">[</span><span class="n">type_</span><span class="p">]</span> <span class="o">=</span> <span class="n">fn2ref</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">type2ref</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span>
+                <span class="n">ref</span> <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">variabletools</span><span class="o">.</span><span class="n">sort_variables</span><span class="p">(</span><span class="n">type2ref</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+            <span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` is neither a filename nor a name of a parameter &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;handled by the actual `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` object.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">repr_</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_values</span><span class="p">(</span>
+            <span class="n">values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_filenames</span><span class="p">(),</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(&quot;</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">repr_</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.lland_v1 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nhru(4)</span>
+<span class="sd">        &gt;&gt;&gt; lnk(ACKER, LAUBW, WASSER, ACKER)</span>
+<span class="sd">        &gt;&gt;&gt; treft(acker=2.0, laubw=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqb(5000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqi1(2000.0)</span>
+<span class="sd">        &gt;&gt;&gt; eqd1(100.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Auxfiler</span>
+<span class="sd">        &gt;&gt;&gt; auxfiler = Auxfiler(model)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler = auxfiler.lland_v1</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqi1, filename=&quot;file1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameter(</span>
+<span class="sd">        ...     treft, filename=&quot;file1&quot;, keywordarguments=treft.keywordarguments)</span>
+<span class="sd">        &gt;&gt;&gt; eqb *= 2.0</span>
+<span class="sd">        &gt;&gt;&gt; subauxfiler.add_parameters(eqb, eqd1, filename=&quot;file2&quot;)</span>
+
+<span class="sd">        &gt;&gt;&gt; sorted(set(dir(subauxfiler)) - set(object.__dir__(subauxfiler)))</span>
+<span class="sd">        [&#39;eqb&#39;, &#39;eqd1&#39;, &#39;eqi1&#39;, &#39;file1&#39;, &#39;file2&#39;, &#39;treft&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
+            <span class="n">cast</span><span class="p">(</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">()),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_filenames</span><span class="p">(),</span>
+            <span class="p">(</span><span class="n">type_</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">type_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parametertypes</span><span class="p">()),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">names</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.auxfiletools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

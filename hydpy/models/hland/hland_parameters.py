@@ -85,21 +85,21 @@ class ParameterLand(ParameterBase):
     |GLACIER|, and |SEALED| zones.
 
     |ParameterLand| works similarly to |ParameterComplete|.  Some examples based on the
-    parameter |WHC|:
+    parameter |DTTM|:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep("1d")
     >>> nmbzones(5)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
-    >>> whc(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
-    >>> whc
-    whc(field=2.0, forest=1.0, glacier=4.0)
-    >>> whc(field=2.0, default=9.0)
-    >>> whc
-    whc(field=2.0, forest=9.0, glacier=9.0)
+    >>> dttm(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
+    >>> dttm
+    dttm(field=2.0, forest=1.0, glacier=4.0)
+    >>> dttm(field=2.0, default=9.0)
+    >>> dttm
+    dttm(field=2.0, forest=9.0, glacier=9.0)
     >>> derived.relzoneareas(0.2, 0.2, 0.2, nan, 0.2)
     >>> from hydpy import round_
-    >>> round_(whc.average_values())
+    >>> round_(dttm.average_values())
     5.5
     """
 

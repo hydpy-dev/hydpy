@@ -293,7 +293,7 @@ required to prepare the model properly.
     qt(nan)
 
     For states like |hland_states.SM|, we need to know the values at the beginning of
-    the simulation period only.  All following values are calculated subsequentially
+    the simulation period only.  All following values are calculated subsequently
     during the simulation run.  However, this is different for input sequences like
     |hland_inputs.T|.  Time variable properties like the air temperature are external
     forcings. Hence, they must be available over the whole simulation period apriori.
@@ -534,7 +534,7 @@ required to prepare the model properly.
     be overwritten during the simulation and thus only support the `write_jit` argument.
     The |HydPy.prepare_inputseries| method, on the other hand, supports both the
     `read_jit` and the `write_jit` argument.  However, in most cases, only reading
-    makes sense.  The argument `write_jit` is thought for when other methods (for
+    makes sense.  The argument `write_jit` is intended for when other methods (for
     example data assimilation approaches) modify the input data, and we need to keep
     track of these modifications:
 
@@ -1377,6 +1377,7 @@ deprecated.  Use method `prepare_models` instead.
         from hydpy.models import evap_aet_hbv96
         from hydpy.models import evap_pet_hbv96
         from hydpy.models import rconc_uh
+        from hydpy.models import snow_dd
         <BLANKLINE>
         simulationstep("1h")
         parameterstep("2d")
@@ -1395,6 +1396,20 @@ deprecated.  Use method `prepare_models` instead.
                 airtemperaturefactor(0.1)
         with model.add_rconcmodel_v1(rconc_uh):
             uh("triangle", tb=0.18364)
+        with model.add_snowmodel_v1(snow_dd):
+            numberdivisions(1)
+            temperatureaddend(0.0)
+            lapserate(0.6)
+            rainsnowthreshold(0.55824)
+            rainsnowinterval(2.0)
+            throughfalldistribution(1.0)
+            degreedaythreshold(0.55824)
+            degreedayfactor(field=9.11706, forest=5.470236)
+            degreedayvariability(0.0)
+            freezingfactor(0.05)
+            watercapacity(0.1)
+            snowpacklimit(inf)
+            redistributionpaths(0.0)
         <BLANKLINE>
 
         When delegating parameter value definitions to auxiliary files, it makes no
@@ -1436,6 +1451,20 @@ deprecated.  Use method `prepare_models` instead.
                 airtemperaturefactor(auxfile="evap")
         with model.add_rconcmodel_v1(rconc_uh):
             uh("triangle", tb=0.18364)
+        with model.add_snowmodel_v1(snow_dd):
+            numberdivisions(1)
+            temperatureaddend(0.0)
+            lapserate(0.6)
+            rainsnowthreshold(0.55824)
+            rainsnowinterval(2.0)
+            throughfalldistribution(1.0)
+            degreedaythreshold(0.55824)
+            degreedayfactor(field=9.11706, forest=5.470236)
+            degreedayvariability(0.0)
+            freezingfactor(0.05)
+            watercapacity(0.1)
+            snowpacklimit(inf)
+            redistributionpaths(0.0)
         <BLANKLINE>
 
         >>> with TestIO():
@@ -1653,7 +1682,7 @@ deprecated.  Use method `prepare_models` instead.
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         Our |HydPy| instance `hp` is ready for the first simulation run, meaning the
-        required initial conditions are available already.  First, we start a
+        required initial conditions are already available.  First, we start a
         simulation run covering the whole initialisation period and inspect the
         resulting soil moisture values of |Element| `land_dill_assl`, handled by a
         sequence object of type |hland_states.SM|:
@@ -1679,8 +1708,8 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
-        ...         print(lines[8])
-        ...         print(lines[9])
+        ...         print(lines[6])
+        ...         print(lines[7])
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
@@ -1721,8 +1750,8 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
-        ...         print(lines[10])
-        ...         print(lines[11])
+        ...         print(lines[8])
+        ...         print(lines[9])
         sm(184.763623, 180.829042, 199.408192, 196.170909, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
@@ -1737,8 +1766,8 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
-        ...         print(lines[10])
-        ...         print(lines[11])
+        ...         print(lines[8])
+        ...         print(lines[9])
         sm(184.763623, 180.829042, 199.408192, 196.170909, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
@@ -1914,29 +1943,30 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.trim_conditions()
 
         If you try, for example, to set the snow layer's liquid water content
-        (|hland_states.WC|) to a value larger than the allowed fraction of the snow
-        layer's frozen water content (|hland_states.SP|), you get a direct
+        (|snow_states.WaterContent|) to a value larger than the allowed fraction of the
+        snow layer's frozen water content (||snow_states.IceContent|), you get a direct
         response based on function |trim|:
 
         >>> from hydpy.core.testtools import warn_later
+        >>> model = hp.elements.land_dill_assl.model.snowmodel
         >>> with pub.options.warntrim(True), warn_later():  # doctest: +ELLIPSIS
-        ...     hp.elements.land_dill_assl.model.sequences.states.wc(1.0)
-        UserWarning: For variable `wc` of element `land_dill_assl` at least one value \
-needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0, \
-..., 0.0`, respectively.
+        ...     model.sequences.states.watercontent(1.0)
+        UserWarning: For variable `watercontent` of element `land_dill_assl` at least \
+one value needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and \
+`0.0, ..., 0.0`, respectively.
 
-        However, changing the allowed fraction (|hland_control.WHC|) without adjusting
+        However, changing the allowed fraction (|snow_control.WHC|) without adjusting
         the conditions cannot be detected automatically.  Whenever in doubt, call
         method |HydPy.trim_conditions| explicitly:
 
-        >>> hp.elements.land_dill_assl.model.sequences.states.sp(10.0)
-        >>> hp.elements.land_dill_assl.model.sequences.states.wc(1.0)
-        >>> hp.elements.land_dill_assl.model.parameters.control.whc(0.0)
+        >>> model.sequences.states.icecontent(10.0)
+        >>> model.sequences.states.watercontent(1.0)
+        >>> model.parameters.control.watercapacity(0.0)
         >>> with pub.options.warntrim(True), warn_later():
         ...     hp.trim_conditions()  # doctest: +ELLIPSIS
-        UserWarning: For variable `wc` of element `land_dill_assl` at least one value \
-needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0, \
-..., 0.0`, respectively.
+        UserWarning: For variable `watercontent` of element `land_dill_assl` at least \
+one value needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and \
+`0.0, ..., 0.0`, respectively.
         """
         self.elements.trim_conditions()
 
@@ -1991,9 +2021,9 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         handling multiple conditions, which can, for example, help apply ensemble-based
         assimilation algorithms.
 
-        For demonstration, we perform simulations for the :ref:`HydPy-H-Lahn` example
-        project spanning the first three months of 1996.  We begin with a preparation
-        run beginning on January 1 and ending on February 20:
+        For demonstration, we perform multiple simulations for the :ref:`HydPy-H-Lahn`
+        example project spanning the first three months of 1996.  We begin with a
+        preparation run from January 1 to February 20:
 
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -2011,10 +2041,10 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         In the `lahn_marb` subcatchment, this snow layer contains 12.1 mm of frozen
         water and 1.1 mm of liquid water:
 
-        >>> lahn1_states = hp.elements.land_lahn_marb.model.sequences.states
-        >>> print_vector([lahn1_states.sp.average_values()])
+        >>> lahn1_states = hp.elements.land_lahn_marb.model.snowmodel.sequences.states
+        >>> print_vector([lahn1_states.icecontent.average_values()])
         12.145472
-        >>> print_vector([lahn1_states.wc.average_values()])
+        >>> print_vector([lahn1_states.watercontent.average_values()])
         1.106316
 
         Now, we save the current conditions and perform the first simulation run from
@@ -2033,13 +2063,13 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         to property |HydPy.conditions|:
 
         >>> hp.conditions = conditions
-        >>> print_vector([lahn1_states.sp.average_values()])
+        >>> print_vector([lahn1_states.icecontent.average_values()])
         12.145472
-        >>> print_vector([lahn1_states.wc.average_values()])
+        >>> print_vector([lahn1_states.watercontent.average_values()])
         1.106316
 
-        All discharge values of the second simulation run are identical to the ones of
-        the first simulation run:
+        All discharge values of the second simulation run are identical to those of the
+        first simulation run:
 
         >>> hp.nodes.lahn_kalk.sequences.sim.series = 0.0
         >>> pub.timegrids.sim.firstdate = "1996-02-20"
@@ -2051,33 +2081,34 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         >>> from numpy import isclose
         >>> assert all(isclose(first, second, rtol=0.0, atol=1e-12))
 
-        We selected the snow period as an example due to potential problems with the
-        limited water-holding capacity of the snow layer, which depends on the ice
-        content of the snow layer (|hland_states.SP|) and the relative water-holding
-        capacity (|hland_control.WHC|).  Due to this restriction, problems can occur.
-        To give an example, we set |hland_control.WHC| to zero temporarily, apply the
-        memorised conditions, and finally reset the original values of
-        |hland_control.WHC|:
+        We selected the snow period as an example because the snow layer's limited
+        water-holding capacity depends on its ice content (|snow_states.IceContent|)
+        and relative water-holding capacity (|snow_control.WaterCapacity|).  Due to
+        this restriction, problems can occur.  For demonstration, we temporarily set
+        |snow_control.WaterCapacity| to zero, apply the memorised conditions, and then
+        reset |snow_control.WaterCapacity| to its original values:
 
         >>> for element in hp.elements.catchment:
-        ...     element.whc = element.model.parameters.control.whc.values
-        ...     element.model.parameters.control.whc = 0.0
+        ...     control = element.model.snowmodel.parameters.control
+        ...     element.watercapacity = control.watercapacity.values.copy()
+        ...     control.watercapacity = 0.0
         >>> with pub.options.warntrim(False):
         ...     hp.conditions = conditions
         >>> for element in hp.elements.catchment:
-        ...     element.model.parameters.control.whc = element.whc
+        ...     control = element.model.snowmodel.parameters.control
+        ...     control.watercapacity = element.watercapacity
 
         Without any water-holding capacity of the snow layer, its water content is zero
         despite the actual memorised value of 1.1 mm:
 
-        >>> print_vector([lahn1_states.sp.average_values()])
+        >>> print_vector([lahn1_states.icecontent.average_values()])
         12.145472
-        >>> print_vector([lahn1_states.wc.average_values()])
+        >>> print_vector([lahn1_states.watercontent.average_values()])
         0.0
 
-        What happens in such conflicts depends on the implementation of the respective
-        application model.  For safety, we suggest setting the option
-        |Options.warntrim| to |True| before resetting conditions.
+        What happens in such conflicts depends on how the application model is
+        implemented.  For safety, we suggest setting the option |Options.warntrim| to
+        |True| before resetting conditions.
         """
         return self.elements.conditions
 
@@ -2873,7 +2904,7 @@ HydPy instance does not handle any elements at the moment.
         >>> hp.nodes.lahn_leun.deploymode = "obs"
         >>> hp.nodes.lahn_leun.sequences.obs.series = 0.0
 
-        Now, the simulated values of node `lahn_leun` are identical with the ones of the
+        Now, the simulated values of node `lahn_leun` are identical to the ones of the
         `newsim` example, but the simulated values of node `lahn_kalk` are lower due to
         receiving the observed instead of the simulated values from upstream:
 

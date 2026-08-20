@@ -24,46 +24,10 @@ class TF(hland_sequences.Flux1DSequence):
     mask = hland_masks.Interception()
 
 
-class SPL(hland_sequences.Flux1DSequence):
-    """Subbasin-internal redistribution loss of the snow's ice content [mm/T]."""
-
-    mask = hland_masks.Snow()
-
-
-class WCL(hland_sequences.Flux1DSequence):
-    """Subbasin-internal redistribution loss of the snow's water content [mm/T]."""
-
-    mask = hland_masks.Snow()
-
-
-class SPG(hland_sequences.Flux1DSequence):
-    """Subbasin-internal redistribution gain of the snow's ice content [mm/T]."""
-
-    mask = hland_masks.Snow()
-
-
-class WCG(hland_sequences.Flux1DSequence):
-    """Subbasin-internal redistribution gain of the snow's water content [mm/T]."""
-
-    mask = hland_masks.Snow()
-
-
 class GlMelt(hland_sequences.Flux1DSequence):
     """Glacier melt [mm/T]."""
 
     mask = hland_masks.Glacier()
-
-
-class Melt(hland_sequences.Flux2DSequence):
-    """Actual melting of frozen water stored in the snow layer [mm/T]."""
-
-    mask = hland_masks.Snow()
-
-
-class Refr(hland_sequences.Flux2DSequence):
-    """Actual (re)freezing of liquid water stored in the snow layer [mm/T]."""
-
-    mask = hland_masks.Snow()
 
 
 class In_(hland_sequences.Flux1DSequence):
@@ -195,37 +159,37 @@ class RI(hland_sequences.Flux1DSequence):
 
 
 class GR1(hland_sequences.Flux1DSequence):
-    """Recharge into the fast response groundwater reservoir [mm/T]."""
+    """Recharge into the fast-response groundwater reservoir [mm/T]."""
 
     mask = hland_masks.UpperZone()
 
 
 class RG1(hland_sequences.Flux1DSequence):
-    """Discharge from the fast response groundwater reservoir [mm/T]."""
+    """Discharge from the fast-response groundwater reservoir [mm/T]."""
 
     mask = hland_masks.UpperZone()
 
 
 class GR2(sequencetools.FluxSequence):
-    """Recharge into the first-order slow response groundwater reservoir [mm/T]."""
+    """Recharge into the first-order slow-response groundwater reservoir [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
 
 
 class RG2(sequencetools.FluxSequence):
-    """Discharge from the first-order slow response groundwater reservoir [mm/T]."""
+    """Discharge from the first-order slow-response groundwater reservoir [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
 
 
 class GR3(sequencetools.FluxSequence):
-    """Recharge into the second-order slow response groundwater reservoir [mm/T]."""
+    """Recharge into the second-order slow-response groundwater reservoir [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
 
 
 class RG3(sequencetools.FluxSequence):
-    """Discharge from the second-order slow response groundwater reservoir [mm/T]."""
+    """Discharge from the second-order slow-response groundwater reservoir [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
 

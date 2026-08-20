@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-import numpy
-
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 from hydpy.models.hland import hland_control
@@ -15,83 +13,6 @@ class Ic(hland_sequences.State1DSequence):
 
     SPAN = (0.0, None)
     mask = hland_masks.Interception()
-
-
-class SP(hland_sequences.State2DSequence):
-    """Frozen water stored in the snow layer [mm]."""
-
-    mask = hland_masks.Snow()
-
-    CONTROLPARAMETERS = (hland_control.WHC,)
-
-    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
-        r"""Trim |SP| following :math:`WC \leq WHC \cdot SP`.
-
-        >>> from hydpy.models.hland import *
-        >>> parameterstep("1d")
-        >>> nmbzones(7)
-        >>> sclass(2)
-        >>> whc(0.1)
-        >>> states.sp([[-1.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0],
-        ...            [-2.0, 0.0, 0.0, 6.0, 6.0, 6.0, 6.0]])
-        >>> states.sp
-        sp([[0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0],
-            [0.0, 0.0, 0.0, 6.0, 6.0, 6.0, 6.0]])
-        >>> states.wc.values = [[-1.0, 0.0, 1.0, -1.0, 0.0, 0.5, 1.0],
-        ...                     [-1.0, 0.0, 1.0, -1.0, 0.0, 0.5, 1.0]]
-        >>> states.sp([[-1.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0],
-        ...            [-2.0, 0.0, 0.0, 6.0, 6.0, 6.0, 6.0]])
-        >>> states.sp
-        sp([[0.0, 0.0, 10.0, 5.0, 5.0, 5.0, 10.0],
-            [0.0, 0.0, 10.0, 6.0, 6.0, 6.0, 10.0]])
-        >>> whc(0.0)
-        >>> states.wc.values = 0.0
-        >>> states.sp([[-1.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0],
-        ...            [-2.0, 0.0, 0.0, 6.0, 6.0, 6.0, 6.0]])
-        >>> states.sp
-        sp([[0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0],
-            [0.0, 0.0, 0.0, 6.0, 6.0, 6.0, 6.0]])
-        """
-        whc = self.subseqs.seqs.model.parameters.control.whc
-        wc = self.subseqs.wc
-        if lower is None:
-            wc_values = wc.values.copy()
-            wc_values[numpy.isnan(wc_values)] = 0.0
-            with numpy.errstate(divide="ignore", invalid="ignore"):
-                lower = numpy.clip(wc_values / whc.values, 0.0, numpy.inf)
-                lower[:, whc.values == 0.0] = 0.0
-        return super().trim(lower, upper)
-
-
-class WC(hland_sequences.State2DSequence):
-    """Liquid water content of the snow layer [mm]."""
-
-    SPAN = (0.0, None)
-    mask = hland_masks.Snow()
-
-    CONTROLPARAMETERS = (hland_control.WHC,)
-
-    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
-        """Trim |WC| following :math:`WC \\leq WHC \\cdot SP`.
-
-        >>> from hydpy.models.hland import *
-        >>> parameterstep("1d")
-        >>> nmbzones(7)
-        >>> sclass(2)
-        >>> whc(0.1)
-        >>> states.sp = [[0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0],
-        ...              [0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0]]
-        >>> states.wc([[-1.0, 0.0, 1.0, -1.0, 0.0, 0.5, 1.0],
-        ...            [-0.2, 0.0, 0.2, -0.2, 0.0, 0.1, 0.2]])
-        >>> states.wc
-        wc([[0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.2]])
-        """
-        whc = self.subseqs.seqs.model.parameters.control.whc
-        sp = self.subseqs.sp
-        if upper is None:
-            upper = whc * sp
-        return super().trim(lower, upper)
 
 
 class SM(hland_sequences.State1DSequence):
@@ -193,7 +114,7 @@ class LZ(sequencetools.StateSequence):
 
 
 class SG1(hland_sequences.State1DSequence):
-    """Fast response groundwater reservoir [mm]."""
+    """Fast-response groundwater reservoir [mm]."""
 
     SPAN = (0.0, None)
 
@@ -217,13 +138,13 @@ class SG1(hland_sequences.State1DSequence):
 
 
 class SG2(sequencetools.StateSequence):
-    """First-order slow response groundwater reservoir [mm]."""
+    """First-order slow-response groundwater reservoir [mm]."""
 
     NDIM: Final[Literal[0]] = 0
 
 
 class SG3(sequencetools.StateSequence):
-    """Second-order slow response groundwater reservoir [mm]."""
+    """Second-order slow-response groundwater reservoir [mm]."""
 
     NDIM: Final[Literal[0]] = 0
 

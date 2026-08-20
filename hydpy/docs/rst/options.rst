@@ -107,7 +107,7 @@ directory and write discharge data to ASCII files in another directory. Therefor
 HydPy's XML support offers two exceptions, which are both illustrated, for example, by
 the `single_run.xml` file supplied with the :ref:`HydPy-H-Lahn` example project.
 First, the XML element `conditions_io` allows for specifying separate directories for
-reading and writing condition files.  Second, the XML element `serios_io` can contain
+reading and writing condition files.  Second, the XML element `series_io` can contain
 multiple `readers` and `writers`, and one can specify individual option values for
 each.
 

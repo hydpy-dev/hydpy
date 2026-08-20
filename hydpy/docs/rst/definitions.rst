@@ -203,7 +203,7 @@ The :ref:`subpackage` `interfaces` provides multiple abstract descriptions for
 submodels.  Users do not need to be aware of all details but should understand that if
 an :ref:`application_model` like |hland_96| claims it can consider additional runoff
 concentration processes by using a submodel that follows the |RConcModel_V1| interface,
-they can use, for example, |rconc_uh| for this purpose, as it one of the submodels
+they can use, for example, |rconc_uh| for this purpose, as it is one of the submodels
 following the |RConcModel_V1| interface.
 
 .. _submodel_port:
@@ -403,7 +403,7 @@ which uses the user-defined subcatchment area (defined by `control parameter`
 mm/T to m³/s (with `T` being the simulation step size).
 
 `Fixed parameters` represent mathematical or physical properties with unambiguous
-values.  Principally, users can modify them, but this is more a feature for testing
+values.  Principally, users can modify them, but this is more of a feature for testing
 than for practical applications.  One example (for a `parameter` with a definitely
 fixed value) is |hland_fixed.Pi|.
 
@@ -437,7 +437,7 @@ run.   These properties can be external forcings like precipitation or calculati
 results like discharge.  To limit confusion and prevent class name clashes, we added an
 underscore to the general `sequence` base class |Sequence_|.
 
-The terms `sequence` and "time series" are closely related but not interchangable.  By
+The terms `sequence` and "time series" are closely related but not interchangeable.  By
 default, `sequence` instances only handle the current value (or, in some cases, the
 recent values) of the properties they represent.  Yet, most `sequences` have the
 |IOSequence.series| attribute, allowing them to keep the time series of a complete
@@ -455,7 +455,7 @@ them as "condition sequences" or simply "conditions".  `State sequences` (derive
 |StateSequence|) represent current states like soil moisture.  `Log sequences` (derived
 from |LogSequence|) log previous input data or calculation results required by
 approaches like the Unit Hydrograph method.  `State and log sequences` usually read
-their initial conditions from "condition files" and and become stepwise updated during
+their initial conditions from "condition files" and become stepwise updated during
 simulation runs.
 
 `Factor and flux sequences` contain pure simulation results.  They are technically

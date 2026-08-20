@@ -42,7 +42,7 @@ response units, snow classes, or the like.
 
 There are currently four land model families.
 
-:ref:`HydPy-H` follows the ideas and terminology of the wordwide applied HBV model.
+:ref:`HydPy-H` follows the ideas and terminology of the worldwide applied HBV model.
 Besides |hland_96|, which implements the original HBV96 model
 :cite:p:`ref-Lindstrom1997HBV96`, :ref:`HydPy-H` provides combination models.
 |hland_96p| contains components of the HBV-like model PREVAH
@@ -283,7 +283,7 @@ words, the conversion of effective precipitation to direct runoff).
 :ref:`HydPy-Rconc` provides two submodels that allow configuring runoff concentration
 in different ways.  |rconc_nash| implements the Nash cascade and relies on explicitly
 modelled storage contents.  |rconc_uh|, on the other hand, implements the Unit
-Hydrograph approach, which ordinates that can be set freely or, more convenience,
+Hydrograph approach, which ordinates that can be set freely or, for more convenience,
 following the simplifying assumptions of HBV96 :cite:p:`ref-Lindstrom1997HBV96` and
 GR4J :cite:p:`ref-Perrin2007`.
 

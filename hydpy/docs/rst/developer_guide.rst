@@ -14,7 +14,7 @@ available on the `Python package index`_ and install it with little effort.
 There is a considerable  amount of Python tools freely available, being
 of great help when trying to achieve more complex tasks like parameter
 calibration or regionalisation.  Cherry picking from different Python
-packages can be a substantial  time-saving.  Very often it is not necessary
+packages can be a substantial time-saving.  Very often it is not necessary
 to write a "real" Python program for the task at hand.  Instead, writing a
 simple script utilising functionalities of different packages in the correct
 order often gets the job done.

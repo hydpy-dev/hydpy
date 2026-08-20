@@ -12,8 +12,8 @@ if a main model can use all submodels that follow that interface.
 
 This subsection lists all currently available submodel interfaces.  We hope this
 information to be relevant only for framework and model developers.  Users should be
-able to easier query the information about possible couplings between main models and
-submodels via submodel graphs.  See, for example, the "complete" submodel graph,
+able to more easily query the information about possible couplings between main models
+and submodels via submodel graphs.  See, for example, the "complete" submodel graph,
 available in the :ref:`model_overview` section, which covers all user-relevant models.
 
 

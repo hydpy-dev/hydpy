@@ -192,7 +192,7 @@ Note that each import command stands in a separate line.  Always import
 complete modules from *HydPy* without changing their names. ---
 No wildcard imports!
 
-We lift the wildcard ban for  writing configuration files. Using the
+We lift the wildcard ban for writing configuration files. Using the
 example of parameter control files, it would not be convenient always
 to write something like:
 

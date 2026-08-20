@@ -500,8 +500,8 @@ NetCDF-CF format in more detail.
 
 The third supported time series file format relies on the Numpy format (file ending
 ".npy").  It resembles the ASCII format but saves data in binary form.  We only
-recommend if if one requires a more efficient alternative to the ASCII format and a
-less complex alternative to the NetCDF format.
+recommend if one requires a more efficient alternative to the ASCII format and a less
+complex alternative to the NetCDF format.
 
 All time series files can specify dates with or without time zone information.  Without
 time zone information, HydPy usually assumes the currently selected

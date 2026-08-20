@@ -1,0 +1,15 @@
+.. |H| replace:: :class:`~hydpy.models.lstream.lstream_states.H`
+.. |VG2QG| replace:: :class:`~hydpy.models.lstream.lstream_control.VG2QG`
+.. |VG| replace:: :class:`~hydpy.models.lstream.lstream_states.VG`
+.. |lstream_v001| replace:: :mod:`~hydpy.models.lstream_v001`
+.. |lstream_v002| replace:: :mod:`~hydpy.models.lstream_v002`
+
+.. _lstream_v002:
+
+lstream_v002
+============
+
+.. automodule:: hydpy.models.lstream_v002
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, ReceiverSequences, InputSequences, LogSequences, AideSequences, SenderSequences

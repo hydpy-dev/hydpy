@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.masktools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.masktools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.masktools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module implements masking features to define which entries of |Parameter| or</span>
+<span class="sd">|Sequence_| arrays are relevant and which are not.&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core.typingtools</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">parametertools</span>
+
+
+<span class="k">class</span> <span class="nc">_MaskDescriptor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cls_mask</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cls_mask</span> <span class="o">=</span> <span class="n">cls_mask</span>
+
+    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cls_mask</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BaseMask">
+<a class="viewcode-back" href="../../../masktools.html#hydpy.core.masktools.BaseMask">[docs]</a>
+<span class="k">class</span> <span class="nc">BaseMask</span><span class="p">(</span><span class="n">NDArrayFloat</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for defining |CustomMask| and |DefaultMask| classes.&quot;&quot;&quot;</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">array</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">array2mask</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+<div class="viewcode-block" id="BaseMask.array2mask">
+<a class="viewcode-back" href="../../../masktools.html#hydpy.core.masktools.BaseMask.array2mask">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">array2mask</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">array</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new mask object based on the given |numpy.ndarray|</span>
+<span class="sd">        and return it.&quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span>
+        <span class="k">if</span> <span class="n">array</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;, dtype=bool&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CustomMask">
+<a class="viewcode-back" href="../../../masktools.html#hydpy.core.masktools.CustomMask">[docs]</a>
+<span class="k">class</span> <span class="nc">CustomMask</span><span class="p">(</span><span class="n">BaseMask</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that awaits all |bool| values to be set manually.</span>
+
+<span class="sd">    Class |CustomMask| is the most basic applicable mask and provides no special</span>
+<span class="sd">    features, excepts that it allows its |bool| values to be defined manually.  Use it</span>
+<span class="sd">    when you require a masking behaviour that is not captured by an available mask.</span>
+
+<span class="sd">    Like the more advanced masks, |CustomMask| can either work via Python&#39;s descriptor</span>
+<span class="sd">    protocol or can be applied directly, but is thought to be applied in the last way</span>
+<span class="sd">    only:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.masktools import CustomMask</span>
+<span class="sd">    &gt;&gt;&gt; mask1 = CustomMask([[True, False, False],</span>
+<span class="sd">    ...                     [True, False, False]])</span>
+
+<span class="sd">    Note that calling any mask object (not only those of type |CustomMask|) returns a</span>
+<span class="sd">    new mask, but does not change the old one (all masks are derived from</span>
+<span class="sd">    |numpy.ndarray|):</span>
+
+<span class="sd">    &gt;&gt;&gt; mask2 = mask1([[False, True, False],</span>
+<span class="sd">    ...                [False, True, False]])</span>
+<span class="sd">    &gt;&gt;&gt; mask1</span>
+<span class="sd">    CustomMask([[ True, False, False],</span>
+<span class="sd">                [ True, False, False]])</span>
+<span class="sd">    &gt;&gt;&gt; mask2</span>
+<span class="sd">    CustomMask([[False,  True, False],</span>
+<span class="sd">                [False,  True, False]])</span>
+
+<span class="sd">    All features of class |numpy.ndarray| thought for |bool| values can be applied.</span>
+<span class="sd">    Some useful examples:</span>
+
+<span class="sd">    &gt;&gt;&gt; mask3 = mask1 + mask2</span>
+<span class="sd">    &gt;&gt;&gt; mask3</span>
+<span class="sd">    CustomMask([[ True,  True, False],</span>
+<span class="sd">                [ True,  True, False]])</span>
+<span class="sd">    &gt;&gt;&gt; mask3 ^ mask1</span>
+<span class="sd">    CustomMask([[False,  True, False],</span>
+<span class="sd">                [False,  True, False]])</span>
+<span class="sd">    &gt;&gt;&gt; ~mask3</span>
+<span class="sd">    CustomMask([[False, False,  True],</span>
+<span class="sd">                [False, False,  True]])</span>
+<span class="sd">    &gt;&gt;&gt; mask1 &amp; mask2</span>
+<span class="sd">    CustomMask([[False, False, False],</span>
+<span class="sd">                [False, False, False]])</span>
+
+<span class="sd">    Use the `in` operator to check of a mask defines a subset of another mask:</span>
+
+<span class="sd">    &gt;&gt;&gt; mask1 in mask3</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; mask3 in mask1</span>
+<span class="sd">    False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">T</span><span class="p">,</span>
+        <span class="n">bools</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">VectorInput</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="n">MatrixInput</span><span class="p">[</span><span class="nb">bool</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)(</span><span class="n">bools</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">VectorInput</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="n">MatrixInput</span><span class="p">[</span><span class="nb">bool</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">other</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="DefaultMask">
+<a class="viewcode-back" href="../../../masktools.html#hydpy.core.masktools.DefaultMask">[docs]</a>
+<span class="k">class</span> <span class="nc">DefaultMask</span><span class="p">(</span><span class="n">BaseMask</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A mask with all entries being |True| of the same shape as its master |Variable|</span>
+<span class="sd">    object.</span>
+
+<span class="sd">    See the documentation on class |CustomMask| for the basic usage of class</span>
+<span class="sd">    |DefaultMask|.</span>
+
+<span class="sd">    The following example shows how |DefaultMask| can be applied via Python&#39;s</span>
+<span class="sd">    descriptor protocol, which should be the common situation:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.parametertools import Parameter</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.masktools import DefaultMask</span>
+<span class="sd">    &gt;&gt;&gt; class Par1(Parameter):</span>
+<span class="sd">    ...     shape = (2, 3)</span>
+<span class="sd">    ...     defaultmask = DefaultMask()</span>
+<span class="sd">    &gt;&gt;&gt; Par1(None).defaultmask</span>
+<span class="sd">    DefaultMask([[ True,  True,  True],</span>
+<span class="sd">                 [ True,  True,  True]])</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import classname</span>
+<span class="sd">    &gt;&gt;&gt; classname(Par1.defaultmask)</span>
+<span class="sd">    &#39;_MaskDescriptor&#39;</span>
+
+<span class="sd">    Alternatively, you can connect a |DefaultMask| with a |Variable| object directly:</span>
+
+<span class="sd">    &gt;&gt;&gt; class Par2(Parameter):</span>
+<span class="sd">    ...     shape = (2,)</span>
+<span class="sd">    &gt;&gt;&gt; mask = DefaultMask(Par2(None))</span>
+<span class="sd">    &gt;&gt;&gt; mask</span>
+<span class="sd">    DefaultMask([ True,  True])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">variable</span><span class="p">:</span> <span class="n">VariableProtocol</span>
+
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">variable</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">VariableProtocol</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">variable</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_MaskDescriptor</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variable</span> <span class="o">=</span> <span class="n">variable</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="p">()[</span><span class="n">other</span><span class="p">])</span>
+
+<div class="viewcode-block" id="DefaultMask.new">
+<a class="viewcode-back" href="../../../masktools.html#hydpy.core.masktools.DefaultMask.new">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="n">VariableProtocol</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new |DefaultMask| object associated with the given |Variable|</span>
+<span class="sd">        object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">array2mask</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="IndexMask">
+<a class="viewcode-back" href="../../../masktools.html#hydpy.core.masktools.IndexMask">[docs]</a>
+<span class="k">class</span> <span class="nc">IndexMask</span><span class="p">(</span><span class="n">DefaultMask</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A mask depending on a referenced index parameter containing integers.</span>
+
+<span class="sd">    |IndexMask| must be subclassed.  See the masks |hland_masks.Complete| and</span>
+<span class="sd">    |hland_masks.Soil| of base model |hland| for two concrete example classes, which</span>
+<span class="sd">    are applied on the |hland| specific parameter classes</span>
+<span class="sd">    |hland_parameters.ParameterComplete| and |hland_parameters.ParameterSoil|.  The</span>
+<span class="sd">    documentation on the two parameter classes provides some application examples.</span>
+<span class="sd">    Further, see the documentation on class |CustomMask| for the basic usage of class</span>
+<span class="sd">    |DefaultMask|.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">RELEVANT_VALUES</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">variable</span><span class="p">:</span> <span class="n">VariableProtocol</span>
+
+<div class="viewcode-block" id="IndexMask.new">
+<a class="viewcode-back" href="../../../masktools.html#hydpy.core.masktools.IndexMask.new">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="n">VariableProtocol</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new |IndexMask| object of the same shape as the parameter</span>
+<span class="sd">        referenced by |property| |IndexMask.refindices|.</span>
+
+<span class="sd">        Entries are only |True|, if the integer values of the respective entries of the</span>
+<span class="sd">        referenced parameter are contained in the |IndexMask| class attribute tuple</span>
+<span class="sd">        `RELEVANT_VALUES`.</span>
+
+<span class="sd">        Before calling new (explicitly or implicitely), one must prepare the variable</span>
+<span class="sd">        returned by property |IndexMask.refindices|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; states.sm.mask</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: The mask of parameter `sm` of element `?` cannot be determined \</span>
+<span class="sd">as long as parameter `zonetype` is not prepared properly.</span>
+
+<span class="sd">        &gt;&gt;&gt; nmbzones(4)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD, FOREST, ILAKE, GLACIER)</span>
+<span class="sd">        &gt;&gt;&gt; states.sm.mask</span>
+<span class="sd">        Soil([ True,  True, False, False])</span>
+
+<span class="sd">        If the shape of the |IndexMask.refindices| parameter is zero (which is actually</span>
+<span class="sd">        not allowed for |hland|), the returned mask is empty:</span>
+
+<span class="sd">        &gt;&gt;&gt; zonetype.shape = 0</span>
+<span class="sd">        &gt;&gt;&gt; states.shape = 0</span>
+<span class="sd">        &gt;&gt;&gt; states.sm.mask</span>
+<span class="sd">        Soil([])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_refindices</span><span class="p">(</span><span class="n">variable</span><span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="s2">&quot;values&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The mask of parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="n">variable</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;cannot be determined as long as parameter `</span><span class="si">{</span><span class="n">indices</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;is not prepared properly.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">array2mask</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">indices</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">RELEVANT_VALUES</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IndexMask.get_refindices">
+<a class="viewcode-back" href="../../../masktools.html#hydpy.core.masktools.IndexMask.get_refindices">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_refindices</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">variable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;parametertools.Parameter&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the |Parameter| object for determining which entries of |IndexMask|</span>
+<span class="sd">        are |True| and which are |False|.</span>
+
+<span class="sd">        The given `variable` must be concrete |Variable| object, the |IndexMask| is</span>
+<span class="sd">        thought for.</span>
+
+<span class="sd">        Needs to be overwritten by subclasses:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.parametertools import Parameter</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.masktools import IndexMask</span>
+<span class="sd">        &gt;&gt;&gt; class Par(Parameter):</span>
+<span class="sd">        ...     mask = IndexMask()</span>
+<span class="sd">        &gt;&gt;&gt; Par(None).mask</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        NotImplementedError: Function `get_refindices` of class `IndexMask` must be \</span>
+<span class="sd">overridden, which is not the case for class `IndexMask`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Function `get_refindices` of class `IndexMask` must be &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;overridden, which is not the case for class `</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`.&quot;</span>
+        <span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">refindices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;|Parameter| object for determining which entries of |IndexMask| are |True|</span>
+<span class="sd">        and which are |False|.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_refindices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">relevantindices</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A |list| of all currently relevant indices, calculated as an intercection of</span>
+<span class="sd">        the (constant) class attribute `RELEVANT_VALUES` and the (variable) property</span>
+<span class="sd">        |IndexMask.refindices|.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">refindices</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">RELEVANT_VALUES</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Masks">
+<a class="viewcode-back" href="../../../masktools.html#hydpy.core.masktools.Masks">[docs]</a>
+<span class="k">class</span> <span class="nc">Masks</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for handling groups of masks.</span>
+
+<span class="sd">    |Masks| subclasses are basically just containers, which are defined similar as</span>
+<span class="sd">    |SubParameters| and |SubSequences| subclasses:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.masktools import Masks</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.masktools import IndexMask, DefaultMask, CustomMask</span>
+<span class="sd">    &gt;&gt;&gt; class Masks(Masks):</span>
+<span class="sd">    ...     CLASSES = (IndexMask,</span>
+<span class="sd">    ...                DefaultMask)</span>
+<span class="sd">    &gt;&gt;&gt; masks = Masks()</span>
+
+<span class="sd">    The contained mask classes are available via attribute access in lower case letters:</span>
+
+<span class="sd">    &gt;&gt;&gt; masks</span>
+<span class="sd">    indexmask of module hydpy.core.masktools</span>
+<span class="sd">    defaultmask of module hydpy.core.masktools</span>
+<span class="sd">    &gt;&gt;&gt; masks.indexmask is IndexMask</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; &quot;indexmask&quot; in dir(masks)</span>
+<span class="sd">    True</span>
+
+<span class="sd">    The `in` operator is supported:</span>
+
+<span class="sd">    &gt;&gt;&gt; IndexMask in masks</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; CustomMask in masks</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; &quot;mask&quot; in masks</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: The given value `mask` of type `str` is neither a Mask class nor a \</span>
+<span class="sd">Mask instance.</span>
+
+<span class="sd">    Using item access, strings (in whatever case), mask classes, and mask objects are</span>
+<span class="sd">    accepted:</span>
+
+<span class="sd">    &gt;&gt;&gt; masks[&quot;IndexMask&quot;] is IndexMask</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; masks[&quot;indexmask&quot;] is IndexMask</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; masks[IndexMask] is IndexMask</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; masks[CustomMask()]</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to retrieve a mask based on key `CustomMask([])`, the \</span>
+<span class="sd">following error occurred: The key does not define an available mask.</span>
+<span class="sd">    &gt;&gt;&gt; masks[&quot;test&quot;]</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to retrieve a mask based on key `&#39;test&#39;`, the following \</span>
+<span class="sd">error occurred: The key does not define an available mask.</span>
+<span class="sd">    &gt;&gt;&gt; masks[1]</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to retrieve a mask based on key `1`, the following error \</span>
+<span class="sd">occurred: The given key is neither a `string` a `mask` type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CLASSES</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">BaseMask</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">CLASSES</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="bp">cls</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;masks&quot;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;`masks`</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.masktools import Masks</span>
+<span class="sd">        &gt;&gt;&gt; Masks().name</span>
+<span class="sd">        &#39;masks&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;masks&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">CLASSES</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">BaseMask</span><span class="p">):</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mask</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">CLASSES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">BaseMask</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The given </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">value_of_type</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span><span class="si">}</span><span class="s2"> is neither a Mask class nor &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;a Mask instance.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">_key</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">BaseMask</span><span class="p">):</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">BaseMask</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">key</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;The key does not define an available mask.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="s2">&quot;The key does not define an available mask.&quot;</span>
+                    <span class="p">)</span> <span class="kn">from</span> <span class="kc">None</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The given key is neither a `string` a `mask` type.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to retrieve a mask based on key `</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">_key</span><span class="p">)</span><span class="si">}</span><span class="s2">`&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mask</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2"> of module </span><span class="si">{</span><span class="n">mask</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="NodeMasks">
+<a class="viewcode-back" href="../../../masktools.html#hydpy.core.masktools.NodeMasks">[docs]</a>
+<span class="k">class</span> <span class="nc">NodeMasks</span><span class="p">(</span><span class="n">Masks</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|Masks| subclass for class |Node|.</span>
+
+<span class="sd">    At the moment, the purpose of class |NodeMasks| is to make the implementation of</span>
+<span class="sd">    |ModelSequence| and |NodeSequence| more similar.  It will become relevant for</span>
+<span class="sd">    applications as soon as we support 1-dimensional node sequences.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CLASSES</span> <span class="o">=</span> <span class="p">(</span><span class="n">DefaultMask</span><span class="p">,)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.masktools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

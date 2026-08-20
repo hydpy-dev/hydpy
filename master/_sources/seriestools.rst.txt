@@ -1,0 +1,19 @@
+.. |False| replace:: :const:`False`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |Timegrids.eval_| replace:: :attr:`~hydpy.core.timetools.Timegrids.eval_`
+.. |Timegrids| replace:: :class:`~hydpy.core.timetools.Timegrids`
+.. |Timegrid| replace:: :class:`~hydpy.core.timetools.Timegrid`
+.. |aggregate_series| replace:: :func:`~hydpy.core.seriestools.aggregate_series`
+.. |numpy| replace:: :mod:`~numpy`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |pandas.DataFrame| replace:: :class:`~pandas.DataFrame`
+
+.. _seriestools:
+
+seriestools
+===========
+
+.. automodule:: hydpy.core.seriestools
+    :members:
+    :show-inheritance:
+    :exclude-members: SOLVERPARAMETERS, get_annotations, Dict, Deque, REQUIREDSEQUENCES, TypeVarTuple, UPDATEDSEQUENCES, assert_type, TypeAlias, get_type_hints, MutableSequence, Generic, fastaccess_old, no_type_check, AbstractSet, AsyncGenerator, Reversible, ReadOnly, TypedDict, Doc, is_protocol, Generator, TypeVar, Sequence, Protocol, seqs, evaluate_forward_ref, TypeForm, AsyncIterable, ChainMap, ParamSpecKwargs, RECEIVER_METHODS, Iterator, Container, Self, FULL_ODE_METHODS, ClassVar, Concatenate, cast, Required, Never, Annotated, Optional, ADD_METHODS, NamedTuple, MappingView, Callable, clear_overloads, get_protocol_members, sentinel, get_original_bases, runtime, subseqs, subpars, LiteralString, SupportsInt, Coroutine, SOLVERSEQUENCES, CONTROLPARAMETERS, ItemsView, deprecated, RUN_METHODS, Awaitable, SupportsIndex, disjoint_base, Sentinel, TextIO, PART_ODE_METHODS, MutableSet, ValuesView, RESULTSEQUENCES, reveal_type, SUBMODELINTERFACES, FIXEDPARAMETERS, NoDefault, TypeIs, NoExtraItems, Hashable, Pattern, Mapping, NotRequired, OUTLET_METHODS, runtime_checkable, ByteString, Format, Reader, TypeAliasType, final, ForwardRef, Any, SupportsRound, FrozenSet, KeysView, SENDER_METHODS, dataclass_transform, IO, override, ParamSpecArgs, Unpack, assert_never, Match, Literal, get_args, NewType, Type, TYPE_CHECKING, DefaultDict, AnyStr, DERIVEDPARAMETERS, type_repr, NoReturn, Counter, Final, MutableMapping, Set, Text, fastaccess_new, SupportsAbs, IntVar, INTERFACE_METHODS, Union, AsyncIterator, fastaccess, SupportsComplex, Buffer, Sized, overload, SUBMETHODS, BinaryIO, INLET_METHODS, OrderedDict, Tuple, Iterable, CapsuleType, get_origin, is_typeddict, SupportsBytes, AsyncContextManager, List, OBSERVER_METHODS, Writer, ParamSpec, no_type_check_decorator, subvars, TypeGuard, Collection, CLASSES, SUBMODELS, get_overloads, ContextManager, SupportsFloat, pars

@@ -1,0 +1,546 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>commandtools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="hyd" href="hyd.html" />
+    <link rel="prev" title="Execution Tools" href="execution.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="hyd.html" title="hyd"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="execution.html" title="Execution Tools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="execution.html" accesskey="U">Execution Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">commandtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="execution.html">Execution Tools</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">commandtools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.exe.commandtools.run_subprocess"><code class="docutils literal notranslate"><span class="pre">run_subprocess()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.exe.commandtools.exec_commands"><code class="docutils literal notranslate"><span class="pre">exec_commands()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.exe.commandtools.run_doctests"><code class="docutils literal notranslate"><span class="pre">run_doctests()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.exe.commandtools.exec_script"><code class="docutils literal notranslate"><span class="pre">exec_script()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.exe.commandtools.start_shell"><code class="docutils literal notranslate"><span class="pre">start_shell()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.exe.commandtools.print_latest_logfile"><code class="docutils literal notranslate"><span class="pre">print_latest_logfile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.exe.commandtools.prepare_logfile"><code class="docutils literal notranslate"><span class="pre">prepare_logfile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.exe.commandtools.execute_scriptfunction"><code class="docutils literal notranslate"><span class="pre">execute_scriptfunction()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.exe.commandtools.LogFileInterface"><code class="docutils literal notranslate"><span class="pre">LogFileInterface</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.exe.commandtools.LogFileInterface.style2infotype2string"><code class="docutils literal notranslate"><span class="pre">LogFileInterface.style2infotype2string</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.exe.commandtools.LogFileInterface.infotype"><code class="docutils literal notranslate"><span class="pre">LogFileInterface.infotype</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.exe.commandtools.LogFileInterface.logfile"><code class="docutils literal notranslate"><span class="pre">LogFileInterface.logfile</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.exe.commandtools.LogFileInterface.write"><code class="docutils literal notranslate"><span class="pre">LogFileInterface.write()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.exe.commandtools.parse_argument"><code class="docutils literal notranslate"><span class="pre">parse_argument()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.exe.commandtools.print_textandtime"><code class="docutils literal notranslate"><span class="pre">print_textandtime()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hyd.html">hyd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modelimports.html">modelimports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="replacetools.html">replacetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="servertools.html">servertools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="execution.html"
+                          title="previous chapter">Execution Tools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="hyd.html"
+                          title="next chapter">hyd</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/commandtools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/commandtools.html">6</a></li>
+<li><a href="../5.0/commandtools.html">5.0</a></li>
+<li><a href="../4.0/commandtools.html">4.0</a></li>
+<li><a href="../master/commandtools.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="commandtools">
+<span id="id1"></span><h1>commandtools<a class="headerlink" href="#commandtools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.exe.commandtools">This module implements some main features for using <em>HydPy</em> from your command line
+tools via script <a class="reference internal" href="hyd.html#module-hydpy.exe.hyd" title="hydpy.exe.hyd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hyd</span></code></a>.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.exe.commandtools" title="hydpy.exe.commandtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">commandtools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.exe.commandtools.run_subprocess" title="hydpy.exe.commandtools.run_subprocess"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_subprocess()</span></code></a> Execute the given command in a new process.</p></li>
+<li><p><a class="reference internal" href="#hydpy.exe.commandtools.exec_commands" title="hydpy.exe.commandtools.exec_commands"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec_commands()</span></code></a> Execute the given Python commands.</p></li>
+<li><p><a class="reference internal" href="#hydpy.exe.commandtools.run_doctests" title="hydpy.exe.commandtools.run_doctests"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_doctests()</span></code></a> Execute the main function of script <cite>run_doctests.py</cite> from remote.</p></li>
+<li><p><a class="reference internal" href="#hydpy.exe.commandtools.exec_script" title="hydpy.exe.commandtools.exec_script"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec_script()</span></code></a> Execute an arbitrary Python script.</p></li>
+<li><p><a class="reference internal" href="#hydpy.exe.commandtools.start_shell" title="hydpy.exe.commandtools.start_shell"><code class="xref py py-func docutils literal notranslate"><span class="pre">start_shell()</span></code></a> Open an interactive Python shell.</p></li>
+<li><p><a class="reference internal" href="#hydpy.exe.commandtools.print_latest_logfile" title="hydpy.exe.commandtools.print_latest_logfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">print_latest_logfile()</span></code></a> Print the latest log file in the current or the given working directory.</p></li>
+<li><p><a class="reference internal" href="#hydpy.exe.commandtools.prepare_logfile" title="hydpy.exe.commandtools.prepare_logfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_logfile()</span></code></a> Prepare an empty log file eventually and return its absolute path.</p></li>
+<li><p><a class="reference internal" href="#hydpy.exe.commandtools.execute_scriptfunction" title="hydpy.exe.commandtools.execute_scriptfunction"><code class="xref py py-func docutils literal notranslate"><span class="pre">execute_scriptfunction()</span></code></a> Execute a HydPy script function.</p></li>
+<li><p><a class="reference internal" href="#hydpy.exe.commandtools.LogFileInterface" title="hydpy.exe.commandtools.LogFileInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogFileInterface</span></code></a> Wraps a usual file object, exposing all its methods while modifying only the <cite>write</cite> method.</p></li>
+<li><p><a class="reference internal" href="#hydpy.exe.commandtools.parse_argument" title="hydpy.exe.commandtools.parse_argument"><code class="xref py py-func docutils literal notranslate"><span class="pre">parse_argument()</span></code></a> Return a single value for a string understood as a positional argument or a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> containing a keyword and its value for a string understood as a keyword argument.</p></li>
+<li><p><a class="reference internal" href="#hydpy.exe.commandtools.print_textandtime" title="hydpy.exe.commandtools.print_textandtime"><code class="xref py py-func docutils literal notranslate"><span class="pre">print_textandtime()</span></code></a> Print the given string and the current date and time with high precision for logging purposes.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.run_subprocess">
+<span class="sig-prename descclassname"><span class="pre">hydpy.exe.commandtools.</span></span><span class="sig-name descname"><span class="pre">run_subprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocking</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/subprocess.html#subprocess.CompletedProcess" title="(in Python v3.11)"><span class="pre">CompletedProcess</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/subprocess.html#subprocess.Popen" title="(in Python v3.11)"><span class="pre">Popen</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/exe/commandtools.html#run_subprocess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.exe.commandtools.run_subprocess" title="Link to this definition">¶</a></dt>
+<dd><p>Execute the given command in a new process.</p>
+<p>Only when both <cite>verbose</cite> and <cite>blocking</cite> are <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code>, <a class="reference internal" href="#hydpy.exe.commandtools.run_subprocess" title="hydpy.exe.commandtools.run_subprocess"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_subprocess()</span></code></a> prints all
+responses to the current value of <code class="xref py py-const docutils literal notranslate"><span class="pre">stdout</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">run_subprocess</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">platform</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">esc</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="s2">&quot;windows&quot;</span> <span class="ow">in</span> <span class="n">platform</span><span class="o">.</span><span class="n">platform</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;python -c print</span><span class="si">{</span><span class="n">esc</span><span class="si">}</span><span class="s2">(1+1</span><span class="si">{</span><span class="n">esc</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+<p>With verbose being <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code>, <a class="reference internal" href="#hydpy.exe.commandtools.run_subprocess" title="hydpy.exe.commandtools.run_subprocess"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_subprocess()</span></code></a> never prints anything:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;python -c print</span><span class="si">{</span><span class="n">esc</span><span class="si">}</span><span class="s2">(1+1</span><span class="si">{</span><span class="n">esc</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">process</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="n">blocking</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">process</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>When <cite>verbose</cite> is <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code> and <cite>blocking</cite> is <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code>, <a class="reference internal" href="#hydpy.exe.commandtools.run_subprocess" title="hydpy.exe.commandtools.run_subprocess"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_subprocess()</span></code></a> prints all
+responses to the console (“invisible” for doctests):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">process</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="n">blocking</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">process</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.exec_commands">
+<span class="sig-prename descclassname"><span class="pre">hydpy.exe.commandtools.</span></span><span class="sig-name descname"><span class="pre">exec_commands</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">commands</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.11)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/exe/commandtools.html#exec_commands"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.exe.commandtools.exec_commands" title="Link to this definition">¶</a></dt>
+<dd><p>Execute the given Python commands.</p>
+<p>Function <a class="reference internal" href="#hydpy.exe.commandtools.exec_commands" title="hydpy.exe.commandtools.exec_commands"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec_commands()</span></code></a> is thought for testing purposes only (see the main
+documentation on module <a class="reference internal" href="hyd.html#module-hydpy.exe.hyd" title="hydpy.exe.hyd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hyd</span></code></a>).  Separate individual commands by semicolons and
+replaced whitespaces with underscores:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.exe.commandtools</span> <span class="kn">import</span> <span class="n">exec_commands</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exec_commands</span><span class="p">(</span><span class="s2">&quot;x_=_1+1;print(x)&quot;</span><span class="p">)</span>
+<span class="go">Start to execute the commands [&#39;x_=_1+1&#39;, &#39;print(x)&#39;] for testing purposes.</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#hydpy.exe.commandtools.exec_commands" title="hydpy.exe.commandtools.exec_commands"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec_commands()</span></code></a> interprets double underscores as a single underscores:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">exec_commands</span><span class="p">(</span><span class="s2">&quot;x_=_1;print(x.____class____)&quot;</span><span class="p">)</span>
+<span class="go">Start to execute the commands [&#39;x_=_1&#39;, &#39;print(x.____class____)&#39;] for testing purposes.</span>
+<span class="go">&lt;class &#39;int&#39;&gt;</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#hydpy.exe.commandtools.exec_commands" title="hydpy.exe.commandtools.exec_commands"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec_commands()</span></code></a> evaluates additional keyword arguments before it executes the given
+commands:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">exec_commands</span><span class="p">(</span><span class="s2">&quot;e=x==y;print(e)&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">Start to execute the commands [&#39;e=x==y&#39;, &#39;print(e)&#39;] for testing purposes.</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.run_doctests">
+<span class="sig-prename descclassname"><span class="pre">hydpy.exe.commandtools.</span></span><span class="sig-name descname"><span class="pre">run_doctests</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></span><a class="reference internal" href="_modules/hydpy/exe/commandtools.html#run_doctests"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.exe.commandtools.run_doctests" title="Link to this definition">¶</a></dt>
+<dd><p>Execute the main function of script <cite>run_doctests.py</cite> from remote.</p>
+<p>Whenever in doubt about the functioning of your <em>HydPy</em> installation, call the
+script function <a class="reference internal" href="#hydpy.exe.commandtools.run_doctests" title="hydpy.exe.commandtools.run_doctests"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_doctests()</span></code></a>.  It executes all tests employed before your actual
+<em>HydPy</em> version was released, which allows you to check for possible
+incompatibilities with the site-packages or the configuration of your specific
+system.</p>
+<p><a class="reference internal" href="#hydpy.exe.commandtools.run_doctests" title="hydpy.exe.commandtools.run_doctests"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_doctests()</span></code></a> calls the mentioned function with default arguments and returns its
+exit code:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">run_doctests</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">unittest</span> <span class="kn">import</span> <span class="n">mock</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">mock</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;hydpy.tests.run_doctests.main.callback&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">side_effect</span><span class="o">=</span><span class="ne">SystemExit</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="k">as</span> <span class="n">main</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">run_doctests</span><span class="p">()</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="s2">&quot;hydpy_path=None&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">main</span><span class="o">.</span><span class="n">mock_calls</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="s2">&quot;file_doctests=[]&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">main</span><span class="o">.</span><span class="n">mock_calls</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="s2">&quot;python_mode=True&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">main</span><span class="o">.</span><span class="n">mock_calls</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="s2">&quot;cython_mode=True&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">main</span><span class="o">.</span><span class="n">mock_calls</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.exec_script">
+<span class="sig-prename descclassname"><span class="pre">hydpy.exe.commandtools.</span></span><span class="sig-name descname"><span class="pre">exec_script</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/exe/commandtools.html#exec_script"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.exe.commandtools.exec_script" title="Link to this definition">¶</a></dt>
+<dd><p>Execute an arbitrary Python script.</p>
+<p>Function <a class="reference internal" href="xmltools.html#hydpy.auxs.xmltools.run_simulation" title="hydpy.auxs.xmltools.run_simulation"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_simulation()</span></code></a> allows you to execute a predefined <em>HydPy</em> workflow.  You
+can configure many details of this workflow but not change its general structure.
+Use function <a class="reference internal" href="#hydpy.exe.commandtools.exec_script" title="hydpy.exe.commandtools.exec_script"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec_script()</span></code></a> execute <em>HydPy</em> remotely but strive for more flexibility.
+As its name suggests, function <a class="reference internal" href="#hydpy.exe.commandtools.exec_script" title="hydpy.exe.commandtools.exec_script"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec_script()</span></code></a> executes any valid Python code relying
+on the standard library and the available site-packages.</p>
+<p>Function <a class="reference internal" href="#hydpy.exe.commandtools.exec_script" title="hydpy.exe.commandtools.exec_script"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec_script()</span></code></a> requires the name of the script to be executed as a single
+argument:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">print_latest_logfile</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">TestIO</span><span class="p">,</span> <span class="n">run_subprocess</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TestIO</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s1">&#39;hyd.py logfile=&quot;default&quot; exec_script temp.py&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">print_latest_logfile</span><span class="p">()</span>    
+<span class="go">Invoking hyd.py with arguments `logfile=default, exec_script, temp.py` resulted in the following error:</span>
+<span class="go">File `...temp.py` does not exist.</span>
+<span class="go">...</span>
+</pre></div>
+</div>
+<p>Function <a class="reference internal" href="#hydpy.exe.commandtools.exec_script" title="hydpy.exe.commandtools.exec_script"><code class="xref py py-func docutils literal notranslate"><span class="pre">exec_script()</span></code></a> can use all <em>HydPy</em> features.  As a simple example, we write
+a Python script that initialises a <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> object and prints its string
+representation (into the log file):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;temp.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;from hydpy import Node</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;print(repr(Node(&quot;valid_name&quot;)))</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s1">&#39;hyd.py logfile=&quot;default&quot; exec_script temp.py&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">print_latest_logfile</span><span class="p">()</span>
+<span class="go">Node(&quot;valid_name&quot;, variable=&quot;Q&quot;)</span>
+</pre></div>
+</div>
+<p>Errors are reported as usual:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;temp.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;from hydpy import Node</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;print(repr(Node(&quot;invalid name&quot;)))</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s1">&#39;hyd.py logfile=&quot;default&quot; exec_script temp.py&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">print_latest_logfile</span><span class="p">()</span>    
+<span class="go">Invoking hyd.py with arguments `logfile=default, exec_script, temp.py` resulted in the following error:</span>
+<span class="go">While trying to initialize a `Node` object with value `invalid name` of type `str`, the following error occurred: The given name string `invalid name` does not define a valid variable identifier.  Valid identifiers do not contain characters like `-` or empty spaces, do not start with numbers, cannot be mistaken with Python built-ins like `for`...)</span>
+<span class="go">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.start_shell">
+<span class="sig-prename descclassname"><span class="pre">hydpy.exe.commandtools.</span></span><span class="sig-name descname"><span class="pre">start_shell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/exe/commandtools.html#start_shell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.exe.commandtools.start_shell" title="Link to this definition">¶</a></dt>
+<dd><p>Open an interactive Python shell.</p>
+<p>Writing “hyd.py start_shell” into your command line tool opens an interactive
+Python console with the most relevant <em>HydPy</em> features being imported already.  In
+our first example, we directly prepare an <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> object (without needing to
+import class <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> first) and print its string representation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TestIO</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+<span class="gp">... </span>            <span class="s2">&quot;hyd.py start_shell&quot;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="n">stdin</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">process</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">response</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span>
+<span class="gp">... </span>            <span class="s1">&#39;print(repr(Element(&quot;e1&quot;, outlets=&quot;n1&quot;)))&#39;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">Element(&quot;e1&quot;,</span>
+<span class="go">        outlets=&quot;n1&quot;)</span>
+</pre></div>
+</div>
+<p>You can pass the name of a Python file as an additional argument, which enables
+interaction with the file results.  We create the example file <cite>test.py</cite> for
+demonstration purposes, simply defining a <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nodes</span></code></a> object handling two individual
+nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;test.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;from hydpy import Nodes</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;nodes = Nodes(&quot;n1&quot;, &quot;n2&quot;)</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we can, execute this file and, for example, query the names of
+the defined nodes interactively:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+<span class="gp">... </span>            <span class="s2">&quot;hyd.py start_shell test.py&quot;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="n">stdin</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">process</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">response</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span>
+<span class="gp">... </span>            <span class="s2">&quot;print(nodes.names)&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">(&#39;n1&#39;, &#39;n2&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.print_latest_logfile">
+<span class="sig-prename descclassname"><span class="pre">hydpy.exe.commandtools.</span></span><span class="sig-name descname"><span class="pre">print_latest_logfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/exe/commandtools.html#print_latest_logfile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.exe.commandtools.print_latest_logfile" title="Link to this definition">¶</a></dt>
+<dd><p>Print the latest log file in the current or the given working directory.</p>
+<p>When executing processes in parallel, <a class="reference internal" href="#hydpy.exe.commandtools.print_latest_logfile" title="hydpy.exe.commandtools.print_latest_logfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">print_latest_logfile()</span></code></a> may be called before
+any log file exists.  Then pass an appropriate number of seconds to the argument
+<cite>wait</cite>.  <a class="reference internal" href="#hydpy.exe.commandtools.print_latest_logfile" title="hydpy.exe.commandtools.print_latest_logfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">print_latest_logfile()</span></code></a> prints the contents of the latest log file as soon
+as it finds one. Function <a class="reference internal" href="#hydpy.exe.commandtools.print_latest_logfile" title="hydpy.exe.commandtools.print_latest_logfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">print_latest_logfile()</span></code></a> works only for “default” logfile
+names, as described in the documentation on function <a class="reference internal" href="#hydpy.exe.commandtools.prepare_logfile" title="hydpy.exe.commandtools.prepare_logfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_logfile()</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">TestIO</span><span class="p">,</span> <span class="n">print_latest_logfile</span><span class="p">,</span> <span class="n">run_subprocess</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TestIO</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">print_latest_logfile</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>    
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">FileNotFoundError</span>: <span class="n">Cannot find a default HydPy log file in directory ...iotesting.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">result1</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s1">&#39;hyd.py logfile=&quot;default&quot; test=1&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">result2</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s1">&#39;hyd.py logfile=&quot;default&quot; test=2&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">print_latest_logfile</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>    
+<span class="go">Invoking hyd.py with arguments `logfile=default, test=2` resulted in the following error:</span>
+<span class="go">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.prepare_logfile">
+<span class="sig-prename descclassname"><span class="pre">hydpy.exe.commandtools.</span></span><span class="sig-name descname"><span class="pre">prepare_logfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></span><a class="reference internal" href="_modules/hydpy/exe/commandtools.html#prepare_logfile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.exe.commandtools.prepare_logfile" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare an empty log file eventually and return its absolute path.</p>
+<p>When passing the “filename” <cite>stdout</cite>, <a class="reference internal" href="#hydpy.exe.commandtools.prepare_logfile" title="hydpy.exe.commandtools.prepare_logfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_logfile()</span></code></a> does not prepare any file
+and just returns <cite>stdout</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.exe.commandtools</span> <span class="kn">import</span> <span class="n">prepare_logfile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prepare_logfile</span><span class="p">(</span><span class="s2">&quot;stdout&quot;</span><span class="p">)</span>
+<span class="go">&#39;stdout&#39;</span>
+</pre></div>
+</div>
+<p>When passing the “filename” <cite>default</cite>, <a class="reference internal" href="#hydpy.exe.commandtools.prepare_logfile" title="hydpy.exe.commandtools.prepare_logfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_logfile()</span></code></a> generates a filename
+containing the actual date and time, prepares an empty file on disk, and returns
+its path:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">repr_</span><span class="p">,</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.testtools</span> <span class="kn">import</span> <span class="n">mock_datetime_now</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">mock_datetime_now</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+<span class="gp">... </span>        <span class="n">filepath</span> <span class="o">=</span> <span class="n">prepare_logfile</span><span class="p">(</span><span class="s2">&quot;default&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">repr_</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>    
+<span class="go">&#39;...hydpy/tests/iotesting/hydpy_2000-01-01_12-30-00.log&#39;</span>
+</pre></div>
+</div>
+<p>For all other strings, <a class="reference internal" href="#hydpy.exe.commandtools.prepare_logfile" title="hydpy.exe.commandtools.prepare_logfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_logfile()</span></code></a> does not add any date or time information
+to the filename:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">mock_datetime_now</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+<span class="gp">... </span>        <span class="n">filepath</span> <span class="o">=</span> <span class="n">prepare_logfile</span><span class="p">(</span><span class="s2">&quot;my_log_file.txt&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">repr_</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>    
+<span class="go">&#39;...hydpy/tests/iotesting/my_log_file.txt&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.execute_scriptfunction">
+<span class="sig-prename descclassname"><span class="pre">hydpy.exe.commandtools.</span></span><span class="sig-name descname"><span class="pre">execute_scriptfunction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/exe/commandtools.html#execute_scriptfunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.exe.commandtools.execute_scriptfunction" title="Link to this definition">¶</a></dt>
+<dd><p>Execute a HydPy script function.</p>
+<p>Function <a class="reference internal" href="#hydpy.exe.commandtools.execute_scriptfunction" title="hydpy.exe.commandtools.execute_scriptfunction"><code class="xref py py-func docutils literal notranslate"><span class="pre">execute_scriptfunction()</span></code></a> is indirectly applied and explained in the
+documentation on module <a class="reference internal" href="hyd.html#module-hydpy.exe.hyd" title="hydpy.exe.hyd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hyd</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.LogFileInterface">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.exe.commandtools.</span></span><span class="sig-name descname"><span class="pre">LogFileInterface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logfile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TextIO" title="(in Python v3.11)"><span class="pre">TextIO</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">logstyle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">infotype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.11)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'info'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'warning'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'exception'</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/exe/commandtools.html#LogFileInterface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.exe.commandtools.LogFileInterface" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Wraps a usual file object, exposing all its methods while modifying only the
+<cite>write</cite> method.</p>
+<p>At the moment, class <a class="reference internal" href="#hydpy.exe.commandtools.LogFileInterface" title="hydpy.exe.commandtools.LogFileInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogFileInterface</span></code></a> supports only two log styles, as explained
+in the documentation on module <a class="reference internal" href="hyd.html#module-hydpy.exe.hyd" title="hydpy.exe.hyd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hyd</span></code></a>.  The following example shows its basic
+usage:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.exe.commandtools</span> <span class="kn">import</span> <span class="n">LogFileInterface</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">logfile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;test.log&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lfi</span> <span class="o">=</span> <span class="n">LogFileInterface</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">logfile</span><span class="p">,</span> <span class="n">logstyle</span><span class="o">=</span><span class="s2">&quot;prefixed&quot;</span><span class="p">,</span> <span class="n">infotype</span><span class="o">=</span><span class="s2">&quot;exception&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lfi</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;a message</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lfi</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;another message</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lfi</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;test.log&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">logfile</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="n">logfile</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+<span class="go">error: a message</span>
+<span class="go">error: another message</span>
+</pre></div>
+</div>
+<p>The class member <cite>style2infotype2string</cite> defines the currently available log styles.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.LogFileInterface.style2infotype2string">
+<span class="sig-name descname"><span class="pre">style2infotype2string</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'plain':</span> <span class="pre">{'exception':</span> <span class="pre">'',</span> <span class="pre">'info':</span> <span class="pre">'',</span> <span class="pre">'warning':</span> <span class="pre">''},</span> <span class="pre">'prefixed':</span> <span class="pre">{'exception':</span> <span class="pre">'error:</span> <span class="pre">',</span> <span class="pre">'info':</span> <span class="pre">'info:</span> <span class="pre">',</span> <span class="pre">'warning':</span> <span class="pre">'warning:</span> <span class="pre">'}}</span></em><a class="headerlink" href="#hydpy.exe.commandtools.LogFileInterface.style2infotype2string" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.LogFileInterface.infotype">
+<span class="sig-name descname"><span class="pre">infotype</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.11)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'info'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'warning'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'exception'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.exe.commandtools.LogFileInterface.infotype" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.LogFileInterface.logfile">
+<span class="sig-name descname"><span class="pre">logfile</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TextIO" title="(in Python v3.11)"><span class="pre">TextIO</span></a></em><a class="headerlink" href="#hydpy.exe.commandtools.LogFileInterface.logfile" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.LogFileInterface.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/exe/commandtools.html#LogFileInterface.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.exe.commandtools.LogFileInterface.write" title="Link to this definition">¶</a></dt>
+<dd><p>Write the given string as explained in the main documentation on class
+<a class="reference internal" href="#hydpy.exe.commandtools.LogFileInterface" title="hydpy.exe.commandtools.LogFileInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogFileInterface</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.parse_argument">
+<span class="sig-prename descclassname"><span class="pre">hydpy.exe.commandtools.</span></span><span class="sig-name descname"><span class="pre">parse_argument</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.11)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/exe/commandtools.html#parse_argument"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.exe.commandtools.parse_argument" title="Link to this definition">¶</a></dt>
+<dd><p>Return a single value for a string understood as a positional argument or a
+<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> containing a keyword and its value for a string understood as a keyword
+argument.</p>
+<p><a class="reference internal" href="#hydpy.exe.commandtools.parse_argument" title="hydpy.exe.commandtools.parse_argument"><code class="xref py py-func docutils literal notranslate"><span class="pre">parse_argument()</span></code></a> is intended to be used as a helper function for function
+<a class="reference internal" href="#hydpy.exe.commandtools.execute_scriptfunction" title="hydpy.exe.commandtools.execute_scriptfunction"><code class="xref py py-func docutils literal notranslate"><span class="pre">execute_scriptfunction()</span></code></a> only.  See the following examples to see which types of
+keyword arguments <a class="reference internal" href="#hydpy.exe.commandtools.execute_scriptfunction" title="hydpy.exe.commandtools.execute_scriptfunction"><code class="xref py py-func docutils literal notranslate"><span class="pre">execute_scriptfunction()</span></code></a> covers:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.exe.commandtools</span> <span class="kn">import</span> <span class="n">parse_argument</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_argument</span><span class="p">(</span><span class="s2">&quot;x=3&quot;</span><span class="p">)</span>
+<span class="go">(&#39;x&#39;, &#39;3&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_argument</span><span class="p">(</span><span class="s1">&#39;&quot;x=3&quot;&#39;</span><span class="p">)</span>
+<span class="go">&#39;&quot;x=3&quot;&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_argument</span><span class="p">(</span><span class="s2">&quot;&#39;x=3&#39;&quot;</span><span class="p">)</span>
+<span class="go">&quot;&#39;x=3&#39;&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_argument</span><span class="p">(</span><span class="s1">&#39;x=&quot;3==3&quot;&#39;</span><span class="p">)</span>
+<span class="go">(&#39;x&#39;, &#39;&quot;3==3&quot;&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_argument</span><span class="p">(</span><span class="s2">&quot;x=&#39;3==3&#39;&quot;</span><span class="p">)</span>
+<span class="go">(&#39;x&#39;, &quot;&#39;3==3&#39;&quot;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.exe.commandtools.print_textandtime">
+<span class="sig-prename descclassname"><span class="pre">hydpy.exe.commandtools.</span></span><span class="sig-name descname"><span class="pre">print_textandtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/exe/commandtools.html#print_textandtime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.exe.commandtools.print_textandtime" title="Link to this definition">¶</a></dt>
+<dd><p>Print the given string and the current date and time with high precision for
+logging purposes.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.exe.commandtools</span> <span class="kn">import</span> <span class="n">print_textandtime</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.testtools</span> <span class="kn">import</span> <span class="n">mock_datetime_now</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">mock_datetime_now</span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">123456</span><span class="p">)):</span>
+<span class="gp">... </span>    <span class="n">print_textandtime</span><span class="p">(</span><span class="s2">&quot;something happens&quot;</span><span class="p">)</span>
+<span class="go">something happens (2000-01-01 12:30:00.123456).</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="hyd.html" title="hyd"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="execution.html" title="Execution Tools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="execution.html" >Execution Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">commandtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

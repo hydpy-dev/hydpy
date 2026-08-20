@@ -1,0 +1,26 @@
+.. |BottomHighWaterThreshold| replace:: :class:`~hydpy.models.sw1d.sw1d_control.BottomHighWaterThreshold`
+.. |CrossSectionModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V2`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |RoutingModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1`
+.. |RoutingModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2`
+.. |RoutingModel_V3| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3`
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |Update_Discharge_V2| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Update_Discharge_V2`
+.. |UpperHighWaterThreshold| replace:: :class:`~hydpy.models.sw1d.sw1d_control.UpperHighWaterThreshold`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |sw1d.DOCNAME.long| replace:: HydPy-SW1D
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_lias_sluice.DOCNAME.complete| replace:: HydPy-SW1D-LIAS/Sluice (submodel that extends HydPy-SW1D-LIAS with sluice functionalities)
+.. |sw1d_lias_sluice| replace:: :mod:`~hydpy.models.sw1d_lias_sluice`
+.. |sw1d_lias| replace:: :mod:`~hydpy.models.sw1d_lias`
+
+.. _sw1d_lias_sluice:
+
+sw1d_lias_sluice
+================
+
+.. automodule:: hydpy.models.sw1d_lias_sluice
+    :members:
+    :show-inheritance:
+    :exclude-members: Sequence, Callable, is_typeddict, SenderSequences, AsyncContextManager, Never, SOLVERPARAMETERS, TypeVar, NamedTuple, ItemsView, SupportsBytes, LogSequences, Writer, fastaccess, overload, AsyncGenerator, Container, Iterator, Generic, no_type_check, Optional, TypeVarTuple, SOLVERSEQUENCES, Hashable, Collection, pars, SupportsAbs, type_repr, Sentinel, RESULTSEQUENCES, dataclass_transform, deprecated, CLASSES, InputSequences, Concatenate, ValuesView, subpars, ObserverSequences, TypeGuard, ParamSpec, Deque, SENDER_METHODS, MutableSequence, List, get_protocol_members, NoExtraItems, AbstractSet, AnyStr, SupportsComplex, SUBMETHODS, subvars, Tuple, evaluate_forward_ref, LiteralString, fastaccess_new, NewType, ReceiverSequences, KeysView, seqs, FIXEDPARAMETERS, UPDATEDSEQUENCES, Set, Buffer, Doc, no_type_check_decorator, TypeAliasType, NoDefault, Final, disjoint_base, Counter, assert_type, final, TYPE_CHECKING, ChainMap, OUTLET_METHODS, DERIVEDPARAMETERS, Reader, Awaitable, SupportsIndex, SupportsInt, Union, RUN_METHODS, get_annotations, DefaultDict, Required, AideSequences, NotRequired, CapsuleType, fastaccess_old, AsyncIterable, assert_never, reveal_type, OBSERVER_METHODS, Self, get_overloads, cast, Protocol, runtime_checkable, Reversible, get_type_hints, ADD_METHODS, INLET_METHODS, ByteString, ForwardRef, IO, Coroutine, SupportsFloat, CONTROLPARAMETERS, Iterable, OrderedDict, Generator, ParamSpecKwargs, get_origin, Type, ParamSpecArgs, ReadOnly, SUBMODELINTERFACES, Pattern, MutableMapping, TextIO, SupportsRound, TypeIs, Dict, is_protocol, SUBMODELS, Mapping, runtime, Format, INTERFACE_METHODS, Annotated, TypeAlias, REQUIREDSEQUENCES, clear_overloads, Literal, get_original_bases, get_args, TypedDict, override, PART_ODE_METHODS, AsyncIterator, InletSequences, Unpack, ClassVar, Match, TypeForm, MutableSet, ContextManager, MappingView, BinaryIO, subseqs, IntVar, Any, NoReturn, Sized, FULL_ODE_METHODS, RECEIVER_METHODS, Text, FrozenSet

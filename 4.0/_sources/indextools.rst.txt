@@ -1,0 +1,22 @@
+.. |Indexer.dayofyear| replace:: :const:`~hydpy.core.indextools.Indexer.dayofyear`
+.. |Indexer.monthofyear| replace:: :const:`~hydpy.core.indextools.Indexer.monthofyear`
+.. |Indexer.standardclocktime| replace:: :const:`~hydpy.core.indextools.Indexer.standardclocktime`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |IndexerProperty| replace:: :class:`~hydpy.core.indextools.IndexerProperty`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |Timegrids| replace:: :class:`~hydpy.core.timetools.Timegrids`
+.. |lland_v1| replace:: :mod:`~hydpy.models.lland_v1`
+.. |numpy| replace:: :mod:`~numpy`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |numpy.array| replace:: :func:`~numpy.array`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+
+.. _indextools:
+
+indextools
+==========
+
+.. automodule:: hydpy.core.indextools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

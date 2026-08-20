@@ -1,0 +1,451 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hstream_v1 &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="hbranch_v1" href="hbranch_v1.html" />
+    <link rel="prev" title="hland_v1" href="hland_v1.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="hbranch_v1.html" title="hbranch_v1"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="hland_v1.html" title="hland_v1"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-H.html" accesskey="U">HydPy-H (HBV)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hstream_v1</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="hstream-v1">
+<span id="id1"></span><h1>hstream_v1<a class="headerlink" href="#hstream-v1" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.models.hstream_v1"></span><p>Version 1 of The HydPy-H-Stream model is a straightforward routing
+approach.  It applies the working equation of the Muskingum method on some
+river segments of the same length.  The number of segments (parameter
+<a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_derived.NmbSegments" title="hydpy.models.hstream.hstream_derived.NmbSegments"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbSegments</span></code></a>) controls translation (parameter <a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_control.Lag" title="hydpy.models.hstream.hstream_control.Lag"><code class="xref py py-class docutils literal notranslate"><span class="pre">Lag</span></code></a>), the Muskingum
+coefficients (parameters <a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_derived.C1" title="hydpy.models.hstream.hstream_derived.C1"><code class="xref py py-class docutils literal notranslate"><span class="pre">C1</span></code></a>, <a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_derived.C2" title="hydpy.models.hstream.hstream_derived.C2"><code class="xref py py-class docutils literal notranslate"><span class="pre">C2</span></code></a>, and <a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_derived.C3" title="hydpy.models.hstream.hstream_derived.C3"><code class="xref py py-class docutils literal notranslate"><span class="pre">C3</span></code></a>) control attenuation
+(parameter <a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_control.Damp" title="hydpy.models.hstream.hstream_control.Damp"><code class="xref py py-class docutils literal notranslate"><span class="pre">Damp</span></code></a>).  For <a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_derived.NmbSegments" title="hydpy.models.hstream.hstream_derived.NmbSegments"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbSegments</span></code></a> only integer values are allowed,
+which is why the translation time cannot be varied continuously.</p>
+<div class="section" id="integration-tests">
+<h2>Integration tests<a class="headerlink" href="#integration-tests" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When new to <em>HydPy</em>, consider reading section <a class="reference internal" href="how_to.html#understand-integration-tests"><span class="std std-ref">How to understand integration tests?</span></a> first.</p>
+</div>
+<p>We perform the following examples over a simulation period of 20 hours:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span><span class="p">,</span> <span class="n">Nodes</span><span class="p">,</span> <span class="n">Element</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;01.01.2000 00:00&quot;</span><span class="p">,</span> <span class="s2">&quot;01.01.2000 20:00&quot;</span><span class="p">,</span> <span class="s2">&quot;1h&quot;</span>
+</pre></div>
+</div>
+<p>We also set the time step size of the parameter values defined
+below to one hour:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.hstream_v1</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1h&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#module-hydpy.models.hstream_v1" title="hydpy.models.hstream_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hstream_v1</span></code></a> model, handled by <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> <cite>stream</cite>, queries its
+inflow from two <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> objects (<cite>input1</cite> and <cite>input2</cite>) and passes its
+outflow to a single <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> object (<cite>output</cite>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;input1&quot;</span><span class="p">,</span> <span class="s2">&quot;input2&quot;</span><span class="p">,</span> <span class="s2">&quot;output&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;stream&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                 <span class="n">inlets</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;input1&quot;</span><span class="p">,</span> <span class="s2">&quot;input2&quot;</span><span class="p">],</span>
+<span class="gp">... </span>                 <span class="n">outlets</span><span class="o">=</span><span class="s2">&quot;output&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<p>The test function object sets the initial inflow of all segments
+junctions (<a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_states.QJoints" title="hydpy.models.hstream.hstream_states.QJoints"><code class="xref py py-class docutils literal notranslate"><span class="pre">QJoints</span></code></a>) to zero before each simulation run:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.testtools</span> <span class="kn">import</span> <span class="n">IntegrationTest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span>
+<span class="gp">... </span>                       <span class="n">inits</span><span class="o">=</span><span class="p">((</span><span class="n">states</span><span class="o">.</span><span class="n">qjoints</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;%H:%M&quot;</span>
+</pre></div>
+</div>
+<p>We define two flood events, one for each inflow node:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">input1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>                    <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">input2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>                    <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">9.</span><span class="p">,</span> <span class="mf">8.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Example 1</strong></p>
+<p>With zero <a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_control.Lag" title="hydpy.models.hstream.hstream_control.Lag"><code class="xref py py-class docutils literal notranslate"><span class="pre">Lag</span></code></a> time, there are no river segments.  Hence, there is
+only one “virtual” junction, which is both the start and the end
+point of the whole channel. Accordingly, outflow is always equal to
+inflow:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lag</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">damp</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;hstream_v1_ex1&quot;</span><span class="p">)</span>
+<span class="go">|  date | qjoints | input1 | input2 | output |</span>
+<span class="go">----------------------------------------------</span>
+<span class="go">| 00:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 01:00 |     1.0 |    0.0 |    1.0 |    1.0 |</span>
+<span class="go">| 02:00 |     6.0 |    1.0 |    5.0 |    6.0 |</span>
+<span class="go">| 03:00 |    12.0 |    3.0 |    9.0 |   12.0 |</span>
+<span class="go">| 04:00 |    10.0 |    2.0 |    8.0 |   10.0 |</span>
+<span class="go">| 05:00 |     6.0 |    1.0 |    5.0 |    6.0 |</span>
+<span class="go">| 06:00 |     3.0 |    0.0 |    3.0 |    3.0 |</span>
+<span class="go">| 07:00 |     2.0 |    0.0 |    2.0 |    2.0 |</span>
+<span class="go">| 08:00 |     1.0 |    0.0 |    1.0 |    1.0 |</span>
+<span class="go">| 09:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 10:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 11:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 12:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 13:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 14:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 15:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 16:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 17:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 18:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 19:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+</pre></div>
+</div>
+<a
+    href="hstream_v1_ex1.html"
+    target="_blank"
+>Click here to see the graph</a><p><strong>Example 2</strong></p>
+<p>Parameter <a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_control.Damp" title="hydpy.models.hstream.hstream_control.Damp"><code class="xref py py-class docutils literal notranslate"><span class="pre">Damp</span></code></a> controls the attenuation of flood waves within a
+single river segment.  With a zero <a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_control.Lag" title="hydpy.models.hstream.hstream_control.Lag"><code class="xref py py-class docutils literal notranslate"><span class="pre">Lag</span></code></a> time, there are no river
+segments and thus not damping even for the highest possible value
+of <a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_control.Damp" title="hydpy.models.hstream.hstream_control.Damp"><code class="xref py py-class docutils literal notranslate"><span class="pre">Damp</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lag</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">damp</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;hstream_v1_ex2&quot;</span><span class="p">)</span>
+<span class="go">|  date | qjoints | input1 | input2 | output |</span>
+<span class="go">----------------------------------------------</span>
+<span class="go">| 00:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 01:00 |     1.0 |    0.0 |    1.0 |    1.0 |</span>
+<span class="go">| 02:00 |     6.0 |    1.0 |    5.0 |    6.0 |</span>
+<span class="go">| 03:00 |    12.0 |    3.0 |    9.0 |   12.0 |</span>
+<span class="go">| 04:00 |    10.0 |    2.0 |    8.0 |   10.0 |</span>
+<span class="go">| 05:00 |     6.0 |    1.0 |    5.0 |    6.0 |</span>
+<span class="go">| 06:00 |     3.0 |    0.0 |    3.0 |    3.0 |</span>
+<span class="go">| 07:00 |     2.0 |    0.0 |    2.0 |    2.0 |</span>
+<span class="go">| 08:00 |     1.0 |    0.0 |    1.0 |    1.0 |</span>
+<span class="go">| 09:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 10:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 11:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 12:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 13:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 14:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 15:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 16:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 17:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 18:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 19:00 |     0.0 |    0.0 |    0.0 |    0.0 |</span>
+</pre></div>
+</div>
+<a
+    href="hstream_v1_ex2.html"
+    target="_blank"
+>Click here to see the graph</a><p><strong>Example 3</strong></p>
+<p>With a lag time of three hours and zero damping, <a class="reference internal" href="#module-hydpy.models.hstream_v1" title="hydpy.models.hstream_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hstream_v1</span></code></a>
+passes the flow values from one junction to the next one within
+each simulation time step.  Three segments give an overall time
+shift of three hours:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lag</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">damp</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;hstream_v1_ex3&quot;</span><span class="p">)</span>
+<span class="go">|  date |                   qjoints | input1 | input2 | output |</span>
+<span class="go">----------------------------------------------------------------</span>
+<span class="go">| 00:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 01:00 |  1.0   0.0   0.0      0.0 |    0.0 |    1.0 |    0.0 |</span>
+<span class="go">| 02:00 |  6.0   1.0   0.0      0.0 |    1.0 |    5.0 |    0.0 |</span>
+<span class="go">| 03:00 | 12.0   6.0   1.0      0.0 |    3.0 |    9.0 |    0.0 |</span>
+<span class="go">| 04:00 | 10.0  12.0   6.0      1.0 |    2.0 |    8.0 |    1.0 |</span>
+<span class="go">| 05:00 |  6.0  10.0  12.0      6.0 |    1.0 |    5.0 |    6.0 |</span>
+<span class="go">| 06:00 |  3.0   6.0  10.0     12.0 |    0.0 |    3.0 |   12.0 |</span>
+<span class="go">| 07:00 |  2.0   3.0   6.0     10.0 |    0.0 |    2.0 |   10.0 |</span>
+<span class="go">| 08:00 |  1.0   2.0   3.0      6.0 |    0.0 |    1.0 |    6.0 |</span>
+<span class="go">| 09:00 |  0.0   1.0   2.0      3.0 |    0.0 |    0.0 |    3.0 |</span>
+<span class="go">| 10:00 |  0.0   0.0   1.0      2.0 |    0.0 |    0.0 |    2.0 |</span>
+<span class="go">| 11:00 |  0.0   0.0   0.0      1.0 |    0.0 |    0.0 |    1.0 |</span>
+<span class="go">| 12:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 13:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 14:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 15:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 16:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 17:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 18:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 19:00 |  0.0   0.0   0.0      0.0 |    0.0 |    0.0 |    0.0 |</span>
+</pre></div>
+</div>
+<a
+    href="hstream_v1_ex3.html"
+    target="_blank"
+>Click here to see the graph</a><p><strong>Example 4</strong></p>
+<p>The last example shows the highest possible attenuation for three
+river segments:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lag</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">damp</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;hstream_v1_ex4&quot;</span><span class="p">)</span>
+<span class="go">|  date |                            qjoints | input1 | input2 |   output |</span>
+<span class="go">---------------------------------------------------------------------------</span>
+<span class="go">| 00:00 |  0.0       0.0       0.0       0.0 |    0.0 |    0.0 |      0.0 |</span>
+<span class="go">| 01:00 |  1.0       0.5      0.25     0.125 |    0.0 |    1.0 |    0.125 |</span>
+<span class="go">| 02:00 |  6.0      3.25      1.75    0.9375 |    1.0 |    5.0 |   0.9375 |</span>
+<span class="go">| 03:00 | 12.0     7.625    4.6875    2.8125 |    3.0 |    9.0 |   2.8125 |</span>
+<span class="go">| 04:00 | 10.0    8.8125      6.75   4.78125 |    2.0 |    8.0 |  4.78125 |</span>
+<span class="go">| 05:00 |  6.0   7.40625  7.078125  5.929688 |    1.0 |    5.0 | 5.929688 |</span>
+<span class="go">| 06:00 |  3.0  5.203125  6.140625  6.035156 |    0.0 |    3.0 | 6.035156 |</span>
+<span class="go">| 07:00 |  2.0  3.601562  4.871094  5.453125 |    0.0 |    2.0 | 5.453125 |</span>
+<span class="go">| 08:00 |  1.0  2.300781  3.585938  4.519531 |    0.0 |    1.0 | 4.519531 |</span>
+<span class="go">| 09:00 |  0.0  1.150391  2.368164  3.443848 |    0.0 |    0.0 | 3.443848 |</span>
+<span class="go">| 10:00 |  0.0  0.575195   1.47168  2.457764 |    0.0 |    0.0 | 2.457764 |</span>
+<span class="go">| 11:00 |  0.0  0.287598  0.879639  1.668701 |    0.0 |    0.0 | 1.668701 |</span>
+<span class="go">| 12:00 |  0.0  0.143799  0.511719   1.09021 |    0.0 |    0.0 |  1.09021 |</span>
+<span class="go">| 13:00 |  0.0  0.071899  0.291809   0.69101 |    0.0 |    0.0 |  0.69101 |</span>
+<span class="go">| 14:00 |  0.0   0.03595  0.163879  0.427444 |    0.0 |    0.0 | 0.427444 |</span>
+<span class="go">| 15:00 |  0.0  0.017975  0.090927  0.259186 |    0.0 |    0.0 | 0.259186 |</span>
+<span class="go">| 16:00 |  0.0  0.008987  0.049957  0.154572 |    0.0 |    0.0 | 0.154572 |</span>
+<span class="go">| 17:00 |  0.0  0.004494  0.027225  0.090899 |    0.0 |    0.0 | 0.090899 |</span>
+<span class="go">| 18:00 |  0.0  0.002247  0.014736  0.052817 |    0.0 |    0.0 | 0.052817 |</span>
+<span class="go">| 19:00 |  0.0  0.001123   0.00793  0.030374 |    0.0 |    0.0 | 0.030374 |</span>
+</pre></div>
+</div>
+<a
+    href="hstream_v1_ex4.html"
+    target="_blank"
+>Click here to see the graph</a></div></blockquote>
+<dl class="py class">
+<dt id="hydpy.models.hstream_v1.Model">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.hstream_v1.</span></code><code class="sig-name descname"><span class="pre">Model</span></code><a class="reference internal" href="_modules/hydpy/models/hstream_v1.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hstream_v1.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.AdHocModel" title="hydpy.core.modeltools.AdHocModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.modeltools.AdHocModel</span></code></a></p>
+<p>The HBV96 version of HydPy-H-Stream (<a class="reference internal" href="#module-hydpy.models.hstream_v1" title="hydpy.models.hstream_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hstream_v1</span></code></a>).</p>
+<dl class="simple">
+<dt>The following “inlet update methods” are called in the given sequence at the beginning of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_model.Pick_Q_V1" title="hydpy.models.hstream.hstream_model.Pick_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_Q_V1</span></code></a> Assign the actual value of the inlet sequence to the upper joint of the subreach upstream.</p></li>
+</ul>
+</dd>
+<dt>The following “run methods” are called in the given sequence during each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_model.Calc_QJoints_V1" title="hydpy.models.hstream.hstream_model.Calc_QJoints_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QJoints_V1</span></code></a> Apply the routing equation.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence at the end of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_model.Pass_Q_V1" title="hydpy.models.hstream.hstream_model.Pass_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Q_V1</span></code></a> Assing the actual value of the lower joint of of the subreach downstream to the outlet sequence.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.hstream_v1.Masks">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.hstream_v1.</span></code><code class="sig-name descname"><span class="pre">Masks</span></code><a class="reference internal" href="_modules/hydpy/models/hstream_v1.html#Masks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hstream_v1.Masks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="masktools.html#hydpy.core.masktools.Masks" title="hydpy.core.masktools.Masks"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.masktools.Masks</span></code></a></p>
+<p>Masks applicable to <a class="reference internal" href="#module-hydpy.models.hstream_v1" title="hydpy.models.hstream_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hstream_v1</span></code></a>.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_masks.Complete" title="hydpy.models.hstream.hstream_masks.Complete"><code class="xref py py-func docutils literal notranslate"><span class="pre">Complete()</span></code></a> Mask including a stream segments.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.hstream_v1.ControlParameters">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.hstream_v1.</span></code><code class="sig-name descname"><span class="pre">ControlParameters</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">hydpy.core.parametertools.Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.hstream_v1.ControlParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.SubVariables" title="hydpy.core.variabletools.SubVariables"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.SubVariables</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.Parameters</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Control parameters of model hstream_v1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_control.Lag" title="hydpy.models.hstream.hstream_control.Lag"><code class="xref py py-func docutils literal notranslate"><span class="pre">Lag()</span></code></a> Time lag between inflow and outflow [T].</p></li>
+<li><p><a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_control.Damp" title="hydpy.models.hstream.hstream_control.Damp"><code class="xref py py-func docutils literal notranslate"><span class="pre">Damp()</span></code></a> Damping of the hydrograph [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.hstream_v1.DerivedParameters">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.hstream_v1.</span></code><code class="sig-name descname"><span class="pre">DerivedParameters</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">hydpy.core.parametertools.Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.hstream_v1.DerivedParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.SubVariables" title="hydpy.core.variabletools.SubVariables"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.variabletools.SubVariables</span></code></a>[<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.Parameters</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code>, <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.parametertools.FastAccessParameter</span></code></a>]</p>
+<p>Derived parameters of model hstream_v1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_derived.NmbSegments" title="hydpy.models.hstream.hstream_derived.NmbSegments"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbSegments()</span></code></a> Number of river segments [-].</p></li>
+<li><p><a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_derived.C1" title="hydpy.models.hstream.hstream_derived.C1"><code class="xref py py-func docutils literal notranslate"><span class="pre">C1()</span></code></a> First coefficient of the Muskingum working formula [-].</p></li>
+<li><p><a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_derived.C3" title="hydpy.models.hstream.hstream_derived.C3"><code class="xref py py-func docutils literal notranslate"><span class="pre">C3()</span></code></a> Third coefficient of the muskingum working formula [-].</p></li>
+<li><p><a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_derived.C2" title="hydpy.models.hstream.hstream_derived.C2"><code class="xref py py-func docutils literal notranslate"><span class="pre">C2()</span></code></a> Second coefficient of the muskingum working formula [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.hstream_v1.InletSequences">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.hstream_v1.</span></code><code class="sig-name descname"><span class="pre">InletSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.hstream_v1.InletSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequences" title="hydpy.core.sequencetools.LinkSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.LinkSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequence</span></code>]</p>
+<p>Inlet sequences of model hstream_v1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_inlets.Q" title="hydpy.models.hstream.hstream_inlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Runoff [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.hstream_v1.OutletSequences">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.hstream_v1.</span></code><code class="sig-name descname"><span class="pre">OutletSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.hstream_v1.OutletSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequences" title="hydpy.core.sequencetools.LinkSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.LinkSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequence</span></code>]</p>
+<p>Outlet sequences of model hstream_v1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_outlets.Q" title="hydpy.models.hstream.hstream_outlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Runoff [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.hstream_v1.StateSequences">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.hstream_v1.</span></code><code class="sig-name descname"><span class="pre">StateSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.hstream_v1.StateSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequences" title="hydpy.core.sequencetools.OutputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequence</span></code>]</p>
+<p>State sequences of model hstream_v1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="hstream.html#hydpy.models.hstream.hstream_states.QJoints" title="hydpy.models.hstream.hstream_states.QJoints"><code class="xref py py-func docutils literal notranslate"><span class="pre">QJoints()</span></code></a> Runoff at the segment junctions [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework Tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modelcollection.html">Model Collection</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="HydPy-A.html">HydPy-A (RIMO/RIDO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-C.html">HydPy-C (Conv)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-E.html">HydPy-E (Evap)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-D.html">HydPy-D (DAM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="hland.html">hland (HydPy-H-Land)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hstream.html">hstream (HydPy-H-Stream)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hbranch.html">hbranch (HydPy-H-Branch)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hland_v1.html">hland_v1 (HBV96 version of HydPy-H-Land)</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">hstream_v1 (HBV96 version of HydPy-H-Stream)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#integration-tests">Integration tests</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hbranch_v1.html">hbranch_v1 (HBV96 version of HydPy-H-Branch)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-T.html">HydPy-T (TESTING)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="hland_v1.html"
+                        title="previous chapter">hland_v1</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="hbranch_v1.html"
+                        title="next chapter">hbranch_v1</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/hstream_v1.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../4.0/hstream_v1.html">4.0</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="hbranch_v1.html" title="hbranch_v1"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="hland_v1.html" title="hland_v1"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-H.html" >HydPy-H (HBV)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hstream_v1</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,434 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.dam_v003 &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam_v003</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.dam_v003</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=line-too-long, wildcard-import, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;Version 3 of HydPy-Dam</span>
+
+<span class="sd">Application |dam_v003| is quite similar to model |dam_v002|.  Both</span>
+<span class="sd">possess the same flood retentions functionalities.  Also, both models</span>
+<span class="sd">try to meet a remote water demand.  The only difference is that model</span>
+<span class="sd">|dam_v002| assumes the demand to occur in the channel downstream</span>
+<span class="sd">(usually to increase low discharge values), whereas model |dam_v003|</span>
+<span class="sd">is supposed to supply water to different locations (e.g. to a drinking</span>
+<span class="sd">water treatment plant).  Hence |dam_v002| releases its output only via</span>
+<span class="sd">one path and |dam_v003| splits its output into two separate paths.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">    .. how_to_understand_integration_tests::</span>
+
+<span class="sd">    To test the functionalities of |dam_v002|, four integration examples</span>
+<span class="sd">    of |dam_v001| are recalculated.  We again make use of these examples</span>
+<span class="sd">    and focus our explanations on the differences only.  So please follow</span>
+<span class="sd">    the links for further information.</span>
+
+<span class="sd">    .. _dam_v003_ex07:</span>
+
+<span class="sd">    :ref:`Recalculation of example 7 &lt;dam_v001_ex07&gt;`</span>
+
+<span class="sd">    While the time-related set up is identical, the spatial set up needs</span>
+<span class="sd">    to be changed.  Instead of one output node, there a now two nodes,</span>
+<span class="sd">    called `release` (into the stream bed) and `supply` (e.g. for a</span>
+<span class="sd">    drinking water supply treatment plant).  The node `demand` defines</span>
+<span class="sd">    the amount of water required by the plant:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub, Node, Element</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = &quot;01.01.2000&quot;, &quot;21.01.2000&quot;, &quot;1d&quot;</span>
+<span class="sd">    &gt;&gt;&gt; inflow = Node(&quot;inflow&quot;, variable=&quot;Q&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; release = Node(&quot;release&quot;, variable=&quot;Q&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; supply = Node(&quot;supply&quot;, variable=&quot;S&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; demand = Node(&quot;demand&quot;, variable=&quot;S&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; dam = Element(&quot;dam&quot;,</span>
+<span class="sd">    ...               inlets=inflow,</span>
+<span class="sd">    ...               outlets=(release, supply),</span>
+<span class="sd">    ...               receivers=demand)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.dam_v003 import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; dam.model = model</span>
+
+<span class="sd">    Method |Model.connect| recognizes the different purposes of both</span>
+<span class="sd">    output nodes through the given `variable` keyword.  Each |dam_v003|</span>
+<span class="sd">    model must be connecte  to exactly two nodes.  The `Q`-node</span>
+<span class="sd">    (discharge) handles the release into the stream bed downstream and</span>
+<span class="sd">    the `S`-node (supply) passes the water flow to another (arbitrary) model.</span>
+
+<span class="sd">    As explained for model |dam_v002|, the following initial conditions,</span>
+<span class="sd">    external time series data, and parameter values are set in favour of</span>
+<span class="sd">    making the simulation results as comparable as possible:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import IntegrationTest</span>
+<span class="sd">    &gt;&gt;&gt; IntegrationTest.plotting_options.activated = (</span>
+<span class="sd">    ...     fluxes.inflow, fluxes.outflow)</span>
+<span class="sd">    &gt;&gt;&gt; test = IntegrationTest(</span>
+<span class="sd">    ...     dam,</span>
+<span class="sd">    ...     inits=((states.watervolume, 0.0),</span>
+<span class="sd">    ...            (logs.loggedrequiredremoterelease, 0.005)))</span>
+<span class="sd">    &gt;&gt;&gt; test.dateformat = &quot;%d.%m.&quot;</span>
+<span class="sd">    &gt;&gt;&gt; inflow.sequences.sim.series = 1.0</span>
+<span class="sd">    &gt;&gt;&gt; demand.sequences.sim.series = [</span>
+<span class="sd">    ...     0.008588, 0.010053, 0.013858, 0.027322, 0.064075,</span>
+<span class="sd">    ...     0.235523, 0.470414, 0.735001, 0.891263, 0.696325,</span>
+<span class="sd">    ...     0.349797, 0.105231, 0.111928, 0.240436, 0.229369,</span>
+<span class="sd">    ...     0.058622, 0.016958, 0.008447, 0.004155, 0.0]</span>
+<span class="sd">    &gt;&gt;&gt; watervolume2waterlevel(</span>
+<span class="sd">    ...     weights_input=1.0, weights_output=0.25,</span>
+<span class="sd">    ...     intercepts_hidden=0.0, intercepts_output=0.0,</span>
+<span class="sd">    ...     activation=0)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevel2flooddischarge(ann(</span>
+<span class="sd">    ...     weights_input=0.0, weights_output=0.0,</span>
+<span class="sd">    ...     intercepts_hidden=0.0, intercepts_output=0.0))</span>
+<span class="sd">    &gt;&gt;&gt; catchmentarea(86.4)</span>
+<span class="sd">    &gt;&gt;&gt; neardischargeminimumthreshold(0.2)</span>
+<span class="sd">    &gt;&gt;&gt; neardischargeminimumtolerance(0.2)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevelminimumthreshold(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevelminimumtolerance(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevelminimumremotethreshold(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevelminimumremotetolerance(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; restricttargetedrelease(True)</span>
+<span class="sd">    &gt;&gt;&gt; parameters.update()</span>
+
+<span class="sd">    Despite trying to make this example comparable with</span>
+<span class="sd">    :ref:`example 7 &lt;dam_v001_ex07&gt;` of model |dam_v001| (and the</span>
+<span class="sd">    corresponding recalculation of model |dam_v002|), there are relevant</span>
+<span class="sd">    differences in the results.  These are due to the separate output</span>
+<span class="sd">    paths of model |dam_v003|.  Models |dam_v001| and |dam_v002| use the</span>
+<span class="sd">    same water to both meet the near and the remote demand.  This is not</span>
+<span class="sd">    possible for model |dam_v003|,  which is why it has to release a larger</span>
+<span class="sd">    total amount of water:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v003_ex7&quot;)</span>
+<span class="sd">    |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume |   demand | inflow |  release |   supply |</span>
+<span class="sd">    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |    1.0 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.004792 |            0.0 | 0.191667 |    0.069426 | 0.008588 |    1.0 | 0.191667 | 0.004792 |</span>
+<span class="sd">    | 02.01. |    1.0 |              0.008588 |             0.2 |             0.2 |           0.2 |            0.008588 |            0.0 |      0.2 |    0.137804 | 0.010053 |    1.0 |      0.2 | 0.008588 |</span>
+<span class="sd">    | 03.01. |    1.0 |              0.010053 |             0.2 |             0.2 |           0.2 |            0.010053 |            0.0 |      0.2 |    0.206055 | 0.013858 |    1.0 |      0.2 | 0.010053 |</span>
+<span class="sd">    | 04.01. |    1.0 |              0.013858 |             0.2 |             0.2 |           0.2 |            0.013858 |            0.0 |      0.2 |    0.273978 | 0.027322 |    1.0 |      0.2 | 0.013858 |</span>
+<span class="sd">    | 05.01. |    1.0 |              0.027322 |             0.2 |             0.2 |           0.2 |            0.027322 |            0.0 |      0.2 |    0.340737 | 0.064075 |    1.0 |      0.2 | 0.027322 |</span>
+<span class="sd">    | 06.01. |    1.0 |              0.064075 |             0.2 |             0.2 |           0.2 |            0.064075 |            0.0 |      0.2 |    0.404321 | 0.235523 |    1.0 |      0.2 | 0.064075 |</span>
+<span class="sd">    | 07.01. |    1.0 |              0.235523 |             0.2 |             0.2 |           0.2 |            0.235523 |            0.0 |      0.2 |    0.453092 | 0.470414 |    1.0 |      0.2 | 0.235523 |</span>
+<span class="sd">    | 08.01. |    1.0 |              0.470414 |             0.2 |             0.2 |           0.2 |            0.470414 |            0.0 |      0.2 |    0.481568 | 0.735001 |    1.0 |      0.2 | 0.470414 |</span>
+<span class="sd">    | 09.01. |    1.0 |              0.735001 |             0.2 |             0.2 |           0.2 |            0.735001 |            0.0 |      0.2 |    0.487184 | 0.891263 |    1.0 |      0.2 | 0.735001 |</span>
+<span class="sd">    | 10.01. |    1.0 |              0.891263 |             0.2 |             0.2 |           0.2 |            0.891263 |            0.0 |      0.2 |    0.479299 | 0.696325 |    1.0 |      0.2 | 0.891263 |</span>
+<span class="sd">    | 11.01. |    1.0 |              0.696325 |             0.2 |             0.2 |           0.2 |            0.696325 |            0.0 |      0.2 |    0.488257 | 0.349797 |    1.0 |      0.2 | 0.696325 |</span>
+<span class="sd">    | 12.01. |    1.0 |              0.349797 |             0.2 |             0.2 |           0.2 |            0.349797 |            0.0 |      0.2 |    0.527154 | 0.105231 |    1.0 |      0.2 | 0.349797 |</span>
+<span class="sd">    | 13.01. |    1.0 |              0.105231 |             0.2 |             0.2 |           0.2 |            0.105231 |            0.0 |      0.2 |    0.587182 | 0.111928 |    1.0 |      0.2 | 0.105231 |</span>
+<span class="sd">    | 14.01. |    1.0 |              0.111928 |             0.2 |             0.2 |           0.2 |            0.111928 |            0.0 |      0.2 |    0.646632 | 0.240436 |    1.0 |      0.2 | 0.111928 |</span>
+<span class="sd">    | 15.01. |    1.0 |              0.240436 |             0.2 |             0.2 |           0.2 |            0.240436 |            0.0 |      0.2 |    0.694978 | 0.229369 |    1.0 |      0.2 | 0.240436 |</span>
+<span class="sd">    | 16.01. |    1.0 |              0.229369 |             0.2 |             0.2 |           0.2 |            0.229369 |            0.0 |      0.2 |    0.744281 | 0.058622 |    1.0 |      0.2 | 0.229369 |</span>
+<span class="sd">    | 17.01. |    1.0 |              0.058622 |             0.2 |             0.2 |           0.2 |            0.058622 |            0.0 |      0.2 |    0.808336 | 0.016958 |    1.0 |      0.2 | 0.058622 |</span>
+<span class="sd">    | 18.01. |    1.0 |              0.016958 |             0.2 |             0.2 |           0.2 |            0.016958 |            0.0 |      0.2 |     0.87599 | 0.008447 |    1.0 |      0.2 | 0.016958 |</span>
+<span class="sd">    | 19.01. |    1.0 |              0.008447 |             0.2 |             0.2 |           0.2 |            0.008447 |            0.0 |      0.2 |    0.944381 | 0.004155 |    1.0 |      0.2 | 0.008447 |</span>
+<span class="sd">    | 20.01. |    1.0 |              0.004155 |             0.2 |             0.2 |           0.2 |            0.004155 |            0.0 |      0.2 |    1.013142 |      0.0 |    1.0 |      0.2 | 0.004155 |</span>
+
+<span class="sd">    .. raw:: html</span>
+
+<span class="sd">        &lt;a</span>
+<span class="sd">            href=&quot;dam_v003_ex7.html&quot;</span>
+<span class="sd">            target=&quot;_blank&quot;</span>
+<span class="sd">        &gt;Click here to see the graph&lt;/a&gt;</span>
+
+<span class="sd">    .. _dam_v003_ex08:</span>
+
+<span class="sd">    :ref:`Recalculation of example 8.1 &lt;dam_v001_ex08_1&gt;`</span>
+
+<span class="sd">    The next recalculation shows that the restriction on releasing</span>
+<span class="sd">    water during low inflow conditions concerns the release into</span>
+<span class="sd">    the stream bed only:</span>
+
+<span class="sd">    &gt;&gt;&gt; inflow.sequences.sim.series[10:] = 0.1</span>
+<span class="sd">    &gt;&gt;&gt; demand.sequences.sim.series = [</span>
+<span class="sd">    ...     0.008746, 0.010632, 0.015099, 0.03006, 0.068641,</span>
+<span class="sd">    ...     0.242578, 0.474285, 0.784512, 0.95036, 0.35,</span>
+<span class="sd">    ...     0.034564, 0.299482, 0.585979, 0.557422, 0.229369,</span>
+<span class="sd">    ...     0.142578, 0.068641, 0.029844, 0.012348, 0.0]</span>
+<span class="sd">    &gt;&gt;&gt; neardischargeminimumtolerance(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v003_ex8_1&quot;)</span>
+<span class="sd">    |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume |   demand | inflow |  release |   supply |</span>
+<span class="sd">    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |    1.0 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.004792 |            0.0 | 0.191667 |    0.069426 | 0.008746 |    1.0 | 0.191667 | 0.004792 |</span>
+<span class="sd">    | 02.01. |    1.0 |              0.008746 |             0.2 |             0.2 |           0.2 |            0.008746 |            0.0 |      0.2 |     0.13779 | 0.010632 |    1.0 |      0.2 | 0.008746 |</span>
+<span class="sd">    | 03.01. |    1.0 |              0.010632 |             0.2 |             0.2 |           0.2 |            0.010632 |            0.0 |      0.2 |    0.205992 | 0.015099 |    1.0 |      0.2 | 0.010632 |</span>
+<span class="sd">    | 04.01. |    1.0 |              0.015099 |             0.2 |             0.2 |           0.2 |            0.015099 |            0.0 |      0.2 |    0.273807 |  0.03006 |    1.0 |      0.2 | 0.015099 |</span>
+<span class="sd">    | 05.01. |    1.0 |               0.03006 |             0.2 |             0.2 |           0.2 |             0.03006 |            0.0 |      0.2 |     0.34033 | 0.068641 |    1.0 |      0.2 |  0.03006 |</span>
+<span class="sd">    | 06.01. |    1.0 |              0.068641 |             0.2 |             0.2 |           0.2 |            0.068641 |            0.0 |      0.2 |    0.403519 | 0.242578 |    1.0 |      0.2 | 0.068641 |</span>
+<span class="sd">    | 07.01. |    1.0 |              0.242578 |             0.2 |             0.2 |           0.2 |            0.242578 |            0.0 |      0.2 |    0.451681 | 0.474285 |    1.0 |      0.2 | 0.242578 |</span>
+<span class="sd">    | 08.01. |    1.0 |              0.474285 |             0.2 |             0.2 |           0.2 |            0.474285 |            0.0 |      0.2 |    0.479822 | 0.784512 |    1.0 |      0.2 | 0.474285 |</span>
+<span class="sd">    | 09.01. |    1.0 |              0.784512 |             0.2 |             0.2 |           0.2 |            0.784512 |            0.0 |      0.2 |    0.481161 |  0.95036 |    1.0 |      0.2 | 0.784512 |</span>
+<span class="sd">    | 10.01. |    1.0 |               0.95036 |             0.2 |             0.2 |           0.2 |             0.95036 |            0.0 |      0.2 |     0.46817 |     0.35 |    1.0 |      0.2 |  0.95036 |</span>
+<span class="sd">    | 11.01. |    0.1 |                  0.35 |             0.2 |             0.1 |           0.1 |                0.35 |            0.0 |      0.1 |     0.43793 | 0.034564 |    0.1 |      0.1 |     0.35 |</span>
+<span class="sd">    | 12.01. |    0.1 |              0.034564 |             0.2 |             0.1 |           0.1 |            0.034564 |            0.0 |      0.1 |    0.434943 | 0.299482 |    0.1 |      0.1 | 0.034564 |</span>
+<span class="sd">    | 13.01. |    0.1 |              0.299482 |             0.2 |             0.1 |           0.1 |            0.299482 |            0.0 |      0.1 |    0.409068 | 0.585979 |    0.1 |      0.1 | 0.299482 |</span>
+<span class="sd">    | 14.01. |    0.1 |              0.585979 |             0.2 |             0.1 |           0.1 |            0.585979 |            0.0 |      0.1 |    0.358439 | 0.557422 |    0.1 |      0.1 | 0.585979 |</span>
+<span class="sd">    | 15.01. |    0.1 |              0.557422 |             0.2 |             0.1 |           0.1 |            0.557422 |            0.0 |      0.1 |    0.310278 | 0.229369 |    0.1 |      0.1 | 0.557422 |</span>
+<span class="sd">    | 16.01. |    0.1 |              0.229369 |             0.2 |             0.1 |           0.1 |            0.229369 |            0.0 |      0.1 |    0.290461 | 0.142578 |    0.1 |      0.1 | 0.229369 |</span>
+<span class="sd">    | 17.01. |    0.1 |              0.142578 |             0.2 |             0.1 |           0.1 |            0.142578 |            0.0 |      0.1 |    0.278142 | 0.068641 |    0.1 |      0.1 | 0.142578 |</span>
+<span class="sd">    | 18.01. |    0.1 |              0.068641 |             0.2 |             0.1 |           0.1 |            0.068641 |            0.0 |      0.1 |    0.272211 | 0.029844 |    0.1 |      0.1 | 0.068641 |</span>
+<span class="sd">    | 19.01. |    0.1 |              0.029844 |             0.2 |             0.1 |           0.1 |            0.029844 |            0.0 |      0.1 |    0.269633 | 0.012348 |    0.1 |      0.1 | 0.029844 |</span>
+<span class="sd">    | 20.01. |    0.1 |              0.012348 |             0.2 |             0.1 |           0.1 |            0.012348 |            0.0 |      0.1 |    0.268566 |      0.0 |    0.1 |      0.1 | 0.012348 |</span>
+
+<span class="sd">    .. raw:: html</span>
+
+<span class="sd">        &lt;a</span>
+<span class="sd">            href=&quot;dam_v003_ex8_1.html&quot;</span>
+<span class="sd">            target=&quot;_blank&quot;</span>
+<span class="sd">        &gt;Click here to see the graph&lt;/a&gt;</span>
+
+<span class="sd">    .. _dam_v003_ex10:</span>
+
+<span class="sd">    :ref:`Recalculation of example 10 &lt;dam_v001_ex10&gt;`</span>
+
+<span class="sd">    This example makes use of two control parameters which are unknown to</span>
+<span class="sd">    models |dam_v001| and |dam_v002|.  |WaterLevelMinimumRemoteThreshold|</span>
+<span class="sd">    and |WaterLevelMinimumRemoteTolerance| are introduced to allow for a</span>
+<span class="sd">    distinct control of both dam output paths for situations when the</span>
+<span class="sd">    available storage becomes limited.  Here, parameter</span>
+<span class="sd">    |WaterLevelMinimumRemoteThreshold| is set to a higher value than</span>
+<span class="sd">    parameter |WaterLevelMinimumThreshold|, meaning the release into the</span>
+<span class="sd">    stream bed has a higher priority than the supply to the drinking water</span>
+<span class="sd">    treatment plant:</span>
+
+<span class="sd">    &gt;&gt;&gt; inflow.sequences.sim.series = numpy.linspace(0.2, 0.0, 20)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevelminimumtolerance(0.01)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevelminimumthreshold(0.005)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevelminimumremotetolerance(0.01)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevelminimumremotethreshold(0.01)</span>
+<span class="sd">    &gt;&gt;&gt; demand.sequences.sim.series = [</span>
+<span class="sd">    ...     0.01232, 0.029323, 0.064084, 0.120198, 0.247367,</span>
+<span class="sd">    ...     0.45567, 0.608464, 0.537314, 0.629775, 0.744091,</span>
+<span class="sd">    ...     0.82219, 0.841916, 0.701812, 0.533258, 0.351863,</span>
+<span class="sd">    ...     0.185207, 0.107697, 0.055458, 0.025948, 0.0]</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v003_ex10&quot;)</span>
+<span class="sd">    |   date |   inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume |   demand |   inflow |  release |   supply |</span>
+<span class="sd">    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |      0.2 |                 0.005 |             0.2 |             0.2 |      0.038491 |             0.00012 |            0.0 | 0.038491 |    0.013944 |  0.01232 |      0.2 | 0.038491 |  0.00012 |</span>
+<span class="sd">    | 02.01. | 0.189474 |               0.01232 |             0.2 |        0.189474 |      0.086988 |            0.000993 |            0.0 | 0.086988 |    0.022713 | 0.029323 | 0.189474 | 0.086988 | 0.000993 |</span>
+<span class="sd">    | 03.01. | 0.178947 |              0.029323 |             0.2 |        0.178947 |      0.116103 |            0.004642 |            0.0 | 0.116103 |    0.027742 | 0.064084 | 0.178947 | 0.116103 | 0.004642 |</span>
+<span class="sd">    | 04.01. | 0.168421 |              0.064084 |             0.2 |        0.168421 |      0.125159 |            0.014625 |            0.0 | 0.125159 |    0.030216 | 0.120198 | 0.168421 | 0.125159 | 0.014625 |</span>
+<span class="sd">    | 05.01. | 0.157895 |              0.120198 |             0.2 |        0.157895 |      0.121681 |            0.030361 |            0.0 | 0.121681 |    0.030722 | 0.247367 | 0.157895 | 0.121681 | 0.030361 |</span>
+<span class="sd">    | 06.01. | 0.147368 |              0.247367 |             0.2 |        0.147368 |      0.109923 |            0.056857 |            0.0 | 0.109923 |    0.029044 |  0.45567 | 0.147368 | 0.109923 | 0.056857 |</span>
+<span class="sd">    | 07.01. | 0.136842 |               0.45567 |             0.2 |        0.136842 |      0.094858 |            0.084715 |            0.0 | 0.094858 |    0.025352 | 0.608464 | 0.136842 | 0.094858 | 0.084715 |</span>
+<span class="sd">    | 08.01. | 0.126316 |              0.608464 |             0.2 |        0.126316 |      0.076914 |            0.082553 |            0.0 | 0.076914 |    0.022488 | 0.537314 | 0.126316 | 0.076914 | 0.082553 |</span>
+<span class="sd">    | 09.01. | 0.115789 |              0.537314 |             0.2 |        0.115789 |      0.064167 |            0.059779 |            0.0 | 0.064167 |    0.021783 | 0.629775 | 0.115789 | 0.064167 | 0.059779 |</span>
+<span class="sd">    | 10.01. | 0.105263 |              0.629775 |             0.2 |        0.105263 |      0.055154 |            0.063011 |            0.0 | 0.055154 |    0.020669 | 0.744091 | 0.105263 | 0.055154 | 0.063011 |</span>
+<span class="sd">    | 11.01. | 0.094737 |              0.744091 |             0.2 |        0.094737 |      0.045986 |            0.064865 |            0.0 | 0.045986 |    0.019277 |  0.82219 | 0.094737 | 0.045986 | 0.064865 |</span>
+<span class="sd">    | 12.01. | 0.084211 |               0.82219 |             0.2 |        0.084211 |      0.037699 |             0.06228 |            0.0 | 0.037699 |    0.017914 | 0.841916 | 0.084211 | 0.037699 |  0.06228 |</span>
+<span class="sd">    | 13.01. | 0.073684 |              0.841916 |             0.2 |        0.073684 |      0.030632 |            0.056377 |            0.0 | 0.030632 |    0.016763 | 0.701812 | 0.073684 | 0.030632 | 0.056377 |</span>
+<span class="sd">    | 14.01. | 0.063158 |              0.701812 |             0.2 |        0.063158 |      0.025166 |            0.043828 |            0.0 | 0.025166 |    0.016259 | 0.533258 | 0.063158 | 0.025166 | 0.043828 |</span>
+<span class="sd">    | 15.01. | 0.052632 |              0.533258 |             0.2 |        0.052632 |      0.020693 |            0.032602 |            0.0 | 0.020693 |    0.016201 | 0.351863 | 0.052632 | 0.020693 | 0.032602 |</span>
+<span class="sd">    | 16.01. | 0.042105 |              0.351863 |             0.2 |        0.042105 |      0.016736 |            0.021882 |            0.0 | 0.016736 |    0.016502 | 0.185207 | 0.042105 | 0.016736 | 0.021882 |</span>
+<span class="sd">    | 17.01. | 0.031579 |              0.185207 |             0.2 |        0.031579 |      0.012934 |            0.012076 |            0.0 | 0.012934 |     0.01707 | 0.107697 | 0.031579 | 0.012934 | 0.012076 |</span>
+<span class="sd">    | 18.01. | 0.021053 |              0.107697 |             0.2 |        0.021053 |      0.008901 |            0.007386 |            0.0 | 0.008901 |    0.017482 | 0.055458 | 0.021053 | 0.008901 | 0.007386 |</span>
+<span class="sd">    | 19.01. | 0.010526 |              0.055458 |             0.2 |        0.010526 |      0.004535 |             0.00392 |            0.0 | 0.004535 |    0.017661 | 0.025948 | 0.010526 | 0.004535 |  0.00392 |</span>
+<span class="sd">    | 20.01. |      0.0 |              0.025948 |             0.2 |             0.0 |           0.0 |            0.001835 |            0.0 |      0.0 |    0.017502 |      0.0 |      0.0 |      0.0 | 0.001835 |</span>
+
+<span class="sd">    .. raw:: html</span>
+
+<span class="sd">        &lt;a</span>
+<span class="sd">            href=&quot;dam_v003_ex10.html&quot;</span>
+<span class="sd">            target=&quot;_blank&quot;</span>
+<span class="sd">        &gt;Click here to see the graph&lt;/a&gt;</span>
+
+<span class="sd">    .. _dam_v003_ex13:</span>
+
+<span class="sd">    :ref:`Recalculation of example 13 &lt;dam_v001_ex13&gt;`</span>
+
+<span class="sd">    The final example deals with high flow conditions.  It demonstrates</span>
+<span class="sd">    that model |dam_v003| calculates the same outflow values as model</span>
+<span class="sd">    |dam_v001| and model |dam_v002| if there is neither a relevant near</span>
+<span class="sd">    nor a relevant remote demand:</span>
+
+<span class="sd">    &gt;&gt;&gt; neardischargeminimumthreshold(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; neardischargeminimumtolerance(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevelminimumthreshold(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevelminimumtolerance(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevelminimumremotethreshold(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevelminimumremotetolerance(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevel2flooddischarge(ann(</span>
+<span class="sd">    ...     weights_input=1.0, weights_output=2.5,</span>
+<span class="sd">    ...     intercepts_hidden=0.0, intercepts_output=0.0,</span>
+<span class="sd">    ...     activation=0))</span>
+<span class="sd">    &gt;&gt;&gt; neardischargeminimumthreshold(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; inflow.sequences.sim.series = [ 0., 1., 5., 9., 8., 5., 3., 2., 1., 0.,</span>
+<span class="sd">    ...                                 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]</span>
+<span class="sd">    &gt;&gt;&gt; demand.sequences.sim.series = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; test.inits.loggedrequiredremoterelease = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v003_ex13&quot;)</span>
+<span class="sd">    |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | demand | inflow |  release | supply |</span>
+<span class="sd">    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |            0.0 |      0.0 |         0.0 |    0.0 |    0.0 |      0.0 |    0.0 |</span>
+<span class="sd">    | 02.01. |    1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.026514 | 0.026514 |    0.084109 |    0.0 |    1.0 | 0.026514 |    0.0 |</span>
+<span class="sd">    | 03.01. |    5.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.183744 | 0.183744 |    0.500234 |    0.0 |    5.0 | 0.183744 |    0.0 |</span>
+<span class="sd">    | 04.01. |    9.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.542983 | 0.542983 |     1.23092 |    0.0 |    9.0 | 0.542983 |    0.0 |</span>
+<span class="sd">    | 05.01. |    8.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.961039 | 0.961039 |    1.839086 |    0.0 |    8.0 | 0.961039 |    0.0 |</span>
+<span class="sd">    | 06.01. |    5.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.251523 | 1.251523 |    2.162955 |    0.0 |    5.0 | 1.251523 |    0.0 |</span>
+<span class="sd">    | 07.01. |    3.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.395546 | 1.395546 |    2.301579 |    0.0 |    3.0 | 1.395546 |    0.0 |</span>
+<span class="sd">    | 08.01. |    2.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.453375 | 1.453375 |    2.348808 |    0.0 |    2.0 | 1.453375 |    0.0 |</span>
+<span class="sd">    | 09.01. |    1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.455596 | 1.455596 |    2.309444 |    0.0 |    1.0 | 1.455596 |    0.0 |</span>
+<span class="sd">    | 10.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.405132 | 1.405132 |    2.188041 |    0.0 |    0.0 | 1.405132 |    0.0 |</span>
+<span class="sd">    | 11.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.331267 | 1.331267 |    2.073019 |    0.0 |    0.0 | 1.331267 |    0.0 |</span>
+<span class="sd">    | 12.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.261285 | 1.261285 |    1.964044 |    0.0 |    0.0 | 1.261285 |    0.0 |</span>
+<span class="sd">    | 13.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.194981 | 1.194981 |    1.860798 |    0.0 |    0.0 | 1.194981 |    0.0 |</span>
+<span class="sd">    | 14.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.132163 | 1.132163 |    1.762979 |    0.0 |    0.0 | 1.132163 |    0.0 |</span>
+<span class="sd">    | 15.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.072647 | 1.072647 |    1.670302 |    0.0 |    0.0 | 1.072647 |    0.0 |</span>
+<span class="sd">    | 16.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |        1.01626 |  1.01626 |    1.582498 |    0.0 |    0.0 |  1.01626 |    0.0 |</span>
+<span class="sd">    | 17.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.962837 | 0.962837 |    1.499308 |    0.0 |    0.0 | 0.962837 |    0.0 |</span>
+<span class="sd">    | 18.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.912222 | 0.912222 |    1.420492 |    0.0 |    0.0 | 0.912222 |    0.0 |</span>
+<span class="sd">    | 19.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.864268 | 0.864268 |     1.34582 |    0.0 |    0.0 | 0.864268 |    0.0 |</span>
+<span class="sd">    | 20.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.818835 | 0.818835 |    1.275072 |    0.0 |    0.0 | 0.818835 |    0.0 |</span>
+
+<span class="sd">    .. raw:: html</span>
+
+<span class="sd">        &lt;a</span>
+<span class="sd">            href=&quot;dam_v003_ex13.html&quot;</span>
+<span class="sd">            target=&quot;_blank&quot;</span>
+<span class="sd">        &gt;Click here to see the graph&lt;/a&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.auxs.anntools</span> <span class="kn">import</span> <span class="n">ann</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">from</span> <span class="nn">hydpy.exe.modelimports</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from dam</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.dam</span> <span class="kn">import</span> <span class="n">dam_model</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.dam</span> <span class="kn">import</span> <span class="n">dam_solver</span>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../dam_v003.html#hydpy.models.dam_v003.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">ELSModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Version 3 of HydPy-Dam.&quot;&quot;&quot;</span>
+
+    <span class="n">SOLVERPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">AbsErrorMax</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelErrorMax</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelDTMin</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelDTMax</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">SOLVERSEQUENCES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pic_Inflow_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_RequiredRemoteRelease_V2</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_RequiredRelease_V2</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_TargetedRelease_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Pic_LoggedRequiredRemoteRelease_V2</span><span class="p">,)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">PART_ODE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pic_Inflow_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_WaterLevel_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_ActualRelease_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_ActualRemoteRelease_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_FloodDischarge_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_Outflow_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">FULL_ODE_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Update_WaterVolume_V2</span><span class="p">,)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pass_Outflow_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pass_ActualRemoteRelease_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+<span class="n">cythonizer</span><span class="o">.</span><span class="n">finalise</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam_v003</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

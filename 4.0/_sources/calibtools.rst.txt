@@ -1,0 +1,88 @@
+.. |ARMA.coefs| replace:: :const:`~hydpy.auxs.armatools.ARMA.coefs`
+.. |Adaptor| replace:: :class:`~hydpy.auxs.calibtools.Adaptor`
+.. |Add| replace:: :class:`~hydpy.auxs.calibtools.Add`
+.. |CalibSpecs.names| replace:: :const:`~hydpy.auxs.calibtools.CalibSpecs.names`
+.. |CalibSpecs| replace:: :class:`~hydpy.auxs.calibtools.CalibSpecs`
+.. |CalibSpec| replace:: :class:`~hydpy.auxs.calibtools.CalibSpec`
+.. |CalibrationInterface.add_rules| replace:: :func:`~hydpy.auxs.calibtools.CalibrationInterface.add_rules`
+.. |CalibrationInterface.apply_values| replace:: :func:`~hydpy.auxs.calibtools.CalibrationInterface.apply_values`
+.. |CalibrationInterface.calculate_likelihood| replace:: :func:`~hydpy.auxs.calibtools.CalibrationInterface.calculate_likelihood`
+.. |CalibrationInterface.get_rule| replace:: :func:`~hydpy.auxs.calibtools.CalibrationInterface.get_rule`
+.. |CalibrationInterface.make_rules| replace:: :func:`~hydpy.auxs.calibtools.CalibrationInterface.make_rules`
+.. |CalibrationInterface.perform_calibrationstep| replace:: :func:`~hydpy.auxs.calibtools.CalibrationInterface.perform_calibrationstep`
+.. |CalibrationInterface.prepare_logfile| replace:: :func:`~hydpy.auxs.calibtools.CalibrationInterface.prepare_logfile`
+.. |CalibrationInterface.print_table| replace:: :func:`~hydpy.auxs.calibtools.CalibrationInterface.print_table`
+.. |CalibrationInterface.read_logfile| replace:: :func:`~hydpy.auxs.calibtools.CalibrationInterface.read_logfile`
+.. |CalibrationInterface.remove_rules| replace:: :func:`~hydpy.auxs.calibtools.CalibrationInterface.remove_rules`
+.. |CalibrationInterface.reset_parameters| replace:: :func:`~hydpy.auxs.calibtools.CalibrationInterface.reset_parameters`
+.. |CalibrationInterface.update_logfile| replace:: :func:`~hydpy.auxs.calibtools.CalibrationInterface.update_logfile`
+.. |CalibrationInterface| replace:: :class:`~hydpy.auxs.calibtools.CalibrationInterface`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |FactorAdaptor| replace:: :class:`~hydpy.auxs.calibtools.FactorAdaptor`
+.. |False| replace:: :const:`False`
+.. |HydPy.conditions| replace:: :const:`~hydpy.core.hydpytools.HydPy.conditions`
+.. |HydPy| replace:: :class:`~hydpy.core.hydpytools.HydPy`
+.. |IUH| replace:: :class:`~hydpy.auxs.iuhtools.IUH`
+.. |Multiply| replace:: :class:`~hydpy.auxs.calibtools.Multiply`
+.. |None| replace:: :const:`None`
+.. |Obs| replace:: :class:`~hydpy.core.sequencetools.Obs`
+.. |Options.parameterstep| replace:: :const:`~hydpy.core.optiontools.Options.parameterstep`
+.. |Options.simulationstep| replace:: :const:`~hydpy.core.optiontools.Options.simulationstep`
+.. |Options.warntrim| replace:: :const:`~hydpy.core.optiontools.Options.warntrim`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |Replace.apply_value| replace:: :func:`~hydpy.auxs.calibtools.Replace.apply_value`
+.. |ReplaceIUH.add_iuhs| replace:: :func:`~hydpy.auxs.calibtools.ReplaceIUH.add_iuhs`
+.. |ReplaceIUH.apply_value| replace:: :func:`~hydpy.auxs.calibtools.ReplaceIUH.apply_value`
+.. |ReplaceIUH.reset_parameters| replace:: :func:`~hydpy.auxs.calibtools.ReplaceIUH.reset_parameters`
+.. |ReplaceIUH.update_parameters| replace:: :attr:`~hydpy.auxs.calibtools.ReplaceIUH.update_parameters`
+.. |ReplaceIUH| replace:: :class:`~hydpy.auxs.calibtools.ReplaceIUH`
+.. |Replace| replace:: :class:`~hydpy.auxs.calibtools.Replace`
+.. |Rule.apply_value| replace:: :func:`~hydpy.auxs.calibtools.Rule.apply_value`
+.. |Rule.parameterstep| replace:: :const:`~hydpy.auxs.calibtools.Rule.parameterstep`
+.. |Rule.reset_parameters| replace:: :func:`~hydpy.auxs.calibtools.Rule.reset_parameters`
+.. |Rule.value| replace:: :const:`~hydpy.auxs.calibtools.Rule.value`
+.. |Rule| replace:: :class:`~hydpy.auxs.calibtools.Rule`
+.. |Selections| replace:: :class:`~hydpy.core.selectiontools.Selections`
+.. |Selection| replace:: :class:`~hydpy.core.selectiontools.Selection`
+.. |Sim| replace:: :class:`~hydpy.core.sequencetools.Sim`
+.. |SumAdaptor| replace:: :class:`~hydpy.auxs.calibtools.SumAdaptor`
+.. |TargetFunction| replace:: :class:`~hydpy.auxs.calibtools.TargetFunction`
+.. |TranslationDiffusionEquation.d| replace:: :const:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation.d`
+.. |TranslationDiffusionEquation.u| replace:: :const:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation.u`
+.. |TranslationDiffusionEquation| replace:: :class:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation`
+.. |True| replace:: :const:`True`
+.. |arma_v1| replace:: :mod:`~hydpy.models.arma_v1`
+.. |hland_v1| replace:: :mod:`~hydpy.models.hland_v1`
+.. |hstream_v1| replace:: :mod:`~hydpy.models.hstream_v1`
+.. |lland_v1| replace:: :mod:`~hydpy.models.lland_v1`
+.. |nse| replace:: :func:`~hydpy.auxs.statstools.nse`
+.. |prepare_full_example_2| replace:: :func:`~hydpy.examples.prepare_full_example_2`
+.. |arma_control.Responses| replace:: :class:`~hydpy.models.arma.arma_control.Responses`
+.. |hland_constants.FIELD| replace:: :const:`~hydpy.models.hland.hland_constants.FIELD`
+.. |hland_constants.FOREST| replace:: :const:`~hydpy.models.hland.hland_constants.FOREST`
+.. |hland_constants.GLACIER| replace:: :const:`~hydpy.models.hland.hland_constants.GLACIER`
+.. |hland_constants.ILAKE| replace:: :const:`~hydpy.models.hland.hland_constants.ILAKE`
+.. |hland_control.Alpha| replace:: :class:`~hydpy.models.hland.hland_control.Alpha`
+.. |hland_control.CFMax| replace:: :class:`~hydpy.models.hland.hland_control.CFMax`
+.. |hland_control.FC| replace:: :class:`~hydpy.models.hland.hland_control.FC`
+.. |hland_control.GMelt| replace:: :class:`~hydpy.models.hland.hland_control.GMelt`
+.. |hland_control.K4| replace:: :class:`~hydpy.models.hland.hland_control.K4`
+.. |hland_control.K| replace:: :class:`~hydpy.models.hland.hland_control.K`
+.. |hland_control.PercMax| replace:: :class:`~hydpy.models.hland.hland_control.PercMax`
+.. |hland_control.ZoneType| replace:: :class:`~hydpy.models.hland.hland_control.ZoneType`
+.. |hland_masks.Glacier| replace:: :class:`~hydpy.models.hland.hland_masks.Glacier`
+.. |hstream_control.Damp| replace:: :class:`~hydpy.models.hstream.hstream_control.Damp`
+.. |hstream_derived.NmbSegments| replace:: :class:`~hydpy.models.hstream.hstream_derived.NmbSegments`
+.. |lland_control.PWP| replace:: :class:`~hydpy.models.lland.lland_control.PWP`
+.. |lland_control.WMax| replace:: :class:`~hydpy.models.lland.lland_control.WMax`
+.. |numpy.inf| replace:: :const:`~numpy.inf`
+
+.. _calibtools:
+
+calibtools
+==========
+
+.. automodule:: hydpy.auxs.calibtools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

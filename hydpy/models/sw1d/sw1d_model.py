@@ -1907,7 +1907,7 @@ class Update_Discharge_V2(modeltools.Method):
 
         All involved control parameters are subclasses of |SeasonalParameter|, which
         allows the simulation of seasonal sluice control schemes.  To show how this
-        works, we first define a simulation period of four days:
+        works, we first define a four-day simulation period:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-05", "1d"
@@ -1923,8 +1923,8 @@ class Update_Discharge_V2(modeltools.Method):
         >>> upperhighwaterthreshold(_1_1_12=5.0, _1_2_12=8.0, _1_3_12=8.0, _1_4_12=8.0)
         >>> derived.toy.update()
 
-        We prepare a |UnitTest| object to demonstrate the dependency of
-        |Update_Discharge_V2| on the downstream water level:
+        We prepare a |UnitTest| object to demonstrate how |Update_Discharge_V2| depends
+        on the upstream water level:
 
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.update_discharge_v2, last_example=9,
@@ -1935,10 +1935,10 @@ class Update_Discharge_V2(modeltools.Method):
         relatively low downstream water level and a reversed flow situation with a
         relatively high downstream water level.
 
-        For April 1, all threshold parameters have the same value of 5 m.  So, gates
+        For January 1, all threshold parameters have the same value of 5 m.  So, gates
         are generally closed below an upstream water level of 5 m to prevent
-        the source catchment from running dry during low flow periods ("closed gate")
-        and only allow normal flow above 5 m to maximise drainage during high flow
+        the source catchment from running dry during low-flow periods ("closed gate")
+        and only allow normal flow above 5 m to maximise drainage during high-flow
         periods ("sluice mode"):
 
         >>> model.idx_sim = pub.timegrids.init["2000-01-01"]
@@ -1972,12 +1972,13 @@ class Update_Discharge_V2(modeltools.Method):
         |   8 |                8.0 |       0.0 |
         |   9 |                9.0 |       0.0 |
 
-        In the following examples, he transitions between the low and high water
-        control schemes are not sharp but gradual, which is often more realistic and
-        numerically favourable.  For April 2, the values of |BottomLowWaterThreshold|
-        and |BottomHighWaterThreshold| and the values of |UpperLowWaterThreshold| and
-        |UpperHighWaterThreshold| are equal.  Hence, we see a linear-interpolation-like
-        transition from the "closed gate" to the "sluice mode" control schemes:
+        In the following examples, the transitions between the low-water and high-water
+        control schemes are gradual rather than sharp, which is often more realistic
+        and numerically favourable.  For January 2, the values of
+        |BottomLowWaterThreshold| and |BottomHighWaterThreshold| and the values of
+        |UpperLowWaterThreshold| and |UpperHighWaterThreshold| are equal.  Hence, we
+        see a linear-interpolation-like transition from the "closed gate" to the
+        "sluice mode" control schemes:
 
         >>> model.idx_sim = pub.timegrids.init["2000-01-02"]
         >>> factors.waterleveldownstream = 0.0
@@ -2010,7 +2011,7 @@ class Update_Discharge_V2(modeltools.Method):
         |   8 |                8.0 |       0.0 |
         |   9 |                9.0 |       0.0 |
 
-        For April 3, the values of |UpperLowWaterThreshold| and
+        For January 3, the values of |UpperLowWaterThreshold| and
         |BottomHighWaterThreshold| are equal.  So, at this point, neither the "closed
         gate" nor the "sluice mode" control schemes apply, and the water can flow
         freely in both directions ("free discharge"):
@@ -2046,9 +2047,8 @@ class Update_Discharge_V2(modeltools.Method):
         |   8 |                8.0 |       0.0 |
         |   9 |                9.0 |       0.0 |
 
-
-        For April 4, the "closed gate" and "sluice mode" parameter ranges are partly
-        overlapping, so reversed flow can occur but only with reduced intensity:
+        For January 4, the "closed gate" and "sluice mode" parameter ranges partly
+        overlap, so reversed flow can occur but only with reduced intensity:
 
         >>> model.idx_sim = pub.timegrids.init["2000-01-04"]
         >>> factors.waterleveldownstream = 0.0

@@ -30,4 +30,5 @@ available in the :ref:`model_overview` section, which covers all user-relevant m
    routinginterfaces
    soilinterfaces
    stateinterfaces
+   throughfallinterfaces
    tempinterfaces

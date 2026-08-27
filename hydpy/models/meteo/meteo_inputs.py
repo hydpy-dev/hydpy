@@ -19,7 +19,7 @@ class SunshineDuration(sequencetools.InputSequence):
 
 
 class ClearSkySolarRadiation(sequencetools.InputSequence):
-    """Clear sky solar radiation [W/m²]."""
+    """Clear-sky solar radiation [W/m²]."""
 
     NDIM: Final[Literal[0]] = 0
     STANDARD_NAME = sequencetools.StandardInputNames.CLEAR_SKY_SOLAR_RADIATION
@@ -44,3 +44,10 @@ class Precipitation(sequencetools.InputSequence):
 
     NDIM: Final[Literal[0]] = 0
     STANDARD_NAME = sequencetools.StandardInputNames.PRECIPITATION
+
+
+class Throughfall(sequencetools.InputSequence):
+    """Throughfall [mm/T]."""
+
+    NDIM: Final[Literal[1]] = 1
+    STANDARD_NAME = sequencetools.StandardInputNames.THROUGHFALL

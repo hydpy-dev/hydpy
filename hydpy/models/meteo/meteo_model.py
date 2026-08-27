@@ -1294,7 +1294,7 @@ class Return_DailyGlobalRadiation_V1(modeltools.Method):
 
 
 class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
-    r"""Calculate the clear sky solar radiation according to :cite:t:`ref-Allen1998`.
+    r"""Calculate the clear-sky solar radiation according to :cite:t:`ref-Allen1998`.
 
     Basic equation (:cite:t`ref-Allen1998`, eq. 35):
       :math:`ClearSkySolarRadiation =
@@ -1523,7 +1523,7 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
 
 
 class Adjust_ClearSkySolarRadiation_V1(modeltools.Method):
-    r"""Use the portion of the daily radiation sum to adjust the clear sky solar
+    r"""Use the portion of the daily radiation sum to adjust the clear-sky solar
     radiation's daily average to the current simulation step.
 
     Basic equation:
@@ -2564,6 +2564,31 @@ class Get_MeanPrecipitation_V1(modeltools.Method):
         return flu.meanprecipitation
 
 
+class Get_Throughfall_V1(modeltools.Method):
+    """Get the current throughfall from the selected hydrological response unit.
+
+    Example:
+
+        >>> from hydpy.models.meteo import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> inputs.throughfall = 2.0, 4.0
+        >>> from hydpy import round_
+        >>> round_(model.get_throughfall_v1(0))
+        2.0
+        >>> round_(model.get_throughfall_v1(1))
+        4.0
+    """
+
+    REQUIREDSEQUENCES = (meteo_inputs.Throughfall,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, s: int, /) -> float:
+        inp = model.sequences.inputs.fastaccess
+
+        return inp.throughfall[s]
+
+
 class Process_Radiation_V1(modeltools.ReusableMethod):
     """Interface method for radiation-related submodels that executes all "run
     methods"."""
@@ -2658,7 +2683,7 @@ class Get_SunshineDuration_V2(modeltools.Method):
 
 
 class Get_ClearSkySolarRadiation_V1(modeltools.Method):
-    """Get the clear sky solar radiation in W/m².
+    """Get the clear-sky solar radiation in W/m².
 
     Example:
 
@@ -2679,7 +2704,7 @@ class Get_ClearSkySolarRadiation_V1(modeltools.Method):
 
 
 class Get_ClearSkySolarRadiation_V2(modeltools.Method):
-    """Get the clear sky solar radiation in W/m².
+    """Get the clear-sky solar radiation in W/m².
 
     Example:
 
@@ -2793,6 +2818,7 @@ class Model(modeltools.AdHocModel):
         Determine_Precipitation_V1,
         Get_Precipitation_V1,
         Get_MeanPrecipitation_V1,
+        Get_Throughfall_V1,
         Process_Radiation_V1,
         Get_PossibleSunshineDuration_V1,
         Get_PossibleSunshineDuration_V2,

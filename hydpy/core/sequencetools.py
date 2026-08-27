@@ -453,6 +453,8 @@ class StandardInputNames(enum.StrEnum):
     """Amount of soil water [mm]."""
     SUNSHINE_DURATION = "sunshine_duration"
     """Sunshine duration [h]."""
+    THROUGHFALL = "throughfall"
+    """Throughfall [mm/T]."""
     WIND_SPEED = "wind_speed"
     """Wind speed [m/s]."""
 

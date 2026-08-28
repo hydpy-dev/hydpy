@@ -3,6 +3,22 @@
 from hydpy.models.snow import snow_sequences
 
 
+class RainSnowFraction(snow_sequences.FactorSequence1D):
+    """Fraction of rain in total precipitation [-]."""
+
+
+class MeltingFactor(snow_sequences.FactorSequence1D):
+    """Actual degree-day factor [mm/°C/T]."""
+
+
+class Snowpack(snow_sequences.FactorSequence2D):
+    """Total snow water equivalent [mm]."""
+
+
+class AdjustedTemperature(snow_sequences.FactorSequence1D):
+    """Adjusted air temperature [°C]."""
+
+
 class TLayer(snow_sequences.Factor1DNLayers):
     """Mean air temperature of each snow layer [°C]."""
 

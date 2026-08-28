@@ -4,6 +4,13 @@ from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 
 
+class AirTemperature(sequencetools.InputSequence):
+    """Mean air temperature [°C]."""
+
+    NDIM: Final[Literal[0]] = 0
+    STANDARD_NAME = sequencetools.StandardInputNames.AIR_TEMPERATURE
+
+
 class P(sequencetools.InputSequence):
     """Precipitation [mm/T]."""
 

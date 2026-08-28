@@ -3,6 +3,7 @@ The |snow.DOCNAME.complete| model family supplies methods for modelling snow pro
 """
 
 from hydpy.exe.modelimports import *
+from hydpy.models.snow.snow_masks import Masks
 from hydpy.models.snow.snow_model import Model
 
 tester = Tester()

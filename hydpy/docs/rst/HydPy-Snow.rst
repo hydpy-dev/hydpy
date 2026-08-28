@@ -26,5 +26,6 @@ Application models:
 .. toctree::
    :maxdepth: 1
 
+   snow_dd
    snow_cn
    snow_cn_minmax

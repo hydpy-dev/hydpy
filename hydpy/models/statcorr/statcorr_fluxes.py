@@ -5,7 +5,7 @@ from hydpy.core.typingtools import *
 
 
 class Inflow(sequencetools.FluxSequence):
-    """Flow into the first channel segment [m³/s]."""
+    """Inflow [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
 

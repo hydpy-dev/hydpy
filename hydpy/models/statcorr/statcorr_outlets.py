@@ -5,6 +5,6 @@ from hydpy.core.typingtools import *
 
 
 class Q(sequencetools.OutletSequence):
-    """Abfluss (runoff) [m³/s]."""
+    """Discharge [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0

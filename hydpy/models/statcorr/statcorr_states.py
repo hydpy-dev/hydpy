@@ -72,3 +72,31 @@ class AveragedResidual(sequencetools.StateSequence):
 
     NDIM: Final[Literal[0]] = 0
     INIT = 0.0
+
+
+class Residual(sequencetools.StateSequence):
+    """The pointwise ARIMA residual (observed minus simulated discharge, taken
+    from the most recently logged entry with a non-|numpy.nan| observation,
+    searching back at most |MaxResidualLookback| entries) in m³/s.
+
+    Like |Stationary| and |FlowCondition|, |statcorr_arima010| only
+    reassesses |Residual| while |Options.simulationmode| equals `historical`.
+    While it equals `forecast`, |Residual| keeps the value determined at the
+    most recent `historical` assessment, so the applied correction persists
+    throughout the whole forecast horizon (subject only to
+    |ReductionFactor|) instead of vanishing as soon as the underlying log
+    entry drops out of the logging window."""
+
+    NDIM: Final[Literal[0]] = 0
+    INIT = 0.0
+
+
+class ResidualAnchor(sequencetools.StateSequence):
+    """The simulated discharge (in m³/s) at the log position from which
+    |Residual| was determined.
+
+    Frozen together with |Residual| while |Options.simulationmode| equals
+    `forecast`; see |Residual| for details."""
+
+    NDIM: Final[Literal[0]] = 0
+    INIT = 0.0

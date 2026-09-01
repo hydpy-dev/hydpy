@@ -111,8 +111,7 @@ class LinearReductionTime(parametertools.Parameter):
 
 
 class LimitNQM(parametertools.Parameter):
-    """
-    Discharge threshold for the transition from NQ to MQ range in m³/s.
+    """Discharge threshold for the transition from NQ to MQ range in m³/s.
     """
 
     NDIM: Final[Literal[0]] = 0
@@ -120,8 +119,7 @@ class LimitNQM(parametertools.Parameter):
 
 
 class LimitMQH(parametertools.Parameter):
-    """
-    Discharge threshold for the transition from MQ to HQ range in m³/s.
+    """Discharge threshold for the transition from MQ to HQ range in m³/s.
     """
 
     NDIM: Final[Literal[0]] = 0

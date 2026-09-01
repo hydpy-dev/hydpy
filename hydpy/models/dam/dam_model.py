@@ -4080,7 +4080,7 @@ class Calc_MaxForcedDischarge_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         con.waterleveldifference2maxforceddischarge.inputs[0] = fac.waterleveldifference
-        toy: int = der.toy[model.idx_sim]
+        toy = der.toy[model.idx_sim]
         con.waterleveldifference2maxforceddischarge.calculate_values(toy)
         flu.maxforceddischarge = con.waterleveldifference2maxforceddischarge.outputs[0]
 
@@ -4147,7 +4147,7 @@ class Calc_MaxFreeDischarge_V1(modeltools.Method):
         con.waterleveldifference2maxfreedischarge.inputs[0] = (
             fac.effectivewaterleveldifference
         )
-        toy: int = der.toy[model.idx_sim]
+        toy = der.toy[model.idx_sim]
         con.waterleveldifference2maxfreedischarge.calculate_values(toy)
         flu.maxfreedischarge = con.waterleveldifference2maxfreedischarge.outputs[0]
 

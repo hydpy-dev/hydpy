@@ -1407,19 +1407,19 @@ class NetCDFVariableFlat(NetCDFVariable, abc.ABC):
 
     We define three |NetCDFVariableFlatWriter| instances with different
     dimensionalities structures and log the |lland_inputs.Nied| and |lland_fluxes.NKor|
-    instances of the first two elements and the |hland_states.SP| instance of the
-    fourth element:
+    instances of the first two elements and the |snow_states.IceContent| instance of
+    the fourth element:
 
     >>> from hydpy.core.netcdftools import NetCDFVariableFlatWriter
     >>> var_nied = NetCDFVariableFlatWriter("nied.nc")
     >>> var_nkor = NetCDFVariableFlatWriter("nkor.nc")
-    >>> var_sp = NetCDFVariableFlatWriter("sp.nc")
+    >>> var_icecontent = NetCDFVariableFlatWriter("icecontent.nc")
     >>> for element in (element1, element3):
     ...     seqs = element.model.sequences
     ...     var_nied.log(seqs.inputs.nied, seqs.inputs.nied.series)
     ...     var_nkor.log(seqs.fluxes.nkor, seqs.fluxes.nkor.series)
-    >>> sp = element4.model.sequences.states.sp
-    >>> var_sp.log(sp, sp.series)
+    >>> icecontent = element4.model.snowmodel.sequences.states.icecontent
+    >>> var_icecontent.log(icecontent, icecontent.series)
 
     We further try to log the equally named "wind speed" sequences of the main model
     |lland_knauf| and the submodel |evap_aet_morsim|.  As both models are handled by
@@ -1455,7 +1455,7 @@ already registered under the same column name(s) but with different time series 
     >>> with TestIO():
     ...     var_nied.write()
     ...     var_nkor.write()
-    ...     var_sp.write()
+    ...     var_icecontent.write()
     ...     var_windspeed.write()
 
     We set all the values of the selected sequences to -777 and check that they differ
@@ -1463,9 +1463,9 @@ already registered under the same column name(s) but with different time series 
 
     >>> nied = element1.model.sequences.inputs.nied
     >>> nkor = element3.model.sequences.fluxes.nkor
-    >>> sp = element4.model.sequences.states.sp
+    >>> icecontent = element4.model.snowmodel.sequences.states.icecontent
     >>> import numpy
-    >>> for seq in (nied, nkor, sp, windspeed_l, windspeed_e):
+    >>> for seq in (nied, nkor, icecontent, windspeed_l, windspeed_e):
     ...     seq.series = -777.0
     ...     assert numpy.any(seq.series != seq.testarray)
 
@@ -1476,21 +1476,21 @@ already registered under the same column name(s) but with different time series 
     >>> from hydpy.core.netcdftools import NetCDFVariableFlatReader
     >>> var_nied = NetCDFVariableFlatReader("nied.nc")
     >>> var_nkor = NetCDFVariableFlatReader("nkor.nc")
-    >>> var_sp = NetCDFVariableFlatReader("sp.nc")
+    >>> var_icecontent = NetCDFVariableFlatReader("icecontent.nc")
     >>> var_windspeed = NetCDFVariableFlatReader("windspeed.nc")
     >>> for element in (element1, element3):
     ...     sequences = element.model.sequences
     ...     var_nied.log(sequences.inputs.nied)
     ...     var_nkor.log(sequences.fluxes.nkor)
-    >>> var_sp.log(sp)
+    >>> var_icecontent.log(icecontent)
     >>> var_windspeed.log(windspeed_l)
     >>> var_windspeed.log(windspeed_e)
     >>> with TestIO():
     ...     var_nied.read()
     ...     var_nkor.read()
-    ...     var_sp.read()
+    ...     var_icecontent.read()
     ...     var_windspeed.read()
-    >>> for seq in (nied, nkor, sp):
+    >>> for seq in (nied, nkor, icecontent):
     ...     assert numpy.all(seq.series == seq.testarray)
     >>> assert numpy.all(windspeed_l.series == windspeed_l.testarray)
     >>> assert numpy.all(windspeed_e.series == windspeed_l.testarray)
@@ -1554,10 +1554,11 @@ error occurred: No data for (sub)device `element2` is available in NetCDF file \
         ('element1_0', 'element2_0', 'element2_1', 'element3_0', 'element3_1', \
 'element3_2')
 
-        2-dimensional sequences like |hland_states.SP| require an additional suffix:
+        2-dimensional sequences like |snow_states.IceContent| require an additional
+        suffix:
 
         >>> var = NetCDFVariableFlatReader("filename.nc")
-        >>> var.log(elements.element4.model.sequences.states.sp)
+        >>> var.log(elements.element4.model.snowmodel.sequences.states.icecontent)
         >>> var.subdevicenames
         ('element4_0_0', 'element4_0_1', 'element4_0_2', 'element4_1_0', \
 'element4_1_1', 'element4_1_2')
@@ -1603,12 +1604,12 @@ error occurred: No data for (sub)device `element2` is available in NetCDF file \
         (4, 6)
 
         The above statements also hold for 2-dimensional sequences as
-        |hland_states.SP|.  In this specific case, each "subdevice" corresponds to a
-        single snow class (one element times three zones times two snow classes makes
-        six subdevices):
+        |snow_states.IceContent|.  In this specific case, each "subdevice" corresponds
+        to a single snow class (one element times three zones times two snow classes
+        makes six subdevices):
 
         >>> var = NetCDFVariableFlatReader( "filename.nc")
-        >>> var.log(elements.element4.model.sequences.states.sp)
+        >>> var.log(elements.element4.model.snowmodel.sequences.states.icecontent)
         >>> var.shape
         (4, 6)
         """
@@ -2016,12 +2017,12 @@ class NetCDFVariableFlatWriter(MixinVariableWriter, NetCDFVariableFlat):
         | 22.0, 23.0 |
 
         The above statements also hold for 2-dimensional sequences like
-        |hland_states.SP|.  In this specific case, each column contains the time series
-        of a single snow class:
+        |snow_states.IceContent|.  In this specific case, each column contains the time
+        series of a single snow class:
 
         >>> var = NetCDFVariableFlatWriter("filename.nc")
-        >>> sp = elements.element4.model.sequences.states.sp
-        >>> var.log(sp, sp.series)
+        >>> icecontent = elements.element4.model.snowmodel.sequences.states.icecontent
+        >>> var.log(icecontent, icecontent.series)
         >>> print_matrix(var.array)
         | 68.0, 69.0, 70.0, 71.0, 72.0, 73.0 |
         | 74.0, 75.0, 76.0, 77.0, 78.0, 79.0 |
@@ -2055,19 +2056,19 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
     >>> from hydpy.core.netcdftools import NetCDFVariableAggregated
     >>> var_nied = NetCDFVariableAggregated("nied.nc")
     >>> var_nkor = NetCDFVariableAggregated("nkor.nc")
-    >>> var_sp = NetCDFVariableAggregated("sp.nc")
+    >>> var_icecontent = NetCDFVariableAggregated("icecontent.nc")
     >>> for element in (element1, element2):
     ...     nied = element.model.sequences.inputs.nied
     ...     var_nied.log(nied, nied.average_series())
     ...     nkor = element.model.sequences.fluxes.nkor
     ...     var_nkor.log(nkor, nkor.average_series())
-    >>> sp = element4.model.sequences.states.sp
-    >>> var_sp.log(sp, sp.average_series())
+    >>> icecontent = element4.model.snowmodel.sequences.states.icecontent
+    >>> var_icecontent.log(icecontent, icecontent.average_series())
     >>> from hydpy import pub, TestIO
     >>> with TestIO():
     ...     var_nied.write()
     ...     var_nkor.write()
-    ...     var_sp.write()
+    ...     var_icecontent.write()
 
     As |NetCDFVariableAggregated| provides no reading functionality, we show that the
     aggregated values are readily available using the external NetCDF4 library:
@@ -2088,8 +2089,8 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
     | 14.0, 20.5 |
     | 15.0, 22.5 |
 
-    >>> with TestIO(), netcdf4.Dataset("sp.nc", "r") as ncfile:
-    ...     print_matrix(numpy.asarray(ncfile["sp"][:]))
+    >>> with TestIO(), netcdf4.Dataset("icecontent.nc", "r") as ncfile:
+    ...     print_matrix(numpy.asarray(ncfile["icecontent"][:]))
     | 70.5 |
     | 76.5 |
     | 82.5 |
@@ -2118,7 +2119,7 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
         series also results in 1-dimensional data:
 
         >>> var = NetCDFVariableAggregated("filename.nc")
-        >>> var.log(elements.element4.model.sequences.states.sp, None)
+        >>> var.log(elements.element4.model.snowmodel.sequences.states.icecontent, None)
         >>> var.shape
         (4, 1)
         """
@@ -2152,8 +2153,8 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
         series also results in 1-dimensional data:
 
         >>> var = NetCDFVariableAggregated("filename.nc")
-        >>> sp = elements.element4.model.sequences.states.sp
-        >>> var.log(sp, sp.average_series())
+        >>> icecontent = elements.element4.model.snowmodel.sequences.states.icecontent
+        >>> var.log(icecontent, icecontent.average_series())
         >>> print_matrix(var.array)
         | 70.5 |
         | 76.5 |
@@ -2195,7 +2196,7 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
     ...     sequences.append(node.sequences.sim)
     >>> for element in elements:
     ...     if element.model.name == "hland_96":
-    ...         sequences.append(element.model.sequences.states.sp)
+    ...         sequences.append(element.model.snowmodel.sequences.states.icecontent)
     ...     else:
     ...         sequences.append(element.model.sequences.inputs.nied)
     ...         if element.name != "element1":
@@ -2242,11 +2243,11 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
     >>> print_vector(writer.foldernames)
     default, test
     >>> print_vector(writer.filenames)
-    hland_96_state_sp, hland_96_state_sp_mean, lland_dd_flux_nkor,
-    lland_dd_flux_nkor_mean, lland_dd_input_nied,
+    lland_dd_flux_nkor, lland_dd_flux_nkor_mean, lland_dd_input_nied,
     lland_dd_input_nied_mean, lland_knauf_flux_nkor,
     lland_knauf_flux_nkor_mean, lland_knauf_input_nied,
-    lland_knauf_input_nied_mean, sim_q, sim_q_mean, sim_t, sim_t_mean
+    lland_knauf_input_nied_mean, sim_q, sim_q_mean, sim_t, sim_t_mean,
+    snow_dd_state_icecontent, snow_dd_state_icecontent_mean
 
     |NetCDFInterfaceWriter| provides attribute access to its |NetCDFVariable|
     instances, both via their filenames and the combination of their folder names and
@@ -2254,16 +2255,17 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
 
     >>> assert writer.sim_q is writer.default_sim_q
     >>> print_vector(sorted(set(dir(writer)) - set(object.__dir__(writer))))
-    default_hland_96_state_sp, default_hland_96_state_sp_mean,
     default_lland_dd_flux_nkor, default_lland_dd_flux_nkor_mean,
     default_lland_dd_input_nied, default_lland_dd_input_nied_mean,
     default_lland_knauf_flux_nkor, default_lland_knauf_flux_nkor_mean,
     default_lland_knauf_input_nied, default_lland_knauf_input_nied_mean,
     default_sim_q, default_sim_q_mean, default_sim_t, default_sim_t_mean,
-    hland_96_state_sp, hland_96_state_sp_mean, lland_dd_input_nied,
+    default_snow_dd_state_icecontent,
+    default_snow_dd_state_icecontent_mean, lland_dd_input_nied,
     lland_dd_input_nied_mean, lland_knauf_flux_nkor,
     lland_knauf_flux_nkor_mean, lland_knauf_input_nied,
     lland_knauf_input_nied_mean, sim_q, sim_q_mean, sim_t, sim_t_mean,
+    snow_dd_state_icecontent, snow_dd_state_icecontent_mean,
     test_lland_dd_flux_nkor, test_lland_dd_flux_nkor_mean
 
     If multiple NetCDF files have the same name, you must prefix the relevant folder
@@ -2319,7 +2321,7 @@ named `lland_dd` nor does it define a member named `lland_dd`.
     >>> elements.element2.model.sequences.fluxes.nkor.series
     InfoArray([[18., 19.],
                [20., 21.]])
-    >>> elements.element4.model.sequences.states.sp.series
+    >>> elements.element4.model.snowmodel.sequences.states.icecontent.series
     InfoArray([[[74., 75., 76.],
                 [77., 78., 79.]],
     <BLANKLINE>

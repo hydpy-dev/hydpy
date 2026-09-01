@@ -109,7 +109,7 @@ for all GET and POST methods, one should pass the query parameter `id`, used by 
 ...     request.urlopen(url)
 
 Function `print_itemvalues` also wraps only GET methods and prints the current value of
-parameter |hland_control.Alpha| as well as the lastly simulated discharge values
+parameter |hland_control.Alpha| as well as the most recently simulated discharge values
 corresponding to the given `id` value:
 
 >>> from hydpy import print_vector
@@ -592,8 +592,9 @@ been extracted but cannot be further processed: `x == y`.
     quh = Double1D
     >>> test("query_inputitemtypes")
     t_headwaters = TimeSeries1D
+    airtemperature_headwaters = TimeSeries1D
     >>> test("query_outputitemtypes")
-    swe_headwaters = TimeSeries1D
+    snowpack_headwaters = TimeSeries1D
     >>> test("query_getitemtypes")
     land_dill_assl_factors_contriarea = Double0D
     land_dill_assl_fluxes_qt = Double0D
@@ -614,11 +615,12 @@ been extracted but cannot be further processed: `x == y`.
     (|HydPyServer.GET_query_initialgetitemvalues| return the relevant subgroup only.
     Note that for the exchange items related to state sequence |hland_states.SM|
     (`sm_lahn_marb` and `sm_lahn_leun`), the initial values stem from the XML file.
-    For the items related to state sequence |hland_states.Ic| and input sequence
-    |hland_inputs.T|, the XML file does not provide such information.  Thus, the
-    initial values of `ic_lahn_marb`, `ic_lahn_leun`, and `t_headwaters` stem from the
-    corresponding sequences themselves (and thus, indirectly, from the respective
-    condition and time series files):
+    For the items related to state sequence |hland_states.Ic| and input sequences
+    |hland_inputs.T| and |snow_inputs.AirTemperature|, the XML file does not provide
+    such information.  Thus, the initial values of `ic_lahn_marb`, `ic_lahn_leun`,
+    `t_headwaters`, and `airtemperature_headwaters` stem from the corresponding
+    sequences themselves (and thus, indirectly, from the respective condition and time
+    series files):
 
     >>> test("query_initialparameteritemvalues")
     alpha = 2.0
@@ -639,8 +641,10 @@ been extracted but cannot be further processed: `x == y`.
     quh = [10.0]
     >>> test("query_initialinputitemvalues")
     t_headwaters = [[0.0, -0.5, -2.4, -6.8, -7.8], [-0.7, -1.5, -4.6, -8.2, -8.7]]
+    airtemperature_headwaters = [[0.0, -0.5, -2.4, -6.8, -7.8], [-0.7, -1.5, -4.6, \
+-8.2, -8.7]]
     >>> test("query_initialoutputitemvalues")
-    swe_headwaters = [[nan, nan, nan, nan, nan], [nan, nan, nan, nan, nan]]
+    snowpack_headwaters = [[nan, nan, nan, nan, nan], [nan, nan, nan, nan, nan]]
     >>> test("query_initialgetitemvalues")  # doctest: +ELLIPSIS
     land_dill_assl_factors_contriarea = nan
     land_dill_assl_fluxes_qt = nan
@@ -672,12 +676,13 @@ been extracted but cannot be further processed: `x == y`.
     sfcf_3 = [land_lahn_kalk_0, ..., land_lahn_kalk_13]
     k4 = *global*
     t_headwaters = [land_dill_assl, land_lahn_marb]
+    airtemperature_headwaters = [land_dill_assl, land_lahn_marb]
     ic_lahn_leun = [land_lahn_leun]
     ic_lahn_marb = [land_lahn_marb_0, ..., land_lahn_marb_12]
     sm_lahn_leun = [land_lahn_leun]
     sm_lahn_marb = [land_lahn_marb_0, ..., land_lahn_marb_12]
     quh = [land_lahn_leun]
-    swe_headwaters = [land_dill_assl, land_lahn_marb]
+    snowpack_headwaters = [land_dill_assl, land_lahn_marb]
     land_dill_assl_factors_contriarea = land_dill_assl
     land_dill_assl_fluxes_qt = land_dill_assl
     land_dill_assl_fluxes_qt_series = land_dill_assl
@@ -860,14 +865,20 @@ parameter item `lag` is missing.
     <BLANKLINE>
     >>> test("query_inputitemvalues", id_="0")
     t_headwaters = [[0.0], [-0.7]]
+    airtemperature_headwaters = [[0.0], [-0.7]]
     >>> t = "HydPyServer.state.hp.elements.land_lahn_marb.model.sequences.inputs.t"
     >>> test("evaluate", data=(f"t_series = {t}.series\\n"
     ...                        f"t_simseries = {t}.simseries\\n"))
     t_series = InfoArray([-0.7, -1.5, -4.6, -8.2, -8.7])
     t_simseries = InfoArray([-0.7])
+    >>> test("evaluate", data=(f"airtemperature_series = {t}.series\\n"
+    ...                        f"airtemperature_simseries = {t}.simseries\\n"))
+    airtemperature_series = InfoArray([-0.7, -1.5, -4.6, -8.2, -8.7])
+    airtemperature_simseries = InfoArray([-0.7])
 
     >>> test("register_inputitemvalues", id_="0",
-    ...      data="t_headwaters = [[1.0], [2.0]]\\n")
+    ...      data=("t_headwaters = [[1.0], [2.0]]\\n"
+    ...            "airtemperature_headwaters = [[1.0], [2.0]]\\n"))
     <BLANKLINE>
     >>> test("activate_inputitemvalues", id_="0")
     <BLANKLINE>
@@ -875,6 +886,10 @@ parameter item `lag` is missing.
     ...                        f"t_simseries = {t}.simseries\\n"))
     t_series = InfoArray([ 2. , -1.5, -4.6, -8.2, -8.7])
     t_simseries = InfoArray([2.])
+    >>> test("evaluate", data=(f"airtemperature_series = {t}.series\\n"
+    ...                        f"airtemperature_simseries = {t}.simseries\\n"))
+    airtemperature_series = InfoArray([ 2. , -1.5, -4.6, -8.2, -8.7])
+    airtemperature_simseries = InfoArray([2.])
 
     The "official" way to gain information on modified parameters or conditions is to
     use the method |HydPyServer.GET_query_getitemvalues|:
@@ -920,7 +935,7 @@ under the id `0`.  There is nothing registered, so far.
     >>> test("update_outputitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_outputitemvalues", id_="0")
-    swe_headwaters = [[nan], [nan]]
+    snowpack_headwaters = [[nan], [nan]]
 
     We now modify the parameter, condition, and input time series values again, but
     this time in one step through calling |HydPyServer.POST_register_changeitemvalues|
@@ -940,7 +955,8 @@ under the id `0`.  There is nothing registered, so far.
     ...            "sm_lahn_marb = 50.0\\n"
     ...            "sm_lahn_leun = 100.0\\n"
     ...            "quh = 0.0\\n"
-    ...            "t_headwaters = [[-0.29884643], [-0.70539496]]\\n"))
+    ...            "t_headwaters = [[-0.29884643], [-0.70539496]]\\n"
+    ...            "airtemperature_headwaters = [[-0.29884643], [-0.70539496]]\\n"))
     <BLANKLINE>
     >>> test("activate_changeitemvalues", id_="0")
     <BLANKLINE>
@@ -954,6 +970,7 @@ under the id `0`.  There is nothing registered, so far.
     sfcf_3 = 0.0
     k4 = 5.0
     t_headwaters = [[-0.29884...], [-0.70539...]]
+    airtemperature_headwaters = [[-0.29884...], [-0.70539...]]
     ic_lahn_leun = 2.0
     ic_lahn_marb = 1.0
     sm_lahn_leun = 100.0
@@ -983,7 +1000,7 @@ under the id `0`.  There is nothing registered, so far.
     >>> test("update_outputitemvalues", id_="0")
     <BLANKLINE>
     >>> test("query_outputitemvalues", id_="0")
-    swe_headwaters = [[0.074231], [0.0]]
+    snowpack_headwaters = [[0.074231], [0.0]]
 
     So far, we have explained how the *HydPy* server memorises different exchange item
     values for different values of query parameter `id`.  Complicating matters,
@@ -1235,13 +1252,15 @@ registered under the id `0`.  There is nothing registered, so far.
     sfcf_3 = [0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.2]
     k4 = 10.0
     t_headwaters = [[0.0, -0.5, -2.4, -6.8, -7.8], [-0.7, -1.5, -4.6, -8.2, -8.7]]
+    airtemperature_headwaters = [[0.0, -0.5, -2.4, -6.8, -7.8], [-0.7, -1.5, -4.6, \
+-8.2, -8.7]]
     ic_lahn_leun = [1.18494...]
     ic_lahn_marb = [0.96404...]
     sm_lahn_leun = [123.0]
     sm_lahn_marb = [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, \
 200.0, 210.0, 220.0, 230.0]
     quh = [10.0]
-    swe_headwaters = [[nan, nan, nan, nan, nan], [nan, nan, nan, nan, nan]]
+    snowpack_headwaters = [[nan, nan, nan, nan, nan], [nan, nan, nan, nan, nan]]
     land_dill_assl_factors_contriarea = nan
     land_dill_assl_fluxes_qt = nan
     land_dill_assl_fluxes_qt_series = [nan, nan, nan, nan, nan]
@@ -1402,6 +1421,7 @@ under the id `0`.  There is nothing registered, so far.
     from hydpy.models import evap_aet_hbv96
     from hydpy.models import evap_pet_hbv96
     from hydpy.models import rconc_uh
+    from hydpy.models import snow_dd
     <BLANKLINE>
     simulationstep("1d")
     parameterstep("1d")

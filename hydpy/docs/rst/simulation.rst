@@ -149,7 +149,9 @@ elements:
 hland_96
     aetmodel: evap_aet_hbv96
         petmodel: evap_pet_hbv96
+        snowcovermodel: snow_dd
     rconcmodel: rconc_uh
+    snowmodel: snow_dd
 
 All parameter values are already set:
 
@@ -162,6 +164,8 @@ However, initial condition values are still missing:
 
 >>> model.sequences.states.uz
 uz(nan)
+>>> model.snowmodel.sequences.states.icecontent
+icecontent(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
 
 We can use the |ConditionManager| to discover the available sets of initial conditions.
 There is only one set, and this is suitable for 1 January 1996:
@@ -193,6 +197,8 @@ relevant condition files:
 >>> hp.load_conditions()
 >>> model.sequences.states.uz
 uz(7.25228)
+>>> model.snowmodel.sequences.states.icecontent
+icecontent(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
 The input time series is the only data still missing to run a simulation:
 

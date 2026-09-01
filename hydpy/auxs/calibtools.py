@@ -49,8 +49,8 @@ class TargetFunction(Protocol):
     The target functions must calculate and return a floating-point number reflecting
     the quality of the current parameterisation of the models of the current project.
     Often, as in the following example, the target function relies on objective
-    functions as |nse|, applied on the time series of the |Sim| and |Obs| sequences
-    handled by the |HydPy| object:
+    functions such as |nse|, applied to the time series of the |Sim| and |Obs|
+    sequences handled by the |HydPy| object:
 
     >>> from hydpy import HydPy, nse, TargetFunction
     >>> class Target(TargetFunction):
@@ -89,7 +89,7 @@ class SumAdaptor(Adaptor):
     Class |SumAdaptor| helps to introduce "larger than" relationships between
     calibration parameters.  A common use case is the time of concentration of
     different runoff components.  For example, the time of concentration of base flow
-    should be larger than the one of direct runoff.  Accordingly, when modelling runoff
+    should be larger than that of direct runoff.  Accordingly, when modelling runoff
     concentration with linear storages, the recession coefficient of direct runoff
     should be larger. Principally, we could ensure this during a calibration process by
     defining two |Rule| objects with fixed non-overlapping parameter ranges.  For
@@ -117,9 +117,9 @@ class SumAdaptor(Adaptor):
     ...             parameterstep="1d",
     ...             model="hland_96")
 
-    To allow for non-fixed non-overlapping ranges, we can prepare a |SumAdaptor| object,
-    knowing both our |Rule| objects, assign it the direct runoff-related |Rule| object,
-    and, for example, set its lower boundary to zero:
+    To allow for non-fixed, non-overlapping ranges, we can prepare a |SumAdaptor|
+    object, knowing both our |Rule| objects, assign it the direct runoff-related |Rule|
+    object, and, for example, set its lower boundary to zero:
 
     >>> k.adaptor = SumAdaptor(k, k4)
     >>> k.lower = 0.0
@@ -148,31 +148,32 @@ class FactorAdaptor(Adaptor):
     object and the value(s) of a given reference |Parameter| object and assigns it to
     the value(s) of the target |Parameter| object.
 
-    Class |FactorAdaptor| helps to respect dependencies between model parameters.  If
-    you, for example, aim at calibrating the permanent wilting point
-    (|lland_control.PWP|) of model |lland_dd|, you need to make sure it always agrees
-    with the maximum soil water storage (|lland_control.WMax|).  Especially, one should
-    avoid permanent wilting points larger than total porosity.  Due to the high
-    variability of soil properties within most catchments, it is no real option to
-    define a fixed upper threshold for |lland_control.PWP|.  By using class
-    |FactorAdaptor|, you can instead calibrate a multiplication factor.  Setting the
-    bounds of such a factor to 0.0 and 0.5, for example, would result in
-    |lland_control.PWP| values ranging from zero up to half of |lland_control.WMax| for
-    each respective response unit.
+    Class |FactorAdaptor| helps to respect dependencies between model parameters.  If,
+    for example, you aim to calibrate the permanent wilting point (|lland_control.PWP|)
+    of model |lland_dd|, you need to make sure it always agrees with the maximum soil
+    water storage (|lland_control.WMax|).  Especially, one should avoid permanent
+    wilting points larger than total porosity.  Because soil properties vary widely
+    within most catchments, it is not practical to define a fixed upper threshold for
+    |lland_control.PWP|.  By using class |FactorAdaptor|, you can instead calibrate a
+    multiplication factor.  Setting the bounds of such a factor to 0.0 and 0.5, for
+    example, would result in |lland_control.PWP| values ranging from zero up to half of
+    |lland_control.WMax| for each respective response unit.
 
-    To show how class |FactorAdaptor| works, we select another use-case based on the
+    To show how class |FactorAdaptor| works, we select another use case based on the
     `Lahn` example project prepared by function |prepare_full_example_2|:
 
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
 
-    |hland_96| calculates the "normal" potential snow-melt with the degree-day factor
-    |hland_control.CFMax|.  For glacial zones, it also calculates a separate potential
-    glacier-melt with the additional degree-day factor |hland_control.GMelt|.  Suppose
-    we have |hland_control.CFMax| readily available for the different hydrological
-    response units of the Lahn catchment.  We might find it useful to calibrate
-    |hland_control.GMelt| based on the spatial pattern of |hland_control.CFMax|.
-    Therefore, we first define an |Replace| rule for parameter |hland_control.GMelt|:
+    |snow_dd|, which can be used as a submodel of |hland_96|, calculates the "normal"
+    potential snowmelt with the degree-day factor |snow_control.DegreeDayFactor|.  For
+    glacial zones, |hland_96| also calculates a separate potential glacier melt with
+    the additional degree-day factor |hland_control.GMelt| on its own.  Suppose
+    we have |snow_control.DegreeDayFactor| readily available for the different
+    hydrological response units of the Lahn catchment.  We might find it useful to
+    calibrate |hland_control.GMelt| based on the spatial pattern of
+    |snow_control.DegreeDayFactor|.  Therefore, we first define an |Replace| rule for
+    parameter |hland_control.GMelt|:
 
     >>> from hydpy import Replace, FactorAdaptor
     >>> gmelt = Replace(name="gmelt",
@@ -184,70 +185,71 @@ class FactorAdaptor(Adaptor):
     ...                 model="hland_96")
 
     Second, we initialise a |FactorAdaptor| object based on target rule `gmelt` and our
-    reference parameter |hland_control.CFMax| and assign it our rule object:
+    reference parameter |snow_control.DegreeDayFactor| and assign it to our rule
+    object:
 
-    >>> gmelt.adaptor = FactorAdaptor(gmelt, "cfmax")
+    >>> gmelt.adaptor = FactorAdaptor(gmelt, "degreedayfactor")
 
     The `dill_assl` subcatchment, like the whole `Lahn` basin, does not contain any
-    glaciers.  Hence, it defines (identical) |hland_control.CFMax| values for the zones
-    of type |hland_constants.FIELD| and |hland_constants.FOREST| but must not specify
-    any value for |hland_control.GMelt|:
+    glaciers.  Hence, it defines (identical) |snow_control.DegreeDayFactor| values for
+    the zones of type |hland_constants.FIELD| and |hland_constants.FOREST| but must not
+    specify any value for |hland_control.GMelt|:
 
-    >>> control = hp.elements.land_dill_assl.model.parameters.control
-    >>> control.cfmax
-    cfmax(field=4.55853, forest=2.735118)
-    >>> control.gmelt
+    >>> control_snow = hp.elements.land_dill_assl.model.snowmodel.parameters.control
+    >>> control_snow.degreedayfactor
+    degreedayfactor(field=4.55853, forest=2.735118)
+    >>> control_hland = hp.elements.land_dill_assl.model.parameters.control
+    >>> control_hland.gmelt
     gmelt(nan)
 
     Next, we call method |Replace.apply_value| of the |Replace| object to apply the
-    |FactorAdaptor| object on all relevant |hland_control.GMelt| instances of the `Lahn`
-    catchment:
+    |FactorAdaptor| object to all relevant |hland_control.GMelt| instances of the
+    `Lahn` catchment:
 
-    >>> gmelt.adaptor(control.gmelt)
+    >>> gmelt.adaptor(control_hland.gmelt)
 
     The string representation of the |hland_control.GMelt| instance of the Dill
     catchment indicates nothing happened:
 
-    >>> control.gmelt
+    >>> control_hland.gmelt
     gmelt(nan)
 
     However, inspecting the individual values of the respective response units reveals
-    the multiplication was successful:
+    that the multiplication was successful:
 
     >>> from hydpy import print_vector
-    >>> print_vector(control.gmelt.values)
+    >>> print_vector(control_hland.gmelt.values)
     9.11706, 5.470236, 9.11706, 5.470236, 9.11706, 5.470236, 9.11706,
     5.470236, 9.11706, 5.470236, 9.11706, 5.470236
 
     Calculating values for response units that do not require these values can be
     misleading.  We can improve the situation by using the masks provided by the
     respective model; in our example, mask |hland_masks.Glacier|.  To make this
-    clearer, we set the  first six response units to |hland_control.ZoneType|
+    clearer, we set the  first six response units to |hland_control.ZoneType| to
     |hland_constants.GLACIER|:
 
-    >>> from hydpy.models.hland_96 import *
-    >>> control.zonetype(GLACIER, GLACIER, GLACIER, GLACIER, GLACIER, GLACIER,
-    ...                  FIELD, FOREST, ILAKE, FIELD, FOREST, ILAKE)
-
-    We now can assign the |SumAdaptor| object to the direct runoff-related |Replace|
-    object and, for example, set its lower boundary to zero:
+    >>> from hydpy.models.hland_96 import FIELD, FOREST, GLACIER, ILAKE
+    >>> control_hland.zonetype(GLACIER, GLACIER, GLACIER, GLACIER, GLACIER, GLACIER,
+    ...                        FIELD, FOREST, ILAKE, FIELD, FOREST, ILAKE)
+    >>> hp.elements.land_dill_assl.model.update_parameters()
 
     Now we create a new |FactorAdaptor| object, handling the same parameters but also
     the |hland_masks.Glacier| mask:
 
-    >>> gmelt.adaptor = FactorAdaptor(gmelt, "cfmax", "glacier")
+    >>> gmelt.adaptor = FactorAdaptor(gmelt, "degreedayfactor", "glacier")
 
-    To see the results of our new adaptor object, we change the values both of our
+    To see the results of our new adaptor object, we change the values of both our
     reference parameter and our rule object:
 
-    >>> control.cfmax(field=5.0, forest=3.0, glacier=6.0)
+    >>> control_snow.degreedayfactor(field=5.0, forest=3.0, glacier=6.0)
     >>> gmelt.value = 0.5
 
     The string representation of our target parameter shows that the glacier-related
-    day degree factor of all glacier zones is now half as large as the snow-related one:
+    day degree factor of all glacier zones is now half as large as the snow-related
+    one:
 
     >>> gmelt.apply_value()
-    >>> control.gmelt
+    >>> control_hland.gmelt
     gmelt(3.0)
 
     Note that all remaining values (for zone types |hland_constants.FIELD|,
@@ -255,7 +257,7 @@ class FactorAdaptor(Adaptor):
     intended behaviour allows calibrating, for example, hydrological response units of
     different types with different rule objects:
 
-    >>> print_vector(control.gmelt.values)
+    >>> print_vector(control_hland.gmelt.values)
     3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 9.11706, 5.470236, 9.11706, 5.470236,
     9.11706, 5.470236
     """
@@ -957,7 +959,7 @@ class LogReplace(Replace):
 
     The related properties |LogReplace.lower_transformed|,
     |LogReplace.upper_transformed|, and |LogReplace.value_transformed|, which serve to
-    interact with calibration algorithms, return those values logarithmised:
+    interact with calibration algorithms, return those values log-transformed:
 
     >>> from hydpy import round_
     >>> round_(rule.lower_transformed)
@@ -1038,34 +1040,33 @@ class Add(Rule[parametertools.Parameter]):
     >>> fc
     fc(field=306.0, forest=206.0)
 
-    The second example deals with the time-dependent parameter |hland_control.CFMax|
+    The second example deals with the time-dependent parameter |hland_control.CFlux|
     and shows that everything works even when the actual |Options.parameterstep|
     (2 days) differs from the current |Options.simulationstep| (1 day):
 
-    >>> rule = Add(name="cfmax",
-    ...            parameter="cfmax",
+    >>> rule = Add(name="cflux",
+    ...            parameter="cflux",
     ...            value=2.0,
     ...            model="hland_96",
     ...            parameterstep="2d")
-    >>> cfmax = hp.elements.land_lahn_marb.model.parameters.control.cfmax
-    >>> cfmax
-    cfmax(field=5.0, forest=3.0)
+    >>> cflux = hp.elements.land_lahn_marb.model.parameters.control.cflux
+    >>> cflux
+    cflux(0.0)
     >>> rule.apply_value()
-    >>> cfmax
-    cfmax(field=6.0, forest=4.0)
+    >>> cflux
+    cflux(1.0)
 
     This time, we modify the |hland_constants.FOREST| zones only:
 
-    >>> cfmax(field=5.0, forest=3.0)
-    >>> rule = Add(name="cfmax",
-    ...            parameter="cfmax",
+    >>> rule = Add(name="cflux",
+    ...            parameter="cflux",
     ...            value=2.0,
     ...            keyword="forest",
     ...            model="hland_96",
     ...            parameterstep="2d")
     >>> rule.apply_value()
-    >>> cfmax
-    cfmax(field=5.0, forest=4.0)
+    >>> cflux
+    cflux(field=1.0, forest=2.0)
 
     In the third example, we modify the scalar parameter |musk_control.NmbSegments| by
     its optional keyword argument `lag`:
@@ -1130,36 +1131,38 @@ class Multiply(Rule[parametertools.Parameter]):
     >>> fc
     fc(field=412.0, forest=206.0)
 
-    The second example deals with the time-dependent parameter |hland_control.CFMax|
-    and shows that everything works even when the actual |Options.parameterstep|
-    (2 days) differs from the current |Options.simulationstep| (1 day):
+    The second example deals with the time-dependent parameter
+    |snow_control.DegreeDayFactor| and shows that everything works even when the actual
+    |Options.parameterstep| (2 days) differs from the current |Options.simulationstep|
+    (1 day):
 
-    >>> rule = Multiply(name="cfmax",
-    ...                 parameter="cfmax",
+    >>> rule = Multiply(name="degreedayfactor",
+    ...                 parameter="degreedayfactor",
     ...                 value=2.0,
-    ...                 model="hland_96",
+    ...                 model="snow_dd",
     ...                 parameterstep="2d")
-    >>> cfmax = hp.elements.land_lahn_marb.model.parameters.control.cfmax
-    >>> cfmax
-    cfmax(field=5.0, forest=3.0)
+    >>> degreedayfactor = \
+hp.elements.land_lahn_marb.model.snowmodel.parameters.control.degreedayfactor
+    >>> degreedayfactor
+    degreedayfactor(field=5.0, forest=3.0)
     >>> rule.apply_value()
-    >>> cfmax
-    cfmax(field=10.0, forest=6.0)
+    >>> degreedayfactor
+    degreedayfactor(field=10.0, forest=6.0)
 
     This time, we modify the |hland_constants.FOREST| zones only:
 
-    >>> cfmax(field=5.0, forest=3.0)
-    >>> rule = Multiply(name="cfmax",
-    ...                 parameter="cfmax",
+    >>> degreedayfactor(field=5.0, forest=3.0)
+    >>> rule = Multiply(name="degreedayfactor",
+    ...                 parameter="degreedayfactor",
     ...                 value=2.0,
     ...                 keyword="forest",
-    ...                 model="hland_96",
+    ...                 model="snow_dd",
     ...                 parameterstep="2d")
-    >>> cfmax
-    cfmax(field=5.0, forest=3.0)
+    >>> degreedayfactor
+    degreedayfactor(field=5.0, forest=3.0)
     >>> rule.apply_value()
-    >>> cfmax
-    cfmax(field=5.0, forest=6.0)
+    >>> degreedayfactor
+    degreedayfactor(field=5.0, forest=6.0)
 
     In the third example, we modify the scalar parameter |musk_control.NmbSegments| by
     its optional keyword argument `lag`:
@@ -1189,7 +1192,7 @@ hp.elements.stream_lahn_marb_lahn_leun.model.parameters.control.nmbsegments
 class CalibrationInterface(Generic[TypeRule1]):
     """Interface for coupling HydPy to optimisation libraries like `NLopt`_.
 
-    Essentially, class |CalibrationInterface| is supposed for the structured handling
+    Essentially, class |CalibrationInterface| is intended for the structured handling
     of multiple objects of the different |Rule| subclasses.  Hence, please read the
     documentation on class |Rule| before continuing, as we base the following
     explanations on it.
@@ -1443,7 +1446,7 @@ attribute nor a rule object named `FC`...
 
     Note the `perform_simulation` argument of method
     |CalibrationInterface.apply_values|, which allows changing the model parameter
-    values and updating the |HydPy| object only without triggering a simulation run
+    values and updating the |HydPy| object only, without triggering a simulation run
     (and calculating and returning a new likelihood value):
 
     >>> ci.apply_values(perform_simulation=False)
@@ -1486,8 +1489,8 @@ attribute nor a rule object named `FC`...
     ...                        objectivefunction="NSE",
     ...                        documentation="Just a doctest example.")
 
-    To continue "manually", we now can call method
-    |CalibrationInterface.update_logfile| to write the lastly calculated efficiency and
+    To continue "manually", we can now call method
+    |CalibrationInterface.update_logfile| to write the last calculated efficiency and
     the corresponding calibration parameter values to the log file:
 
     >>> with TestIO():   # doctest: +NORMALIZE_WHITESPACE
@@ -1503,7 +1506,7 @@ attribute nor a rule object named `FC`...
 
     To prevent (automatic) calibration runs from crashing due to IO problems, method
     |CalibrationInterface.update_logfile| raises warnings instead of errors in such
-    cases and logs the inwritten data internally:
+    cases and logs the unwritten data internally:
 
     >>> import os
     >>> from hydpy.core.testtools import warn_later
@@ -1765,8 +1768,8 @@ does not agree with the one documentated in log file `example_calibration.log` (
     ) -> TypeRule1 | TypeRule2:
         """Return a |Rule| object (of a specific type).
 
-        Method |CalibrationInterface.get_rule| is a more typesafe alternative to simple
-        keyword access. Besides the name of the required |Rule| object, pass its
+        Method |CalibrationInterface.get_rule| is a more type-safe alternative to
+        simple keyword access. Besides the name of the required |Rule| object, pass its
         subclass to convince your IDE (and yourself) that the returned rule follows
         this more specific type:
 
@@ -2140,7 +2143,7 @@ object named `fc`.
     def apply_values(self, perform_simulation: Literal[False]) -> None: ...
 
     def apply_values(self, perform_simulation: bool = True) -> float | None:
-        """Apply all current calibration parameter values on all relevant parameters.
+        """Apply all current calibration parameter values to all relevant parameters.
 
         Set argument `perform_simulation` to |False| to only change the actual
         parameter values and update the |HydPy| object without performing a simulation
@@ -2286,7 +2289,7 @@ parameterstep="1d"))
 
         By default, method |CalibrationInterface.print_table| prints the values of all
         handled |Rule| objects.  It varies the target control parameters on the first
-        axis and the target selections on the second axis.  Row two and three contain
+        axis and the target selections on the second axis.  Rows two and three contain
         the (identical) lower and upper boundary values corresponding to the respective
         control parameters:
 
@@ -2557,7 +2560,7 @@ class ReplaceIUH(RuleIUH):
         discharge thresholds.  Hence, the usage of class |ReplaceIUH| might change in
         the future.
 
-    So far, there is no example project containing |arma_rimorido| models instances.
+    So far, there is no example project containing |arma_rimorido| model instances.
     Therefore, we generate a simple one consisting of two |Element| objects only:
 
     >>> from hydpy import Element, prepare_model, Selection
@@ -2624,7 +2627,7 @@ complete set of relevant elements (element1 and element2).
     coefficients during the execution of its method |ReplaceIUH.apply_value|, which can
     be a waste of computation time if we want to calibrate multiple |IUH| coefficients.
     To save computation time in such cases, set option |RuleIUH.update_parameters|
-    to |False| for all except the lastly executed |ReplaceIUH| objects:
+    to |False| for all except the last executed |ReplaceIUH| objects:
 
     >>> u.update_parameters = False
 
@@ -2645,7 +2648,7 @@ complete set of relevant elements (element1 and element2).
     responses(th_0_0=((1.298097, -0.536702, 0.072903, -0.001207, -0.00004),
                       (0.699212, -0.663835, 0.093935, 0.046177, -0.00854)))
 
-    On the other side, calling method |ReplaceIUH.apply_value| of rule `D` does
+    On the other hand, calling method |ReplaceIUH.apply_value| of rule `D` does
     activate the freshly set value of rule `D` and the previously set value of rule
     `U`, as well:
 
@@ -2688,7 +2691,7 @@ complete set of relevant elements (element1 and element2).
 
 class MultiplyIUH(RuleIUH):
     """A |RuleIUH| class for replacing |IUH| parameter values with the current
-    calibration parameter values, applied on the original |IUH| values as factors.
+    calibration parameter values, applied to the original |IUH| values as factors.
 
     Please read the documentation on class |ReplaceIUH| first, from which we take the
     following test configuration:
@@ -2906,7 +2909,7 @@ class CalibSpecs:
     The primary purpose of class |CalibSpecs| is to handle multiple |CalibSpec| objects
     and to make all their attributes accessible in the same order. See property
     |CalibSpecs.names| as one example.  Note that all such properties are sorted in the
-    order or the attachment of the different |CalibSpec| objects:
+    order of attachment of the different |CalibSpec| objects:
 
     >>> from hydpy import CalibSpec, CalibSpecs
     >>> calibspecs = CalibSpecs(
@@ -3261,8 +3264,7 @@ def make_rules(
     ...     hp=hp,
     ...     targetfunction=lambda: sum(nse(node=node) for node in hp.nodes))
 
-    Here, we show only the supplemental features of function |make_rules| in some
-    brevity.
+    Here, we show only the supplemental features of function |make_rules| in brief.
 
     Function |make_rules| checks that all given sequences have the same length:
 
@@ -3307,7 +3309,7 @@ parameterstep="1d"))
         selections=("complete",),
     )
 
-    You are free also to use the individual arguments (e.g. `names`) to override the
+    You are also free to use the individual arguments (e.g. `names`) to override the
     related specifications defined by the |CalibSpecs| object:
 
     >>> make_rules(rule=Replace,

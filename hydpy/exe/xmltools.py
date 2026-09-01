@@ -53,10 +53,10 @@ conditions and the written final conditions of sequence |hland_states.SM| for th
 >>> with TestIO():
 ...     filepath = "HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00/land_dill_assl.py"
 ...     with open(filepath) as file_:
-...         print("".join(file_.readlines()[8:10]))
+...         print("".join(file_.readlines()[6:8]))
 ...     filepath = "HydPy-H-Lahn/conditions/init_1996_01_06/land_dill_assl.py"
 ...     with open(filepath) as file_:
-...         print("".join(file_.readlines()[10:12]))
+...         print("".join(file_.readlines()[8:10]))
 sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
@@ -1135,7 +1135,7 @@ class XMLConditions(XMLBase):
         ...     interface.conditions_io.save_conditions()
         ...     dirpath = "HydPy-H-Lahn/conditions/init_1996_01_06"
         ...     with open(os.path.join(dirpath, "land_dill_assl.py")) as file_:
-        ...         print(file_.readlines()[10].strip())
+        ...         print(file_.readlines()[9].strip())
         ...     os.path.exists(os.path.join(dirpath, "land_lahn_leun.py"))
         lz(999.0)
         False
@@ -1917,6 +1917,7 @@ class XMLExchange(XMLBase):
         >>> for item in interface.exchange.inputitems:
         ...     print(item.name)
         t_headwaters
+        airtemperature_headwaters
         """
         return self._get_items_of_certain_item_types(
             itemgroups=("inputs",), itemtype=itemtools.SetItem
@@ -1965,7 +1966,7 @@ class XMLExchange(XMLBase):
         >>> interface.update_selections()
         >>> for item in interface.exchange.outputitems:
         ...     print(item.name)
-        swe_headwaters
+        snowpack_headwaters
         """
         return self._get_items_of_certain_item_types(
             itemgroups=("factors", "fluxes"), itemtype=itemtools.SetItem

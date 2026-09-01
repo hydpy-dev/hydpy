@@ -14,7 +14,7 @@ has the following file structure:
 
 All project files are in the project's sub-subdirectories.  Except for conditions,
 these sub-subdirectories are usually named `default`.  You can add directories with
-different names to, for example, hold the parameter values of multiple calibrations in
+different names, for example, to hold the parameter values of multiple calibrations in
 one project.
 
 HydPy offers functionalities for reading and writing project files.  Besides time
@@ -73,7 +73,7 @@ automatically creatable by property |Selections.complete| of class |Selections|.
 
 The described "name as identifier" mechanism allows us to define the same device in
 multiple network files of the same project.  So, one can create an arbitrary number of
-selections to structure the same network after different criteria.  The only
+selections to structure the same network according to different criteria.  The only
 (self-evident) requisite is the consistency of all individual definitions.  You cannot,
 for example, add an inlet node to an element if it is already the same element's outlet
 node:
@@ -101,10 +101,10 @@ _____________
 
 The :ref:`HydPy-H-Lahn` project relies on two main model types: the :ref:`land model
 <land_models>` |hland_96| and the :ref:`stream model <stream_models>` |musk_classic|.
-The control file "stream_dill_assl_lahn2.py", for example, selects the latter for routing
-the outflow of the subbasin Dill to a location in the river Lahn.  The control file is
+The control file "stream_dill_assl_lahn2.py", for example, selects the latter to route
+the outflow of the Dill subbasin to a location in the river Lahn.  The control file is
 short because |musk_classic| is relatively simple.  The first (Python-code) line
-selects the model type by a so-called "wildcard import", making all relevant
+selects the model type using a so-called "wildcard import", making all relevant
 information directly available:
 
 >>> from hydpy.models.musk_classic import *
@@ -113,12 +113,12 @@ The following line defines a simulation time step size of one hour:
 
 >>> simulationstep("1h")
 
-Note that the |simulationstep| line is optional.  It allows for adjusting parameter
-values that depend on the simulation time step size, so one can set up a model for
-testing purposes without embedding it in a complete project.  However, when executing
-the file within the context of a project, the project's simulation step counts (HydPy
-then ignores the control file's specification) so that the same control file works for
-different simulation time step sizes.
+Note that the |simulationstep| line is optional.  It lets you parameter values that
+depend on the simulation time step size, so one can set up a model for testing purposes
+without embedding it in a complete project.  However, when executing the file within
+the context of a project, the project's simulation step counts (HydPy then ignores the
+control file's specification) so that the same control file works for different
+simulation time step sizes.
 
 The |parameterstep| line is similar but mandatory.  It defines the time unit of the
 subsequently specified values of time-dependent parameters.  The given example
@@ -130,7 +130,7 @@ selects a parameter time step size of one day:
 
     A note for programmers: Function |parameterstep| prepares a suitable model instance
     and makes it and its main components directly available in the local namespace.
-    This trick allows for the simple further model preparation steps.
+    This trick allows for simple further model preparation steps.
 
 As in nearly all cases, the discussed control file only sets the required values of
 control parameters and does not modify the predefined values of other parameter groups.
@@ -158,13 +158,14 @@ first clear the local namespace (one could also just start a fresh Python proces
 >>> reverse_model_wildcard_import()
 
 |hland_96| requires submodels and the control file must select them.  It does so by
-importing the main model (|hland_96|) by a wildcard import but all submodels
-(|evap_aet_hbv96|, |evap_pet_hbv96|, and |rconc_uh|) by a module import:
+importing the main model (|hland_96|) by a wildcard import, but all submodels
+(|evap_aet_hbv96|, |evap_pet_hbv96|, |snow_dd|, and |rconc_uh|) by a module import:
 
 >>> from hydpy.models.hland_96 import *
 >>> from hydpy.models import evap_aet_hbv96
 >>> from hydpy.models import evap_pet_hbv96
 >>> from hydpy.models import rconc_uh
+>>> from hydpy.models import snow_dd
 
 The time step-related lines work as described above:
 
@@ -193,10 +194,10 @@ Strictly speaking, |hland_control.NmbZones| is specific to the
 |hland.Model.DOCNAME.family| model family.  Still, there are many models which rely on
 hydrological response units, stream segments, or different forms of (spatial)
 subdivisions and use the same logic of a control parameter defining the number of
-subdivisions and many parameters or sequences shaped as vectors or matrixes to handle
+subdivisions and many parameters or sequences shaped as vectors or matrices to handle
 different values for individual (spatial) units.
 
-Another example of a |hland.Model.DOCNAME.family|-speciality, which also follows a
+Another example of a |hland.Model.DOCNAME.family| speciality, which also follows a
 general HydPy design principle, is the definition of "spatial types" (mostly land use
 types) via constants.  |hland.Model.DOCNAME.family| provides such constants for
 defining the types of the individual zones:
@@ -209,7 +210,7 @@ When preparing zone-specific parameters, you can decide between defining individ
 land type-specific, and subbasin-wide values:
 
 >>> zonez(2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0, 7.0, 7.0)
->>> cfmax(field=4.55853, forest=2.735118)
+>>> cflux(field=1.0, forest=2.0)
 >>> fc(278.0)
 
 Often, one does not wish to define individual values for each control file but more
@@ -230,12 +231,12 @@ directory):
 >>> pcorr
 pcorr(1.0)
 
-All submodels are generally added at a control file's end because they might expect
-some main model parameters to be already prepared.  Each main model provides a suitable
-method for adding specific submodel types.  Such methods should be applied after a
-`with statement`.  Within the subsequent `with block`, one can directly set the
-submodel's parameters as explained above.  The discussed control file uses the
-|hland_model.Main_RConcModel_V1.add_rconcmodel_v1| method to add a |rconc_uh|
+All submodels are generally added at the end of a control file because they might
+expect some main model parameters to be already prepared.  Each main model provides a
+suitable method for adding specific submodel types.  Such methods should be applied
+after a `with statement`.  Within the subsequent `with block`, one can directly set the
+submodel's parameters as explained above.  Among others, the discussed control file
+uses the |hland_model.Main_RConcModel_V1.add_rconcmodel_v1| method to add a |rconc_uh|
 instance (and configures its Unit Hydrograph ordinates in a triangle shape):
 
 >>> with model.add_rconcmodel_v1(rconc_uh):
@@ -258,23 +259,22 @@ Adding a sub-submodel to a submodel works via nested `with blocks`:
 ...         precipitationfactor(0.02)
 ...         evapotranspirationfactor(1.0)
 
-The last example covers two new cases.  First, |numpy.nan| serves to mark "missing" or
-"not required" values.  Parameter |evap_control.TemperatureThresholdIce| requires no
-values because it only applies to |hland_constants.ILAKE| zones, while the Dill
-subbasin only consists of |hland_constants.FIELD| and |hland_constants.FOREST| zones.
-Second, main models often transmit some parameter values to their submodels, which
-helps to avoid duplicate and potentially inconsistent definitions.  In the discussed
-control file, this applies, for example, to the parameter pairs
-|hland_control.NmbZones| and |evap_control.NmbHRU| and |hland_control.FC| and
-|evap_control.MaxSoilWater|:
+The last example covers two new cases.  First, |numpy.nan| marks "missing" or "not
+required" values.  Parameter |evap_control.TemperatureThresholdIce| requires no values
+because it only applies to |hland_constants.ILAKE| zones, while the Dill subbasin only
+consists of |hland_constants.FIELD| and |hland_constants.FOREST| zones.  Second, main
+models often transmit some parameter values to their submodels, which helps to avoid
+duplicate and potentially inconsistent definitions.  In the discussed control file,
+this applies, for example, to the parameter pairs |hland_control.NmbZones| and
+|evap_control.NmbHRU| and |hland_control.FC| and |evap_control.MaxSoilWater|:
 
 >>> assert nmbzones == model.aetmodel.parameters.control.nmbhru
 >>> assert fc == model.aetmodel.parameters.control.maxsoilwater
 
-Before writing a control file, one should read the documentation of the relevant
-application models in the :ref:`reference manual <reference_manual>`, which provides
-complete lists of the control parameters that need configuration, detailed application
-examples, and much more.
+Before writing a control file, read the documentation for the relevant application
+models in the :ref:`reference manual <reference_manual>`, which provides complete lists
+of the control parameters that need configuration, detailed application examples, and
+more.
 
 .. _condition_files:
 
@@ -296,13 +296,13 @@ relevant main model:
 
 >>> from hydpy.models.hland_96 import *
 
-Opposed to the control file, importing the relevant submodels is unnecessary, as they
-must already be available before reading the condition file.
+Unlike the control file, importing the relevant submodels is unnecessary, as they must
+already be available before reading the condition file.
 
-The following call of function |controlcheck| is optional when working with a complete
+The following call to function |controlcheck| is optional when working with a complete
 HydPy project but required when executing a condition file independently for testing
 (for the following doctests to work, we must not only remove the old wildcard import
-artifacts but also fake to be "inside" a condition file by taking its name on):
+artifacts but also fake being "inside" a condition file by taking its name on):
 
 >>> reverse_model_wildcard_import()
 >>> temp = __file__
@@ -473,16 +473,16 @@ respective file basename (in the given examples, `hland_96_input_p` and `obs_q`)
 
 The second NetCDF variable used for describing the data layout is named `time`, whose
 shape is determined by a NetCDF dimension also named `time`.  This variable contains
-floating point numbers representing, for example, the elapsed days between a reference
+floating-point numbers representing, for example, the elapsed days between a reference
 date and the actual date (see method |Date.to_cfunits| of class |Date| for some
 examples).
 
-As far as we know, the NetCDF-CF convention does not clarify if these time points
+As far as we know, the NetCDF-CF convention does not clarify whether these time points
 define the start or the end time points of data measurement intervals (left timestep vs
 right timestamp).  As a surrogate, HydPy inserts an attribute named `timereference`
 when writing a NetCDF file, with the possible values `left interval boundary` and
 `right interval boundary` for "interval data" and `current time` for "time point data".
-We advise also adding this attribute when using other tools for writing NetCDF files to
+We also advise adding this attribute when using other tools for writing NetCDF files to
 be read by HydPy.
 
 The time series are aligned in a (2-dimensional) matrix, with the first axis reflecting

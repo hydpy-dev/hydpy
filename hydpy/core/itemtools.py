@@ -64,12 +64,12 @@ keyword="lag")
     """
 
     master: str
-    """Either "node" or the name of the relevant base or application model (e. g. 
+    """Either "node" or the name of the relevant base or application model (e.g., 
     "hland_96")."""
     variable: str
     """Name of the target or base variable."""
     keyword: str | None
-    """(Optional) name of the target keyword argument of the target or base variable."""
+    """Name of the target keyword argument of the target or base variable."""
     series: bool
     """Flag indicating whether to tackle the target variable's actual values (|False|)
     or complete time series (|True|)."""
@@ -523,7 +523,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         The properties |ChangeItem.shape| and |ChangeItem.subnames| of a |ChangeItem|
         object depend on the intended aggregation |ChangeItem.level|.  For the "global"
         level, we need only one scalar value for all target variables.  Property
-        |ChangeItem.shape| indicates this by returning an empty tuple and property
+        |ChangeItem.shape| indicates this by returning an empty tuple, and property
         |ChangeItem.subnames| by returning |None|:
 
         >>> item.shape
@@ -568,12 +568,12 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         ('land_dill_assl_0', 'land_dill_assl_1', ..., 'land_lahn_leun_9')
 
         For 2-dimensional sequences, |ChangeItem.shape| returns the total number of
-        matrix entries, and each sub-name indicates the row and the column of a specific
-        matrix entry:
+        matrix entries, and each sub-name indicates the row and the column of a
+        specific matrix entry:
 
         >>> dill_assl = hp.elements.land_dill_assl.model
-        >>> dill_assl.parameters.control.sclass(2)
-        >>> item = SetItem(name="sp", master="hland", target="states.sp",
+        >>> dill_assl.snowmodel.parameters.control.numberdivisions(2)
+        >>> item = SetItem(name="sp", master="snow", target="states.icecontent",
         ...                level="subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.shape
@@ -730,7 +730,7 @@ given value `wrong` cannot be converted to type `float`.
         land_lahn_leun alpha(2.0)
         land_lahn_marb alpha(2.0)
 
-        Similar holds for "Global" |SetItem| objects that modify the time series of
+        The same holds for "Global" |SetItem| objects that modify the time series of
         their target variables, which we demonstrate for the input time series
         |hland_inputs.T|:
 
@@ -798,21 +798,21 @@ keyword="lag", level="global")
         fc(field=200.0, forest=300.0)
 
         The same holds for 2-dimensional target variables like the sequence
-        |hland_states.SP| (we increase the number of snow classes and thus the length
-        of the first axis for demonstration purposes):
+        |snow_states.IceContent| (we increase the number of snow classes and thus the
+        length of the first axis for demonstration purposes):
 
-        >>> land_dill_assl.model.parameters.control.sclass(2)
-        >>> item = SetItem(name="sp", master="hland_96", target="states.sp",
+        >>> land_dill_assl.model.snowmodel.parameters.control.numberdivisions(2)
+        >>> item = SetItem(name="sp", master="snow_dd", target="states.icecontent",
         ...                level="global")
         >>> item.collect_variables(pub.selections)
         >>> item.value = 5.0
-        >>> land_dill_assl.model.sequences.states.sp
-        sp([[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan],
-            [nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan]])
+        >>> land_dill_assl.model.snowmodel.sequences.states.icecontent
+        icecontent([[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan],
+                    [nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan]])
         >>> item.update_variables()
-        >>> land_dill_assl.model.sequences.states.sp
-        sp([[5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
-            [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0]])
+        >>> land_dill_assl.model.snowmodel.sequences.states.icecontent
+        icecontent([[5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
+                    [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0]])
 
         When working on the "selection" level, a |SetItem| object assigns one specific
         value to the target variables of each relevant selection, regardless of target
@@ -902,7 +902,7 @@ keyword="lag", level="global")
         land_lahn_leun beta(field=2.5118, forest=4.0)
         land_lahn_marb beta(field=1.45001, forest=2.0)
 
-        For the most detailed "subunit" level and 1-dimensional variables as
+        For the most detailed "subunit" level and 1-dimensional variables such as
         |hland_states.IC|, the |SetItem| object handles one value for each of the 49
         hydrological response units of the complete `Lahn` river basin:
 
@@ -919,23 +919,23 @@ keyword="lag", level="global")
         land_lahn_marb ic(0.12, 0.13, ... 0.23, 0.24)
 
         We increased the number of snow classes per zone to two for element
-        `land_dill_assl`.  Hence, its snow-related |hland_states.SP| object handles 22
-        instead of 11 values, and we need to assign 61 instead of 49 values to the
-        |SetItem| object.  Each item value relates to a specific matrix entry of a
-        specific target variable:
+        `land_dill_assl`.  Hence, its snow-related |snow_states.IceContent| object
+        handles 22 instead of 11 values, and we need to assign 61 instead of 49 values
+        to the |SetItem| object.  Each item value relates to a specific matrix entry of
+        a specific target variable:
 
-        >>> item = SetItem(name="sp", master="hland_96", target="states.sp",
-        ...                level="subunit")
+        >>> item = SetItem(name="icecontent", master="snow_dd",
+        ...                target="states.icecontent", level="subunit")
         >>> item.collect_variables(pub.selections)
         >>> item.value = [value/100 for value in range(61)]
         >>> item.update_variables()
         >>> for element in hp.elements.catchment:  # doctest: +ELLIPSIS
-        ...     print(element, element.model.sequences.states.sp)
-        land_dill_assl sp([[0.0, ...0.11],
-            [0.12, ...0.23]])
-        land_lahn_kalk sp(0.37, ...0.5)
-        land_lahn_leun sp(0.51, ...0.6)
-        land_lahn_marb sp(0.24, ...0.36)
+        ...     print(element, element.model.snowmodel.sequences.states.icecontent)
+        land_dill_assl icecontent([[0.0, ...0.11],
+                    [0.12, ...0.23]])
+        land_lahn_kalk icecontent(0.37, ...0.5)
+        land_lahn_leun icecontent(0.51, ...0.6)
+        land_lahn_marb icecontent(0.24, ...0.36)
         """
         values = self.value
         if self.level == "global":
@@ -1000,33 +1000,33 @@ class SetItem(ChangeItem):
 
         We define three |SetItem| objects, which handle states of different
         dimensionality.  `lz` addresses the 0-dimensional sequence |hland_states.LZ|,
-        `sm` the 1-dimensional sequence |hland_states.SM|, and `sp` the 2-dimensional
-        sequence |hland_states.SP|:
+        `sm` the 1-dimensional sequence |hland_states.SM|, and `icecontent` the
+        2-dimensional sequence |snow_states.IceContent|:
 
         >>> from hydpy import print_vector, round_, SetItem
         >>> lz = SetItem(name="lz", master="hland_96", target="states.lz",
         ...              level="to be defined")
         >>> sm = SetItem(name="sm", master="hland_96", target="states.sm",
         ...              level="to be defined")
-        >>> sp = SetItem(name="sp", master="hland_96", target="states.sp",
-        ...              level="to be defined")
+        >>> ice = SetItem(name="ice", master="snow_dd", target="states.icecontent",
+        ...               level="to be defined")
 
         The additional |SetItem| objects `uz`, `ic`, and `wc` address the time series
         of the 0-dimensional sequence |hland_states.UZ|, the 1-dimensional sequence
-        |hland_states.Ic|, and the 2-dimensional sequence |hland_states.WC|:
+        |hland_states.Ic|, and the 2-dimensional sequence |snow_states.WaterContent|:
 
         >>> uz = SetItem(name="uz", master="hland_96", target="states.uz.series",
         ...              level="to be defined")
         >>> ic = SetItem(name="ic", master="hland_96", target="states.ic.series",
         ...              level="to be defined")
-        >>> wc = SetItem(name="wc", master="hland_96", target="states.wc.series",
-        ...              level="to be defined")
+        >>> water = SetItem(name="water", master="snow_dd",
+        ...                 target="states.watercontent.series", level="to be defined")
 
         The following test function updates the aggregation level and calls
         |SetItem.extract_values| for all six items:
 
         >>> def test(level):
-        ...     for item in (lz, sm, sp, uz, ic, wc):
+        ...     for item in (lz, sm, ice, uz, ic, water):
         ...         item.level = level
         ...         item.collect_variables(pub.selections)
         ...         item.extract_values()
@@ -1036,24 +1036,25 @@ class SetItem(ChangeItem):
 
         >>> dill_assl = hp.elements.land_dill_assl.model
 
-        For rigorous testing, we increase the number of snow classes of this model
-        instance and, thus, the length of the first axis of its |hland_states.SP| and
-        its |hland_states.WC| object:
+        For rigorous testing, we increase the number of snow classes and, thus, the
+        length of the first axis of its |snow_states.IceContent| and its
+        |snow_states.WaterContent| object:
 
         >>> import numpy
-        >>> dill_assl.parameters.control.sclass(2)
+        >>> dill_assl.snowmodel.parameters.control.numberdivisions(2)
 
         After this change, we must define new test data for the current state of the
-        |hland_states.SP| object of element `land_dill_assl`:
+        |snow_states.IceContent| object of element `land_dill_assl`:
 
-        >>> dill_assl.sequences.states.sp = numpy.arange(2*12).reshape(2, 12)
+        >>> states_snow = dill_assl.snowmodel.sequences.states
+        >>> states_snow.icecontent = numpy.arange(2*12).reshape(2, 12)
 
         Also, we must prepare test data for all considered time series:
 
-        >>> dill_assl.sequences.states.uz.series = numpy.arange(4).reshape(4)
-        >>> dill_assl.sequences.states.ic.series = numpy.arange(4*12).reshape(4, 12)
-        >>> dill_assl.sequences.states.wc.series = numpy.arange(4*2*12).reshape(4,
-        ...                                                                     2, 12)
+        >>> states_hland = dill_assl.sequences.states
+        >>> states_hland.uz.series = numpy.arange(4).reshape(4)
+        >>> states_hland.ic.series = numpy.arange(4*12).reshape(4, 12)
+        >>> states_snow.watercontent.series = numpy.arange(4*2*12).reshape(4, 2, 12)
 
         For all aggregation levels except `subunit`, |SetItem.extract_values| relies on
         the (spatial) aggregation of data, which is not possible beyond the `device`
@@ -1081,15 +1082,15 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         >>> test("device")
         >>> print_vector(lz.value)
         8.70695, 8.18711, 7.52648, 10.14007
-        >>> dill_assl.sequences.states.lz
+        >>> states_hland.lz
         lz(8.70695)
         >>> print_vector(sm.value)
         211.47288, 115.77717, 114.733823, 147.057048
-        >>> round_(dill_assl.sequences.states.sm.average_values())
+        >>> round_(states_hland.sm.average_values())
         211.47288
-        >>> print_vector(sp.value)
+        >>> print_vector(ice.value)
         11.103987, 0.0, 0.0, 0.0
-        >>> round_(dill_assl.sequences.states.sp.average_values())
+        >>> round_(states_snow.icecontent.average_values())
         11.103987
         >>> for series in uz.value:
         ...     print_vector(series)
@@ -1097,7 +1098,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_vector(dill_assl.sequences.states.uz.series)
+        >>> print_vector(states_hland.uz.series)
         0.0, 1.0, 2.0, 3.0
         >>> for series in ic.value:
         ...     print_vector(series)
@@ -1105,15 +1106,15 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_vector(dill_assl.sequences.states.ic.average_series())
+        >>> print_vector(states_hland.ic.average_series())
         5.103987, 17.103987, 29.103987, 41.103987
-        >>> for series in wc.value:
+        >>> for series in water.value:
         ...     print_vector(series)
         11.103987, 35.103987, 59.103987, 83.103987
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_vector(dill_assl.sequences.states.wc.average_series())
+        >>> print_vector(states_snow.watercontent.average_series())
         11.103987, 35.103987, 59.103987, 83.103987
 
         For the `subunit` level, no aggregation is necessary:
@@ -1121,7 +1122,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         >>> test("subunit")
         >>> print_vector(lz.value)
         8.70695, 8.18711, 7.52648, 10.14007
-        >>> dill_assl.sequences.states.lz
+        >>> states_hland.lz
         lz(8.70695)
         >>> print_vector(sm.value)  # doctest: +ELLIPSIS
         185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
@@ -1133,14 +1134,14 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         141.24428, 147.75786, 153.54053, 138.31396, 135.71124, 147.54968,
         145.47142, 154.96405, 153.32805, 160.91917, 159.62434, 165.65575,
         164.63255
-        >>> dill_assl.sequences.states.sm
+        >>> states_hland.sm
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
         >>> hp.elements.land_lahn_kalk.model.sequences.states.sm
         sm(101.31248, 97.225, 111.3861, 107.64977, 120.59559, 117.26499,
            129.01711, 126.0465, 136.66663, 134.01408, 143.59799, 141.24428,
            147.75786, 153.54053)
-        >>> print_vector(sp.value)
+        >>> print_vector(ice.value)
         0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
         13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 0.0,
         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -1152,7 +1153,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         nan, nan, nan, nan
         nan, nan, nan, nan
         nan, nan, nan, nan
-        >>> print_vector(dill_assl.sequences.states.uz.series)
+        >>> print_vector(states_hland.uz.series)
         0.0, 1.0, 2.0, 3.0
         >>> for series in ic.value:  # doctest: +ELLIPSIS
         ...     print_vector(series)
@@ -1164,13 +1165,13 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         nan, nan, nan, nan
         ...
         >>> for idx in range(12):  # doctest: +ELLIPSIS
-        ...     print_vector(dill_assl.sequences.states.ic.series[:, idx])
+        ...     print_vector(states_hland.ic.series[:, idx])
         0.0, 12.0, 24.0, 36.0
         1.0, 13.0, 25.0, 37.0
         ...
         10.0, 22.0, 34.0, 46.0
         11.0, 23.0, 35.0, 47.0
-        >>> for series in wc.value:  # doctest: +ELLIPSIS
+        >>> for series in water.value:  # doctest: +ELLIPSIS
         ...     print_vector(series)
         0.0, 24.0, 48.0, 72.0
         12.0, 36.0, 60.0, 84.0
@@ -1185,7 +1186,7 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         ...
         >>> for jdx in range(12):  # doctest: +ELLIPSIS
         ...     for idx in range(2):
-        ...         print_vector(dill_assl.sequences.states.wc.series[:, idx, jdx])
+        ...         print_vector(states_snow.watercontent.series[:, idx, jdx])
         0.0, 24.0, 48.0, 72.0
         12.0, 36.0, 60.0, 84.0
         1.0, 25.0, 49.0, 73.0
@@ -1196,27 +1197,26 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         11.0, 35.0, 59.0, 83.0
         23.0, 47.0, 71.0, 95.0
 
-        Due to the current limitation regarding the `global` and the `selection` level
+        Due to the current limitation regarding the `global` and the `selection` level,
         and the circumstance that parameter-specific keyword arguments hardly ever
         resolve the `subunit` level, extracting the values of keyword arguments works
         only for the `device` level:
 
-        >>> cfmax = SetItem(name="lag", master="hland_96", target="control.cfmax",
+        >>> dill_assl.parameters.control.cflux(field=1.0, forest=2.0)
+        >>> cflux = SetItem(name="cflux", master="hland_96", target="control.cflux",
         ...                 keyword="forest", level="device")
-        >>> cfmax.collect_variables(pub.selections)
-        >>> cfmax.extract_values()
-        >>> dill_assl.parameters.control.cfmax
-        cfmax(field=4.55853, forest=2.735118)
-        >>> print_vector(cfmax.value)
-        2.735118, 3.0, 2.1, 2.1
+        >>> cflux.collect_variables(pub.selections)
+        >>> cflux.extract_values()
+        >>> print_vector(cflux.value)
+        2.0, 0.0, 0.0, 0.0
 
         Method |SetItem.extract_values| cannot extract its complete data if the time
         series of any relevant variable is missing.  We disable the |IOSequence.series|
         attribute of the considered sequences to show how things work then:
 
-        >>> dill_assl.sequences.states.uz.prepare_series(False)
-        >>> dill_assl.sequences.states.ic.prepare_series(False)
-        >>> dill_assl.sequences.states.wc.prepare_series(False)
+        >>> states_hland.uz.prepare_series(False)
+        >>> states_hland.ic.prepare_series(False)
+        >>> states_snow.watercontent.prepare_series(False)
 
         Method |SetItem.extract_values| emits a warning when encountering the first
         unprepared |IOSequence.series| attribute and, if existing, deletes already
@@ -1236,10 +1236,10 @@ internal time series of sequence `ic` of element `land_dill_assl`, the following
 occurred: Sequence `ic` of element `land_dill_assl` is not requested to make any time \
 series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`wc`, the following error occured: While trying to calculate the mean value of the \
-internal time series of sequence `wc` of element `land_dill_assl`, the following error \
-occurred: Sequence `wc` of element `land_dill_assl` is not requested to make any time \
-series data available.
+`water`, the following error occured: While trying to calculate the mean value of the \
+internal time series of sequence `watercontent` of element `land_dill_assl`, the \
+following error occurred: Sequence `watercontent` of element `land_dill_assl` is not \
+requested to make any time series data available.
 
         >>> for series in uz.value:
         ...     print_vector(series)  # doctest: +ELLIPSIS
@@ -1253,12 +1253,12 @@ has/have not been prepared so far.
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `ic` \
 has/have not been prepared so far.
-        >>> for series in wc.value:
+        >>> for series in water.value:
         ...     print_vector(series)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `wc` \
-has/have not been prepared so far.
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem \
+`water` has/have not been prepared so far.
 
         >>> with warn_later():
         ...     test("subunit")
@@ -1269,8 +1269,8 @@ requested to make any time series data available.
 `ic`, the following error occured: Sequence `ic` of element `land_dill_assl` is not \
 requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`wc`, the following error occured: Sequence `wc` of element `land_dill_assl` is not \
-requested to make any time series data available.
+`water`, the following error occured: Sequence `watercontent` of element \
+`land_dill_assl` is not requested to make any time series data available.
 
         >>> for series in uz.value:
         ...     print_vector(series)  # doctest: +ELLIPSIS
@@ -1284,12 +1284,12 @@ has/have not been prepared so far.
         ...
         hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `ic` \
 has/have not been prepared so far.
-        >>> for series in wc.value:  # doctest: +ELLIPSIS
+        >>> for series in water.value:  # doctest: +ELLIPSIS
         ...     print_vector(series)
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `wc` \
-has/have not been prepared so far.
+        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem \
+`water` has/have not been prepared so far.
         """
         series = self.targetspecs.series
         shape = self.seriesshape if series else self.shape
@@ -1717,14 +1717,14 @@ class GetItem(ExchangeItem):
         documentation on method |ChangeItem.collect_variables|.  However, class
         |GetItem| does not support different aggregation levels and each |GetItem|
         object operates on the device level.  Therefore, the returned sub-names rely on
-        the device names; and, for non-scalar target variables, additionally on the
+        the device names  and, for non-scalar target variables, additionally on the
         individual vector or matrix indices.
 
         Each item name is automatically generated and contains the name of the
         respective |Variable| object's |Device| and the target description.
 
-        For 0-dimensional variables, there is only one sub-name that is identical to
-        the device name:
+        For 0-dimensional variables, there is only one sub-name, which is is identical
+        to the device name:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -1759,14 +1759,19 @@ class GetItem(ExchangeItem):
         land_lahn_leun_states_sm ('land_lahn_leun_0', ..., 'land_lahn_leun_9')
         land_lahn_marb_states_sm ('land_lahn_marb_0', ..., 'land_lahn_marb_12')
 
-        >>> item = GetItem(name="sp", master="hland_96", target="states.sp")
+        >>> item = GetItem(name="icecontent", master="hland_96",
+        ...                target="states.icecontent")
         >>> item.collect_variables(pub.selections)
         >>> for name, subnames in item.yield_name2subnames():
         ...     print(name, subnames)  # doctest: +ELLIPSIS
-        land_dill_assl_states_sp ('land_dill_assl_0_0', ..., 'land_dill_assl_0_11')
-        land_lahn_kalk_states_sp ('land_lahn_kalk_0_0', ..., 'land_lahn_kalk_0_13')
-        land_lahn_leun_states_sp ('land_lahn_leun_0_0', ..., 'land_lahn_leun_0_9')
-        land_lahn_marb_states_sp ('land_lahn_marb_0_0', ..., 'land_lahn_marb_0_12')
+        land_dill_assl_states_icecontent ('land_dill_assl_0_0', ..., \
+'land_dill_assl_0_11')
+        land_lahn_kalk_states_icecontent ('land_lahn_kalk_0_0', ..., \
+'land_lahn_kalk_0_13')
+        land_lahn_leun_states_icecontent ('land_lahn_leun_0_0', ..., \
+'land_lahn_leun_0_9')
+        land_lahn_marb_states_icecontent ('land_lahn_marb_0_0', ..., \
+'land_lahn_marb_0_12')
         """
         for device, name in self._device2name.items():
             subnames = _make_subunit_name(device, self.device2target[device])

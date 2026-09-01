@@ -1683,6 +1683,8 @@ class PyxWriter:
                     self.aetmodel.load_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
                     self.rconcmodel.load_data(idx)
+                if (self.snowmodel is not None) and not self.snowmodel_is_mainmodel:
+                    self.snowmodel.load_data(idx)
             cpdef void save_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.save_data(idx)
@@ -1694,6 +1696,8 @@ class PyxWriter:
                     self.aetmodel.save_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
                     self.rconcmodel.save_data(idx)
+                if (self.snowmodel is not None) and not self.snowmodel_is_mainmodel:
+                    self.snowmodel.save_data(idx)
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.factors = None
@@ -1711,6 +1715,8 @@ class PyxWriter:
                     self.aetmodel.load_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
                     self.rconcmodel.load_data(idx)
+                if (self.snowmodel is not None) and not self.snowmodel_is_mainmodel:
+                    self.snowmodel.load_data(idx)
             cpdef void save_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.save_data(idx)
@@ -1719,6 +1725,8 @@ class PyxWriter:
                     self.aetmodel.save_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
                     self.rconcmodel.save_data(idx)
+                if (self.snowmodel is not None) and not self.snowmodel_is_mainmodel:
+                    self.snowmodel.save_data(idx)
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.inputs = None

@@ -2686,7 +2686,7 @@ the available directories (calib_1 and calib_2).
         ...     print(method.__name__)  # doctest: +ELLIPSIS
         Calc_TC_V1
         ...
-        Get_SnowCover_V1
+        Computes_SnowEvaporation_V1
 
         One can skip all methods that belong to specific groups:
 

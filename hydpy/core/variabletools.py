@@ -1663,36 +1663,36 @@ var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         For a 1-dimensional variable object, property |Variable.valuevector| returns
         the original values without any modification:
 
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("1d")
-        >>> parameterstep("1d")
-        >>> nmbzones(3)
-        >>> sclass(2)
-        >>> states.sm.values = 1.0, 2.0, 3.0
+        >>> from hydpy.models.snow import *
+        >>> parameterstep()
+        >>> numberzones(3)
+        >>> numberdivisions(2)
+        >>> fluxes.actualmelt = 1.0, 2.0, 3.0
         >>> from hydpy import print_vector
-        >>> print_vector(states.sm.valuevector)
+        >>> print_vector(fluxes.actualmelt.valuevector)
         1.0, 2.0, 3.0
 
         For all other variables, |Variable.valuevector| raises the following error by
         default:
 
-        >>> states.uz.valuevector
+        >>> inputs.airtemperature.valuevector
         Traceback (most recent call last):
         ...
-        NotImplementedError: Variable `uz` does not implement a method for converting \
-its values to a 1-dimensional vector.
+        NotImplementedError: Variable `airtemperature` does not implement a method \
+for converting its values to a 1-dimensional vector.
 
         If considered appropriate, model developers should override
         |Variable.valuevector| for individual multidimensional variables, to support
         methods like |Variable.average_values|, which rely on 1-dimensional data.  One
-        example is the state sequence |hland_states.SP| of base model |hland|, which
-        handles values for individual zones (second axis) and snow classes (first axis).
-        Here we decided to let |hland_sequences.State2DSequence.valuevector| return the
-        sums of all snow classes for each zone so that the content of the returned
-        vector agrees with the contents of most 1-dimensional sequences of |hland|:
+        example is the state sequence |snow_states.IceContent| of base model |snow|,
+        which handles values for individual zones (second axis) and snow classes (first
+        axis).  Here we decided to let |snow_sequences.BaseSequence2D.valuevector|
+        return the sums of all snow classes for each zone so that the content of the
+        returned vector agrees with the contents of most 1-dimensional sequences of
+        |snow|:
 
-        >>> states.sp = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
-        >>> print_vector(states.sp.valuevector)
+        >>> states.icecontent = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+        >>> print_vector(states.icecontent.valuevector)
         2.5, 3.5, 4.5
         """
         if self.NDIM == 1:
@@ -1925,7 +1925,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         """
         if args or kwargs:
             masks = self.availablemasks
-            mask = masktools.CustomMask(numpy.full(self.shape, False))
+            mask = masktools.CustomMask(numpy.full(self.mask.shape, False))  # ToDo
             for arg in args:
                 mask = cast(masktools.CustomMask, mask + self._prepare_mask(arg, masks))
             for key, value in kwargs.items():

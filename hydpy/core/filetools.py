@@ -1076,11 +1076,9 @@ class ControlManager(FileManager):
         ...     controlmanager.projectdir = "HydPy-H-Lahn"
         ...     results = controlmanager.load_file(filename="land_dill_assl")
 
-
         >>> results["control"]
         area(692.3)
         nmbzones(12)
-        sclass(1)
         zonetype(FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD, FOREST,
                  FIELD, FOREST, FIELD, FOREST)
         zonearea(14.41, 7.06, 70.83, 84.36, 70.97, 198.0, 27.75, 130.0, 27.28,
@@ -1094,18 +1092,11 @@ class ControlManager(FileManager):
         tcorr(0.0)
         tcalt(0.6)
         icmax(field=1.0, forest=1.5)
-        sfdist(1.0)
-        smax(inf)
-        sred(0.0)
         tt(0.55824)
         ttint(2.0)
         dttm(0.0)
-        cfmax(field=4.55853, forest=2.735118)
-        cfvar(0.0)
         gmelt(nan)
         gvar(nan)
-        cfr(0.05)
-        whc(0.1)
         fc(278.0)
         beta(2.54011)
         percmax(1.39636)

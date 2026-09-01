@@ -1791,6 +1791,7 @@ class SubmodelGraph:
         ...     print(port.name, *(model.__HYDPY_NAME__ for model in models))
         aetmodel evap_aet_hbv96 evap_aet_minhas evap_aet_morsim
         rconcmodel rconc_nash rconc_uh
+        snowmodel snow_dd
         """
         main2port2subs: Subgraphs = {}
         for main in self.models:
@@ -1823,7 +1824,7 @@ class SubmodelGraph:
         >>> graph = SubmodelGraph(modelname="hland_96").graph
         >>> for model, subgraph in graph.items():
         ...     print(model.__HYDPY_NAME__, *(port.name for port in subgraph))
-        hland_96 aetmodel rconcmodel
+        hland_96 aetmodel rconcmodel snowmodel
 
         >>> selected = tuple(graph.values())[0]
         >>> for port, (subgraphs, mainsubmodels) in selected.items():
@@ -1836,6 +1837,9 @@ class SubmodelGraph:
         rconcmodel
         main-submodels:
         sub-submodels: rconc_nash rconc_uh
+        snowmodel
+        main-submodels:
+        sub-submodels: snow_dd
 
         >>> selected = tuple(selected.values())[0][0]
         >>> for model, subgraph in selected.items():

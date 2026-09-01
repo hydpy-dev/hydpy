@@ -1955,9 +1955,9 @@ deprecated.  Use method `prepare_models` instead.
 one value needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and \
 `0.0, ..., 0.0`, respectively.
 
-        However, changing the allowed fraction (|snow_control.WHC|) without adjusting
-        the conditions cannot be detected automatically.  Whenever in doubt, call
-        method |HydPy.trim_conditions| explicitly:
+        However, changing the allowed fraction (|snow_control.WaterCapacity|) without
+        adjusting the conditions cannot be detected automatically.  Whenever in doubt,
+        call method |HydPy.trim_conditions| explicitly:
 
         >>> model.sequences.states.icecontent(10.0)
         >>> model.sequences.states.watercontent(1.0)

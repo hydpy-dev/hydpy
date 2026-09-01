@@ -1636,6 +1636,10 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
         >>> model.aetmodel.calc_currentalbedo_v1()
         >>> model.aetmodel.sequences.factors.currentalbedo
         currentalbedo(0.4, 0.5, 0.5, 0.5)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     SUBMODELINTERFACES = (stateinterfaces.SnowAlbedoModel_V1,)
@@ -4355,11 +4359,12 @@ class Calc_SnowCover_V1(modeltools.Method):
 
         We use the combination of |hland_96| and |evap_aet_hbv96| as an example:
 
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> from hydpy.models.hland_96 import *
         >>> parameterstep()
         >>> area(10.0)
         >>> nmbzones(3)
-        >>> sclass(2)
         >>> zonearea(5.0, 3.0, 2.0)
         >>> zonetype(FIELD)
         >>> zonez(2.0)
@@ -4367,7 +4372,10 @@ class Calc_SnowCover_V1(modeltools.Method):
         >>> psi(1.0)
         >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
         ...     pass
-        >>> states.sp = [[0.0, 0.0, 1.0], [0.0, 1.0, 1.0]]
+        >>> with model.add_snowmodel_v1("snow_dd"):
+        ...     numberdivisions(2)
+        ...     redistributionpaths(0.0)
+        ...     states.icecontent = [[0.0, 0.0, 1.0], [0.0, 1.0, 1.0]]
         >>> model.aetmodel.calc_snowcover_v1()
         >>> model.aetmodel.sequences.factors.snowcover
         snowcover(0.0, 0.5, 1.0)
@@ -4379,6 +4387,10 @@ class Calc_SnowCover_V1(modeltools.Method):
         >>> model.aetmodel.calc_snowcover_v1()
         >>> model.aetmodel.sequences.factors.snowcover
         snowcover(0.0, 0.0, 0.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     SUBMODELINTERFACES = (stateinterfaces.SnowCoverModel_V1,)
@@ -9157,10 +9169,10 @@ class Main_SnowCoverModel_V1(modeltools.AdHocModel, modeltools.SubmodelInterface
         >>> evap.snowcovermodel_typeid
         0
 
-        >>> hland = prepare_model("hland_96")
-        >>> evap.add_mainmodel_as_subsubmodel(hland)
+        >>> lland = prepare_model("lland_knauf")
+        >>> evap.add_mainmodel_as_subsubmodel(lland)
         True
-        >>> evap.snowcovermodel is hland
+        >>> evap.snowcovermodel is lland
         True
         >>> evap.snowcovermodel_is_mainmodel
         True

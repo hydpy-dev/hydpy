@@ -151,7 +151,6 @@ class Tester:
         >>> from pprint import pprint
         >>> pprint(hland.tester.filenames)
         ['__init__.py',
-         'hland_aides.py',
          'hland_constants.py',
          'hland_control.py',
          'hland_derived.py',
@@ -180,8 +179,7 @@ class Tester:
         >>> from hydpy.models import hland, hland_96
         >>> from pprint import pprint
         >>> pprint(hland.tester.modulenames)
-        ['hland_aides',
-         'hland_constants',
+        ['hland_constants',
          'hland_control',
          'hland_derived',
          'hland_factors',
@@ -223,8 +221,6 @@ class Tester:
         >>> from hydpy.models import hland, hland_96
         >>> hland.tester.perform_tests()  # doctest: +ELLIPSIS
         Test package hydpy.models.hland in ...ython mode.
-            * hland_aides:
-                no failures occurred
             * hland_constants:
                 no failures occurred
             * hland_control:
@@ -274,8 +270,6 @@ class Tester:
         ...     return_value="damaged"):
         ...     hland.tester.perform_tests()  # doctest: +ELLIPSIS
         Test package hydpy.models.hland in ...ython mode.
-            * hland_aides:
-                no failures occurred
             * hland_constants:
                 no failures occurred
             * hland_control:
@@ -2211,6 +2205,7 @@ def print_filestructure(dirpath: str) -> None:
                 + dill_assl_obs_q.asc
                 ...
                 + obs_q.nc
+                + snow_dd_input_airtemperature.nc
         + single_run.xml
         + single_run.xmlt
     """
@@ -2236,9 +2231,9 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
 
     Function |prepare_io_example_1| is thought for testing the functioning of *HydPy*
     and thus should be of interest for framework developers only.  It uses the main
-    models |lland_dd|, |lland_knauf|, and |hland_96| and the submodel
-    |evap_aet_morsim|.  Here, we apply |prepare_io_example_1| and shortly discuss
-    different aspects of its generated data:
+    models |lland_dd|, |lland_knauf|, and |hland_96| and the submodels
+    |evap_aet_morsim| and |snow_dd|.  Here, we apply |prepare_io_example_1| and shortly
+    discuss different aspects of its generated data:
 
     >>> from hydpy.core.testtools import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
@@ -2287,8 +2282,8 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     |lland_inputs.Nied|, the flux sequence |lland_fluxes.NKor|, and the state sequence
     |lland_states.BoWa| of each |lland| model instance, the equally named wind speed
     sequences of |lland_knauf| and |evap_aet_morsim|, the state sequence
-    |hland_states.SP| of the |hland_96| model instance, and the |Sim| sequence of each
-    node instance.  For precise test results, all generated values are unique:
+    |snow_states.IceContent| of the |snow_dd| submodel instance, and the |Sim| sequence
+    of each node instance.  For precise test results, all generated values are unique:
 
     >>> nied1 = elements.element1.model.sequences.inputs.nied
     >>> nied1.series
@@ -2308,8 +2303,8 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     >>> sim2 = nodes.node2.sequences.sim
     >>> sim2.series
     InfoArray([64., 65., 66., 67.])
-    >>> sp4 = elements.element4.model.sequences.states.sp
-    >>> sp4.series
+    >>> icecontent4 = elements.element4.model.snowmodel.sequences.states.icecontent
+    >>> icecontent4.series
     InfoArray([[[68., 69., 70.],
                 [71., 72., 73.]],
     <BLANKLINE>
@@ -2336,7 +2331,7 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     >>> assert numpy.all(nkor1.series == nkor1.testarray)
     >>> assert numpy.all(bowa3.series == bowa3.testarray)
     >>> assert numpy.all(sim2.series == sim2.testarray)
-    >>> assert numpy.all(sp4.series == sp4.testarray)
+    >>> assert numpy.all(icecontent4.series == icecontent4.testarray)
     >>> assert numpy.all(v_l.series == v_l.testarray)
     >>> assert numpy.all(v_e.series == v_e.testarray)
     >>> bowa3.series[1, 2] = -999.0
@@ -2395,11 +2390,15 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
         parameters.derived.absfhru(10.0)
     control4 = element4.model.parameters.control
     control4.nmbzones(3)
-    control4.sclass(2)
+    control4.area(3.0)
+    control4.zonearea(1.0)
+    control4.zonez(100.0)
     control4.zonetype(hland_constants.FIELD)
     control4.zonearea.values = 10.0
-    derived4 = element4.model.parameters.derived
-    derived4.relzoneareas.values = 1.0 / 3.0
+    with model4.add_snowmodel_v1("snow_dd") as snowmodel4:
+        control4dd = snowmodel4.parameters.control
+        control4dd.numberdivisions(2)
+        control4dd.redistributionpaths(0.0)
 
     with hydpy.pub.options.printprogress(False):
         nodes.prepare_simseries(allocate_ram=False)  # ToDo: add option "reset"
@@ -2430,7 +2429,7 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
             value1 = init_values(getattr(subseqs, seqname), value1)
     for node in nodes:
         value1 = init_values(node.sequences.sim, value1)
-    init_values(model4.sequences.states.sp, value1)
+    init_values(snowmodel4.sequences.states.icecontent, value1)
     init_values(model3.sequences.inputs.windspeed, value1)
     assert (aetmodel := model3.aetmodel) is not None
     init_values(aetmodel.sequences.inputs.windspeed, value1)

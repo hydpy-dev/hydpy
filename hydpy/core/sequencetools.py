@@ -482,10 +482,9 @@ class Sequences(Generic[TM_co]):
     factors
     fluxes
     states
-    aides
     outlets
     >>> len(sequences)
-    6
+    5
 
     Keyword access provides a type-safe way to query a subgroup via a string:
 
@@ -1359,7 +1358,8 @@ class IOSequence(Sequence_):
     >>> inputs = hp.elements.land_lahn_marb.model.sequences.inputs
     >>> factors = hp.elements.land_lahn_marb.model.sequences.factors
     >>> fluxes = hp.elements.land_lahn_marb.model.sequences.fluxes
-    >>> states = hp.elements.land_lahn_marb.model.sequences.states
+    >>> states_hland = hp.elements.land_lahn_marb.model.sequences.states
+    >>> states_snow = hp.elements.land_lahn_marb.model.snowmodel.sequences.states
 
     Each |IOSequence| object comes four flags, answering the following questions:
 
@@ -1408,14 +1408,14 @@ class IOSequence(Sequence_):
     which we set to zero beforehand) and the writing feature of the factor sequences
     |hland_factors.ContriArea| and |hland_factors.TC| (without handling their data in
     RAM) and the writing feature of the state sequences |hland_states.SM| and
-    |hland_states.SP| (while handling their data in RAM simultaneously):
+    |snow_states.IceContent| (while handling their data in RAM simultaneously):
 
     >>> inputs.t.series = 0.0
     >>> inputs.t.prepare_series(allocate_ram=True, read_jit=True)
     >>> factors.contriarea.prepare_series(allocate_ram=False, write_jit=True)
     >>> factors.tc.prepare_series(allocate_ram=False, write_jit=True)
-    >>> states.sm.prepare_series(allocate_ram=True, write_jit=True)
-    >>> states.sp.prepare_series(allocate_ram=True, write_jit=True)
+    >>> states_hland.sm.prepare_series(allocate_ram=True, write_jit=True)
+    >>> states_snow.icecontent.prepare_series(allocate_ram=True, write_jit=True)
 
     Use the properties |IOSequence.ramflag|, |IOSequence.diskflag_reading|,
     |IOSequence.diskflag_writing|, and |IOSequence.diskflag| for querying the current
@@ -1446,15 +1446,15 @@ class IOSequence(Sequence_):
     hydpy.core.exceptiontools.AttributeNotReady: Sequence `contriarea` of element \
 `land_lahn_marb` is not requested to make any time series data available.
 
-    >>> states.sm.ramflag
+    >>> states_hland.sm.ramflag
     True
-    >>> states.sm.diskflag_reading
+    >>> states_hland.sm.diskflag_reading
     False
-    >>> states.sm.diskflag_writing
+    >>> states_hland.sm.diskflag_writing
     True
-    >>> states.sm.diskflag
+    >>> states_hland.sm.diskflag
     True
-    >>> round_(states.sm.series[:, 0])
+    >>> round_(states_hland.sm.series[:, 0])
     nan, nan, nan, nan
 
     Now we perform a simulation run.  Note that we need to change the current working
@@ -1465,14 +1465,14 @@ class IOSequence(Sequence_):
     ...     hp.simulate()
 
     After the simulation run, the read (|hland_inputs.T|) and calculated
-    (|hland_states.SM| and |hland_states.SP|) time series of the sequences with an
-    activated |IOSequence.ramflag| are directly available:
+    (|hland_states.SM| and |snow_states.IceContent|) time series of the sequences with
+    an activated |IOSequence.ramflag| are directly available:
 
     >>> round_(inputs.t.series)
     -0.7, -1.5, -4.6, -8.2
-    >>> round_(states.sm.series[:, 0])
+    >>> round_(states_hland.sm.series[:, 0])
     99.1369, 99.012039, 98.936738, 98.919128
-    >>> round_(states.sp.series[:, 0, 0])
+    >>> round_(states_snow.icecontent.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
     To inspect the time series of |hland_factors.ContriArea| and |hland_factors.TC|,
@@ -1494,18 +1494,18 @@ class IOSequence(Sequence_):
     >>> round_(factors.tc.series[:, 0])
     0.453086, -0.346914, -3.446914, -7.046914
 
-    We also load time series of |hland_states.SM| and |hland_states.SP| to demonstrate
-    that the data written to the respective NetCDF files are identical with the data
-    directly stored in RAM:
+    We also load time series of |hland_states.SM| and |snow_states.IceContent| to
+    demonstrate that the data written to the respective NetCDF files are identical with
+    the data directly stored in RAM:
 
     >>> with TestIO():
     ...     pub.sequencemanager.open_netcdfreader()
-    ...     states.sm.load_series()
-    ...     states.sp.load_series()
+    ...     states_hland.sm.load_series()
+    ...     states_snow.icecontent.load_series()
     ...     pub.sequencemanager.close_netcdfreader()
-    >>> round_(states.sm.series[:, 0])
+    >>> round_(states_hland.sm.series[:, 0])
     99.1369, 99.012039, 98.936738, 98.919128
-    >>> round_(states.sp.series[:, 0, 0])
+    >>> round_(states_snow.icecontent.series[:, 0, 0])
     0.0, 0.0, 0.0, 0.0
 
     Writing the time series of input sequences on the fly is supported but not

@@ -3879,19 +3879,21 @@ sequence named `xy`.
 
         For 1- and 2-dimensional |IOSequence| objects, all three methods plot the
         individual time series in the same colour.  We demonstrate this for the frozen
-        (|hland_states.SP|) and the liquid (|hland_states.WC|) water equivalent of the
-        snow cover of different hydrological response units.  Therefore, we restrict
-        the shown period to February and March via the |Timegrids.eval_| time grid:
+        (|snow_states.IceContent|) and the liquid (|snow_states.WaterContent|) water
+        equivalent of the snow cover of different hydrological response units.
+        Therefore, we restrict the shown period to February and March via the
+        |Timegrids.eval_| time grid:
 
         >>> with pub.timegrids.eval_(firstdate="1996-02-01", lastdate="1996-04-01"):
-        ...     figure = land.plot_stateseries("sp", "wc")
+        ...     figure = land.plot_stateseries("icecontent", "watercontent")
         >>> save_autofig("Element_plot_stateseries.png", figure)
 
         .. image:: Element_plot_stateseries.png
 
-        Alternatively, you can print the averaged time series by assigning |True| to the
-        argument `average`.  We demonstrate this functionality for the factor sequence
-        |hland_factors.TC| (this time, without focusing on the time-series y-extent):
+        Alternatively, you can print the averaged time series by assigning |True| to
+        the argument `average`.  We demonstrate this functionality for the factor
+        sequence |hland_factors.TC| (this time, without focusing on the time-series
+        y-extent):
 
         >>> figure = land.plot_factorseries("tc", colors=("grey",))
         >>> figure = land.plot_factorseries(

@@ -196,8 +196,10 @@ class Calc_OutputCorr_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(4.5)
 
-        Once the last real observation drops out of the three-step logging
-        window, no correction is applied anymore:
+        Even once the last real observation drops out of the three-step
+        logging window, the persisted residual keeps applying without limit
+        -- only |ReductionFactor| (via |QminQmax| and |LinearReductionTime|,
+        both disabled here) could still fade it out:
 
         >>> with pub.options.simulationmode("forecast"):
         ...     model.parameters.update()
@@ -205,7 +207,14 @@ class Calc_OutputCorr_V1(modeltools.Method):
         ...     inputs.discharge = 999.0
         ...     model.calc_outputcorr_v1()
         >>> fluxes.correctedq
-        correctedq(5.0)
+        correctedq(5.5)
+        >>> with pub.options.simulationmode("forecast"):
+        ...     model.parameters.update()
+        ...     fluxes.inflow = 6.0
+        ...     inputs.discharge = 999.0
+        ...     model.calc_outputcorr_v1()
+        >>> fluxes.correctedq
+        correctedq(6.5)
     """
 
     SUBMODELINTERFACES = (statcorrinterfaces.OutputCorrModel_V1,)
@@ -525,11 +534,17 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     error model.
 
     The correction is derived from the most recently available residual
-    (observed minus simulated discharge).  The "most recent" residual is taken
-    from the latest log entry where the observed discharge is not |numpy.nan|,
-    searching back at most |MaxResidualLookback| log entries (or the entire
-    log, whichever is smaller).  When no observation is available within that
-    range, the corrected discharge equals the current simulated discharge.
+    (observed minus simulated discharge).  While |Options.simulationmode|
+    equals `historical`, the "most recent" residual is taken from the latest
+    log entry where the observed discharge is not |numpy.nan|, searching back
+    at most |MaxResidualLookback| log entries (or the entire log, whichever is
+    smaller), and remembered in |Residual| (together with the corresponding
+    simulated discharge in |ResidualAnchor|).  When no observation is
+    available within that range, both are set to zero, so the corrected
+    discharge equals the current simulated discharge.  While
+    |Options.simulationmode| equals `forecast`, |Determine_OutputCorrection_V1|
+    does not repeat this search — see the paragraph on |Residual| and
+    |ResidualAnchor| below for why.
 
     How that residual is applied to the current simulated ("forecast")
     discharge depends on how the latter (:math:`sim_0`) compares to the
@@ -611,6 +626,18 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     ``1.0`` either as soon as the last real observation drops out of the
     logging window or whenever the forecasted discharge happens to pass
     through the HQ range.
+
+    Likewise, |Determine_OutputCorrection_V1| only reassesses the pointwise
+    residual itself (the |MaxResidualLookback| search described above) while
+    |Options.simulationmode| equals `historical`, remembering the outcome in
+    |Residual| and |ResidualAnchor|.  While it equals `forecast`, it reuses
+    both from the most recent `historical` assessment instead of repeating
+    the search, so the (|ReductionFactor|-damped) correction persists for the
+    entire forecast horizon instead of vanishing as soon as the underlying
+    log entry drops out of the logging window.  Together with the preceding
+    paragraph, this means only |ReductionFactor| (and, if configured, the
+    blend towards |AveragedResidual|) can still change the correction once a
+    forecast run is underway.
 
     Examples:
 
@@ -884,9 +911,10 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         Setting |ResidualAveragingWindow| to a value greater than zero
         switches to the mean-value-based residual, blended in linearly over
         |ResidualTransitionTime| forecast steps.  We reset the log to a
-        short, clean example (four entries) and freeze |FlowCondition| and
-        |Stationary| directly (instead of deriving them from a preceding
-        `historical` call) to keep the focus on the transition mechanism:
+        short, clean example (four entries) and freeze |FlowCondition|,
+        |Stationary|, |Residual|, and |ResidualAnchor| directly (instead of
+        deriving them from a preceding `historical` call) to keep the focus
+        on the transition mechanism:
 
         >>> control.maxresiduallookback(4)
         >>> control.maxabsoluteshift(100.0)
@@ -900,6 +928,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> states.stationary(1.0)
         >>> states.reductionfactor(1.0)
         >>> states.forecaststep(0.0)
+        >>> states.residual(1.0)
+        >>> states.residualanchor(8.0)
 
         The most recent (pointwise) residual, taken from log position ``1``
         (``9.0 - 8.0 = 1.0``), differs from the mean-value-based residual
@@ -965,11 +995,16 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         statcorr_states.FlowCondition,
         statcorr_states.ForecastStep,
         statcorr_states.AveragedResidual,
+        statcorr_states.Residual,
+        statcorr_states.ResidualAnchor,
     )
     RESULTSEQUENCES = (statcorr_fluxes.CorrectedQ,)
 
     @staticmethod
     def __call__(model: modeltools.Model, isforecastmode: bool, /) -> None:
+        # pylint: disable=too-many-branches
+        # (I know this method is much too complex but I do not see a good way to
+        # refactor it)
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1005,13 +1040,21 @@ class Determine_OutputCorrection_V1(modeltools.Method):
             return
         # pylint: enable=too-many-boolean-expressions
 
-        residual: float = 0.0
-        sim_anchor: float = 0.0
-        for idx in range(min(der.nmblogentries, con.maxresiduallookback)):
-            if not modelutils.isnan(log.loggedobserveddischarge[idx]):
-                sim_anchor = log.loggedsimulateddischarge[idx]
-                residual = log.loggedobserveddischarge[idx] - sim_anchor
-                break
+        residual: float
+        sim_anchor: float
+        if isforecastmode:
+            residual = sta.residual
+            sim_anchor = sta.residualanchor
+        else:
+            residual = 0.0
+            sim_anchor = 0.0
+            for idx in range(min(der.nmblogentries, con.maxresiduallookback)):
+                if not modelutils.isnan(log.loggedobserveddischarge[idx]):
+                    sim_anchor = log.loggedsimulateddischarge[idx]
+                    residual = log.loggedobserveddischarge[idx] - sim_anchor
+                    break
+            sta.residual = residual
+            sta.residualanchor = sim_anchor
 
         if flow_condition == 2:
             sta.reductionfactor = 1.0

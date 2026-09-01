@@ -4,12 +4,18 @@
 based on an ARIMA(0,1,0) error model.
 
 The corrected discharge is derived from the most recently available residual
-(observed minus simulated discharge).  When the current observation is
-|numpy.nan| (typical in forecast mode), the correction falls back to the most
-recent past residual within the configured logging window — this is the
-random-walk persistence of the error.  This fallback search looks back at most
-|MaxResidualLookback| log entries; when no observation is available within
-that range (or the entire log, whichever is smaller), no correction is applied.
+(observed minus simulated discharge).  While |Options.simulationmode| equals
+`historical`, this residual is (re)determined every step by searching back at
+most |MaxResidualLookback| log entries for the latest non-|numpy.nan|
+observation — this is the random-walk persistence of the error whenever the
+*current* observation is missing.  When no observation is available within
+that range (or the entire log, whichever is smaller), no correction is
+applied.  While |Options.simulationmode| equals `forecast`, this search is
+not repeated: the residual (and the simulated discharge it was measured
+against) stays frozen at whatever the most recent `historical` assessment
+found, so the correction persists throughout the whole forecast horizon
+(subject only to |ReductionFactor|) instead of fading once that log entry
+ages past |MaxResidualLookback|.
 
 How the residual is applied depends on how the current simulated discharge
 compares to the simulated discharge at the point the residual was determined:
@@ -124,9 +130,10 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
     def prepare_nmblogentries(self, nmblogentries: int) -> None:
         """Allocate the internal log to hold `nmblogentries` discharge values and
         initialise |ReductionFactor|, |Stationary|, |FlowCondition|,
-        |ForecastStep|, and |AveragedResidual| to ``1.0``, ``1.0``, ``2.0``,
-        ``0.0``, and ``0.0`` (no reduction, stationary conditions assumed, HQ
-        flow condition assumed, no forecast steps elapsed, no mean-value-based
+        |ForecastStep|, |AveragedResidual|, |Residual|, and |ResidualAnchor|
+        to ``1.0``, ``1.0``, ``2.0``, ``0.0``, ``0.0``, ``0.0``, and ``0.0``
+        (no reduction, stationary conditions assumed, HQ flow condition
+        assumed, no forecast steps elapsed, no mean-value-based or pointwise
         residual determined yet).
 
         >>> from hydpy.models.statcorr_arima010 import *
@@ -148,6 +155,10 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
         forecaststep(0.0)
         >>> states.averagedresidual
         averagedresidual(0.0)
+        >>> states.residual
+        residual(0.0)
+        >>> states.residualanchor
+        residualanchor(0.0)
         """
         self.parameters.derived.nmblogentries(nmblogentries)
         self.sequences.logs.loggedsimulateddischarge.shape = nmblogentries
@@ -157,6 +168,8 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
         self.sequences.states.flowcondition(2.0)
         self.sequences.states.forecaststep(0.0)
         self.sequences.states.averagedresidual(0.0)
+        self.sequences.states.residual(0.0)
+        self.sequences.states.residualanchor(0.0)
 
 
 tester = Tester()

@@ -7,6 +7,7 @@ if __name__ == "__main__":
     from hydpy.core import parametertools
     from hydpy.core import sequencetools
     from hydpy.models.hland import hland_control
+    from hydpy.models.snow import snow_control
 
     # NDIM = ?, TYPE = ?
     parameter: parametertools.Parameter
@@ -61,7 +62,7 @@ if __name__ == "__main__":
     zonetype.trim([1], [1])
 
     # NDIM = 2, TYPE = float
-    sred: hland_control.SRed
+    sred: snow_control.RedistributionPaths
     sred.trim(1.0, 1.0)
     sred.trim([1.0], [1.0])  # type: ignore[list-item]
     sred.trim([[1.0]], [[1.0]])

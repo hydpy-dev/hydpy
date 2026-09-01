@@ -8,6 +8,7 @@ if __name__ == "__main__":
 
     from hydpy.models.dam import dam_control
     from hydpy.models.hland import hland_control
+    from hydpy.models.snow import snow_control
 
     # NDIM = 0
     area: hland_control.Area
@@ -29,7 +30,7 @@ if __name__ == "__main__":
     zonearea.shape = numpy.ones((1,), dtype=int)  # type: ignore[assignment]
 
     # NDIM = 2
-    sred: hland_control.SRed
+    sred: snow_control.RedistributionPaths
     sred.shape = 1  # type: ignore[assignment]
     sred.shape = ()  # type: ignore[assignment]
     sred.shape = (1,)  # type: ignore[assignment]

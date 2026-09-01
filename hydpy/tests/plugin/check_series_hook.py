@@ -8,6 +8,7 @@ if __name__ == "__main__":
 
     from hydpy.core import typingtools
     from hydpy.models.hland import hland_fluxes
+    from hydpy.models.snow import snow_fluxes
 
     list_1d: list[float]
     list_2d: list[list[float]]
@@ -42,7 +43,7 @@ if __name__ == "__main__":
     assert_type(pc.evalseries, typingtools.MatrixFloat)
 
     # NDIM = 2, TYPE = float
-    melt: hland_fluxes.Melt
+    melt: snow_fluxes.ActualMelt
     assert_type(melt.series, typingtools.TensorFloat)
     melt.series = 1.0
     melt.series = 1

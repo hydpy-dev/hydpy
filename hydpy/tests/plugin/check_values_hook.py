@@ -8,6 +8,7 @@ if __name__ == "__main__":
 
     from hydpy.core import typingtools
     from hydpy.models.hland import hland_control
+    from hydpy.models.snow import snow_control
 
     # NDIM = 0, TYPE = float
     area: hland_control.Area
@@ -57,7 +58,7 @@ if __name__ == "__main__":
     zonetype.value = numpy.ones((1,), dtype=numpy.int64)
 
     # NDIM = 2, TYPE = float
-    sred: hland_control.SRed
+    sred: snow_control.RedistributionPaths
     assert_type(sred.value, typingtools.MatrixFloat)
     sred.value = 1.0
     sred.value = 1

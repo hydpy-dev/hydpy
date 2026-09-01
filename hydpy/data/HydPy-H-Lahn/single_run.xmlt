@@ -73,6 +73,11 @@
                             <t/>
                         </inputs>
                     </hland_96>
+                    <snow_dd>
+                        <inputs>
+                            <airtemperature/>
+                        </inputs>
+                    </snow_dd>
                 </sequences>
                 <filetype>nc</filetype>
             </reader>

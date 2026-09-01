@@ -75,6 +75,11 @@
                             <t/>
                         </inputs>
                     </hland_96>
+                    <snow_dd>
+                        <inputs>
+                            <airtemperature/>
+                        </inputs>
+                    </snow_dd>
                 </sequences>
             </reader>
 
@@ -222,15 +227,22 @@
                     </t.series>
                 </inputs>
             </hland_96>
-            <hland_96>
-                <factors>
-                    <swe.series>
+            <snow_dd>
+                <inputs>
+                    <airtemperature.series>
                         <selections>headwaters</selections>
-                        <name>swe_headwaters</name>
+                        <name>airtemperature_headwaters</name>
                         <level>device</level>
-                    </swe.series>
+                    </airtemperature.series>
+                </inputs>
+                <factors>
+                    <snowpack.series>
+                        <selections>headwaters</selections>
+                        <name>snowpack_headwaters</name>
+                        <level>device</level>
+                    </snowpack.series>
                 </factors>
-            </hland_96>
+            </snow_dd>
         </setitems>
         <additems>
             <hland_96>

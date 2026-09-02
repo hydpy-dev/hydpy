@@ -275,9 +275,17 @@ class FactorAdaptor(Adaptor):
         self._mask = mask if ((mask is None) or isinstance(mask, str)) else mask.name
 
     def __call__(self, target: parametertools.Parameter) -> None:
-        ref = target.subpars[self._reference]
+        model = target.subpars.pars.model.element.model
+        controls = []
+        for submodel in model.find_submodels(include_mainmodel=True).values():
+            control = submodel.parameters.control
+            if hasattr(control, self._reference):
+                controls.append(control)
+        assert len(controls) == 1  # ToDo: Support to select the desired reference
+        #                                  parameter more explicitly (see Issue #199).
+        ref = controls[0][self._reference]
         if self._mask:
-            mask = ref.get_submask(self._mask)
+            mask = target.get_submask(self._mask)
             values = ref.values[mask] if ref.NDIM else ref.value
             target.values[mask] = self._rule.value * values
         else:

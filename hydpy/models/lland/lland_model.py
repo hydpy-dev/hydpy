@@ -13,6 +13,7 @@ from hydpy.cythons import modelutils
 from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import radiationinterfaces
+from hydpy.interfaces import snowinterfaces
 from hydpy.interfaces import soilinterfaces
 from hydpy.interfaces import stateinterfaces
 from hydpy.interfaces import tempinterfaces
@@ -477,7 +478,7 @@ class Calc_TKor_V1(modeltools.Method):
     r"""Adjust the given air temperature value.
 
     Basic equation:
-      :math:`TKor = TemL + ATB \cdot (GH - MGH) / 100 + KT`
+      :math:`TKor = TemL + ATG \cdot (GH - MGH) / 100 + KT`
 
     Example:
 
@@ -8026,6 +8027,50 @@ class Main_AETModel_V1B(_Main_AETModel_V1):
         aetmodel.prepare_measuringheightwindspeed(
             self.parameters.control.measuringheightwindspeed.value
         )
+
+
+class Main_SnowModel_V1(modeltools.AdHocModel):
+    """Base class for |lland.DOCNAME.long| models that use submodels that comply with
+    the |SnowModel_V1| interface."""
+
+    snowmodel: modeltools.SubmodelProperty[snowinterfaces.SnowModel_V1]
+    snowmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    snowmodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel(
+        "snowmodel",
+        snowinterfaces.SnowModel_V1,
+        snowinterfaces.SnowModel_V1.prepare_nmbzones,
+        snowinterfaces.SnowModel_V1.prepare_subareas,
+        snowinterfaces.SnowModel_V1.prepare_elevations,
+        snowinterfaces.SnowModel_V1.prepare_land,
+        landtype_constants=lland_constants.CONSTANTS,
+        landtype_refindices=lland_control.Lnk,
+        refweights=lland_control.FT,
+    )
+    def add_snowmodel_v1(
+        self,
+        snowmodel: snowinterfaces.SnowModel_V1,
+        /,
+        *,
+        refresh: bool,  # pylint: disable=unused-argument
+    ) -> None:
+        """ToDo"""
+
+        control = self.parameters.control
+
+        snowmodel.prepare_nmbzones(control.nhru.value)
+        snowmodel.prepare_subareas(control.ft.values)
+        zonetype = control.lnk.values
+        land = numpy.logical_and(zonetype != WASSER, zonetype != SEE, zonetype != FLUSS)
+        snowmodel.prepare_land(land)
+        snowmodel.prepare_elevations(control.gh.values)
+
+    def _get_snomodel_waterbalance(self, initial_conditions: ConditionsModel) -> float:
+        """Get the water balance of the rconc submodel if used."""
+        if snowmodel := self.snowmodel:
+            return snowmodel.get_waterbalance(initial_conditions["model.snowmodel"])
+        return 0.0
 
 
 class Main_SoilModel_V1(modeltools.AdHocModel):

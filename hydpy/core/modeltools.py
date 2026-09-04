@@ -12,6 +12,7 @@ import itertools
 import os
 import runpy
 import types
+import weakref
 
 import numpy
 
@@ -167,7 +168,7 @@ class _SubmodelPropertyBase(Generic[TypeSubmodelInterface]):
                 f"supported interfaces: {objecttools.enumeration(interfacenames)}."
             )
 
-    def _find_first_suitable_interface(
+    def __hydpy__find_first_suitable_interface__(
         self, submodel: TypeSubmodelInterface
     ) -> type[SubmodelInterface]:
         for interface in self.interfaces:
@@ -278,6 +279,27 @@ instance of any of the following supported interfaces: SoilModel_V1.
         collections.defaultdict[type[Model], list[SubmodelProperty[Any]]]
     ] = collections.defaultdict(list)
 
+    __hydpy__crossconnections__: ClassVar[
+        weakref.WeakKeyDictionary[
+            Model, weakref.WeakKeyDictionary[Model, set[tuple[bool, str]]]
+        ]
+    ] = weakref.WeakKeyDictionary()
+    """Helper to ease the removal of submodel cross connections after the corresponding
+    main or submodel has been deleted.
+    
+    dict[
+        main or submodel, 
+        dict[
+            main or submodel, 
+            set[
+                tuple[
+                    are the main and the submodel listed invertedly?, 
+                    the name of the submodel property
+                ]
+            ]
+        ].
+    """
+
     def __init__(
         self,
         *interfaces: type[TypeSubmodelInterface],
@@ -336,10 +358,20 @@ instance of any of the following supported interfaces: SoilModel_V1.
             )
 
     def __delete__(self, obj: Model) -> None:
+        submodel = vars(obj).get(self.name)
         vars(obj)[self.name] = None
         setattr(obj, f"{self.name}_typeid", 0)
         if obj.cymodel is not None:
             getattr(obj.cymodel, f"set_{self.name}")(None)
+        ccs = self.__hydpy__crossconnections__
+        if submodel in ccs:
+            assert submodel is not None
+            for model, infos in ccs[submodel].items():
+                for inverted, property_ in infos:
+                    if inverted:
+                        delattr(submodel, property_)
+                    else:
+                        delattr(model, property_)
 
 
 class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
@@ -769,7 +801,7 @@ interfaces: RoutingModel_V1 and RoutingModel_V2.
         assert (mainmodel := self._mainmodel) is not None
         try:
             if typeid is None:
-                typeid = self._find_first_suitable_interface(submodel).typeid
+                typeid = self.__hydpy__find_first_suitable_interface__(submodel).typeid
             else:
                 self._check_submodel_follows_interface(submodel)
             if (cymain := mainmodel.cymodel) is not None:
@@ -1508,6 +1540,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
 
         .. testsetup::
 
+            >>> del pub.timegrids
             >>> Node.clear_all()
             >>> Element.clear_all()
             >>> FusedVariable.clear_registry()
@@ -2012,6 +2045,10 @@ submodel_meteo_glob_fao56:
         model.add_radiationmodel_v1(submodel_meteo_glob_fao56)
         ...
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
 
         def _extend_lines_submodel(
@@ -2725,6 +2762,7 @@ the available directories (calib_1 and calib_2).
         include_sidemodels: Literal[False] = ...,
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
+        include_crossconnections: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
     ) -> dict[str, Model]: ...
@@ -2738,6 +2776,7 @@ the available directories (calib_1 and calib_2).
         include_sidemodels: Literal[False] = ...,
         include_optional: Literal[True],
         include_feedbacks: bool = False,
+        include_crossconnections: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
     ) -> dict[str, Model | None]: ...
@@ -2751,6 +2790,7 @@ the available directories (calib_1 and calib_2).
         include_sidemodels: Literal[False] = ...,
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
+        include_crossconnections: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
     ) -> dict[str, Model | None]: ...
@@ -2764,6 +2804,7 @@ the available directories (calib_1 and calib_2).
         include_sidemodels: Literal[False] = ...,
         include_optional: Literal[True],
         include_feedbacks: bool = False,
+        include_crossconnections: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
     ) -> dict[str, Model | None]: ...
@@ -2777,6 +2818,7 @@ the available directories (calib_1 and calib_2).
         include_sidemodels: Literal[True],
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
+        include_crossconnections: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
     ) -> dict[str, Model]: ...
@@ -2790,6 +2832,7 @@ the available directories (calib_1 and calib_2).
         include_sidemodels: Literal[True],
         include_optional: Literal[True],
         include_feedbacks: bool = False,
+        include_crossconnections: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
     ) -> dict[str, Model | None]: ...
@@ -2803,6 +2846,7 @@ the available directories (calib_1 and calib_2).
         include_sidemodels: Literal[True],
         include_optional: Literal[False] = ...,
         include_feedbacks: bool = False,
+        include_crossconnections: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
     ) -> dict[str, Model | None]: ...
@@ -2816,6 +2860,7 @@ the available directories (calib_1 and calib_2).
         include_sidemodels: Literal[True],
         include_optional: Literal[True],
         include_feedbacks: bool = False,
+        include_crossconnections: bool = False,
         aggregate_vectors: Literal[True],
         repeat_sharedmodels: bool = False,
     ) -> dict[str, Model | None]: ...
@@ -2828,6 +2873,7 @@ the available directories (calib_1 and calib_2).
         include_sidemodels: bool = False,
         include_optional: bool = False,
         include_feedbacks: bool = False,
+        include_crossconnections: bool = False,
         aggregate_vectors: bool = False,
         repeat_sharedmodels: bool = False,
     ) -> dict[str, Model] | dict[str, Model | None]:
@@ -2843,65 +2889,77 @@ the available directories (calib_1 and calib_2).
 
         The `include_mainmodel` parameter allows the addition of the main model:
 
-        >>> model.find_submodels(include_mainmodel=True)
-        {'model': lland_knauf}
+        >>> def find_submodels(**kwargs):
+        ...     for descr, submodel in model.find_submodels(**kwargs).items():
+        ...         print(f"{descr}: {submodel}")
+
+        >>> find_submodels(include_mainmodel=True)
+        model: lland_knauf
 
         The `include_optional` parameter allows considering prepared and unprepared
         submodels:
 
-        >>> model.find_submodels(include_optional=True)
-        {'model.aetmodel': None, 'model.radiationmodel': None, 'model.soilmodel': None}
+        >>> find_submodels(include_optional=True)
+        model.aetmodel: None
+        model.radiationmodel: None
+        model.snowmodel: None
+        model.soilmodel: None
         >>> model.aetmodel = prepare_model("evap_aet_minhas")
         >>> model.aetmodel.petmodel = prepare_model("evap_pet_mlc")
         >>> model.aetmodel.petmodel.retmodel = prepare_model("evap_ret_tw2002")
-        >>> from pprint import pprint
-        >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': evap_aet_minhas...,
-         'model.aetmodel.intercmodel': None,
-         'model.aetmodel.petmodel': evap_pet_mlc...,
-         'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
-         'model.aetmodel.petmodel.retmodel.radiationmodel': None,
-         'model.aetmodel.petmodel.retmodel.tempmodel': None,
-         'model.aetmodel.snowcovermodel': None,
-         'model.aetmodel.snowycanopymodel': None,
-         'model.aetmodel.soilwatermodel': None,
-         'model.radiationmodel': None,
-         'model.soilmodel': None}
+        >>> find_submodels(include_optional=True)
+        model.aetmodel: evap_aet_minhas
+        model.aetmodel.intercmodel: None
+        model.aetmodel.petmodel: evap_pet_mlc
+        model.aetmodel.petmodel.retmodel: evap_ret_tw2002
+        model.aetmodel.petmodel.retmodel.radiationmodel: None
+        model.aetmodel.petmodel.retmodel.tempmodel: None
+        model.aetmodel.snowcovermodel: None
+        model.aetmodel.snowycanopymodel: None
+        model.aetmodel.soilwatermodel: None
+        model.radiationmodel: None
+        model.snowmodel: None
+        model.soilmodel: None
 
         By default, |Model.find_submodels| does not return an additional entry when a
         main model serves as a sub-submodel:
 
         >>> model.aetmodel.soilwatermodel = model
         >>> model.aetmodel.soilwatermodel_is_mainmodel = True
-        >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': evap_aet_minhas...,
-         'model.aetmodel.intercmodel': None,
-         'model.aetmodel.petmodel': evap_pet_mlc...,
-         'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
-         'model.aetmodel.petmodel.retmodel.radiationmodel': None,
-         'model.aetmodel.petmodel.retmodel.tempmodel': None,
-         'model.aetmodel.snowcovermodel': None,
-         'model.aetmodel.snowycanopymodel': None,
-         'model.radiationmodel': None,
-         'model.soilmodel': None}
+        >>> find_submodels(include_optional=True)
+        model.aetmodel: evap_aet_minhas
+        model.aetmodel.intercmodel: None
+        model.aetmodel.petmodel: evap_pet_mlc
+        model.aetmodel.petmodel.retmodel: evap_ret_tw2002
+        model.aetmodel.petmodel.retmodel.radiationmodel: None
+        model.aetmodel.petmodel.retmodel.tempmodel: None
+        model.aetmodel.snowcovermodel: None
+        model.aetmodel.snowycanopymodel: None
+        model.radiationmodel: None
+        model.snowmodel: None
+        model.soilmodel: None
 
         Use the `include_feedbacks` parameter to make such feedback connections
         transparent:
 
-        >>> pprint(model.find_submodels(include_mainmodel=True,
-        ...     include_optional=True, include_feedbacks=True))  # doctest: +ELLIPSIS
-        {'model': lland_knauf...,
-         'model.aetmodel': evap_aet_minhas...,
-         'model.aetmodel.intercmodel': None,
-         'model.aetmodel.petmodel': evap_pet_mlc...,
-         'model.aetmodel.petmodel.retmodel': evap_ret_tw2002,
-         'model.aetmodel.petmodel.retmodel.radiationmodel': None,
-         'model.aetmodel.petmodel.retmodel.tempmodel': None,
-         'model.aetmodel.snowcovermodel': None,
-         'model.aetmodel.snowycanopymodel': None,
-         'model.aetmodel.soilwatermodel': lland_knauf...,
-         'model.radiationmodel': None,
-         'model.soilmodel': None}
+        >>> find_submodels(
+        ...     include_mainmodel=True,
+        ...     include_optional=True,
+        ...     include_feedbacks=True,
+        ... )
+        model: lland_knauf
+        model.aetmodel: evap_aet_minhas
+        model.aetmodel.intercmodel: None
+        model.aetmodel.petmodel: evap_pet_mlc
+        model.aetmodel.petmodel.retmodel: evap_ret_tw2002
+        model.aetmodel.petmodel.retmodel.radiationmodel: None
+        model.aetmodel.petmodel.retmodel.tempmodel: None
+        model.aetmodel.snowcovermodel: None
+        model.aetmodel.snowycanopymodel: None
+        model.aetmodel.soilwatermodel: lland_knauf
+        model.radiationmodel: None
+        model.snowmodel: None
+        model.soilmodel: None
 
         |Model.find_submodels| includes only one reference to shared model instances by
         default:
@@ -2909,108 +2967,128 @@ the available directories (calib_1 and calib_2).
         >>> model.radiationmodel = prepare_model("meteo_glob_fao56")
         >>> model.aetmodel = prepare_model("evap_aet_morsim")
         >>> model.aetmodel.radiationmodel = model.radiationmodel
-        >>> pprint(model.find_submodels(include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': evap_aet_morsim...,
-         'model.aetmodel.intercmodel': None,
-         'model.aetmodel.snowalbedomodel': None,
-         'model.aetmodel.snowcovermodel': None,
-         'model.aetmodel.snowycanopymodel': None,
-         'model.aetmodel.soilwatermodel': None,
-         'model.aetmodel.tempmodel': None,
-         'model.radiationmodel': meteo_glob_fao56,
-         'model.soilmodel': None}
+        >>> find_submodels(include_optional=True)
+        model.aetmodel: evap_aet_morsim
+        model.aetmodel.intercmodel: None
+        model.aetmodel.snowalbedomodel: None
+        model.aetmodel.snowcovermodel: None
+        model.aetmodel.snowycanopymodel: None
+        model.aetmodel.soilwatermodel: None
+        model.aetmodel.tempmodel: None
+        model.radiationmodel: meteo_glob_fao56
+        model.snowmodel: None
+        model.soilmodel: None
 
         Use the `repeat_sharedmodels` parameter to change this behaviour:
 
-        >>> pprint(model.find_submodels(
-        ...     repeat_sharedmodels=True, include_optional=True))  # doctest: +ELLIPSIS
-        {'model.aetmodel': evap_aet_morsim...,
-         'model.aetmodel.intercmodel': None,
-         'model.aetmodel.radiationmodel': meteo_glob_fao56,
-         'model.aetmodel.snowalbedomodel': None,
-         'model.aetmodel.snowcovermodel': None,
-         'model.aetmodel.snowycanopymodel': None,
-         'model.aetmodel.soilwatermodel': None,
-         'model.aetmodel.tempmodel': None,
-         'model.radiationmodel': meteo_glob_fao56,
-         'model.soilmodel': None}
+        >>> find_submodels(repeat_sharedmodels=True, include_optional=True)
+        model.aetmodel: evap_aet_morsim
+        model.aetmodel.intercmodel: None
+        model.aetmodel.radiationmodel: meteo_glob_fao56
+        model.aetmodel.snowalbedomodel: None
+        model.aetmodel.snowcovermodel: None
+        model.aetmodel.snowycanopymodel: None
+        model.aetmodel.soilwatermodel: None
+        model.aetmodel.tempmodel: None
+        model.radiationmodel: meteo_glob_fao56
+        model.snowmodel: None
+        model.soilmodel: None
+
+        >>> model = prepare_model("hland_96")
+        >>> model.aetmodel = prepare_model("evap_aet_hbv96")
+        >>> model.snowmodel = prepare_model("snow_dd")
+        >>> submodeladder = type(model).add_snowmodel_v1
+        >>> submodeladder._mainmodelstack.append(model)
+        >>> submodeladder._submodel = model.snowmodel
+        >>> submodeladder._build_cross_connections()
+        >>> del submodeladder._mainmodelstack[-1]
+        >>> find_submodels()
+        model.aetmodel: evap_aet_hbv96
+        model.snowmodel: snow_dd
+        >>> find_submodels(include_crossconnections=True)
+        model.aetmodel: evap_aet_hbv96
+        model.aetmodel.snowcovermodel: snow_dd
+        model.aetmodel.snowcovermodel.throughfallmodel: hland_96
+        model.snowmodel: snow_dd
 
         All previous examples dealt with scalar submodel references handled by
         |SubmodelProperty|.  Now we will focus on vectors of submodel references
         handled by |SubmodelsProperty| and take |sw1d_channel| as an example:
 
-        >>> channel = prepare_model("sw1d_channel")
-        >>> channel.parameters.control.nmbsegments(2)
+        >>> model = prepare_model("sw1d_channel")
+        >>> model.parameters.control.nmbsegments(2)
 
         Again, method |Model.find_submodels| returns by default an empty dictionary if
         no submodel is available:
 
-        >>> channel.find_submodels()
+        >>> model.find_submodels()
         {}
 
         The `include_optional` parameter works as shown for the scalar case.  But for
         scalar cases, the names contain an additional suffix to indicate the position
         of the respective submodel:
 
-        >>> pprint(channel.find_submodels(include_optional=True))
-        {'model.routingmodels_0': None,
-         'model.routingmodels_1': None,
-         'model.routingmodels_2': None,
-         'model.storagemodels_0': None,
-         'model.storagemodels_1': None}
+        >>> find_submodels(include_optional=True)
+        model.routingmodels_0: None
+        model.routingmodels_1: None
+        model.routingmodels_2: None
+        model.storagemodels_0: None
+        model.storagemodels_1: None
 
         We now add some possible submodels to the |sw1d_channel| main model:
 
-        >>> with channel.add_routingmodel_v1("sw1d_q_in", position=0, update=False):
+        >>> with model.add_routingmodel_v1("sw1d_q_in", position=0, update=False):
         ...     pass
-        >>> with channel.add_storagemodel_v1("sw1d_storage", position=0, update=False):
+        >>> with model.add_storagemodel_v1("sw1d_storage", position=0, update=False):
         ...     pass
-        >>> with channel.add_routingmodel_v2("sw1d_lias", position=1, update=False):
+        >>> with model.add_routingmodel_v2("sw1d_lias", position=1, update=False):
         ...     pass
-        >>> with channel.add_storagemodel_v1("sw1d_storage", position=1, update=False):
+        >>> with model.add_storagemodel_v1("sw1d_storage", position=1, update=False):
         ...     pass
-        >>> with channel.add_routingmodel_v3("sw1d_weir_out", position=2, update=False):
+        >>> with model.add_routingmodel_v3("sw1d_weir_out", position=2, update=False):
         ...     pass
 
         Method |Model.find_submodels| associates them with the correct positions:
 
-        >>> pprint(channel.find_submodels())
-        {'model.routingmodels_0': sw1d_q_in,
-         'model.routingmodels_1': sw1d_lias,
-         'model.routingmodels_2': sw1d_weir_out,
-         'model.storagemodels_0': sw1d_storage,
-         'model.storagemodels_1': sw1d_storage}
+        >>> find_submodels()
+        model.routingmodels_0: sw1d_q_in
+        model.routingmodels_1: sw1d_lias
+        model.routingmodels_2: sw1d_weir_out
+        model.storagemodels_0: sw1d_storage
+        model.storagemodels_1: sw1d_storage
 
         One can use the `aggregate_vectors` parameter to gain a better overview.
         Then, |Model.find_submodels| reports only the names of the respective
         |SubmodelsProperty| instances with a suffixed wildcard to distinguish them
         from |SubmodelProperty| instances:
 
-        >>> channel.find_submodels(aggregate_vectors=True)
-        {'model.routingmodels_*': None, 'model.storagemodels_*': None}
+        >>> find_submodels(aggregate_vectors=True)
+        model.routingmodels_*: None
+        model.storagemodels_*: None
 
         Another option is to include side models.  However, this does not work in
         combination with including sub-submodels and thus cannot give further insight
         into the configuration of a |sw1d_channel| model:
 
-        >>> pprint(channel.find_submodels(include_sidemodels=True))
+        >>> find_submodels(include_sidemodels=True)
         Traceback (most recent call last):
         ...
         ValueError: Including sub-submodels and side-models leads to ambiguous results.
 
         So, one needs to apply it to the respective submodels directly:
 
-        >>> pprint(channel.storagemodels[0].find_submodels(
-        ...     include_subsubmodels=False, include_sidemodels=True))
-        {'model.routingmodelsdownstream_0': sw1d_lias,
-         'model.routingmodelsupstream_0': sw1d_q_in}
+        >>> channel = model
+        >>> model = channel.storagemodels[0]
+        >>> find_submodels(include_subsubmodels=False, include_sidemodels=True)
+        model.routingmodelsdownstream_0: sw1d_lias
+        model.routingmodelsupstream_0: sw1d_q_in
 
-        >>> pprint(channel.routingmodels[1].find_submodels(
-        ...     include_subsubmodels=False, include_sidemodels=True))
-        {'model.routingmodelsdownstream_0': sw1d_weir_out,
-         'model.routingmodelsupstream_0': sw1d_q_in,
-         'model.storagemodeldownstream': sw1d_storage,
-         'model.storagemodelupstream': sw1d_storage}
+        >>> model = channel.routingmodels[1]
+        >>> find_submodels(include_subsubmodels=False, include_sidemodels=True)
+        model.routingmodelsdownstream_0: sw1d_weir_out
+        model.routingmodelsupstream_0: sw1d_q_in
+        model.storagemodeldownstream: sw1d_storage
+        model.storagemodelupstream: sw1d_storage
         """
 
         if include_subsubmodels and include_sidemodels:
@@ -3030,6 +3108,15 @@ the available directories (calib_1 and calib_2).
                     include_feedbacks or not sub_is_main
                 ):
                     submodel = getattr(model, subprop.name)
+                    css_dict = subprop.__hydpy__crossconnections__
+                    if (
+                        not include_crossconnections
+                        and submodel is not None
+                        and (css_subdict := css_dict.get(model))
+                        and (css_set := css_subdict.get(submodel))
+                        and any((t[0] and (t[1] == subprop.name)) for t in css_set)
+                    ):
+                        continue
                     if (include_optional or (submodel is not None)) and (
                         repeat_sharedmodels or (submodel not in sharables)
                     ):
@@ -3163,7 +3250,7 @@ the available directories (calib_1 and calib_2).
         self.parameters.update(ignore_errors=ignore_errors)
         for name, submodel in self.find_submodels(include_subsubmodels=False).items():
             if isinstance(submodel, SubmodelInterface):
-                adder = self.__hydpy__submodel2adder__[name.split(".")[-1]]
+                adder = self.__hydpy__submodel2adder__.get(name.split(".")[-1])
                 if adder is not None:
                     if adder.dimensionality == 0:
                         adder.update(self, submodel, refresh=True)
@@ -3314,7 +3401,7 @@ the available directories (calib_1 and calib_2).
 
     def __repr__(self) -> str:
         lines = [self.name]
-        for port, model in self.find_submodels().items():
+        for port, model in self.find_submodels(include_crossconnections=True).items():
             prefix = port.count(".") * "    "
             lines.append(f"{prefix}{port.rsplit('.')[-1]}: {model.name}")
         return "\n".join(lines)

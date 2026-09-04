@@ -14,6 +14,7 @@ import inspect
 import sys
 import types
 import warnings
+import weakref
 
 import hydpy
 from hydpy.core import exceptiontools
@@ -606,6 +607,41 @@ meteo_glob_morsim:
     ...
     TypeError: While trying to add a submodel to the main model `lland_knauf`, the \
 following error occurred: The given `lland_knauf` instance is not considered sharable.
+
+    |SubmodelAdder| tries to create so-called submodel cross-connections, which allow
+    different submodels of the same main model to share their states.  If we, for
+    example, add |snow_dd| as the main model's "snow submodel", it automatically
+    becomes the "snow cover submodel" of |evap_aet_morsim| as well:
+
+    ToDo: with model.add_snowmodel_v1("snow_dd") as snowmodel:
+    ToDo:     redistributionpaths(0.0)
+    ToDo: assert model.aetmodel.snowcovermodel is snowmodel, model.aetmodel.snowcovermodel  # pylint: disable=line-too-long
+
+    Removing the snow model from the main model also deletes the freshly created
+    cross-connection.:
+
+    del model.snowmodel
+    assert model.aetmodel.snowcovermodel is None
+
+    The same holds for removing the actual evapotranspiration submodel:
+
+    ToDo: with model.add_snowmodel_v1("snow_dd") as snowmodel:
+    ToDo:     redistributionpaths(0.0)
+    ToDo: assert model.aetmodel.snowcovermodel is snowmodel
+    ToDo: aetmodel = model.aetmodel
+    ToDo: del model.aetmodel
+    ToDo: assert aetmodel.snowcovermodel is None
+
+    Adding a different submodel also deletes old, automatically created
+    cross-connections:
+
+    ToDo: with model.add_aetmodel_v1("evap_aet_hbv96") as aetmodel:
+    ToDo:     pass
+    ToDo: assert model.aetmodel.snowcovermodel is snowmodel
+    ToDo: with model.add_aetmodel_v1("evap_aet_morsim"):
+    ToDo:    pass
+    ToDo: assert aetmodel.snowcovermodel is None
+    ToDo: assert model.aetmodel.snowcovermodel is snowmodel
     """
 
     submodelname: str
@@ -784,6 +820,9 @@ following error occurred: The given `lland_knauf` instance is not considered sha
                 self._connect_models(model=model, submodel=submodel, position=position)
                 return None
 
+            if self.dimensionality == 0:  # ToDo: move up
+                delattr(model, self.submodelname)
+
             if isinstance(submodel, modeltools.Model):
                 raise TypeError(
                     f"The given `{submodel}` instance is not considered sharable."
@@ -853,6 +892,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
         traceback: types.TracebackType | None,
     ) -> None:
         try:
+            self._build_cross_connections()
             self._mainmodelstack.pop(-1)
             if self._update and (exception_type is None):
                 self._submodel.parameters.update()
@@ -887,6 +927,40 @@ following error occurred: The given `lland_knauf` instance is not considered sha
             if isinstance(self._model, modeltools.SubmodelInterface):
                 self._model.preparemethod2arguments.clear()
             self._tidy_up()
+
+    def _build_cross_connections(self) -> None:
+        for candidate in (
+            self._mainmodelstack[0].find_submodels(include_mainmodel=True).values()
+        ):
+
+            SP = modeltools.SubmodelProperty
+            dict_ = SP.__hydpy__crossconnections__
+
+            for m1, m2 in ((candidate, self._submodel), (self._submodel, candidate)):
+                for descr, submodel in m1.find_submodels(
+                    include_subsubmodels=False, include_optional=True
+                ).items():
+                    name = descr.split(".")[-1]
+                    prop = getattr(type(m1), name, None)
+                    if not (
+                        submodel is None
+                        and isinstance(prop, SP)
+                        and isinstance(m2, prop.interfaces)
+                    ):
+                        continue
+                    setattr(m1, name, m2)
+                    setattr(
+                        m1,
+                        f"{name}_typeid",
+                        prop.__hydpy__find_first_suitable_interface__(m2).typeid,
+                    )
+                    setattr(m1, f"{name}_is_mainmodel", False)
+                    for inverted, m1_, m2_ in ((True, m1, m2), (False, m2, m1)):
+                        if (subdict := dict_.get(m1_)) is None:
+                            dict_[m1_] = subdict = weakref.WeakKeyDictionary()
+                        if (set_ := subdict.get(m2_)) is None:
+                            subdict[m2_] = set_ = set()
+                        set_.add((inverted, name))
 
     def _check_submodelinterface(self, submodeltype: type[modeltools.Model]) -> None:
         if not issubclass(submodeltype, self.submodelinterface):

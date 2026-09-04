@@ -1,11 +1,11 @@
-"""This Cython module implements global configuration data for numerical
-tool, which must be available at Cython speed during simulations.
+"""This Cython module implements global configuration data for numerical tool, which
+must be available at Cython speed during simulations.
 
 All configuration data is available via attribute `config` of module |pub|.
 
-Many numerical integration algorithms provide error estimates.  An
-integration result is only accepted, if the associated error estimate
-is lower than a given threshold value.
+Many numerical integration algorithms provide error estimates.  An integration result
+is only accepted, if the associated error estimate is lower than a given threshold
+value.
 
 The default value is:
 
@@ -15,48 +15,44 @@ The default value is:
 >>> round_(config.abs_error_max)
 0.01
 
-You can pass larger value, but note that too large tolerances as the
-following would possible lead to poor simulation results:
+You can pass a larger value, but note that too large tolerances as the following would
+possibly lead to poor simulation results:
 
 >>> config.abs_error_max = 1e3
 >>> round_(config.abs_error_max)
 1000.0
 
-Tolerances lower than zero or equal zero cannot be met and are thus
-forbidden:
+Tolerances lower than zero or equal zero cannot be met and are thus forbidden:
 
 >>> config.abs_error_max = 0.
 Traceback (most recent call last):
 ...
 ValueError: The numerical tolerance value `abs_error_max` must be larger than zero, but the value `0.0` was given.
 
-Under some circumstances, numerical integration algorithms might not
-be able to achieve sufficient accuracy with reasonable effort.  To
-prevent model simulations from becoming too long, one can restrict
-the smallest time step, with which an outer time step is allowed to
-be solved...
+Under some circumstances, numerical integration algorithms might not be able to achieve
+sufficient accuracy with reasonable effort.  To prevent model simulations from becoming
+too long, one can restrict the smallest time step, with which an outer time step is
+allowed to be solved...
 
 The default value is:
 
 >>> round_(config.rel_dt_min)
 0.001
 
-You can pass larger value, but note that too large step sizes as the
-following would possible result in poor simulation results:
+You can pass a larger value, but note that too large step sizes as the following would
+possibly result in poor simulation results:
 
 >>> config.rel_dt_min = 1.
 >>> round_(config.rel_dt_min)
 1.0
 
-On the other hand, too small step sizes might result in too long
-simulation times:
+On the other hand, too small step sizes might result in too long simulation times:
 
 >>> config.rel_dt_min = 0.
 >>> round_(config.rel_dt_min)
 0.0
 
-Tolerances lower than zero or larger than one do not make sense and
-are thus forbidden:
+Tolerances lower than zero or larger than one do not make sense and are thus forbidden:
 
 >>> config.rel_dt_min = 1.1
 Traceback (most recent call last):

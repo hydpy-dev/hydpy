@@ -4,7 +4,7 @@ response unit.  This is why some parameters (e.g. the field capacity |FK|) and s
 sequences (e.g. the actual soil water storage |BoWa|) are 1-dimensional.  Each entry
 represents the value of a different hru.
 
-In contrasts to the original LARSIM model, |lland.DOCNAME.long| allows for arbitrary
+In contrast to the original LARSIM model, |lland.DOCNAME.long| allows for arbitrary
 response unit definitions.  Nevertheless, the original distinction in accordance with
 sixteen different landuse types is still supported.  The parameter |Lnk| defines which
 entry of e.g. parameter |FK| is related to which land use type via integer values.

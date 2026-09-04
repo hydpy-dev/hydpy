@@ -371,7 +371,7 @@ Smoothing kernel for approximating the maximum function for two values based on 
 
 :math:`f_{max}(x, y, c) = c \cdot ln(exp(x/c)+exp(y/c))`
 
-The following example shows the different degree of approximation of the maximum
+The following example shows the different degrees of approximation of the maximum
 function for four different smoothing parameters:
 
 >>> for value in range(11):
@@ -422,7 +422,7 @@ LogSumExp function.
 
 :math:`f_{max}(x, y, c) = -c \cdot ln(exp(x/-c)+exp(y/-c))`
 
-The following example shows the different degree of approximation of the minimum
+The following example shows the different degrees of approximation of the minimum
 function for four different smoothing parameters:
 
 >>> for value in range(11):
@@ -473,7 +473,7 @@ Smoothing kernel for approximating the maximum function for three values based o
 
 :math:`f_{max}(x, y, z, c) = c \cdot ln(exp(x/c)+exp(y/c)+exp(z/c))`
 
-The following example shows the different degree of approximation of the maximum
+The following example shows the different degrees of approximation of the maximum
 function for four different smoothing parameters:
 
 >>> for value in range(11):
@@ -524,7 +524,7 @@ LogSumExp function.
 
 :math:`f_{max}(x, y, z, c) = -c \cdot ln(exp(x/-c)+exp(y/-c)+exp(z/-c))`
 
-The following example shows the different degree of approximation of the minimum
+The following example shows the different degrees of approximation of the minimum
 function for four different smoothing parameters:
 
 >>> for value in range(11):

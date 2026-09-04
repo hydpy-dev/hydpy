@@ -831,7 +831,7 @@ class NetworkManager(FileManager):
     >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
 
-    You can define the complete network structure of an `HydPy` project by an arbitrary
+    You can define the complete network structure of a HydPy project by an arbitrary
     number of "network files".  These valid Python files define |Node| and |Element|
     objects and their connections.  Network files are allowed to overlap, meaning two
     or more files can define the same objects (in a consistent manner only, of course).
@@ -958,7 +958,7 @@ nonheadwaters` into network files, the following error occurred: ...
                 f"files."
             )
         for filename, path in zip(self.filenames, self.filepaths):
-            # Ensure both `Node` and `Element`start with a `fresh` memory.
+            # Ensure both `Node` and `Element` starts with a `fresh` memory.
             devicetools.Node.extract_new()
             devicetools.Element.extract_new()
             try:
@@ -1144,7 +1144,7 @@ name or the responsible Element object.
         """Read the control parameters from the given path (and its auxiliary paths,
         where appropriate) and store them in the given |dict| object `info`.
 
-        Note that`info` can be used to feed information into the execution of control
+        Note that `info` can be used to feed information into the execution of control
         files.  Use this method only if you are entirely sure of how the control
         parameter import of *HydPy* works.  Otherwise, you should most probably prefer
         to use the method |ControlManager.load_file|.
@@ -1202,7 +1202,7 @@ class ConditionManager(FileManager):
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
 
-    If the current directory named is not defined explicitly, both properties construct
+    If the current directory name is not defined explicitly, both properties construct
     it following the actual simulation start or end date, respectively:
 
     >>> from hydpy import repr_
@@ -2129,7 +2129,7 @@ def check_projectstructure(projectpath: str) -> None:
     ...     check_projectstructure("my_project")  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    UserWarning: The project root directory `...my_project` does not exists.
+    UserWarning: The project root directory `...my_project` does not exist.
 
     Second, it lists all missing base directories:
 
@@ -2156,7 +2156,7 @@ named `series` as required by the sequence manager.
     ...     hp = HydPy("my_project")  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    UserWarning: The project root directory `...my_project` does not exists.
+    UserWarning: The project root directory `...my_project` does not exist.
     """
 
     projectpath = os.path.abspath(projectpath)
@@ -2170,7 +2170,7 @@ named `series` as required by the sequence manager.
                     f"{filemanager.__name__[:-7].lower()} manager."
                 )
     else:
-        warnings.warn(f"The project root directory `{projectpath}` does not exists.")
+        warnings.warn(f"The project root directory `{projectpath}` does not exist.")
 
 
 def create_projectstructure(projectpath: str, overwrite: bool = False) -> None:
@@ -2200,7 +2200,7 @@ def create_projectstructure(projectpath: str, overwrite: bool = False) -> None:
     Traceback (most recent call last):
     ...
     FileExistsError: While trying to create the basic directory structure for project \
-`my_project`the directory ...iotesting, the following error occurred: The root \
+`my_project`, the directory ...iotesting, the following error occurred: The root \
 directory already exists and overwriting is not allowed.
     >>> with TestIO():
     ...     print_filestructure("my_project")  # doctest: +ELLIPSIS
@@ -2238,5 +2238,5 @@ directory already exists and overwriting is not allowed.
         dirpath, projectname = os.path.split(projectpath)
         objecttools.augment_excmessage(
             f"While trying to create the basic directory structure for project "
-            f"`{projectname}`the directory {dirpath}"
+            f"`{projectname}`, the directory {dirpath}"
         )

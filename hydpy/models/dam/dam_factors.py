@@ -7,8 +7,8 @@ from hydpy.core.typingtools import *
 class WaterLevel(sequencetools.FactorSequence):
     """Water level [m].
 
-    After each simulation step, the value of |WaterLevel| corresponds to the value
-    of the state sequence |WaterVolume| for the end of the simulation step.
+    After each simulation step, the value of |WaterLevel| corresponds to the value of
+    the state sequence |WaterVolume| at the end of the simulation step.
     """
 
     NDIM: Final[Literal[0]] = 0

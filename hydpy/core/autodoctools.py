@@ -340,7 +340,7 @@ def _get_member2applicationmodels(basemodelname: str) -> dict[Member, list[str]]
 def autodoc_basemodel(module: types.ModuleType) -> None:
     """Add an exhaustive docstring to the given module of a basemodel.
 
-    Works onlye when all modules of the basemodel are named in the standard way, e.g.
+    Works only when all modules of the basemodel are named in the standard way, e.g.
     `lland_model`, `lland_control`, `lland_inputs`.
     """
     autodoc_tuple2doc(module)
@@ -832,7 +832,7 @@ class Substituter:
         If we add an object with the same, the updating of |Substituter.short2long|
         depends on its priority.  Builtins have the highest priority.  Objects defined
         in the `core`, `exe`, `auxs`, `cythons`, and `models` subpackages have the
-        priorities two to six.  All other objects (incuding those of other
+        priorities two to six.  All other objects (including those of other
         site-packages) have the lowest priority.  If we add `variable1`, said to be
         defined in the `core` subpackage (higher priority than the `exe` subpackage),
         the new short substitution replaces the old one:
@@ -1109,7 +1109,7 @@ class Substituter:
         >>> sub1.find("HydPy|")
         |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`
 
-        In reverse, subsequent updates of master objects to not affect their slaves
+        In reverse, subsequent updates of master objects do not affect their slaves
         directly:
 
         >>> from hydpy.core import masktools
@@ -1370,7 +1370,7 @@ _loggedtuples: set[str] = set()
 
 def autodoc_tuple2doc(module: types.ModuleType) -> None:
     """Include tuples as `CLASSES` of `ControlParameters` and `RUN_METHODS` of `Models`
-    into the respective docstring."""
+    in the respective docstring."""
     modulename = module.__name__
     for membername, member in inspect.getmembers(module):
         for tuplename, descr in _name2descr.items():
@@ -1395,7 +1395,7 @@ def autodoc_tuple2doc(module: types.ModuleType) -> None:
 
 
 def autodoc_complete() -> None:
-    """Add substituters to all relevant modules."""
+    """Add one substituter to each relevant module."""
     with warnings.catch_warnings():
         warnings.filterwarnings(action="ignore", category=FutureWarning)
 
@@ -1454,10 +1454,10 @@ class Directory(TypedDict):
     """Helper for representing directory structures."""
 
     subdirectories: dict[str, Directory]
-    """Mapping between the subdirectory names and the subdirectories of a directory."""
+    """Mapping between the subdirectory names and the subdirectories in a directory."""
 
     files: list[str]
-    """The names of all files of a directory."""
+    """The names of all files in a directory."""
 
 
 class ProjectStructure:

@@ -139,7 +139,7 @@ following error occurred: hour must be in 0...
     >>> date - "1"
     Traceback (most recent call last):
     ...
-    TypeError: Object `1` of type `str` cannot be substracted from a `Date` instance.
+    TypeError: Object `1` of type `str` cannot be subtracted from a `Date` instance.
 
     The comparison operators work as expected:
 
@@ -971,7 +971,7 @@ twelve (December) but `0` is given
             except BaseException:
                 pass
         raise TypeError(
-            f"Object `{other}` of type `{type(other).__name__}` cannot be substracted "
+            f"Object `{other}` of type `{type(other).__name__}` cannot be subtracted "
             f"from a `Date` instance."
         )
 
@@ -1123,8 +1123,8 @@ class Period:
     >>> Period(1)
     Traceback (most recent call last):
     ...
-    TypeError: While trying to initialise a `Period` object based argument `1`, the \
-following error occurred: The supplied argument must be either an instance of \
+    TypeError: While trying to initialise a `Period` object based on argument `1`, \
+the following error occurred: The supplied argument must be either an instance of \
 `Period`, `datetime.timedelta`, or `str`, but the given type is `int`.
 
     Class |Period| supports some mathematical operations.  Depending on the operation,
@@ -1247,7 +1247,7 @@ following error occurred: The supplied argument must be either an instance of \
             )
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to initialise a `Period` object based argument "
+                f"While trying to initialise a `Period` object based on argument "
                 f"`{period}`"
             )
 
@@ -1800,9 +1800,9 @@ class Timegrid:
     >>> Timegrid("2000-01-01", "2001-01-01", 1)
     Traceback (most recent call last):
     ...
-    TypeError: While trying to prepare a Trimegrid object based on the arguments \
+    TypeError: While trying to prepare a Timegrid object based on the arguments \
 `2000-01-01`, `2001-01-01`, and `1`, the following error occurred: While trying to \
-initialise a `Period` object based argument `1`, the following error occurred: The \
+initialise a `Period` object based on argument `1`, the following error occurred: The \
 supplied argument must be either an instance of `Period`, `datetime.timedelta`, or \
 `str`, but the given type is `int`.
 
@@ -1942,7 +1942,7 @@ indexed timegrid `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`.
             self.verify()
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to prepare a Trimegrid object based on the arguments "
+                f"While trying to prepare a Timegrid object based on the arguments "
                 f"`{firstdate}`, `{lastdate}`, and `{stepsize}`"
             )
 
@@ -2365,7 +2365,7 @@ timegrid and the given array must be equal, but the length of the timegrid objec
         >>> Timegrid("2001-01-01", "2000-01-01", "1d")
         Traceback (most recent call last):
         ...
-        ValueError: While trying to prepare a Trimegrid object based on the arguments \
+        ValueError: While trying to prepare a Timegrid object based on the arguments \
 `2001-01-01`, `2000-01-01`, and `1d`, the following error occurred: The temporal \
 sequence of the first date (`2001-01-01 00:00:00`) and the last date \
 (`2000-01-01 00:00:00`) is inconsistent.
@@ -2929,7 +2929,7 @@ must not be earlier than the last date of the evaluation period (`2003-01-01 00:
         >>> timegrids.verify()
         Traceback (most recent call last):
         ...
-        ValueError: The initialisation stepsize (`1d`) must be identical with the \
+        ValueError: The initialisation stepsize (`1d`) must be identical to the \
 simulation stepsize (`5d`).
 
         >>> timegrids.sim = Timegrid(
@@ -3009,7 +3009,7 @@ size `3d`.
             if self.init.stepsize != tg.stepsize:
                 raise ValueError(
                     f"The initialisation stepsize (`{self.init.stepsize}`) must be "
-                    f"identical with the {descr} stepsize (`{tg.stepsize}`)."
+                    f"identical to the {descr} stepsize (`{tg.stepsize}`)."
                 )
             try:
                 self.init[tg.firstdate]

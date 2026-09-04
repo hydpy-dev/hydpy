@@ -31,7 +31,7 @@ else:
 class ParameterIUH:
     """Descriptor base class for |PrimaryParameterIUH| and |SecondaryParameterIUH|.
 
-    The first initialisation argument is the parameters name.  Optionally, an
+    The first initialisation argument is the parameter's name.  Optionally, an
     alternative type (the default type is |float|) and a documentation string can be
     passed.
     """
@@ -131,7 +131,7 @@ class IUH(metaclass=MetaIUH):
 
     See class |TranslationDiffusionEquation| for explanations and application examples.
 
-    For developers: The string representation does also work for parameter-free |IUH|
+    For developers: The string representation also works for parameter-free |IUH|
     subclasses:
 
     >>> from hydpy.auxs.iuhtools import IUH
@@ -176,7 +176,7 @@ class IUH(metaclass=MetaIUH):
             raise ValueError(
                 f"When passing primary parameter values as initialization arguments of "
                 f"the instantaneous unit hydrograph class `{type(self).__name__}`, or "
-                f"when using method `set_primary_parameters`, one has to to define all "
+                f"when using method `set_primary_parameters`, one has to define all "
                 f"values at once via keyword arguments.  But instead of the primary "
                 f"parameter names `{objecttools.enumeration(required)}` the following "
                 f"keywords were given: {objecttools.enumeration(given)}."
@@ -252,7 +252,7 @@ class IUH(metaclass=MetaIUH):
 
     @property
     def moment2(self) -> float:
-        """The second time delay weighted statistical momens of the instantaneous unit
+        """The second time delay weighted statistical moments of the instantaneous unit
         hydrograph."""
         moment1 = self.moment1
         delays, response = self.delay_response_series
@@ -306,11 +306,11 @@ class TranslationDiffusionEquation(IUH):
     >>> round_((tde.a, tde.b))
     6.454972, 0.645497
 
-    The function can principally be evaluated for time delays larger zero, but not for
-    zero time delay, which can cause trouble when applying numerical integration
-    algorithms.  This is why we clip the given time delay to minimum value of 1e-10
-    internally.  In most cases (like the following), the returned result should be
-    workable for integration algorithms:
+    The function can principally be evaluated for time delays greater than zero, but
+    not for zero time delay, which can cause trouble when applying numerical
+    integration algorithms.  This is why we clip the given time delay to a minimum
+    value of 1e-10 internally.  In most cases (like the following), the returned result
+    should be workable for integration algorithms:
 
     >>> round_(tde([0.0, 5.0, 10.0, 15.0, 20.0]))
     0.0, 0.040559, 0.115165, 0.031303, 0.00507
@@ -325,7 +325,7 @@ class TranslationDiffusionEquation(IUH):
 
     Class |TranslationDiffusionEquation| implements its own property `moment1` (used in
     the example above), which is computationally more efficient and robust than the one
-    of its base class |IUH|.  But both normally, both should return very similar values:
+    of its base class |IUH|.  But both should normally return very similar values:
 
     >>> from hydpy.auxs.iuhtools import IUH
     >>> round_(IUH.moment1.fget(tde))
@@ -344,7 +344,7 @@ class TranslationDiffusionEquation(IUH):
     All instances of the subclasses of |IUH| provide a pure Moving Average and an
     Autoregressive-Moving Average approximation to the dt standard impulse of the
     instantaneous unit hydrograph function.  In the given example, the MA approximation
-    involves 57 coefficients, and the ARMA approximation invoves 17 coefficients:
+    involves 57 coefficients, and the ARMA approximation involves 17 coefficients:
 
     >>> tde.ma.order
     57
@@ -353,7 +353,7 @@ class TranslationDiffusionEquation(IUH):
 
     The diffusion of the MA model deviates from the iuh function due to aggregation.
     For the ARMA model, there is also a slight deviation in time delay, as the ARMA
-    model itself is only a approximation of the MA model:
+    model itself is only an approximation of the MA model:
 
     >>> round_(tde.ma.moments)
     10.0, 3.488074
@@ -387,7 +387,7 @@ class TranslationDiffusionEquation(IUH):
     >>> tde.x
     1.0
 
-    It a new value cannot be converted, an error is raised:
+    If a new value cannot be converted, an error is raised:
 
     >>> tde.x = "a"
     Traceback (most recent call last):
@@ -403,7 +403,7 @@ the instantaneous unit hydrograph parameter `x`.
     ...
     ValueError: When passing primary parameter values as initialization arguments of \
 the instantaneous unit hydrograph class `TranslationDiffusionEquation`, or when using \
-method `set_primary_parameters`, one has to to define all values at once via keyword \
+method `set_primary_parameters`, one has to define all values at once via keyword \
 arguments.  But instead of the primary parameter names `d, u, and x` the following \
 keywords were given: d and u.
     """

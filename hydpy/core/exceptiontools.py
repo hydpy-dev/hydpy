@@ -21,13 +21,13 @@ class AttributeNotReadyWarning(Warning):
 
 
 def attrready(obj: Any, name: str) -> bool:
-    """Return |False| when trying the access the attribute of the given object
-    results in an |AttributeNotReady| error and otherwise return |True|.
+    """Return |False| when trying to access the attribute of the given object results
+    in an |AttributeNotReady| error, and otherwise return |True|.
 
-    In *HydPy*, some properties raise an |AttributeNotReady| error when one
-    tries to access them before they are correctly set.  You can use method
-    |attrready| to find out the current state of such properties without
-    doing the related exception handling on your own:
+    In *HydPy*, some properties raise an |AttributeNotReady| error when one tries to
+    access them before they are correctly set.  You can use method |attrready| to find
+    out the current state of such properties without doing the related exception
+    handling on your own:
 
     >>> from hydpy import attrready
     >>> from hydpy.core.parametertools import Parameter
@@ -54,14 +54,14 @@ def attrready(obj: Any, name: str) -> bool:
 
 
 def hasattr_(obj: Any, name: str) -> bool:
-    """Return |True| or |False| whether the object has an attribute with the
-    given name.
+    """Return |True| or |False| whether the object has an attribute with the given
+    name.
 
-    In *HydPy*, some properties raise an |AttributeNotReady| error when one
-    tries to access them before they are correctly set, which also happens
-    when one applies function |hasattr| to find out if the related object
-    handles the property at all.  Function |hasattr_| extends function
-    |hasattr| by also catching |AttributeNotReady| errors:
+    In *HydPy*, some properties raise an |AttributeNotReady| error when one tries to
+    access them before they are correctly set, which also happens when one applies
+    function |hasattr| to find out if the related object handles the property at all.
+    Function |hasattr_| extends function |hasattr| by also catching |AttributeNotReady|
+    errors:
 
     >>> from hydpy import hasattr_
     >>> from hydpy.core.parametertools import Parameter
@@ -120,14 +120,14 @@ def getattr_(
     default: T_inv | _Enum = _Enum.GETATTR_NO_DEFAULT,
     type_: type[T_inv] | None = None,
 ) -> Any:
-    """Return the attribute with the given name or, if it does not exist,
-    the default value, if available.
+    """Return the attribute with the given name or, if it does not exist, the default
+    value, if available.
 
-    In *HydPy*, some properties raise an |AttributeNotReady| error when one
-    tries to access them before they are correctly set, which also happens
-    when one applies function |getattr| with default values.  Function
-    |getattr_| extends function |getattr| by also returning the default
-    value when an |AttributeNotReady| error occurs:
+    In *HydPy*, some properties raise an |AttributeNotReady| error when one tries to
+    access them before they are correctly set, which also happens when one applies
+    function |getattr| with default values.  Function |getattr_| extends function
+    |getattr| by also returning the default value when an |AttributeNotReady| error
+    occurs:
 
     >>> from hydpy import getattr_
     >>> from hydpy.core.parametertools import Parameter
@@ -148,8 +148,8 @@ def getattr_(
     >>> getattr_(par, "shape")
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Shape information for \
-variable `par` can only be retrieved after it has been defined.
+    hydpy.core.exceptiontools.AttributeNotReady: Shape information for variable `par` \
+can only be retrieved after it has been defined.
     >>> getattr_(par, "shape", (4,))
     (4,)
     >>> par.shape = 2
@@ -158,8 +158,8 @@ variable `par` can only be retrieved after it has been defined.
     >>> getattr_(par, "shape", (4,))
     (2,)
 
-    Function |getattr_| allows to specify the expected return type and raises
-    an |AssertionError| if necessary:
+    Function |getattr_| allows you to specify the expected return type and raises an
+    |AssertionError| if necessary:
 
     >>> getattr_(par, "NDIM", type_=int)
     1
@@ -204,8 +204,8 @@ variable `par` can only be retrieved after it has been defined.
 
 
 class OptionalModuleNotAvailable(ImportError):
-    """A `HydPy` function requiring an optional module is called, but this
-    module is not available."""
+    """A `HydPy` function requiring an optional module is called, but this module is
+    not available."""
 
 
 class OptionalImport(types.ModuleType):
@@ -217,22 +217,21 @@ class OptionalImport(types.ModuleType):
     >>> numpy.nan
     nan
 
-    If no module could be imported at all, |OptionalImport| returns a
-    dummy object which raises a |OptionalModuleNotAvailable| each time
-    a one tries to access a member of the original module.
+    If no module could be imported at all, |OptionalImport| returns a dummy object
+    which raises a |OptionalModuleNotAvailable| each time one tries to access a member
+    of the original module.
 
     >>> numpie = OptionalImport("numpie", ["numpie"], locals())
     >>> numpie.nan
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.OptionalModuleNotAvailable: HydPy could not \
-load one of the following modules: `numpie`.  These modules are no general \
-requirement but installing at least one of them is necessary for some \
-specific functionalities.
+    hydpy.core.exceptiontools.OptionalModuleNotAvailable: HydPy could not load one of \
+the following modules: `numpie`.  These modules are no general requirement but \
+installing at least one of them is necessary for some specific functionalities.
 
-    Note the very special case that |OptionalImport| raises a plain
-    |AttributeError| when asked for the attribute `__wrapped__` (to avoid
-    trouble when applying function `wrapt` of module |inspect|):
+    Note the very special case that |OptionalImport| raises a plain |AttributeError|
+    when asked for the attribute `__wrapped__` (to avoid trouble when applying function
+    `wrapt` of module |inspect|):
 
     >>> numpie.__wrapped__
     Traceback (most recent call last):
@@ -262,7 +261,7 @@ specific functionalities.
             return getattr(module, name)
         raise OptionalModuleNotAvailable(
             f"HydPy could not load one of the following modules: "
-            f"`{objecttools.enumeration(self._modules)}`.  These modules are "
-            f"no general requirement but installing at least one of them "
-            f"is necessary for some specific functionalities."
+            f"`{objecttools.enumeration(self._modules)}`.  These modules are no "
+            f"general requirement but installing at least one of them is necessary "
+            f"for some specific functionalities."
         )

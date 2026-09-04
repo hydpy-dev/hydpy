@@ -21,7 +21,7 @@ class AbsErrorMax(parametertools.SolverParameter):
     def modify_init(self) -> float:
         r"""Adjust and return the value of class constant `INIT`.
 
-        Note that the default initial value 0.0001 refers to mm/T.  Hence the actual
+        Note that the default initial value 0.0001 refers to mm/T.  Hence, the actual
         default initial value in m³/s is:
 
         :math:`AbsErrorMax = 0.0001 \cdot CatchmentArea \cdot 1000 / Seconds`
@@ -81,7 +81,7 @@ class MaxEval(parametertools.SolverParameter):
 
 
 class MaxCFL(parametertools.SolverParameter):
-    """Maximum Caurant-Friedrichs-Lewy number for using the Explicit Labatto Sequence
+    """Maximum Courant-Friedrichs-Lewy number for using the Explicit Labatto Sequence
     [-]."""
 
     NDIM: Final[Literal[0]] = 0

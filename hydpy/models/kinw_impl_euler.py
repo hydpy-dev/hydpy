@@ -2,7 +2,7 @@
 """|kinw_impl_euler| is a kinematic wave routing approach that does not suffer from
 stability issues due to high Courant numbers.  Its robustness is a result of solving
 the underlying (non-linear) ordinary differential equations with the implicit Euler
-method (also known as the Backward Euler method).  For the sake of computational
+method (also known as the Backwards Euler method).  For the sake of computational
 efficiency, we implemented this method without any adaptive error control.  Hence, it
 might sometimes be less accurate than routing models as |musk_mct| (with respect to
 physical processes) or |kinw_williams| (with respect to the original differential
@@ -509,8 +509,7 @@ There is no indication of an error in the water balance:
 short segments
 ______________
 
-Short channel segments do neither result in unstable results nor increased computation
-time:
+Short channel segments do not result in unstable results or increased computation time:
 
 .. integration-test::
 
@@ -1155,7 +1154,7 @@ of |kinw_impl_euler| but causes computational overhead.  Hence, setting the valu
 |WaterVolumeTolerance| and |WaterDepthTolerance| is a compromise between numerical
 accuracy and computational efficiency.  We hope we found default values sensible for
 most applications.  However, you might need to refine them in some cases.  Here, we set
-|WaterVolumeTolerance| to an tremendously large value for illustration, which causes
+|WaterVolumeTolerance| to a tremendously large value for illustration, which causes
 wobbly simulation results but no water balance errors (see method |Calc_WaterDepth_V1|
 for more information):
 

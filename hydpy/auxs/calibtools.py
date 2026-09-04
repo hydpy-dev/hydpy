@@ -64,7 +64,7 @@ class TargetFunction(Protocol):
     """
 
     def __call__(self) -> float:
-        """Return some kind of efficience criterion."""
+        """Return the current value of the efficiency criterion."""
 
 
 class Adaptor(Protocol):
@@ -72,7 +72,7 @@ class Adaptor(Protocol):
 
     Often, one calibration parameter (represented by one |Replace| object) depends on
     other calibration parameters (represented by other |Replace| objects) or other
-    "real" parameter values.  Please select an existing or define a new adaptor and
+    "real" parameter values.  Please select an existing adaptor or define a new one and
     assign it to a |Replace| object to introduce such dependencies.
 
     See class |SumAdaptor| or class |FactorAdaptor| for concrete examples.
@@ -209,7 +209,7 @@ class FactorAdaptor(Adaptor):
     >>> gmelt.adaptor(control_hland.gmelt)
 
     The string representation of the |hland_control.GMelt| instance of the Dill
-    catchment indicates nothing happened:
+    catchment indicates that nothing happened:
 
     >>> control_hland.gmelt
     gmelt(nan)
@@ -480,7 +480,7 @@ via option `parameterstep`.
              "land_lahn_marb")
 
     Alternatively, you can specify selections by passing themselves or their names (the
-    latter requires them to be a member of `pub.selections`):
+    latter requires them to be members of `pub.selections`):
 
     >>> rule = Replace(name="fc",
     ...                parameter="fc",
@@ -1514,7 +1514,8 @@ attribute nor a rule object named `FC`...
     ...     ci._logfilepath = "dirname1/filename.log"
     ...     ci.update_logfile()
     UserWarning: While trying to update the logfile `dirname1/filename.log`, the \
-following problem occured: [Errno 2] No such file or directory: 'dirname1/filename.log'.
+following problem occurred: [Errno 2] No such file or directory: \
+'dirname1/filename.log'.
 
     On subsequent calls, it tries to write both the previously logged and the new data:
 
@@ -1540,7 +1541,8 @@ following problem occured: [Errno 2] No such file or directory: 'dirname1/filena
     Traceback (most recent call last):
     ...
     UserWarning: While trying to update the logfile `dirname2/filename.log`, the \
-following problem occured: [Errno 2] No such file or directory: 'dirname2/filename.log'.
+following problem occurred: [Errno 2] No such file or directory: \
+'dirname2/filename.log'.
     >>> from unittest import mock
     >>> with TestIO():
     ...     with mock.patch("time.sleep") as mocked:
@@ -1608,7 +1610,7 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     Class |CalibrationInterface| also provides method
     |CalibrationInterface.read_logfile|, which automatically selects the best
     calibration result.  Therefore, it needs to know that the highest result is the
-    best, which we indicate by setting argument `maximisation` to |True|:
+    best, which we indicate by setting the argument `maximisation` to |True|:
 
     >>> with TestIO():
     ...     ci.read_logfile(logfilepath="example_calibration.log", maximisation=True)
@@ -1653,7 +1655,7 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     Traceback (most recent call last):
     ...
     RuntimeError: The current parameterstep of the `Replace` rule `percmax` (`2d`) \
-does not agree with the one documentated in log file `example_calibration.log` (`1d`).
+does not agree with the one documented in log file `example_calibration.log` (`1d`).
 
     Method |CalibrationInterface.read_logfile| reports inconsistent rule names as
     follows:
@@ -1927,7 +1929,7 @@ object named `fc`.
             except BaseException as exc:
                 warnings.warn(
                     f"While trying to update the logfile `{self._logfilepath}`, the "
-                    f"following problem occured: {exc}."
+                    f"following problem occurred: {exc}."
                 )
 
     def finalise_logfile(self) -> None:
@@ -1985,7 +1987,7 @@ object named `fc`.
                     raise RuntimeError(
                         f"The current parameterstep of the `{type(rule).__name__}` "
                         f"rule `{rule.name}` (`{rule.parameterstep}`) does not agree "
-                        f"with the one documentated in log file `{self._logfilepath}` "
+                        f"with the one documented in log file `{self._logfilepath}` "
                         f"(`{parameterstep}`)."
                     )
                 idx2rule[idx] = rule
@@ -2549,9 +2551,9 @@ class ReplaceIUH(RuleIUH):
 
     Usually, it is not a good idea to calibrate the AR and MA coefficients of
     parameters like |arma_control.Responses| of model |arma_rimorido| individually.
-    Instead, we need to calibrate the few coefficients of the underlying |IUH| objects,
-    which calculate the ARMA coefficients.  Class |ReplaceIUH| helps to accomplish this
-    task.
+    Instead, we need to calibrate the few coefficients of the underlying |IUH| object,
+    which calculates the ARMA coefficients.  Class |ReplaceIUH| helps to accomplish
+    this task.
 
     .. note::
 
@@ -2613,7 +2615,7 @@ class ReplaceIUH(RuleIUH):
     >>> u.add_iuhs(element1=tde1, element2=tde2)
     >>> d.add_iuhs(element1=tde1, element2=tde2)
 
-    Note that method |RuleIUH.add_iuhs| enforces to add all |IUH| objects at ones to
+    Note that method |RuleIUH.add_iuhs| enforces adding all |IUH| objects at once to
     avoid inconsistencies that might be hard to track later:
 
     >>> d.add_iuhs(element1=tde1)

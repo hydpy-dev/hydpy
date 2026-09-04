@@ -132,7 +132,7 @@ class Constants(dict[str, int]):
     """Base class for defining integer constants for a specific model."""
 
     value2name: dict[int, str]
-    """Mapping from the the values of the constants to their names."""
+    """Mapping from the values of the constants to their names."""
 
     def __init__(self, *args, **kwargs) -> None:
         if not (args or kwargs):
@@ -196,8 +196,8 @@ class Parameters(Generic[TM_co]):
     >>> assert model.parameters.control
     >>> assert not model.parameters.solver
 
-    Iterations makes only the non-empty subgroups available, which are actually
-    handling |Parameter| objects:
+    Iteration makes only the non-empty subgroups available, which are actually handling
+    |Parameter| objects:
 
     >>> for subpars in model.parameters:
     ...     print(subpars.name)
@@ -575,9 +575,9 @@ class KeywordArguments(Generic[T_inv]):
     subclasses.
 
     Class |KeywordArguments| is a rather elaborate feature of *HydPy* primarily
-    thought for framework developers.  One possible use-case for (advanced)
-    *HydPy* users is writing polished auxiliary control files.  When dealing with
-    such a problem, have a look on method |KeywordArguments.extend|.
+    intended for framework developers.  One possible use-case for (advanced) HydPy
+    users is writing polished auxiliary control files.  When dealing with such a
+    problem, have a look on method |KeywordArguments.extend|.
 
     The purpose of class |KeywordArguments| is to simplify handling instances of
     |Parameter| subclasses which allow setting values by calling them with keyword
@@ -1495,7 +1495,7 @@ parameter and a simulation time step size first.
         0.25
 
         As usual, the "global" simulation step size of the |Timegrids|
-        object of module |pub| is prefered:
+        object of module |pub| is preferred:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2001-01-01", "12h"
@@ -4256,7 +4256,7 @@ solver parameter `tol` of element `?` has been defined so far.
     override the method |SolverParameter.modify_init|, which allows
     adapting the effective parameter value to the actual project settings.
 
-    As a most simple example, we extend our class `Tol` with a
+    As a simple example, we extend our class `Tol` with a
     |SolverParameter.modify_init| method that doubles the original
     `INIT` value:
 

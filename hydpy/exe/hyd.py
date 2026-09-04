@@ -6,8 +6,8 @@ https://docs.python.org/3/using/windows.html#launcher
 
 .. _`here`: https://bitbucket.org/vinay.sajip/pylauncher/downloads
 
-This script is thought to be called from a command line.  After successfully
-installating HydPy, you caninvoke it from anywhere on your computer.  Test this by just
+This script is intended to be called from a command-line prompt.  After successfully
+installing HydPy, you can invoke it from anywhere on your computer.  Test this by just
 typing `hyd.py` into your command line:
 
 >>> import subprocess
@@ -22,7 +22,7 @@ See the following stack traceback for debugging:
 If this test example does not work on your machine, you should first make sure there is
 a `hyd.py` file in the `Scripts` folder of your Python distribution and that the
 environment variable `Path` is pointing to this folder.  Windows users should also make
-shure to install the `Python Launcher for Windows`_.  The Python standard distribution
+sure to install the `Python Launcher for Windows`_.  The Python standard distribution
 contains this launcher, but other distributions like Anaconda do not.  You can find a
 suitable installer `here`_.  As a stopgap, you could directly call Python and pass the
 complete path of the `hyd.py` file available in your *HydPy* site-packages folder as an
@@ -52,7 +52,7 @@ error:
 The first positional argument defining the function to be called is missing.
 ...
 
-When passing `default` as keyword argument `logfile`, function |prepare_logfile|
+When passing `default` by the keyword argument `logfile`, function |prepare_logfile|
 generates a default name containing the current date and time:
 
 >>> with TestIO():
@@ -186,7 +186,7 @@ following: `multiline`, `single_line`, and `splittable`.
 ...
 
 The (so far used) default is `multiline`.  It prints the context, the message, and the
-individual traceback components of the occurred error in separate lines:
+individual traceback components of the error on separate lines.:
 
 >>> result = run_subprocess(  # doctest: +ELLIPSIS
 ...    "hyd.py exec_commands "
@@ -230,8 +230,8 @@ raise_RuntimeError('it_fails')` resulted in the following error:__hydpy_newline_
 fails__hydpy_newline____hydpy_newline__See the following stack traceback for \
 debugging:__hydpy_newline__ ...__hydpy_newline__
 
-See the documentation on module |xmltools| for an actually successful example using the
-"script function" |run_simulation|.
+See the documentation on module |xmltools| for a successful example using the "script
+function" |run_simulation|.
 """
 
 import sys

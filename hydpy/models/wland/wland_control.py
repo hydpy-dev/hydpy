@@ -74,7 +74,7 @@ class NU(parametertools.Parameter):
 
 
 class LT(parametertools.NameParameter):
-    """Landuse type [-].
+    """Land use type [-].
 
     For better readability, use the land-use-related constants defined in module
     |wland_constants| to set the individual hydrological response units' land-use

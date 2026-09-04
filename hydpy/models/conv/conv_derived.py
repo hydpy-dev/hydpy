@@ -31,7 +31,7 @@ class NmbInputs(parametertools.Parameter):
                 sequence.shape = self.value
 
     def update(self) -> None:
-        """Determine the number of inlet nodes via inspecting control parameter
+        """Determine the number of inlet nodes by inspecting control parameter
         |InputCoordinates|.
 
         Note that invoking method |NmbInputs.update| like calling the parameter
@@ -79,7 +79,7 @@ class NmbOutputs(parametertools.Parameter):
                 sequence.shape = self.value
 
     def update(self) -> None:
-        """Determine the number of inlet nodes via inspecting control parameter
+        """Determine the number of inlet nodes by inspecting control parameter
         |OutputCoordinates|.
 
         Note that invoking method |NmbOutputs.update| like calling the parameter
@@ -116,8 +116,8 @@ class Distances(parametertools.Parameter):
     def update(self) -> None:
         """Determine the distances.
 
-        The individual rows of parameter |Distances| correspond to the
-        outlet nodes; the columns contain the inlet nodes' indices:
+        The individual rows of parameter |Distances| correspond to the outlet nodes;
+        the columns contain the inlet nodes' indices:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -161,10 +161,10 @@ class ProximityOrder(parametertools.Parameter):
     DERIVEDPARAMETERS = (Distances,)
 
     def update(self) -> None:
-        """Determine the proximity-order of the inlet and outlet nodes.
+        """Determine the proximity order of the inlet and outlet nodes.
 
-        The individual rows of parameter |ProximityOrder| correspond to the
-        outlet nodes; the columns contain the inlet nodes' indices:
+        The individual rows of parameter |ProximityOrder| correspond to the outlet
+        nodes; the columns contain the inlet nodes' indices:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -183,8 +183,8 @@ class ProximityOrder(parametertools.Parameter):
                         [1, 0],
                         [0, 1]])
 
-        Set the value of parameter |MaxNmbInputs| to one,if you want to
-        consider the respective nearest input node only:
+        Set the value of parameter |MaxNmbInputs| to one if you want to consider the
+        respective nearest input node only:
 
         >>> maxnmbinputs(1)
         >>> derived.proximityorder.update()
@@ -204,8 +204,8 @@ class ProximityOrder(parametertools.Parameter):
 
 
 class Weights(parametertools.Parameter):
-    """Weighting coefficients of the inlet nodes corresponding to their
-    proximity to each outlet node and parameter |Power| [-]."""
+    """Weighting coefficients of the inlet nodes corresponding to their proximity to
+    each outlet node and parameter |Power| [-]."""
 
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
@@ -222,8 +222,8 @@ class Weights(parametertools.Parameter):
     def update(self) -> None:
         """Determine the weighting coefficients.
 
-        The individual rows of parameter |Weights| correspond to the
-        outlet nodes; the rows contain the weights of the inlet nodes:
+        The individual rows of parameter |Weights| correspond to the outlet nodes; the
+        rows contain the weights of the inlet nodes:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -246,10 +246,9 @@ class Weights(parametertools.Parameter):
                  [0.5, 0.029412, 0.029412, 0.000052],
                  [0.5, 0.5, 0.1, 0.000053]])
 
-        You can restrict the number of inlet nodes used for each outlet
-        node via parameter |MaxNmbInputs|.  In the following  example, it
-        seems reasonable to set its value to three to ignore the far-distant
-        inlet node `in4`:
+        You can restrict the number of inlet nodes used for each outlet node via
+        parameter |MaxNmbInputs|.  In the following  example, it seems reasonable to
+        set its value to three to ignore the far-distant inlet node `in4`:
 
         >>> maxnmbinputs(3)
         >>> derived.distances.update()

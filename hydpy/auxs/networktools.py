@@ -208,7 +208,7 @@ class RiverBasinNumbers(tuple[RiverBasinNumber]):
     RiverBasinNumbers((111, 1121, 1122, 1123, 1124, 1125, 11261,
                        11262, 11269, 1129, 113, 1132))
 
-    The `in` operator works as to be expected, but performs an automatic type
+    The `in` operator works as expected, but performs an automatic type
     conversion and relies on a more efficient implementation than the one of the base
     class |tuple|:
 

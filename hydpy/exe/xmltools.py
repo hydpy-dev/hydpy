@@ -183,13 +183,13 @@ def find(
     >>> find(interface.root, "wrong", optional=False)
     Traceback (most recent call last):
     ...
-    AttributeError: The actual XML element `config` does not define a XML subelement \
+    AttributeError: The actual XML element `config` does not define an XML subelement \
 named `wrong`.  Please make sure your XML file follows the relevant XML schema.
     """
     element = root.find(f"{namespace}{name}")
     if element is None and not optional:
         raise AttributeError(
-            f"The actual XML element `{root.tag.rsplit('}')[-1]}` does not define a "
+            f"The actual XML element `{root.tag.rsplit('}')[-1]}` does not define an "
             f"XML subelement named `{name}`.  Please make sure your XML file follows "
             f"the relevant XML schema."
         )
@@ -409,7 +409,7 @@ class XMLBase:
         >>> interface.find("wrong", optional=False)
         Traceback (most recent call last):
         ...
-        AttributeError: The actual XML element `config` does not define a XML \
+        AttributeError: The actual XML element `config` does not define an XML \
 subelement named `wrong`.  Please make sure your XML file follows the relevant XML \
 schema.
         """
@@ -1252,7 +1252,7 @@ class XMLSelector(XMLBase):
 
     @property
     def selections(self) -> selectiontools.Selections:
-        """The |Selections| object defined for the respective respective IO series or
+        """The |Selections| object defined for the respective IO series or
         exchange item elements of the actual XML file.
 
         Property |XMLSelector.selections| of class |XMLSelector| falls back to the
@@ -1287,8 +1287,8 @@ class XMLSelector(XMLBase):
         ...     print(seq.info, seq.selections.names)
         Traceback (most recent call last):
         ...
-        AttributeError: Unable to find a XML element named "selections".  Please make \
-sure your XML file follows the relevant XML schema.
+        AttributeError: Unable to find an XML element named "selections".  Please \
+make sure your XML file follows the relevant XML schema.
         """
         selections = self.find("selections")
         master: XMLBase | None = self
@@ -1296,7 +1296,7 @@ sure your XML file follows the relevant XML schema.
             master = getattr(master, "master", None)
             if master is None:
                 raise AttributeError(
-                    'Unable to find a XML element named "selections".  Please make '
+                    'Unable to find an XML element named "selections".  Please make '
                     "sure your XML file follows the relevant XML schema."
                 )
             selections = master.find("selections")
@@ -1815,7 +1815,7 @@ during a simulation run is not supported but tried for sequence `p` of element \
         |pub| module.
 
         This "information freezing" is required for those sequences selected for
-        reading data  from or writing data to different directories "just in time"
+        reading data from or writing data to different directories "just in time"
         during a simulation run.
         """
         if not self._ramflag:

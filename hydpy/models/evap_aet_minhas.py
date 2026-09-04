@@ -1,6 +1,6 @@
 # pylint: disable=line-too-long, unused-wildcard-import
 """|evap_aet_minhas| serves as a submodel that supplies its main model with estimates
-of evapotranspiration from soils and evaporation from interception storages and water
+of evapotranspiration from soils and evaporation from interception storage and water
 areas.  Therefore, it requires potential evapotranspiration data calculated by a
 sub-submodel.  See, for example, the documentation of application model |lland_dd|,
 where |evap_ret_tw2002| calculates grass reference evapotranspiration values after
@@ -107,7 +107,7 @@ ______________________
 
 For grassland, if the related snow routine calculates snow evaporation separately,
 |evap_aet_minhas| reduces interception evaporation and soil evapotranspiration
-according to the degree of the snow cover on the ground:
+according to the degree of snow cover on the ground:
 
 .. integration-test::
 
@@ -125,7 +125,7 @@ according to the degree of the snow cover on the ground:
 snow evaporation trees
 ______________________
 
-For trees, |evap_aet_minhas| instead considers snow on ground for reducing soil
+For trees, |evap_aet_minhas| instead considers snow on the ground for reducing soil
 evapotranspiration, but snow in canopies for reducing interception evaporation:
 
 .. integration-test::
@@ -174,7 +174,7 @@ The following "sealed soil" can evaporate water from its surface but not from it
 >>> soil(False)
 >>> water(False)
 
-All results are as to be expected:
+All results are as expected:
 
 .. integration-test::
 
@@ -190,7 +190,7 @@ All results are as to be expected:
 water area
 __________
 
-A "water area" comes neither with a solid surface nor a soil body:
+A "water area" comes with neither a solid surface nor a soil body:
 
 >>> interception(False)
 >>> soil(False)

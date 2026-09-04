@@ -58,8 +58,8 @@ class NmbLogEntries(parametertools.Parameter):
                                        nan, nan, nan, nan, nan, nan, nan, nan,
                                        nan, nan, nan, nan, nan, nan, nan, nan)
 
-        To prevent from loosing information, updating parameter |NmbLogEntries| resets
-        the shape of the relevant log sequences only when necessary:
+        To prevent losing information, updating parameter |NmbLogEntries| resets the
+        shape of the relevant log sequences only when necessary:
 
         >>> logs.loggedsunshineduration = 2.0
         >>> logs.loggedpossiblesunshineduration.shape = (6,)
@@ -80,7 +80,7 @@ class NmbLogEntries(parametertools.Parameter):
         Traceback (most recent call last):
         ...
         ValueError: The value of parameter `nmblogentries` of element `?` cannot be \
-determined for a the current simulation step size.  The fraction of the memory period \
+determined for the current simulation step size.  The fraction of the memory period \
 (1d) and the simulation step size (5h) leaves a remainder.
 
         .. testsetup::
@@ -91,7 +91,7 @@ determined for a the current simulation step size.  The fraction of the memory p
         if nmb % 1:
             raise ValueError(
                 f"The value of parameter {objecttools.elementphrase(self)} cannot be "
-                f"determined for a the current simulation step size.  The fraction of "
+                f"determined for the current simulation step size.  The fraction of "
                 f"the memory period (1d) and the simulation step size "
                 f"({hydpy.pub.timegrids.stepsize}) leaves a remainder."
             )

@@ -280,7 +280,7 @@ class Calc_PE_PET_PETModel_V2(modeltools.Method):
 
     Examples:
 
-        We use |evap_pet_ambav1| as an example.  All data stems from the integration
+        We use |evap_pet_ambav1| as an example.  All data stem from the integration
         tests :ref:`evap_pet_ambav1_vegetation_daily`,
         :ref:`evap_pet_ambav1_snow_daily`, and :ref:`evap_pet_ambav1_water_area_daily`:
 
@@ -560,7 +560,7 @@ class Calc_EI_V1(modeltools.Method):
 
 
 class Calc_FR_V1(modeltools.Method):
-    r"""Determine the fraction between rainfall and total precipitation.
+    r"""Determine the fraction of rainfall on total precipitation.
 
     Basic equation:
       :math:`FR = \frac{T- \left( TT - TI / 2 \right)}{TI}`
@@ -614,7 +614,7 @@ class Calc_FR_V1(modeltools.Method):
 
 
 class Calc_RF_V1(modeltools.Method):
-    r"""Calculate the liquid amount of throughfall (rainfall) of the land areas.
+    r"""Calculate the liquid amount of throughfall (rainfall) for the land areas.
 
     Basic equation:
       :math:`RF = FR \cdot TF`
@@ -682,7 +682,7 @@ class Calc_SF_V1(modeltools.Method):
 class Calc_PM_V1(modeltools.Method):
     r"""Calculate the potential snowmelt of the land areas.
 
-    Basic equation (discontinous):
+    Basic equation (discontinuous):
       :math:`PM = max \left( DDF \cdot (T - DDT), 0 \right)`
 
     Examples:
@@ -763,7 +763,7 @@ class Calc_PM_V1(modeltools.Method):
 class Calc_AM_V1(modeltools.Method):
     r"""Calculate the actual snowmelt of the land areas.
 
-    Basic equation (discontinous):
+    Basic equation (discontinuous):
       .. math::
         AM = \begin{cases}
         PM &|\ SP > 0
@@ -865,7 +865,7 @@ class Calc_PS_V1(modeltools.Method):
 class Calc_WE_W_V1(modeltools.Method):
     r"""Calculate the wetness index for the elevated and the lowland regions.
 
-    Basic equation for the lowland region (the elevated region is handled analogous):
+    Basic equation for the lowland region (the elevated region is handled analogously):
       :math:`W = cos \left(
       \frac{min \big( max(DV, \, 0), \, CW \big) \cdot Pi}{CW} \right)
       \cdot \frac{1}{2} + \frac{1}{2}`
@@ -944,7 +944,7 @@ class Calc_PVE_PV_V1(modeltools.Method):
     r"""Calculate the rainfall (and snowmelt) entering the vadose zone in the elevated
     and lowland regions.
 
-    Basic equation for the lowland region (the elevated region is handled analogous):
+    Basic equation for the lowland region (the elevated region is handled analogously):
       .. math::
         PV = \sum_{i=1}^{NUL} \left ( \frac{AUR_i}{AGR} \cdot (RF_i + AM_i) \cdot
         \begin{cases}
@@ -1070,7 +1070,7 @@ class Calc_BetaE_Beta_V1(modeltools.Method):
     r"""Calculate the evapotranspiration reduction factor for the elevated and lowland
     regions.
 
-    Basic equation for the lowland region (the elevated region is handled analogous):
+    Basic equation for the lowland region (the elevated region is handled analogously):
       :math:`Beta = \frac{1 - x}{1 + x} \cdot \frac{1}{2} + \frac{1}{2}`
 
       :math:`x = exp \left( Zeta1 \cdot (DV - Zeta2) \right)`
@@ -1163,7 +1163,7 @@ class Calc_ETVE_ETV_V1(modeltools.Method):
     (See the documentation on method |evap_model.Update_SoilEvapotranspiration_V3|,
     which covers the corner cases of this approach in more detail.)
 
-    Basic equation for the lowland region (the elevated region is handled analogous):
+    Basic equation for the lowland region (the elevated region is handled analogously):
       .. math::
         ETV = \sum_{i=1}^{NUL} \frac{AUR_i}{AGR} \cdot
         \frac{PE_i - EI_i}{PE_i} \cdot PET_i \cdot
@@ -1232,7 +1232,7 @@ class Calc_ETVE_ETV_V1(modeltools.Method):
 class Calc_ES_V1(modeltools.Method):
     r"""Calculate the actual evaporation from the surface water reservoir.
 
-    Basic equation (discontinous):
+    Basic equation (discontinuous):
       .. math::
         ES = \begin{cases}
         PE &|\ HS > 0
@@ -1428,7 +1428,7 @@ class Return_DVH_V1(modeltools.Method):
     r"""Return the storage deficit of the vadose zone at a specific height above
     the groundwater table.
 
-    Basic equation (discontinous):
+    Basic equation (discontinuous):
       .. math::
         DVH = \begin{cases}
           0 &|\ DG \leq PsiAE
@@ -1677,7 +1677,7 @@ class Return_DVH_V2(modeltools.Method):
     r"""Return the storage deficit of the vadose zone at a specific height above
     the groundwater table.
 
-    Basic equation (discontinous):
+    Basic equation (discontinuous):
       .. math::
         DVH = ThetaR + \begin{cases}
           0 &|\ DG \leq PsiAE
@@ -2120,7 +2120,7 @@ class Calc_GF_V1(modeltools.Method):
 class Calc_GR_V1(modeltools.Method):
     r"""Calculate the elevated region's groundwater recharge.
 
-    Basic equations (discontinous):
+    Basic equations (discontinuous):
 
     .. math::
       GR = \begin{cases}
@@ -2490,7 +2490,7 @@ class Calc_FGS_V1(modeltools.Method):
     the stronger the functional similarity of both approaches.  But note that very
     high values can result in increased computation times.
 
-    Basic equations (discontinous):
+    Basic equations (discontinuous):
 
     .. math::
       FGS = Gradient \cdot ContactSurface \cdot Conductivity

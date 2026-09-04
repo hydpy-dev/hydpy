@@ -212,7 +212,7 @@ class ExchangeItem:
         >>> from hydpy.core.itemtools import ExchangeItem, ExchangeSpecification
         >>> item = ExchangeItem()
 
-        |ExchangeItem| is only a base class.  Hence we need to prepare some missing
+        |ExchangeItem| is only a base class.  Hence, we need to prepare some missing
         attributes manually:
 
         >>> item.targetspecs = ExchangeSpecification(master="hland",
@@ -1226,17 +1226,17 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         >>> with warn_later():
         ...     test("device")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`uz`, the following error occured: While trying to calculate the mean value of the \
+`uz`, the following error occurred: While trying to calculate the mean value of the \
 internal time series of sequence `uz` of element `land_dill_assl`, the following error \
 occurred: Sequence `uz` of element `land_dill_assl` is not requested to make any time \
 series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`ic`, the following error occured: While trying to calculate the mean value of the \
+`ic`, the following error occurred: While trying to calculate the mean value of the \
 internal time series of sequence `ic` of element `land_dill_assl`, the following error \
 occurred: Sequence `ic` of element `land_dill_assl` is not requested to make any time \
 series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`water`, the following error occured: While trying to calculate the mean value of the \
+`water`, the following error occurred: While trying to calculate the mean value of the \
 internal time series of sequence `watercontent` of element `land_dill_assl`, the \
 following error occurred: Sequence `watercontent` of element `land_dill_assl` is not \
 requested to make any time series data available.
@@ -1263,13 +1263,13 @@ has/have not been prepared so far.
         >>> with warn_later():
         ...     test("subunit")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`uz`, the following error occured: Sequence `uz` of element `land_dill_assl` is not \
+`uz`, the following error occurred: Sequence `uz` of element `land_dill_assl` is not \
 requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`ic`, the following error occured: Sequence `ic` of element `land_dill_assl` is not \
+`ic`, the following error occurred: Sequence `ic` of element `land_dill_assl` is not \
 requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`water`, the following error occured: Sequence `watercontent` of element \
+`water`, the following error occurred: Sequence `watercontent` of element \
 `land_dill_assl` is not requested to make any time series data available.
 
         >>> for series in uz.value:
@@ -1305,7 +1305,7 @@ has/have not been prepared so far.
                         self._value = None
                         warnings.warn(
                             f"While trying to query the values of exchange item "
-                            f"`{self.name}`, the following error occured: {exc}",
+                            f"`{self.name}`, the following error occurred: {exc}",
                             exceptiontools.AttributeNotReadyWarning,
                         )
                         return
@@ -1332,7 +1332,7 @@ has/have not been prepared so far.
                         self._value = None
                         warnings.warn(
                             f"While trying to query the values of exchange item "
-                            f"`{self.name}`, the following error occured: {exc}",
+                            f"`{self.name}`, the following error occurred: {exc}",
                             exceptiontools.AttributeNotReadyWarning,
                         )
                         return
@@ -1723,8 +1723,8 @@ class GetItem(ExchangeItem):
         Each item name is automatically generated and contains the name of the
         respective |Variable| object's |Device| and the target description.
 
-        For 0-dimensional variables, there is only one sub-name, which is is identical
-        to the device name:
+        For 0-dimensional variables, there is only one sub-name, which is identical to
+        the device name:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()

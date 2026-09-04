@@ -30,7 +30,7 @@ class QUH(sequencetools.LogSequence):
     Traceback (most recent call last):
     ...
     UserWarning: Due to the following problem, log sequence `quh` of element `?` \
-handling model `rconc` could be initialised with a averaged value only: While trying \
+handling model `rconc` could be initialised with an averaged value only: While trying \
 to set the value(s) of variable `quh`, the following error occurred: While trying to \
 convert the value(s) `(1.0, 2.0, 3.0, 0.0)` to a numpy ndarray with shape `(3...)` \
 and type `float`, the following error occurred: could not broadcast input array from \
@@ -53,8 +53,8 @@ shape (4...) into shape (3...)
             warnings.warn(
                 f"Due to the following problem, log sequence "
                 f"{objecttools.elementphrase(self)} handling model "
-                f"`{self.subseqs.seqs.model}` could be initialised "
-                f"with a averaged value only: {exc}"
+                f"`{self.subseqs.seqs.model}` could be initialised with an averaged "
+                f"value only: {exc}"
             )
 
     @property

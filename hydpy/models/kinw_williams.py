@@ -94,7 +94,7 @@ nodes and the |kinw_williams| model instance:
 ...                  outlets="output")
 >>> stream.model = model
 
-Next, we prepare a test function object that sets the intial stage to 3.71783276 m,
+Next, we prepare a test function object that sets the initial stage to 3.71783276 m,
 which results in an initial outflow of 100 m³/s:
 
 >>> from hydpy.core.testtools import IntegrationTest

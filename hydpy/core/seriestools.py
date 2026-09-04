@@ -131,7 +131,7 @@ following error occurred: wrong function
     ValueError: While trying to aggregate the given series, the following error \
 occurred: Module `numpy` does not provide a function named `Sum`.
 
-    To prevent from wrong conclusions, |aggregate_series| generally ignores all data of
+    To prevent wrong conclusions, |aggregate_series| generally ignores all data of
     incomplete intervals:
 
     >>> pub.timegrids = "2000-11-30", "2001-04-02", "1d"

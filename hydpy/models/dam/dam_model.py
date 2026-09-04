@@ -196,10 +196,10 @@ class Calc_AdjustedEvaporation_V1(modeltools.Method):
         >>> logs.loggedadjustedevaporation
         loggedadjustedevaporation(25.0)
 
-        Setting the weighting factor to a value smaller one activates the damping-delay
-        mechanism.  A value of 0.6 implies a weighting of 60 % of the "new" evaporation
-        value (here: 2.0 mm/h or 25 m³/s) and of 40 % of the "old" evaporation value
-        (here: 1.6 mm/h or 20 m³/s):
+        Setting the weighting factor to a value smaller than one activates the
+        damping-delay mechanism.  A value of 0.6 implies a weighting of 60 % of the
+        "new" evaporation value (here: 2.0 mm/h or 25 m³/s) and of 40 % of the "old"
+        evaporation value (here: 1.6 mm/h or 20 m³/s):
 
         >>> weightevaporation(0.6)
         >>> logs.loggedadjustedevaporation = 20.0
@@ -871,7 +871,7 @@ class Update_LoggedTotalRemoteDischarge_V1(modeltools.Method):
 
         The following example shows that method |Update_LoggedTotalRemoteDischarge_V1|
         moves the three memorised values successively to the right and stores the
-        respective new value on the bare left position:
+        respective new value in the bare left position:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
@@ -1135,7 +1135,7 @@ class Calc_EffectiveWaterLevelDifference_V1(modeltools.Method):
         |  21 |       3.35 |            3.25 |                      0.098221 |
 
         Swapping the inner and outer water levels changes only the calculated
-        difference's signs:
+        difference's sign:
 
         >>> test.nexts.waterlevel, test.nexts.outerwaterlevel = (
         ...     test.nexts.outerwaterlevel, test.nexts.waterlevel)
@@ -1280,7 +1280,7 @@ class Calc_AllowedRemoteRelief_V2(modeltools.Method):
         >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
 
         We prepare the dam model and define two different control schemes for the
-        hydrological summer (April to October) and winter month (November to May):
+        hydrological summer (April to October) and winter months (November to May):
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
@@ -1294,7 +1294,7 @@ class Calc_AllowedRemoteRelief_V2(modeltools.Method):
         >>> derived.toy.update()
 
         The following test function calculates |AllowedRemoteRelief| water levels
-        ranging from 0.0 and 8.0 meters:
+        ranging from 0.0 to 8.0 meters:
 
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model,
@@ -1521,8 +1521,8 @@ class Calc_RemoteDemand_V1(modeltools.Method):
 
         Low water elevation is often restricted to specific months of the year.
         Sometimes the pursued lowest discharge value varies over the year to allow for
-        a low flow variability in some agreement with the natural flow regime.  The
-        |dam.DOCNAME.long| model supports such variations.  Hence we define a short
+        low-flow variability in some agreement with the natural flow regime.  The
+        |dam.DOCNAME.long| model supports such variations.  Hence, we define a short
         simulation period first, allowing us to show how we can define the
         corresponding parameter values and how calculating the `remote` water demand
         throughout the year works:
@@ -1535,17 +1535,17 @@ class Calc_RemoteDemand_V1(modeltools.Method):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
 
-        Assume the required discharge at a gauge downstream being 2 m³/s
-        in the hydrological summer half-year (April to October).  In the
-        winter month (November to May), there is no such requirement:
+        Assume the required discharge at a gauge downstream being 2 m³/s in the
+        hydrological summer half-year (April to October).  In the winter months
+        (November to May), there is no such requirement:
 
         >>> remotedischargeminimum(_11_1_12=0.0, _03_31_12=0.0,
         ...                        _04_1_12=2.0, _10_31_12=2.0)
         >>> derived.toy.update()
 
-        Prepare a test function, that calculates the remote discharge demand
-        based on the parameter values defined above and for natural remote
-        discharge values ranging between 0 and 3 m³/s:
+        Prepare a test function, that calculates the remote discharge demand based on
+        the parameter values defined above and for natural remote discharge values
+        ranging between 0 and 3 m³/s:
 
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_remotedemand_v1, last_example=4,
@@ -1595,8 +1595,8 @@ class Calc_RemoteDemand_V1(modeltools.Method):
 
 
 class Calc_RemoteFailure_V1(modeltools.Method):
-    r"""Estimate the shortfall of actual discharge under the required discharge
-    of a cross section far downstream.
+    r"""Estimate the shortfall of actual discharge under the required discharge of a
+    cross section far downstream.
 
     Basic equation:
       :math:`RemoteFailure =
@@ -1605,8 +1605,8 @@ class Calc_RemoteFailure_V1(modeltools.Method):
 
     Examples:
 
-        As explained in the documentation on method |Calc_RemoteDemand_V1|,
-        we have to define a simulation period first:
+        As explained in the documentation on method |Calc_RemoteDemand_V1|, we have to
+        define a simulation period first:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
@@ -1623,21 +1623,21 @@ class Calc_RemoteFailure_V1(modeltools.Method):
         ...                        _04_1_12=2.0, _10_31_12=2.0)
         >>> derived.toy.update()
 
-        Let it be supposed that the actual discharge at the remote
-        cross section droped from 2 m³/s to 0  m³/s over the last three days:
+        Let it be supposed that the actual discharge at the remote cross section droped
+        from 2 m³/s to 0  m³/s over the last three days:
 
         >>> logs.loggedtotalremotedischarge(0.0, 1.0, 2.0)
 
-        This means that for the April 1 there would have been an averaged
-        shortfall of 1 m³/s:
+        This means that for the April 1 there would have been an averaged shortfall of
+        1 m³/s:
 
         >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> model.calc_remotefailure_v1()
         >>> fluxes.remotefailure
         remotefailure(1.0)
 
-        Instead for May 31 there would have been an excess of 1 m³/s, which
-        is interpreted to be a "negative failure":
+        Instead for May 31 there would have been an excess of 1 m³/s, which is
+        interpreted to be a "negative failure":
 
         >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> model.calc_remotefailure_v1()
@@ -1668,8 +1668,8 @@ class Calc_RemoteFailure_V1(modeltools.Method):
 
 
 class Calc_RequiredRemoteRelease_V1(modeltools.Method):
-    r"""Guess the required release necessary to not fall below the threshold
-    value at a cross section far downstream with a certain level of certainty.
+    r"""Guess the required release necessary to not fall below the threshold value at a
+    cross section far downstream with a certain level of certainty.
 
     Used auxiliary method:
       |smooth_logistic1|
@@ -1691,21 +1691,21 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         >>> parameterstep()
         >>> derived.toy.update()
 
-        Define a safety factor of 0.5 m³/s for the summer months and
-        no safety factor at all for the winter months:
+        Define a safety factor of 0.5 m³/s for the summer months and no safety factor
+        at all for the winter months:
 
         >>> remotedischargesafety(_11_1_12=0.0, _03_31_12=0.0,
         ...                       _04_1_12=1.0, _10_31_12=1.0)
         >>> derived.remotedischargesmoothpar.update()
 
-        Assume the actual demand at the cross section downsstream has actually
-        been estimated to be 2 m³/s:
+        Assume the actual demand at the cross section downsstream has actually been
+        estimated to be 2 m³/s:
 
         >>> fluxes.remotedemand = 2.0
 
-        Prepare a test function, that calculates the required discharge
-        based on the parameter values defined above and for a "remote
-        failure" values ranging between -4 and 4 m³/s:
+        Prepare a test function, that calculates the required discharge based on the
+        parameter values defined above and for a "remote failure" values ranging
+        between -4 and 4 m³/s:
 
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_requiredremoterelease_v1,
@@ -1714,8 +1714,8 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         ...                          fluxes.requiredremoterelease))
         >>> test.nexts.remotefailure = range(-4, 5)
 
-        On May 31, the safety factor is 0 m³/s.  Hence no discharge is
-        added to the estimated remote demand of 2 m³/s:
+        On May 31, the safety factor is 0 m³/s.  Hence, no discharge is added to the
+        estimated remote demand of 2 m³/s:
 
         >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
@@ -1731,12 +1731,12 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         |   8 |           3.0 |                   2.0 |
         |   9 |           4.0 |                   2.0 |
 
-        On April 1, the safety factor is 1 m³/s.  If the remote failure was
-        exactly zero in the past, meaning the control of the dam was perfect,
-        only 0.5 m³/s are added to the estimated remote demand of 2 m³/s.
-        If the actual recharge did actually fall below the threshold value,
-        up to 1 m³/s is added. If the the actual discharge exceeded the
-        threshold value by 2 or 3 m³/s, virtually nothing is added:
+        On April 1, the safety factor is 1 m³/s.  If the remote failure was exactly
+        zero in the past, meaning the control of the dam was perfect, only 0.5 m³/s are
+        added to the estimated remote demand of 2 m³/s.  If the actual recharge did
+        actually fall below the threshold value, up to 1 m³/s is added. If the actual
+        discharge exceeded the threshold value by 2 or 3 m³/s, virtually nothing is
+        added:
 
         >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
@@ -1878,8 +1878,8 @@ class Calc_RequiredRelease_V1(modeltools.Method):
         ...                          fluxes.requiredrelease))
         >>> test.nexts.requiredremoterelease = range(9)
 
-        On May 31, both the threshold and the tolerance value are 0 m³/s.
-        Hence the required total and the required remote release are equal:
+        On May 31, both the threshold and the tolerance value are 0 m³/s.  Hence, the
+        required total and the required remote release are equal:
 
         >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
@@ -1900,7 +1900,7 @@ class Calc_RequiredRelease_V1(modeltools.Method):
         required total release approximates the threshold value. For large
         values, it approximates the required remote release itself.  Around
         the threshold value, due to the tolerance value of 1 m³/s, the
-        required total release is a little larger than both the treshold
+        required total release is a little larger than both the threshold
         value and the required remote release value:
 
         >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
@@ -1967,7 +1967,7 @@ class Calc_RequiredRelease_V2(modeltools.Method):
         ...                               _04_1_12=4.0, _10_31_12=4.0)
 
 
-        As to be expected, the calculated required release is 0.0 m³/s
+        As expected, the calculated required release is 0.0 m³/s
         on May 31 and 4.0 m³/s on April 1:
 
         >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
@@ -2113,7 +2113,7 @@ class Calc_ActualRemoteRelief_V1(modeltools.Method):
     """Calculate the actual amount of water released to a remote location
     to relieve the dam during high flow conditions.
 
-    Basic equation - discontinous:
+    Basic equation - discontinuous:
       :math:`ActualRemoteRelease =
       min(PossibleRemoteRelease, AllowedRemoteRelease)`
 
@@ -2153,7 +2153,7 @@ class Calc_ActualRemoteRelief_V1(modeltools.Method):
         Through setting the value of |RemoteReliefTolerance| to the
         lowest possible value, there is no smoothing.  Instead, the
         relationship between |ActualRemoteRelief| and |PossibleRemoteRelief|
-        follows the simple discontinous minimum function:
+        follows the simple discontinuous minimum function:
 
         >>> remoterelieftolerance(0.0)
         >>> test()
@@ -2329,9 +2329,9 @@ class Calc_TargetedRelease_V1(modeltools.Method):
 
         >>> fluxes.requiredrelease = 10.
 
-        On May 31, the tolerance value is 0 m³/s.  Hence the targeted
-        release jumps from the inflow value to the required release
-        when exceeding the threshold value of 6 m³/s:
+        On May 31, the tolerance value is 0 m³/s.  Hence. the targeted release jumps
+        from the inflow value to the required release when exceeding the threshold
+        value of 6 m³/s:
 
         >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
@@ -2359,9 +2359,9 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         |  20 |    9.5 |            10.0 |
         |  21 |   10.0 |            10.0 |
 
-        On April 1, the threshold value is 4 m³/s and the tolerance value
-        is 2 m³/s.  Hence there is a smooth transition for inflows ranging
-        between 2 m³/s and 6 m³/s:
+        On April 1, the threshold value is 4 m³/s and the tolerance value is 2 m³/s.
+        Hence, there is a smooth transition for inflows ranging between 2 m³/s and
+        6 m³/s:
 
         >>> model.idx_sim = pub.timegrids.init["2001.04.01"]
         >>> test()
@@ -2390,7 +2390,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         |  21 |   10.0 |            10.0 |
 
 
-        An required release substantially below the threshold value is
+        A required release substantially below the threshold value is
         a rather unlikely scenario, but is at least instructive regarding
         the functioning of the method (when plotting the results
         graphically...):
@@ -2398,7 +2398,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         >>> fluxes.requiredrelease = 2.
 
         On May 31, the relationship between targeted release and inflow
-        is again highly discontinous:
+        is again highly discontinuous:
 
         >>> model.idx_sim = pub.timegrids.init["2001.03.31"]
         >>> test()
@@ -2622,7 +2622,7 @@ class Calc_ActualRelease_V1(modeltools.Method):
 
         The following test results show that the water release is reduced
         to 0 m³/s for water levels (even slightly) lower than 0 m and is
-        identical with the required value of 2 m³/s (even slighlty) above 0 m:
+        identical with the required value of 2 m³/s (even slightly) above 0 m:
 
         >>> test()
         | ex. | waterlevel | actualrelease |
@@ -2682,9 +2682,9 @@ class Calc_ActualRelease_V1(modeltools.Method):
         >>> waterlevelminimumtolerance(2.0)
         >>> derived.waterlevelminimumsmoothpar.update()
 
-        Here, the actual water release is 0.18 m³/s for a water level
-        of 0 m.  Hence water stages in the range of 0 m to -1 m or
-        even -2 m might occur during the simulation of long drought events:
+        Here, the actual water release is 0.18 m³/s for a water level of 0 m.  Hence,
+        water stages in the range of 0 m to -1 m or even -2 m might occur during the
+        simulation of long drought events:
 
         >>> test()
         | ex. | waterlevel | actualrelease |
@@ -3741,7 +3741,7 @@ class Update_ActualRemoteRelief_V1(modeltools.Method):
     Used additional method:
       |Fix_Min1_V1|
 
-    Basic equation - discontinous:
+    Basic equation - discontinuous:
       :math:`ActualRemoteRelief = min(ActualRemoteRelease,
       HighestRemoteDischarge)`
 
@@ -3828,7 +3828,7 @@ class Update_ActualRemoteRelease_V1(modeltools.Method):
     Used additional method:
       |Fix_Min1_V1|
 
-    Basic equation - discontinous:
+    Basic equation - discontinuous:
       :math:`ActualRemoteRelease =
       min(ActualRemoteRelease, HighestRemoteDischarge - ActualRemoteRelief)`
 
@@ -4263,10 +4263,9 @@ class Calc_ForcedDischarge_V1(modeltools.Method):
         |  20 |       3.14 |             5.04 |             0.0 |
         |  21 |       3.15 |             5.05 |             0.0 |
 
-        When |MaxForcedDischarge| is negative, the flow direction is reversed.
-        Forced discharge will start when the |RemoteWaterLevelMaximumThreshold|
-        is higher than 4.9 and drop to zero as soon as the
-        |WaterLevelMaximumThreshold| is reached.
+        When |MaxForcedDischarge| is negative, the flow direction is reversed.  Forced
+        discharge will start when |RemoteWaterLevelMaximumThreshold| is higher than 4.9
+        and drop to zero as soon as the |WaterLevelMaximumThreshold| is reached.
 
         >>> fluxes.maxforceddischarge = -2.0
         >>> waterlevelmaximumthreshold(3.1)

@@ -403,7 +403,7 @@ error occurred: The key does not define an available mask.
     Traceback (most recent call last):
     ...
     TypeError: While trying to retrieve a mask based on key `1`, the following error \
-occurred: The given key is neither a `string` a `mask` type.
+occurred: The given key is neither a `string` nor a `mask` type.
     """
 
     CLASSES: tuple[type[BaseMask], ...] = ()
@@ -460,7 +460,7 @@ occurred: The given key is neither a `string` a `mask` type.
                     raise RuntimeError(
                         "The key does not define an available mask."
                     ) from None
-            raise TypeError("The given key is neither a `string` a `mask` type.")
+            raise TypeError("The given key is neither a `string` nor a `mask` type.")
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to retrieve a mask based on key `{repr(_key)}`"

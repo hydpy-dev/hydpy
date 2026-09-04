@@ -1,5 +1,5 @@
-"""This module gives Python objects pointer access to C variables of type
-`double` via Cython.
+"""This module gives Python objects pointer access to C variables of type `double` via
+Cython.
 
 Module |pointerutils| implements the following Cython extension types:
   * |DoubleBase|: Base class, only for inheritance.
@@ -7,19 +7,17 @@ Module |pointerutils| implements the following Cython extension types:
   * |PDouble|: For C pointers referencing a single C variable of type double.
   * |PPDouble|: For C pointers referencing multiple C variables of type double.
 
-Classes |Double| and |PDouble| support arithmetic operations in a similar
-manner as the immutable standard data type for floating-point operations
-(|float|). |Double| and |PDouble| should be preferred over |float| only
-when their pointer functionality is required.  At the moment, the only usage
-of |Double| and |PDouble| within *HydPy* is to directly share information
-between |NodeSequence| objects of |Node| instances and |LinkSequence|
-objects of |Model| instances handled by |Element| instances.
+Classes |Double| and |PDouble| support arithmetic operations in a similar manner as the
+immutable standard data type for floating-point operations (|float|). |Double| and
+|PDouble| should be preferred over |float| only when their pointer functionality is
+required.  At the moment, the only usage of |Double| and |PDouble| within *HydPy* is to
+directly share information between |NodeSequence| objects of |Node| instances and
+|LinkSequence| objects of |Model| instances handled by |Element| instances.
 
-The following examples try to give an idea of the purpose of using pointers
-in *HydPy*.
+The following examples try to give an idea of the purpose of using pointers in HydPy.
 
-To use the |numpy| |numpy.ndarray| offers the advantage to be able to address
-the same data with different Python and Cython objects:
+To use the |numpy| |numpy.ndarray| offers the advantage to be able to address the same
+data with different Python and Cython objects:
 
 >>> import numpy
 >>> from hydpy.cythons.pointerutils import Double, PDouble
@@ -30,12 +28,12 @@ the same data with different Python and Cython objects:
 >>> print(all(xs == ys), xs is ys)
 True False
 
-Both "names" `x` and `y` refer to the same data.  Hence data can
-easily be shared between different objects, no matter if they are Python
-or Cython types.  Unfortunately, |numpy.ndarray| is primarily
-designed to handle at least 1-dimensional data.  Using it for scalar values
-stored within a "0-dimensional array" is possible, but has some drawbacks.
-Hence, one would usually use the Python build in |float| for scalar values:
+Both "names" `x` and `y` refer to the same data.  Hence, data can easily be shared
+between different objects, no matter if they are Python or Cython types.
+Unfortunately, |numpy.ndarray| is primarily designed to handle at least 1-dimensional
+data.  Using it for scalar values stored within a "0-dimensional array" is possible,
+but has some drawbacks.  Hence, one would usually use the Python build in |float| for
+scalar values:
 
 >>> x = 0.0
 >>> y = x
@@ -43,9 +41,9 @@ Hence, one would usually use the Python build in |float| for scalar values:
 >>> print(x == y, x is y)
 False False
 
-Now `x` and `y` refer to different data. As an alternative, C implements
-the concept of pointers.  Wrapped in Cython objects of the types |Double|
-and |PDouble|, this concept provides the following benefit:
+Now `x` and `y` refer to different data. As an alternative, C implements the concept of
+pointers.  Wrapped in Cython objects of the types |Double| and |PDouble|, this concept
+provides the following benefit:
 
 >>> dx = Double(0.0)
 >>> dx
@@ -64,18 +62,16 @@ Double(2.0)
 >>> px
 PDouble(Double(2.0))
 
-|Double| and |PDouble| implement many convenience functions, allowing,
-for example, to use them in numerical calculations as if they were |float|
-objects.  For demonstration purposes, we prepare two objects with different v
-alues of each type, respectively:
+|Double| and |PDouble| implement many convenience functions, allowing, for example, to
+use them in numerical calculations as if they were |float| objects.  For demonstration
+purposes, we prepare two objects with different v alues of each type, respectively:
 
 >>> fx, fy = 1.0, -2.3
 >>> dx, dy = Double(fx), Double(fy)
 >>> px, py = PDouble(dx), PDouble(dy)
 
-You can combine |Double|, |PDouble| and |float| in any calculation.
-The following example demonstrates all possible combinations using the
-`add` operator:
+You can combine |Double|, |PDouble| and |float| in any calculation.  The following
+example demonstrates all possible combinations using the `add` operator:
 
 >>> from hydpy import round_
 >>> round_(dx + dy)
@@ -177,11 +173,10 @@ You can apply the familiar in-place operators:
 >>> round_(dx)
 0.1
 
-To increase consistency between Python code and Cython code (Cython
-uses `[0]` as dereferencing syntax) as well as between |PDouble| and
-|numpy| arrays (supporting `[:]` slicing), you are allowed to use
-arbitrary objects as indices (actually, |Double| and |PDouble| simply
-ignore them).
+To increase consistency between Python code and Cython code (Cython uses `[0]` as
+dereferencing syntax) as well as between |PDouble| and |numpy| arrays (supporting `[:]`
+slicing), you are allowed to use arbitrary objects as indices (actually, |Double| and
+|PDouble| simply ignore them).
 
 >>> py[0] = -999.0
 >>> py[:]
@@ -190,18 +185,17 @@ ignore them).
 >>> dx[0]
 123.0
 
-To resemble 0-dimensional |numpy| arrays, |Double| and |PDouble| return
-empty tuples as shape information.
+To resemble 0-dimensional |numpy| arrays, |Double| and |PDouble| return empty tuples as
+shape information.
 
 >>> print(dx.shape, px.shape)
 () ()
 
-Always remember that, even if not immediately evident, you are working with
-pointers.
+Always remember that, even if not immediately evident, you are working with pointers.
 
-You are allowed to initialise a |PDouble| object without giving a |Double|
-instance to the constructor, but do not do this unless you have an idea
-how to specify the proper memory address later:
+You are allowed to initialise a |PDouble| object without giving a |Double| instance to
+the constructor, but do not do this unless you have an idea how to specify the proper
+memory address later:
 
 >>> px = PDouble()
 
@@ -218,23 +212,22 @@ You can construct multiple pointers referencing the same double value:
 >>> print(dx, px1, px2)
 1.0 1.0 1.0
 
-After deleting the original |Double| object, continuing to
-use the associated |PDouble| object(s) corrupts your program, as the
-pointed position in memory is freed for other purposes:
+After deleting the original |Double| object, continuing to use the associated |PDouble|
+object(s) corrupts your program, as the pointed position in memory is freed for other
+purposes:
 
 >>> del dx
 >>> px1 += 1.0 # Possibly corrupts your program.
 
 Note:
-    |Double| is used in Python mode only; in Cython mode, the usual
-    C type `double` is applied.  |PDouble| is also used in Cython mode,
-    where it primarily serves the purpose to  pass C pointers of type
-    `double` from one Cython module to another one.
+    |Double| is used in Python mode only; in Cython mode, the usual C type `double` is
+    applied.  |PDouble| is also used in Cython mode, where it primarily serves the
+    purpose to  pass C pointers of type `double` from one Cython module to another one.
 
-A |PDouble| object can point to the value of a single |Double| object.
-Instead, |PPDouble| allows pointing to an arbitrary number of |Double|
-objects.  After initialisation, one needs to specify their `shape`
-first, defining the number of |Double| objects to be taken into account:
+A |PDouble| object can point to the value of a single |Double| object.  Instead,
+|PPDouble| allows pointing to an arbitrary number of |Double| objects.  After
+initialisation, one needs to specify their `shape` first, defining the number of
+|Double| objects to be taken into account:
 
 >>> from hydpy.cythons.pointerutils import PPDouble
 >>> ppdouble = PPDouble()
@@ -256,8 +249,7 @@ RuntimeError: The shape of the actual `PPDouble` instance has not been set yet, 
 >>> ppdouble.shape
 (3,)
 
-Trying to access values via invalid indices does result in errors
-like the following:
+Trying to access values via invalid indices does result in errors like the following:
 
 >>> ppdouble[-1]
 Traceback (most recent call last):
@@ -277,8 +269,8 @@ Traceback (most recent call last):
 ...
 RuntimeError: The pointer of the actual `PPDouble` instance at index `0` requested, but not prepared yet via `set_pointer`.
 
-To finally prepare our |PPDouble| object, we need to assign |Double| objects
-to it via method `set_pointer`:
+To finally prepare our |PPDouble| object, we need to assign |Double| objects to it via
+method `set_pointer`:
 
 >>> d1, d2, d3 = Double(1.0), Double(2.0), Double(3.0)
 >>> ppdouble.set_pointer(d1, 0)

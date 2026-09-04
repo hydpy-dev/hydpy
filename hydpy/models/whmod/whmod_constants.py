@@ -1,6 +1,6 @@
 """|whmod.DOCNAME.long| provides two types of constants: those associated with the land
 type and those associated with the soil type of the individual zones of a
-sub-catchment.  They are all available via wildcard-imports:
+sub-catchment.  They are all available via wildcard imports:
 
 >>> from hydpy.models.whmod import *
 >>> (GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS, SEALED,
@@ -55,7 +55,7 @@ SOILTYPE_CONSTANTS: parametertools.Constants = parametertools.Constants(
     **{key: value for key, value in CONSTANTS.items() if value >= SAND}
 )
 
-# Make only the constants available on wildcard-imports.
+# Make only the constants available on wildcard imports.
 __all__ = [
     "GRASS",
     "DECIDUOUS",

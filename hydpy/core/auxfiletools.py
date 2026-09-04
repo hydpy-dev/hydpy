@@ -3,7 +3,7 @@
 In *HydPy*, parameter values are usually not shared between different model objects
 handled by different elements, even if the model objects are of the same type (e.g.
 |lland_dd|).  This approach offers flexibility in applying different parameterisation
-schemes.  However, often modellers prefer to use a minimal amount of values for
+schemes.  However, often modellers prefer to use a minimal number of values for
 specific parameters  (at least within hydrologically homogeneous regions).  Hence, the
 downside of this flexibility is that the same parameter values might appear in hundreds
 or even thousands of parameter control files (one file for each model/element).
@@ -57,7 +57,7 @@ class Auxfiler:
     kinds of models and performs some plausibility checks on added data.  Assume we
     want to store the control files of a "LARSIM type" HydPy project involving the
     application models |lland_dd|, |lland_knauf| and |kinw_williams|.  The following
-    example shows how we add these models to the |Auxfiler| object by passing through
+    example shows how we add these models to the |Auxfiler| object by passing their
     module (|lland_dd|), a working model object (|lland_knauf|) or their name
     (|kinw_williams|):
 
@@ -83,7 +83,7 @@ class Auxfiler:
     >>> auxfiler.add_models("asdf")
     Traceback (most recent call last):
     ...
-    ModuleNotFoundError: While trying to add one ore more models to the actual \
+    ModuleNotFoundError: While trying to add one or more models to the actual \
 `Auxfiler` object, the following error occurred: No module named 'hydpy.models.asdf'
 
     The |Auxfiler| object allocates a separate |SubAuxfiler| object to each model type.
@@ -109,8 +109,8 @@ via attribute access.  Use method `add_models` to register additional models.
     AttributeError: Class `Auxfiler` does not support deleting `SubAuxfiler` objects \
 via attribute access.  Use method `remove_models` to remove registered models.
 
-    As stated by the last error message, you should remove models and their
-    |SubAuxfiler| objects via method |Auxfiler.remove_models|:
+    As stated in the last error message, you should remove models and the |SubAuxfiler|
+    objects via method |Auxfiler.remove_models|:
 
     >>> auxfiler.remove_models(module, string)
     >>> auxfiler
@@ -163,7 +163,7 @@ nor does it handle a model named `lland_dd`...
                 )
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to add one ore more models to the actual "
+                f"While trying to add one or more models to the actual "
                 f"`{type(self).__name__}` object"
             )
 
@@ -424,7 +424,7 @@ class SubAuxfiler:
         (eqb(5000.0), eqi1(2000.0), eqi2(1000.0))
 
         Auxiliary file `file2` shall contain the actual values of parameters
-        |lland_control.EQD1|, |lland_control.EQD2|, and (also!) of parameter
+        |lland_control.EQD1|, |lland_control.EQD2|, and (also!) parameter
         |lland_control.EQB|:
 
         >>> auxfiler.lland_dd.add_parameters(eqd1, eqd2, filename="file2")
@@ -450,15 +450,15 @@ been allocated to filename `file1`.
         (eqb(10000.0), eqd1(100.0), eqd2(50.0))
 
         The following example shows that parameter |lland_control.EQB| already
-        allocated to `file1` has still the same value (we implemented this safety
+        allocated to `file1` still has the same value (we implemented this safety
         mechanism via deep copying) and that one can view all registered parameters by
         using their names as attribute names:
 
         >>> auxfiler.lland_dd.eqb
         (eqb(10000.0), eqb(5000.0))
 
-        During adding parameters method |SubAuxfiler.add_parameter| performs some
-        additional plausibility checks.  First, it prevents from using the same
+        During the addition of parameters, method |SubAuxfiler.add_parameter| performs
+        some additional plausibility checks.  First, it prevents using the same
         filename twice:
 
         >>> auxfiler.add_models("kinw_williams")
@@ -480,17 +480,17 @@ actual `SubAuxfiler` object, the following error occurred: Variable type `TGr` i
 handled by model `kinw_williams`.
 
         The examples above deal with simple 0-dimensional |Parameter| subclasses where
-        there is no question in how to define equality.  However, for multidimensional
-        |Parameter| subclasses requiring that the shape and all values are equal might
-        often be too strict.
+        there is no question about how to define equality.  However, for
+        multidimensional |Parameter| subclasses, requiring that the shape and all
+        values are equal might often be too strict.
 
         The auxiliary file functionalities of *HydPy* allow using the
         |Parameter.keywordarguments| property of a parameter to check for equality
-        instead (put more concretely, method |SubAuxfiler.get_parameterstrings| uses
-        method |KeywordArguments.subset_of| of class |KeywordArguments| for
-        comparisons). If we want to apply this feature for the instances of the
-        |ZipParameter| subclass |lland_control.TGr|, we need to additionally pass a
-        |KeywordArguments| object to method |SubAuxfiler.add_parameter|:
+        instead (more concretely, method |SubAuxfiler.get_parameterstrings| uses method
+        |KeywordArguments.subset_of| of class |KeywordArguments| for comparisons).  If
+        we want to apply this feature for the instances of the |ZipParameter| subclass
+        |lland_control.TGr|, we need to additionally pass a |KeywordArguments| object
+        to method |SubAuxfiler.add_parameter|:
 
         >>> auxfiler.lland_dd.add_parameter(
         ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
@@ -509,8 +509,9 @@ handled by model `kinw_williams`.
         RuntimeError: While trying to extend the range of parameters handled by the \
 actual `SubAuxfiler` object, the following error occurred: You tried to allocate \
 parameter `tgr(acker=2.0, laubw=1.0)` with keyword arguments \
-`KeywordArguments(acker=2.0, laubw=1.0)` to filename `file2`, but an `TGr` with equal \
-keyword arguments has already been allocated to filename `file1`.
+`KeywordArguments(acker=2.0, laubw=1.0)` to filename `file2`, but a `TGr` parameter \
+instance has already been allocated to filename `file1` with equal keyword arguments .
+
 
         Often, we want such a manually defined |KeywordArguments| object to be more
         general so that it covers as many actual parameter objects as possible:
@@ -523,7 +524,7 @@ keyword arguments has already been allocated to filename `file1`.
 KeywordArguments(acker=2.0, laubw=1.0, nadelw=0.0))
 
         Note that due to the current implementation of method
-        |SubAuxfiler.get_parameterstrings| the final state of the |Auxfiler| object
+        |SubAuxfiler.get_parameterstrings|, the final state of the |Auxfiler| object
         results in some ambiguity (see the documentation on method
         |SubAuxfiler.get_parameterstrings| for further information).  Hence, we might
         add more detailed plausibility checks regarding equality of |KeywordArguments|
@@ -603,9 +604,9 @@ handled by the actual `SubAuxfiler` object.
                     raise RuntimeError(
                         f"You tried to allocate parameter `{repr(parameter)}` with "
                         f"keyword arguments `{keywordarguments}` to filename "
-                        f"`{filename}`, but an `{type(parameter).__name__}` with "
-                        f"equal keyword arguments has already been allocated to "
-                        f"filename `{fn}`."
+                        f"`{filename}`, but a `{type(parameter).__name__}` parameter "
+                        f"instance has already been allocated to filename `{fn}` with "
+                        f"equal keyword arguments ."
                     )
 
     def add_parameters(
@@ -615,8 +616,8 @@ handled by the actual `SubAuxfiler` object.
         object.
 
         Method |SubAuxfiler.add_parameters| works like method
-        |SubAuxfiler.add_parameter| but allows to add multiple parameters at once.  On
-        the downside, it does not allow to define alternative keyword arguments.
+        |SubAuxfiler.add_parameter| but allows you to add multiple parameters at once.
+        On the downside, it does not allow defining  alternative keyword arguments.
         """
         for parameter in parameters:
             self.add_parameter(filename=filename, parameter=parameter)
@@ -629,7 +630,7 @@ handled by the actual `SubAuxfiler` object.
         """Remove the registered |Parameter| objects of the given type related to the
         given filename.
 
-        The following (slightly modified) test-setting stems from the documentation
+        The following (slightly modified) test setting stems from the documentation
         on method |SubAuxfiler.add_parameter|:
 
         >>> from hydpy.models.lland_dd import *
@@ -1038,7 +1039,8 @@ error occurred: 'NoneType' object has no attribute 'items'
         (see the documentation on method |SubAuxfiler.add_parameter| on how to do this),
         |SubAuxfiler.get_filename| does not check for equality.  Instead,  it uses
         method |KeywordArguments.subset_of| to check if the keyword arguments of the
-        given parameter are a subset of keyword arguments of the registered parameter:
+        given parameter are a subset of the keyword arguments of the registered
+        parameter:
 
         >>> subauxfiler.get_filename(tgr)
         'file1'
@@ -1092,7 +1094,7 @@ error occurred: 'NoneType' object has no attribute 'items'
 file2
 
         Nevertheless, it returns the first match (which might be confusing due to its
-        arbitrariness but at least results in a working project configuration):
+        arbitrariness, but at least results in a working project configuration):
 
         >>> import warnings
         >>> with warnings.catch_warnings() :

@@ -224,11 +224,11 @@ class OutputHeights(Heights):
 
 
 class MaxNmbInputs(parametertools.Parameter):
-    """The maximum number of input locations to be taken into account for
-    interpolating the values of a specific output location [-].
+    """The maximum number of input locations to be taken into account for interpolating
+    the values of a specific output location [-].
 
-    When passing no value, parameter |MaxNmbInputs| queries it from the shape
-    of parameter |InputCoordinates|:
+    When no value is passed, parameter |MaxNmbInputs| queries it from the shape of
+    parameter |InputCoordinates|:
 
     >>> from hydpy.models.conv import *
     >>> parameterstep()
@@ -257,8 +257,8 @@ class MaxNmbInputs(parametertools.Parameter):
             super().__call__(*args, **kwargs)
 
     def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
-        """Assure that the value of |MaxNmbInputs| does not exceed the
-        number of available input locations.
+        """Ensure that the value of |MaxNmbInputs| does not exceed the number of
+        available input locations.
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()

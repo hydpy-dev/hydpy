@@ -154,7 +154,7 @@ class MinimumRelease(parametertools.Parameter):
 
 
 class RestrictTargetedRelease(parametertools.Parameter):
-    """A flag indicating whether low flow variability has to be preserved
+    """A flag indicating whether low-flow variability has to be preserved
     or not [-]."""
 
     NDIM: Final[Literal[0]] = 0

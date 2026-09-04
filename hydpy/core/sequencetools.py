@@ -1321,7 +1321,7 @@ class Sequence_(variabletools.Variable):
         Attribute `INIT` of class |Sequence_| comes with the value `0.0` by default,
         which should be reasonable for most |Sequence_| subclasses.  However,
         subclasses can define other values.  Most importantly, note the possibility to
-        set `INIT` to `None` for sequences that do not allow specifying a reasonabe
+        set `INIT` to `None` for sequences that do not allow specifying a reasonable
         initial value for all possible situations:
 
         >>> Test.INIT = None
@@ -3438,7 +3438,7 @@ class ConditionSequence(ModelSequence):
     _oldargs: tuple[Any, ...] | None = None
 
     def __call__(self, *args) -> None:
-        """The prefered way to pass values to |Sequence_| instances within initial
+        """The preferred way to pass values to |Sequence_| instances within initial
         condition files."""
         super().__call__(*args)
         self.trim()
@@ -3606,7 +3606,7 @@ not broadcast input array from shape (3,) into shape (2,)
     fastaccess_old: variabletools.FastAccess
 
     def __call__(self, *args) -> None:
-        """The prefered way to pass values to |Sequence_| instances within initial
+        """The preferred way to pass values to |Sequence_| instances within initial
         condition files."""
         super().__call__(*args)
         self.new2old()

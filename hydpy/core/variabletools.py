@@ -2382,7 +2382,7 @@ def sort_variables(
 class SubVariables(Generic[TOM_co, TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):
     """Base class for |SubParameters| and |SubSequences|.
 
-    Each subclass of class |SubVariables| is thought for handling a certain group of
+    Each subclass of class |SubVariables| is intended for handling a certain group of
     |Parameter| or |Sequence_| objects.  One specific example is subclass
     |sequencetools.InputSequences|, collecting all |InputSequence| objects of a
     specific hydrological model.
@@ -2575,7 +2575,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
 def to_repr(self: Variable, values, brackets: bool = False) -> str:
     """Return a valid string representation for the given |Variable| object.
 
-    Function |to_repr| is thought for internal purposes only, more specifically for
+    Function |to_repr| is intended for internal purposes only, more specifically for
     defining string representations of subclasses of class |Variable| like the
     following:
 

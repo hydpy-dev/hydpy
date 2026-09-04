@@ -1,7 +1,7 @@
 """|wland.DOCNAME.long| provides two types of constants: those associated with the
 average soil character of a sub-catchment and those associated with the land-use type
 of the different hydrological response units of a sub-catchment.  They are all
-available via wildcard-imports:
+available via wildcard imports:
 
 >>> from hydpy.models.wland import *
 >>> (SAND, LOAMY_SAND, SANDY_LOAM, SILT_LOAM, LOAM, SANDY_CLAY_LOAM,

@@ -4876,7 +4876,7 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
         referenceevapotranspiration(3.877117)
 
         The following calculation agrees with example 19 of :cite:t:`ref-Allen1998`,
-        dealing with an hourly simulation step (note that there is a  difference due to
+        dealing with an hourly simulation step (note that there is a difference due to
         using 37.5 instead of 37, which is smaller than the precision of the results
         tabulated by :cite:t:`ref-Allen1998`:
 

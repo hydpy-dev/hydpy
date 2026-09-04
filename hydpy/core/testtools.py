@@ -1469,7 +1469,7 @@ class NumericalDifferentiator:
 
     .. _`here`: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 
-    Class |NumericalDifferentiator| is thought for testing purposes only.  See, for
+    Class |NumericalDifferentiator| is intended for testing purposes only.  See, for
     example, the documentation on method |kinw_model.Calc_RHMDH_V1|, which uses a
     |NumericalDifferentiator| object to validate that this method calculates the
     derivative of sequence |kinw_aides.RHM| (`ysequence`) with respect to sequence
@@ -2229,7 +2229,7 @@ def print_filestructure(dirpath: str) -> None:
 def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     """Prepare an IO example configuration for testing purposes.
 
-    Function |prepare_io_example_1| is thought for testing the functioning of *HydPy*
+    Function |prepare_io_example_1| is intended for testing the functioning of *HydPy*
     and thus should be of interest for framework developers only.  It uses the main
     models |lland_dd|, |lland_knauf|, and |hland_96| and the submodels
     |evap_aet_morsim| and |snow_dd|.  Here, we apply |prepare_io_example_1| and shortly
@@ -2441,7 +2441,7 @@ def prepare_full_example_1(dirpath: str | None = None) -> None:
     """Prepare the `HydPy-H-Lahn` example project on disk.
 
     By default, function |prepare_full_example_1| copies the original project data into
-    the `iotesting` directory, thought for performing automated tests on real-world
+    the `iotesting` directory, intended for performing automated tests on real-world
     data.  The following doctest shows the generated folder structure:
 
     >>> from hydpy.core.testtools import prepare_full_example_1
@@ -2512,7 +2512,7 @@ def prepare_full_example_2(
     >>> classname(TestIO)
     'TestIO'
 
-    Function |prepare_full_example_2| is primarily thought for testing and thus does
+    Function |prepare_full_example_2| is primarily intended for testing and thus does
     not allow for many configurations except changing the end date of the
     initialisation period:
 

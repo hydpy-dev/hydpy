@@ -1,5 +1,5 @@
-"""This module provides tools for the efficient handling of input and output
-sequence aliases."""
+"""This module provides tools for efficiently handling of input and output sequence
+aliases."""
 
 import importlib
 import inspect
@@ -21,14 +21,13 @@ class LazyInOutSequenceImport:
 
     .. _`special method lookup`: https://docs.python.org/reference/datamodel.html#special-lookup  # pylint: disable=line-too-long
 
-    Importing all input and output sequences costs a significant amount of
-    initialisation time, and one typically uses at most a few of them within a
-    specific project.  Hence, we implemented class |LazyInOutSequenceImport| for
-    postponing the imports of the sequences available by modules `inputs` and
-    `outputs`.  We hope we could catch all exceptional cases so that a user will
-    never realise to work with a |LazyInOutSequenceImport| object instead with an
-    input or output class object (except when directly asking for it with function
-    |type|).
+    Importing all input and output sequences costs significant initialisation time, and
+    one typically uses at most a few of them within a specific project.  Hence, we
+    implemented class |LazyInOutSequenceImport| to postpone the imports of the
+    sequences available from modules `inputs` and `outputs`.  We hope we have covered
+    all exceptional cases so that users will never realise that they are working with a
+    |LazyInOutSequenceImport| object instead of an input or output class object (except
+    when directly asking for it with function |type|).
 
     Directly after importing, the alias is of type |LazyInOutSequenceImport|:
 
@@ -44,8 +43,8 @@ class LazyInOutSequenceImport:
     >>> type(hland_inputs_T)
     <class 'hydpy.core.aliastools.LazyInOutSequenceImport'>
 
-    After accessing an attribute, its type changed to |abc.ABCMeta|, which is the
-    meta-class of all input and output sequences:
+    After accessing an attribute, its type changes to |abc.ABCMeta|, which is the
+    metaclass of all input and output sequences:
 
     >>> hland_inputs_T.__name__
     'T'
@@ -176,8 +175,8 @@ def write_sequencealiases() -> None:
                     sequence2alias[member] = alias
 
     lines = [
-        '"""This module provides the aliases of the sequences of all available models '
-        "one might \nwant to connect to node sequences.",
+        '"""This module provides aliases for the sequences of all available models '
+        "you might \nwant to connect to node sequences.",
         "",
         "This file was automatically created by function |write_sequencealiases|.",
         '"""',

@@ -296,7 +296,7 @@ required to prepare the model properly.
     the simulation period only.  All following values are calculated subsequently
     during the simulation run.  However, this is different for input sequences like
     |hland_inputs.T|.  Time variable properties like the air temperature are external
-    forcings. Hence, they must be available over the whole simulation period apriori.
+    forcings. Hence, they must be available over the whole simulation period a priori.
     Such complete time series can be made available via property |IOSequence.series| of
     class |IOSequence|, which has not happened for any sequence so far:
 

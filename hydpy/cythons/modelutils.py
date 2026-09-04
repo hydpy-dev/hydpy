@@ -2631,7 +2631,7 @@ class FuncConverter:
 
     @property
     def realfunc(self) -> types.MethodType | Callable[[modeltools.Model], None]:
-        """The "real" function, as as defined by the model developer or user."""
+        """The "real" function, as defined by the model developer or user."""
         if (reusablemethod := self.reusablemethod) is not None:
             return reusablemethod.__call__
         return self.func
@@ -2879,7 +2879,7 @@ class FuncConverter:
         Assumptions:
           * The function shall be a method.
           * Annotations specify all argument and return types.
-          * Non-default argument and return types are translate to
+          * Non-default argument and return types are translated to
             "modulename.classname" strings.
           * Local variables are generally of type `int` but of the (C) type `double`
             when they are annotated with (corresponding Python) type `float`.

@@ -12,7 +12,7 @@ class SurfaceArea(sequencetools.AideSequence):
 
 
 class AllowedDischarge(sequencetools.AideSequence):
-    """Discharge threshold that should not be overcut by the actual discharge
+    """Discharge threshold that should not be exceeded by the actual discharge
     [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0

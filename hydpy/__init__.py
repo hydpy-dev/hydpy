@@ -3,7 +3,7 @@
 """
 *HydPy*
 
-An interactive framework for the developement and a application of hydrological models.
+An interactive framework for the development and application of hydrological models.
 """
 
 from __future__ import annotations

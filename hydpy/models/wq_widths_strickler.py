@@ -85,7 +85,7 @@ Long segments
 -------------
 
 The following results are identical to the ones of the :ref:`musk_mct_long_segments`
-example (as to be expected due to the quasi-identical configuration):
+example (as expected due to the quasi-identical configuration):
 
 .. integration-test::
 

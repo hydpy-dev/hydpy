@@ -138,7 +138,7 @@ handles no NetCDF reader object. Consider applying the \
 `pub.sequencemanager.netcdfreading` context manager first (search in the \
 documentation for help).
 
-We cannot invert spatial aggregation.  Hence reading averaged time series is left for
+We cannot invert spatial aggregation.  Hence, reading averaged time series is left for
 postprocessing tools.  To show that writing the averaged series worked, we access both
 relevant NetCDF files more directly using the underlying NetCDF4 library (note that
 averaging 1-dimensional time series as those of node sequence |Sim| is allowed for the
@@ -847,7 +847,7 @@ information is prioritised.
 
     State sequences like |hland_states.SM| handle data for specific time points instead
     of time intervals.  Their |IOSequence.series| vector contains the calculated values
-    for the end of each simulation step.  Hence, without file-specific information,
+    at the end of each simulation step.  Hence, without file-specific information,
     |query_timegrid| ignores the |Options.timestampleft| option and follows the `right
     interval boundary` convention:
 

@@ -1,7 +1,7 @@
 # pylint: disable=line-too-long, unused-wildcard-import
 """
-|dam_v001| is supposed to represent a dam with an "active" low water control scheme and
-a "passive" high water control scheme.
+|dam_v001| is supposed to represent a dam with an "active" low-water control scheme and
+a "passive" high-water control scheme.
 
 During low flow conditions, |dam_v001| tries to increase low runoff values immediately
 downstream the of dam and at a more remote location in the downstream river channel.
@@ -238,7 +238,7 @@ The following table confirms that |dam_v001| does not release any discharge (the
 exact remote minimum
 ____________________
 
-Now, we set the discharge to be not undercut at the cross-section downstream to
+Now, we set the discharge not to be undercut at the cross-section downstream to
 1.4 m³/s:
 
 >>> remotedischargeminimum(1.4)
@@ -480,7 +480,7 @@ release" column of this and the last example:
 restriction enabled
 ___________________
 
-|dam_v001| is forced to keep a certain degree of low flow variability when the option
+|dam_v001| is forced to keep a certain degree of low-flow variability when the option
 flag |RestrictTargetedRelease| is enabled.  Then, it is not allowed to release an
 arbitrary amount of water when the inflow falls below the required minimum water
 release.  We show this by decreasing the inflow in the second half of the simulation
@@ -624,8 +624,8 @@ around |WaterLevelMinimumThreshold|:
 
 >>> waterlevelminimumtolerance(0.01)
 
-One must also slightly increase |WaterLevelMinimumThreshold| to avoid the fluctuation
-and negative water volumes:
+One must also slightly increase |WaterLevelMinimumThreshold| to avoid fluctuations and
+negative water volumes:
 
 >>> waterlevelminimumthreshold(0.005)
 
@@ -931,7 +931,7 @@ results of the linear storage cascade with a single bucket:
 1.453356, 1.455598, 1.405154, 1.331288, 1.261305, 1.195001, 1.132182,
 1.072665, 1.016278, 0.962854, 0.912239, 0.864284, 0.818851
 
-The largest difference occurs on January 1 but is way below the required accuracy of
+The largest difference occurs on January 1 but is well below the required accuracy of
 0.01 m³/s.  There is no guarantee that the actual numerical error will always fall
 below the defined tolerance value; however, if everything works well, we have good
 reason to hope that this happens in many cases.  At least for sufficiently smooth
@@ -1065,7 +1065,7 @@ _______________________
 |dam_v001| provides a pragmatic approach to preserving efficiency even for stiff
 initial value problems by switching to the Implicit Euler method.  Compared to the
 Explicit Lobatto Sequence, the Implicit Euler method is computationally expensive, as
-it relies on applying a root search method, which does not bring any benefits for
+it relies on applying a root-finding method, which does not bring any benefits for
 non-stiff problems but stabilises stiff ones.  Hence, it often makes sense to apply the
 Explicit Lobatto Sequence when possible and the Implicit Euler method when necessary.
 Therefore, one can set the Courant number threshold parameter |MaxCFL|.  |dam_v001|

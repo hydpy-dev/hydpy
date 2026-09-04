@@ -139,14 +139,14 @@ class NmbLogEntries(parametertools.Parameter):
         Traceback (most recent call last):
         ...
         ValueError: The value of parameter `nmblogentries` of element `?` cannot be \
-determined for a the current simulation step size.  The fraction of the memory period \
+determined for the current simulation step size.  The fraction of the memory period \
 (1d) and the simulation step size (5h) leaves a remainder.
         """
         nmb = "1d" / hydpy.pub.timegrids.stepsize
         if nmb % 1:
             raise ValueError(
                 f"The value of parameter {objecttools.elementphrase(self)} cannot be "
-                f"determined for a the current simulation step size.  The fraction of "
+                f"determined for the current simulation step size.  The fraction of "
                 f"the memory period (1d) and the simulation step size "
                 f"({hydpy.pub.timegrids.stepsize}) leaves a remainder."
             )

@@ -14,7 +14,7 @@ class TC(hland_sequences.Factor1DSequence):
 
 
 class FracRain(hland_sequences.Factor1DSequence):
-    """Fraction of rainfall and total precipitation [-]."""
+    """Fraction of rainfall in total precipitation [-]."""
 
     mask = hland_masks.Complete()
 

@@ -340,8 +340,7 @@ CubicSpline, Akima1DInterpolator, PchipInterpolator
         >>> figure = ppoly.plot(0.0, 4.0, label="Pchip")
 
         The following figure compares the linear and all spline interpolation results.
-        As to be expected, the most sensible differences show in the interpolation
-        ranges:
+        As expected, the most sensible differences show in the interpolation ranges:
 
         >>> _ = figure.gca().legend()
         >>> from hydpy.core.testtools import save_autofig
@@ -394,13 +393,13 @@ CubicSpline, Akima1DInterpolator, PchipInterpolator
         Traceback (most recent call last):
         ...
         ValueError: While trying to derive polynomials from the vectors `x` ([0.0 and \
-1.0]) and `y` ([1.0, 2.0, and 3.0]), the following error occurred: The lenghts of \
+1.0]) and `y` ([1.0, 2.0, and 3.0]), the following error occurred: The lengths of \
 vectors `x` (2) and `y` (3) must be identical.
         """
         try:
             if len(xs) != len(ys):
                 raise ValueError(
-                    f"The lenghts of vectors `x` ({len(xs)}) and `y` ({len(ys)}) must "
+                    f"The lengths of vectors `x` ({len(xs)}) and `y` ({len(ys)}) must "
                     f"be identical."
                 )
             if len(xs) == 0:

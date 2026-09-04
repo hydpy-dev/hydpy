@@ -232,7 +232,7 @@ objects, but the type of the given argument is `str`.
 
         Therefore, changing the |Selection| object returned by property
         |Selections.complete| does neither change the |Selections| object nor
-        subsequentially returned |Selections.complete| selections:
+        subsequently returned |Selections.complete| selections:
 
         >>> selections.complete.nodes.add_device("node3")
         >>> assert "node3" not in selections.nodes
@@ -1156,7 +1156,7 @@ containing at least one of the given substrings `['dill_assl', 'lahn_marb']`, th
 following error occurred: 'in <string>' requires string as left operand, not list
 
         Method |Selection.select_nodenames| restricts the current selection to the one
-        determined with the the method |Selection.search_nodenames|:
+        determined with the method |Selection.search_nodenames|:
 
         >>> test.select_nodenames("dill_assl", "lahn_marb")
         Selection("test",

@@ -1,9 +1,9 @@
 """Combine the currently generated documentation with the existing ones of the
-`available_doc_versions` branch and update this branch (which delete its history
+`available_doc_versions` branch and update this branch (which deletes its history
 entirely).
 
 This script works on Travis-CI.  To use it somewhere else, set the environment variable
-`TRAVIS_BRANCH` to the current branch name.  But we aware of the "git config..."
+`TRAVIS_BRANCH` to the current branch name.  But be aware of the "git config..."
 command below.  I do not know if it modifies  your git configuration permanently.
 
 This script does not push anything to Github-Pages.

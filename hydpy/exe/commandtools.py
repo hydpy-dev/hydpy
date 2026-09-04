@@ -1,5 +1,5 @@
-"""This module implements some main features for using *HydPy* from your command line
-tools via script |hyd|."""
+"""This module implements some main features for using *HydPy* from your command-line
+tools via the script |hyd|."""
 
 from __future__ import annotations
 import contextlib
@@ -95,7 +95,7 @@ def run_subprocess(
 def exec_commands(commands: str, **parameters: Any) -> None:
     """Execute the given Python commands.
 
-    Function |exec_commands| is thought for testing purposes only (see the main
+    Function |exec_commands| is intended for testing purposes only (see the main
     documentation on module |hyd|).
 
     Separate individual commands by semicolons and replaced whitespaces with
@@ -174,9 +174,9 @@ def exec_script(filepath: str) -> None:
 
     Function |run_simulation| allows you to execute a predefined *HydPy* workflow.  You
     can configure many details of this workflow but not change its general structure.
-    Use function |exec_script| execute *HydPy* remotely but strive for more flexibility.
-    As its name suggests, function |exec_script| executes any valid Python code relying
-    on the standard library and the available site-packages.
+    Use function |exec_script| to execute *HydPy* remotely to strive for more
+    flexibility.  As its name suggests, function |exec_script| executes any valid
+    Python code relying on the standard library and the available site-packages.
 
     Function |exec_script| requires the name of the script to be executed as a single
     argument:
@@ -229,7 +229,7 @@ built-ins like `for`...)
 def start_shell(filepath: str = "") -> None:
     """Open an interactive Python shell.
 
-    Writing "hyd.py start_shell" into your command line tool opens an interactive
+    Writing "hyd.py start_shell" into your command-line tool opens an interactive
     Python console with the most relevant *HydPy* features being imported already.  In
     our first example, we directly prepare an |Element| object (without needing to
     import class |Element| first) and print its string representation:
@@ -262,8 +262,8 @@ def start_shell(filepath: str = "") -> None:
     ...         _ = file_.write("from hydpy import Nodes\\n")
     ...         _ = file_.write('nodes = Nodes("n1", "n2")\\n')
 
-    Now we can, execute this file and, for example, query the names of
-    the defined nodes interactively:
+    Now we can execute this file and, for example, query the names of the defined nodes
+    interactively:
 
     >>> with TestIO():
     ...     with subprocess.Popen(

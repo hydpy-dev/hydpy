@@ -135,7 +135,7 @@ class TargetedRelease(sequencetools.FluxSequence):
 
 
 class ActualRelease(sequencetools.FluxSequence):
-    """Actual water release thought for reducing drought events downstream [m³/s]."""
+    """Actual water release intended for reducing drought events downstream [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
@@ -148,7 +148,7 @@ class MissingRemoteRelease(sequencetools.FluxSequence):
 
 
 class ActualRemoteRelease(sequencetools.FluxSequence):
-    """Actual water release thought for arbitrary "remote" purposes [m³/s]."""
+    """Actual water release intended for arbitrary "remote" purposes [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True

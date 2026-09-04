@@ -1958,7 +1958,7 @@ to be consistent with the name of the element handling the model.
 
         Submodels like |meteo_glob_fao56| allow using their instances by multiple main
         models.  We prepare such a case by selecting such an instance as the submodel
-        of the absolute main model |lland_knauf| and the the relative submodel
+        of the absolute main model |lland_knauf| and the relative submodel
         |evap_aet_morsim|:
 
         >>> from hydpy.core.importtools import reverse_model_wildcard_import
@@ -2478,7 +2478,7 @@ the available directories (calib_1 and calib_2).
         The required arguments correspond to the first and last simulation step index.
 
         Method |Model.simulate_period| calls method |Model.simulate| repeatedly for the
-        whole considered simulation period and is thought for the multi-threading mode.
+        whole considered simulation period and is intended for the multi-threading mode.
         Hence, we repeat the example of method |Model.simulate| but set the
         |Model.threading| flag to |True|:
 
@@ -3467,7 +3467,7 @@ class SegmentModel(RunModel):
     def run_segments(self, method: Callable[[], None]) -> None:
         """Run the given methods for all segments.
 
-        Method |SegmentModel.run_segments| is mainly thought for testing purposes.
+        Method |SegmentModel.run_segments| is mainly intended for testing purposes.
         See the documentation on method |musk_model.Calc_Discharge_V1| on how to apply
         it.
         """
@@ -3546,8 +3546,8 @@ class NumConstsELS:
     >>> consts = NumConstsELS()
 
     The maximum number of Runge Kutta submethods to be applied (the higher, the better
-    the theoretical accuracy, but also the worse the time spent unsuccessful when the
-    theory does not apply):
+    the theoretical accuracy, but also more time is spent when the theory does not
+    apply):
 
     >>> consts.nmb_methods
     10
@@ -3898,7 +3898,7 @@ class ELSModel(SolverModel):
         46
 
         You can restrict the allowed maximum integration step size, which can help to
-        prevent from loosing to much performance due to trying to solve too stiff
+        prevent from losing too much performance due to trying to solve too stiff
         problems, repeatedly:
 
         >>> solver.reldtmin(0.001)

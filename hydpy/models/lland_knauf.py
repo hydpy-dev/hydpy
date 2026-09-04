@@ -41,15 +41,15 @@ The following list summarises the main components of |lland_knauf|:
 Some notes for `LARSIM`_ users: |lland_knauf| is similar to many `LARSIM`_ models used
 for forecasting (relying on a combination of options equivalent to the features listed
 above) but not identical.  Often, we strive for more flexibility. One example is
-modifying parameter |KTSchnee| to control if and how |lland_knauf| adjusts the snow
-surface temperature.  However, there are also differences due to technical reasons.
-One relevant difference is that *HydPy* does not include "future values" in the current
-simulation timestep. For example, `LARSIM`_ fills nightly gaps regarding cloudiness
-with the average value of the present calendar day, while |lland_knauf| uses the
-average over the 24 hours preceding the current simulation step.  Hence, do not expect
-the results of |lland_knauf| and `LARSIM`_ to be identical.  When switching from one
-model system to the other, the need to fine-tune some parameters via calibration might
-arise.
+modifying parameter |KTSchnee| to control whether and how |lland_knauf| adjusts the
+snow surface temperature.  However, there are also differences due to technical
+reasons.  One relevant difference is that *HydPy* does not include "future values" in
+the current simulation timestep. For example, `LARSIM`_ fills nightly gaps regarding
+cloudiness with the average value of the present calendar day, while |lland_knauf| uses
+the average over the 24 hours preceding the current simulation step.  Hence, do not
+expect the results of |lland_knauf| and `LARSIM`_ to be identical.  When switching from
+one model system to the other, the need to fine-tune some parameters via calibration
+might arise.
 
 |lland_knauf| requires a submodel that complies with the |RadiationModel_V1| or the
 |RadiationModel_V4| interface and provides the time series of possible sunshine
@@ -77,12 +77,12 @@ point out differences and ensure |lland_knauf| works well for different simulati
 sizes.
 
 Note that while our daily simulations always cover an entire month, our hourly
-simulations cover only three days, focussing on the "most interesting" part of the
-daily simulation.  To ensure the best possible comparability, we use the same input
-data (we aggregated hourly values to daily values), the same parameter values (possibly
-adapted to the change in the time step size), and the same initial conditions (we
-extract the required initial conditions of the respective hourly simulation from the
-longer daily simulation).
+simulations cover only three days, focusing on the "most interesting" part of the daily
+simulation.  To ensure the best possible comparability, we use the same input data (we
+aggregated hourly values to daily values), the same parameter values (possibly adapted
+to the change in the time step size), and the same initial conditions (we extract the
+required initial conditions of the respective hourly simulation from the longer daily
+simulation).
 
 daily simulation
 ________________
@@ -225,7 +225,7 @@ the state sequences' initial values (not the log sequences' initial values):
 ...               (states.sig2, 0.0),
 ...               (states.sbg, 0.0))
 
-We prepare those input time series usually available as measurements:
+We prepare those input time series, usually available as measurements:
 
 >>> inputs.nied.series = (
 ...     13.3, 0.1, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 2.7,
@@ -279,9 +279,9 @@ addresses the same place and time:
 ...     126.7220785)
 
 The following results illustrate the behaviour of |lland_knauf| for relatively dry and
-hot summer condions. Compared to the result table of integration test
+hot summer conditions. Compared to the result table of integration test
 :ref:`lland_dd_acker_summer` of the application model |lland_dd|, there are many more
-columns because of to the higher number of input, flux, and state sequences.  These are
+columns because of the higher number of input, flux, and state sequences.  These are
 mainly due to the increased data requirements and the more complex calculations of the
 Knauf :cite:p:`ref-LUBW2006a` approach. Therefore, |lland_knauf| calculates some "daily
 values", representing the averages or sums over the last 24 hours:
@@ -953,7 +953,7 @@ When comparing the following results with those of integration test
 differences are due to the much higher complexities of the snow module of
 |lland_knauf|.  But, at least, one can see that |lland_knauf| allows for the
 (re)freezing of liquid water within the snow layer.  Refreezing occurs around
-December 7, where the  frozen water equivalent (|WATS|) grows until it reaches to total
+December 7, when the  frozen water equivalent (|WATS|) grows until it reaches the total
 water equivalent (|WAeS|) (a note for `LARSIM`_ users: currently, `LARSIM`_ does not
 implement such a freezing feature; you can disable it in |lland_knauf| through setting
 |RefreezeFlag| to |False|):
@@ -1017,7 +1017,7 @@ wind speed to take the shadowing effects of the tree canopies into account.  Her
 net effect of these modifications is that the total water equivalent's peak amounts are
 two to three times smaller than for land use type |ACKER|.  Also, snow evaporation
 (|EvS|) coincides with interception (|EvI|) and soil evaporation (|EvB|), which never
-happens at non-forest sites, but this is a feature |evap_aet_morsim|, not of
+happens at non-forest sites, but this is a feature of |evap_aet_morsim|, not of
 |lland_knauf|:
 
 .. integration-test::
@@ -1092,7 +1092,7 @@ integration test :ref:`lland_knauf_acker_winter_daily`, with :math:`KTSchnee = i
 nearly the complete frozen water equivalent melts on December 11, when the average air
 temperature is 5 °C.  In our next test, with :math:`KTSchnee = 5 W/m²/K`, the limited
 thermal conductivity of the top snow layer weakens the energy flux into the snow layer
-and fewer snow melts.  The snow surface temperature rises faster than the bulk
+and lessens the snowmelt.  The snow surface temperature rises faster than the bulk
 temperature, and the higher surface temperature results in smaller sensible
 (|WSensSnow|) and latent (|WLatSnow|) heat fluxes from the atmosphere into the snow
 layer and larger longwave radiation losses (|NetLongwaveRadiationSnow|):
@@ -1176,8 +1176,8 @@ with parameter values taken from its documentation:
 ...     angstromfactor(0.5)
 ...     angstromalternative(0.15)
 
-As |meteo_psun_sun_glob_io|, |meteo_glob_morsim| complies with
-|SharableSubmodelInterface| and is hence "sharable":
+Like |meteo_psun_sun_glob_io|, |meteo_glob_morsim| complies with
+|SharableSubmodelInterface|, and is hence "sharable":
 
 >>> model.aetmodel.add_radiationmodel_v1(submodel_meteo_glob_morsim)
 
@@ -1189,10 +1189,9 @@ As |meteo_psun_sun_glob_io|, |meteo_glob_morsim| complies with
 acre (summer)
 -------------
 
-The following input values agree with the ones of the respective sub-period
-of the daily integration test :ref:`lland_knauf_acker_summer_daily` (global radiation
-and possible sunshine duration stem from
-:ref:`meteo_glob_morsim_hourly_simulation_summer`):
+The following input values agree with those of the respective sub-period of the daily
+integration test :ref:`lland_knauf_acker_summer_daily` (global radiation and possible
+sunshine duration stem from :ref:`meteo_glob_morsim_hourly_simulation_summer`):
 
 >>> inputs.nied.series = 0.0
 >>> inputs.teml.series = (
@@ -1239,7 +1238,7 @@ and possible sunshine duration stem from
 
 In this and the following summer examples, we use the initial conditions of August 3rd,
 calculated by the corresponding daily integration tests.  However, this is possible for
-most state sequences but not for the (now higher resolved) log sequences.  Hence, we
+most state sequences but not for the (now higher-resolved) log sequences.  Hence, we
 need to define them manually:
 
 >>> test.inits = (
@@ -1271,7 +1270,7 @@ need to define them manually:
 |ESnow| and |EBdn| are the only state sequences with values depending on the current
 simulation step size.  According to their unit WT/m², we must multiply their conditions
 saved for August 3rd and December 10th (referring to Wd/m²) by 24 (to adapt them to
-Wh/m²).  We do so by trick to ensure we do not miss one of the relevant condition
+Wh/m²).  We do so using a trick to ensure we do not miss any the relevant condition
 dictionaries:
 
 >>> for key, value in locals().copy().items():
@@ -1579,10 +1578,9 @@ melting occurs:
 
 >>> pub.timegrids = "2010-12-10", "2010-12-13", "1h"
 
-The following input values agree with the ones of the respective sub-period of the
-daily integration test :ref:`lland_knauf_acker_winter_daily` (global radiation and
-possible sunshine duration stem from
-:ref:`meteo_glob_morsim_hourly_simulation_winter`):
+The following input values agree with those of the respective sub-period of the daily
+integration test :ref:`lland_knauf_acker_winter_daily` (global radiation and possible
+sunshine duration stem from :ref:`meteo_glob_morsim_hourly_simulation_winter`):
 
 >>> inputs.nied.series = (
 ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,

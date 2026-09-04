@@ -37,14 +37,14 @@ class EI(wland_sequences.FluxSequence1DLand):
 
 
 class RF(wland_sequences.FluxSequence1DLand):
-    """Rainfall (or, more concrete, the liquid amount of throughfall) [mm/T]."""
+    """Rainfall (or, more specifically, the liquid amount of throughfall) [mm/T]."""
 
     NUMERIC = True
     SPAN = (0.0, None)
 
 
 class SF(wland_sequences.FluxSequence1DLand):
-    """Snowfall (or, more concrete, the frozen amount of throughfall) [mm/T]."""
+    """Snowfall (or, more specifically, the frozen amount of throughfall) [mm/T]."""
 
     NUMERIC = True
     SPAN = (0.0, None)

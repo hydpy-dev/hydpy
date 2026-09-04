@@ -39,9 +39,9 @@ DocTest = dict[str, tuple[unittest.TestResult, int]]
 
 
 class DocTests(NamedTuple):
-    """Stores the results of the successfull and failing test runs seperately."""
+    """Stores the results of the successful and failing test runs separately."""
 
-    successfull: DocTest
+    successful: DocTest
     failing: DocTest
 
 
@@ -95,9 +95,9 @@ def main(  # pylint: disable=too-many-branches
 
     alldoctests: dict[str, DocTests] = {}
     if python_mode:
-        alldoctests["Python"] = DocTests(successfull={}, failing={})
+        alldoctests["Python"] = DocTests(successful={}, failing={})
     if cython_mode:
-        alldoctests["Cython"] = DocTests(successfull={}, failing={})
+        alldoctests["Cython"] = DocTests(successful={}, failing={})
     if not alldoctests:
         raise RuntimeError("Neither `Python` nor `Cython` mode selected for testing.")
 
@@ -184,7 +184,7 @@ def main(  # pylint: disable=too-many-branches
                         if nmbproblems:
                             doctests.failing[name] = (result, nmbproblems)
                         else:
-                            doctests.successfull[name] = (result, nmbproblems)
+                            doctests.successful[name] = (result, nmbproblems)
                     problems = result.errors + result.failures
                     if problems:
                         pingtime = time.perf_counter()
@@ -195,9 +195,9 @@ def main(  # pylint: disable=too-many-branches
                             for line in problem[1].split("\n"):
                                 print_(f"        {line}")
 
-        if doctests.successfull:
+        if doctests.successful:
             print_(f"\nIn the following modules, no doc test failed in {mode} mode:")
-            for name, (testresult, _) in sorted(doctests.successfull.items()):
+            for name, (testresult, _) in sorted(doctests.successful.items()):
                 if name[-4:] in (".rst", ".pyx"):
                     print_(f"    {name}")
                 else:

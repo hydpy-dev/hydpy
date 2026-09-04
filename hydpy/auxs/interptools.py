@@ -55,11 +55,11 @@ class InterpAlgorithm(_Labeled):
     inputs: propertytools.BaseProperty[Never, VectorFloat]
     """The current input values."""
     nmb_outputs: propertytools.BaseProperty[Never, int]
-    """The lastly calculated output values."""
+    """The last calculated output values."""
     outputs: propertytools.BaseProperty[Never, VectorFloat]
-    """The lastly calculated output values."""
+    """The last calculated output values."""
     output_derivatives: propertytools.BaseProperty[Never, VectorFloat]
-    """The lastly calculated first-order derivatives."""
+    """The last calculated first-order derivatives."""
 
     @abc.abstractmethod
     def calculate_values(self) -> None:
@@ -107,7 +107,7 @@ class InterpAlgorithm(_Labeled):
         7.0  1.999982   0.000074
         8.0  2.0        0.000001
 
-        A multivariate example (three input and two output values result in six partial
+        A multivariate example (three inputs and two outputs result in six partial
         derivatives):
 
         >>> ann.nmb_inputs = 3
@@ -193,7 +193,7 @@ dy1/dx3   dy2/dx3
         """Plot the relationship between particular input (`idx_input`) and output
         (`idx_output`) values defined by the actual |InterpAlgorithm| object.
 
-        You need to define the lower and the upper bound of the x-axis via arguments
+        You need to define the lower and upper bounds of the x-axis via arguments
         `xmin` and `xmax`.  You can increase or decrease the accuracy of the plot by
         changing the number of points evaluated within this interval (default is 100).
         For visual configuration, pass arbitrary |matplotlib| `pyplot` plotting
@@ -451,7 +451,7 @@ class SeasonalInterpolator(BaseInterpolator):
     objects.  The required weights depend on the season and are available within the
     |SeasonalInterpolator.ratios| matrix.
 
-    To explain this in more detail, we modify an example of the documentatiob on class
+    To explain this in more detail, we modify an example of the documentation on class
     |SeasonalParameter|.  Let us define a |SeasonalInterpolator| object that contains
     interpolators for January 1, March 1, and July 1, two of type |ANN| and one of type
     |PPoly|:
@@ -504,7 +504,7 @@ class SeasonalInterpolator(BaseInterpolator):
     .. image:: SeasonalInterpolator_plot.png
 
     Property |SeasonalInterpolator.shape| reflects the number of required weighting
-    ratios for each time of year (in this example, 366 days per year) and each
+    ratios for each time of year (in this example, 366 days per year) and each each
     interpolator (in this example, three):
 
     >>> seasonalinterpolator.shape
@@ -572,8 +572,8 @@ class SeasonalInterpolator(BaseInterpolator):
     0.8, 0.2, 0.0
 
     Both interpolators calculate constant values.  The sum of the outputs of the first
-    (1.0) and the second interpolator (-1.0) multiplied with their weights for January
-    13 is 0.6.
+    (1.0) and the second interpolator (-1.0), multiplied by their weights for January
+    13, is 0.6.
 
     >>> seasonalinterpolator.calculate_values(12)
     >>> round_(seasonalinterpolator.outputs[0])
@@ -787,10 +787,10 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
     def refresh(self) -> None:
         """Prepare the actual |SeasonalInterpolator| object for calculations.
 
-        Class |SeasonalInterpolator| stores its |InterpAlgorithm| objects by reference.
-        Therefore, despite all automated refreshings (explained in the general
-        documentation on class |SeasonalInterpolator|), it is still possible to destroy
-        the inner consistency of a |SeasonalInterpolator| instance:
+        Class |SeasonalInterpolator| stores its |InterpAlgorithm| objects by
+        reference.  Therefore, despite all automated refreshing (explained in the
+        general documentation on class |SeasonalInterpolator|), it is still possible to
+        destroy the inner consistency of a |SeasonalInterpolator| instance:
 
         >>> from hydpy import ANN, SeasonalInterpolator
         >>> seasonalinterpolator = SeasonalInterpolator(None)
@@ -807,9 +807,8 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
 
         Due to the Cython implementation of the actual interpolation, such an
         inconsistencies might result in a program crash without any informative error
-        message.  Therefore, whenever you are think some inconsistency might have crept
-        in and you want to repair it, call method |SeasonalInterpolator.refresh|
-        manually:
+        message.  Therefore, whenever you think some inconsistency might have crept in
+        and you want to repair it, call method |SeasonalInterpolator.refresh| manually:
 
         >>> seasonalinterpolator.refresh()
         >>> jan.nmb_inputs, jan.nmb_outputs
@@ -840,7 +839,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         defined inconsistently.
 
         Class |SeasonalInterpolator| stores its |InterpAlgorithm| objects by reference.
-        Therefore, despite all automated refreshings (explained in the general
+        Therefore, despite all automated refreshing (explained in the general
         documentation on class |SeasonalInterpolator|), it is still possible to destroy
         the inner consistency of a |SeasonalInterpolator| instance:
 
@@ -859,7 +858,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
 
         Due to the Cython implementation of the actual interpolation, such an
         inconsistencies might result in a program crash without any informative error
-        message.  Therefore, whenever you are think some inconsistency might have crept
+        message.  Therefore, whenever you think some inconsistency might have crept
         in, and you want to know if your suspicion is correct, call method
         |SeasonalInterpolator.verify|.
 

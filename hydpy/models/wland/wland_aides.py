@@ -5,7 +5,7 @@ from hydpy.core.typingtools import *
 
 
 class FR(sequencetools.AideSequence):
-    """Fraction rainfall / total precipitation [-]."""
+    """Fraction of rainfall in total precipitation [-]."""
 
     NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, 1.0)

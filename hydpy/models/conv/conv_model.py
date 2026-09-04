@@ -45,8 +45,8 @@ class Calc_Outputs_V1(modeltools.Method):
 
     Examples:
 
-        With complete input data, method |Calc_Outputs_V1| performs the
-        most simple nearest-neighbour approach:
+        With complete input data, method |Calc_Outputs_V1| performs the simplest
+        nearest-neighbour approach:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -60,10 +60,9 @@ class Calc_Outputs_V1(modeltools.Method):
         >>> fluxes.outputs
         outputs(1.0, 2.0, 1.0)
 
-        With incomplete data, it subsequently checks the second-nearest
-        location, the third-nearest location, and so on, until it finds
-        an actual value.  Parameter |MaxNmbInputs| defines the maximum
-        number of considered locations:
+        With incomplete data, it subsequently checks the second-nearest location, the
+        third-nearest location, and so on, until it finds an actual value.  Parameter
+        |MaxNmbInputs| defines the maximum number of considered locations:
 
         >>> fluxes.inputs = 1.0, nan
         >>> model.calc_outputs_v1()
@@ -101,12 +100,12 @@ class Return_Mean_V1(modeltools.Method):
 
     Examples:
 
-        Method |Return_Mean_V1| requires two vectors and one integer value.  The
-        first vector (in the following examples: |conv_fluxes.Inputs|)  handles the
-        data to be averaged.  The second vector (|conv_fluxes.Outputs|) serves as
-        a mask.  Method |Return_Mean_V1| takes only those vector positions into
-        account, where the value of the mask vector is not |numpy.nan|. The integer
-        value defines the length of both vectors:
+        Method |Return_Mean_V1| requires two vectors and one integer value.  The first
+        vector (in the following examples: |conv_fluxes.Inputs|)  handles the data to
+        be averaged.  The second vector (|conv_fluxes.Outputs|) serves as a mask.
+        Method |Return_Mean_V1| takes only those vector positions into account where
+        the value of the mask vector is not |numpy.nan|. The integer value defines the
+        length of both vectors:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -189,7 +188,7 @@ class Calc_ActualConstant_ActualFactor_V1(modeltools.Method):
         >>> fluxes.actualfactor
         actualfactor(1.5)
 
-        The following two examples deal with a perfect and a non-existing linear
+        The following two examples deal with a perfect and a non-existent linear
         relationship:
 
         >>> fluxes.inputs = 2.0, 4.0, 6.0
@@ -414,8 +413,8 @@ class Calc_Outputs_V2(modeltools.Method):
 
     Examples:
 
-        With complete input data, method |Calc_Outputs_V2| performs the
-        most simple inverse distance weighted approach:
+        With complete input data, method |Calc_Outputs_V2| performs the simplest
+        inverse distance weighted approach:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()

@@ -346,10 +346,6 @@ class Alpha(parametertools.Parameter):
 class K(parametertools.Parameter):
     """Recession coefficient of the upper zone layer [1/T/mm^alpha].
 
-    In addition to the |Parameter| call method, it is possible to
-    set the value of parameter |K| in accordance to the keyword arguments
-    `khq`, `hq` and (optionally) `alpha`:
-
     Parameter |K| allows defining its value via the keyword arguments `khq`, `hq` and
     (optionally) `alpha`:
 

@@ -47,7 +47,7 @@ class MA:
     positive range).
 
     For educational purposes, we apply some (problematic) discontinuous functions in
-    the following.  The first example is a simple rectangle impulse:
+    the following.  The first example is a simple rectangular impulse:
 
     >>> import numpy
     >>> def iuh(x):
@@ -93,7 +93,7 @@ class MA:
               0.051281, 0.051281, 0.051281, 0.051281, 0.051281, 0.051281,
               0.051281, 0.051281))
 
-    The first two central moments of the time delay subsume describing how an MA model
+    The first two central moments of the time delay describe how an MA model
     behaves:
 
     >>> def iuh(x):
@@ -273,7 +273,7 @@ check the calculated coefficients: 1.0.
 
     @property
     def coefs(self) -> VectorFloat:
-        """|numpy.ndarray| containing all MA coefficents."""
+        """|numpy.ndarray| containing all MA coefficients."""
 
         if (coefs := self._coefs) is not None:
             return coefs
@@ -389,7 +389,7 @@ check the calculated coefficients: 1.0.
         return moment1, moment2
 
     def plot(self, threshold: float | None = None, **kwargs: Any) -> figure.Figure:
-        """Create a barplot of the MA coefficients."""
+        """Create a bar plot of the MA coefficients."""
 
         try:
             # Works under matplotlib 3.
@@ -466,7 +466,7 @@ class ARMA:
     >>> round_(arma.moments)
     4.110439, 1.926845
 
-    On can check the accuray of the approximation via the property |ARMA.dev_moments|,
+    One can check the accuracy of the approximation via the property |ARMA.dev_moments|,
     which returns the sum of the absolute values of the deviations of both methods:
 
     >>> round_(arma.dev_moments)
@@ -492,7 +492,7 @@ class ARMA:
                    -0.000004, 0.00001, -0.000008, -0.000009, -0.000004,
                    -0.000001))
 
-    The number of AR coeffcients is actually reduced.  However, there are now even more
+    The number of AR coefficients is actually reduced.  However, there are now even more
     MA coefficients, possibly trying to compensate the lower accuracy of the AR
     coefficients, and there is a slight decrease in the precision of the moments:
 
@@ -523,7 +523,7 @@ class ARMA:
     >>> round_(arma.dev_moments)
     0.001125
 
-    Further relaxing the tolerance values results in even less coefficients, but also
+    Further relaxing the tolerance values results in even fewer coefficients, but also
     in some slightly negative responses to a standard impulse:
 
     >>> arma.max_rel_rmse = 1e-2
@@ -565,7 +565,7 @@ determined ARMA model is negative (`-0.000336`).
     >>> round_(arma.dev_moments)
     0.0
 
-    Use the following plotting command to see why 2 MA coeffcients instead of one are
+    Use the following plotting command to see why 2 MA coefficients instead of one are
     required in the above example:
 
     >>> figure = arma.plot(threshold=0.9)
@@ -583,7 +583,7 @@ determined ARMA model is negative (`-0.000336`).
     ...
     UserWarning: Method `update_ma_coefs` is not able to determine the MA coefficients \
 of the ARMA model with the desired accuracy.  You can set the tolerance value \
-´max_dev_coefs` to a higher value.  An accuracy of `0.000000000924` has been reached \
+`max_dev_coefs` to a higher value.  An accuracy of `0.000000000924` has been reached \
 using `185` MA coefficients.
 
     >>> arma.max_rel_rmse = 0.0
@@ -629,7 +629,7 @@ by the MA coefficients `1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0`.
     |ARMA.update_coefs|."""
 
     max_dev_coefs: float = 1e-6
-    """Maximum deviation of the sum of all coefficents from one to be accepted by 
+    """Maximum deviation of the sum of all coefficients from one to be accepted by
     method |ARMA.update_coefs|."""
 
     _ma: MA | None
@@ -890,11 +890,11 @@ far.
         return abs(self.sum_coefs - 1.0)
 
     def calc_all_ar_coefs(self, ar_order: int, ma_model: MA) -> None:
-        """Determine the AR coeffcients based on a least squares approach.
+        """Determine the AR coefficients based on a least-squares approach.
 
         The argument `ar_order` defines the number of AR coefficients to be determined.
-        The argument `ma_order` defines a pure |MA| model. The least squares approach
-        is applied on all those coefficents of the pure MA model, which are associated
+        The argument `ma_model` defines a pure |MA| model. The least-squares approach
+        is applied on all those coefficients of the pure MA model, which are associated
         with the part of the recession curve behind its turning point.
 
         The attribute |ARMA.rel_rmse| is updated with the resulting relative root mean
@@ -938,8 +938,8 @@ far.
         """Determine the MA coefficients.
 
         The number of MA coefficients is subsequently increased until the required
-        precision (|ARMA.max_dev_coefs|) or the or the order of the original |MA| model
-        is reached.  In the second case, |ARMA.update_ma_coefs| raises a warning.
+        precision (|ARMA.max_dev_coefs|) or the order of the original |MA| model is
+        reached.  In the second case, |ARMA.update_ma_coefs| raises a warning.
         """
 
         if self.ar_order == 0:
@@ -955,7 +955,7 @@ far.
                     warnings.warn(
                         f"Method `update_ma_coefs` is not able to determine the MA "
                         f"coefficients of the ARMA model with the desired accuracy.  "
-                        f"You can set the tolerance value ´max_dev_coefs` to a higher "
+                        f"You can set the tolerance value `max_dev_coefs` to a higher "
                         f"value.  An accuracy of `{objecttools.repr_(self.dev_coefs)}` "
                         f"has been reached using `{self.ma.order}` MA coefficients."
                     )
@@ -971,7 +971,7 @@ far.
         AR coefficients and the MA ordinates of the given |MA| model.
 
         The MA coefficients are determined one at a time, beginning with the first one.
-        Each ARMA MA coefficient in set in a manner that allows for the exact
+        Each ARMA MA coefficient is set in a manner that allows for the exact
         reproduction of the equivalent pure MA coefficient with all relevant ARMA
         coefficients.
         """
@@ -1005,7 +1005,7 @@ far.
 
     @property
     def moments(self) -> tuple[float, float]:
-        """The first two time delay weighted statistical moments of the ARMA
+        """The first two time-delay-weighted statistical moments of the ARMA
         response."""
         timepoints = self.ma.delays
         response = self.response

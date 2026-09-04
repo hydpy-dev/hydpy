@@ -1,5 +1,5 @@
 # pylint: disable=line-too-long, unused-wildcard-import
-"""|dam_sluice| is similar to |dam_pump| but is thought for modelling free flow through
+"""|dam_sluice| is similar to |dam_pump| but is intended for modelling free flow through
 sluices driven by differences between inner and outer water levels.  Principally, users
 can define arbitrary relationships via |WaterLevelDifference2MaxFreeDischarge|,
 including ones that allow for "negative outflow" so that |dam_sluice| takes water from
@@ -80,7 +80,7 @@ meter are "effective" (can cause inflow or outflow through the hydraulic structu
 >>> crestleveltolerance(0.1)
 
 The smoothing parameter |DischargeTolerance| is only relevant when the outflow must be
-suppressed to not further increase to high water levels at a remote location (see
+suppressed to prevent further increases in high water levels at a remote location (see
 |Calc_FreeDischarge_V1|):
 
 >>> dischargetolerance(0.1)

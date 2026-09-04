@@ -121,7 +121,7 @@ class ParameterSoilThreshold(ParameterSoil):
     >>> pwp
     pwp(acker=20.0, laubw=40.0)
 
-    Trimming works as to be expected:
+    Trimming works as expected:
 
     >>> pwp(relative=-0.2)
     >>> pwp
@@ -205,7 +205,7 @@ class ParameterGlacier(ParameterComplete):
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D):
-    """Base class for parameters which values depend both an the actual
+    """Base class for parameters which values depend both on the actual
     land use class and the actual month."""
 
     columnnames = (

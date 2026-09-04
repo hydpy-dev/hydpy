@@ -4,7 +4,7 @@
 HydPy-Test
 ==========
 
-The HydPy-Test base model is thought for providing simple test models to test and
+The HydPy-Test base model is intended for providing simple test models to test and
 explain the functionality of some framework features.   So far, three applications
 models for testing numerical integration algorithms are available.
 

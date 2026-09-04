@@ -6,14 +6,14 @@
 
 |evap_pet_ambav1| is a submodel that supplies its main model with estimates of
 potential evapotranspiration from soils and potential evaporation from interception
-storages and water areas.  It closely follows version 1.0 of the AMBAV model, as
+storage and water areas.  It closely follows version 1.0 of the AMBAV model, as
 described by :cite:t:`ref-Löpmeier2014`, which was developed and used by the German
 Meteorological Service (DWD) to calculate soil evapotranspiration and interception
 evaporation for different crops based on the Penman-Monteith equation.  We added a
 routine for calculating evaporation from water areas based on the pure Penman equation.
 The `MORSIM/AMBAV issue`_ on GitHub discusses this and other decisions in detail.  We
 implemented |evap_pet_ambav1| on behalf of the `German Federal Institute of Hydrology
-(BfG)`_ for modelling large river basins in central Europe.
+(BfG)`_ for modelling large river basins in Central Europe.
 
 |evap_pet_ambav1| requires additional data about the catchment's current state, which
 it usually queries from its main model, if possible:
@@ -112,7 +112,7 @@ precipitation to occur on the second day:
 >>> model.precipmodel.sequences.inputs.precipitation.series = 0.0, 10.0, 0.0
 
 In contrast to |evap_aet_morsim|, |evap_pet_ambav1| even requires logged values when
-applied on daily timesteps to keep track of the temporal persistency of the topmost
+applied on daily timesteps to keep track of the temporal persistence of the topmost
 soil layer's wetness:
 
 >>> test.inits = ((states.soilresistance, 100.0),
@@ -258,7 +258,7 @@ The following meteorological input data also agree with the
 In contrast to |evap_aet_morsim|, |evap_pet_ambav1| does not require "daily" averages
 or sums of meteorological input data but calculates, e.g., hourly water area
 evaporation values and aggregates them to daily values later.  But it needs to remember
-the last determined cloud coverage degree (which is only estimateable at daytime) and
+the last determined cloud coverage degree (which is only estimable at daytime) and
 other factors related to the topmost soil layer's wetness calculations:
 
 >>> test.inits = (
@@ -286,7 +286,7 @@ The contrived day is warm, free of snow and rain:
 
 Considering the :ref:`evap_aet_morsim_hourly_simulation_land` example,
 |evap_pet_ambav1| estimates higher potential interception evaporation rates and
-potential soil evapotranspiration rates that are (as to be expected) higher but roughly
+potential soil evapotranspiration rates that are (as expected) higher but roughly
 comparable to the actual soil evapotranspiration rates of |evap_aet_morsim|:
 
 .. integration-test::

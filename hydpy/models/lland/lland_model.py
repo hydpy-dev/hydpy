@@ -712,9 +712,9 @@ class Calc_NBes_Inzp_V1(modeltools.Method):
         >>> model.idx_sim = 1
 
         The dense settlement (|SIED_D|), the wetland area (|FEUCHT|), and
-        both water areas (|FLUSS| and |SEE|) start with a initial interception
+        both water areas (|FLUSS| and |SEE|) start with an initial interception
         storage of 1/2 mm, the glacier (|GLETS|) and water areas (|FLUSS| and
-        |SEE|) start with 0 mm.  In the first example, actual precipition
+        |SEE|) start with 0 mm.  In the first example, actual precipitation
         is 1 mm:
 
         >>> states.inzp = 0.5, 0.5, 0.0, 1.0, 1.0
@@ -3140,7 +3140,7 @@ class Update_EBdn_V1(modeltools.Method):
 
     Example:
 
-        Water areas do not posses a soil energy content. For all other
+        Water areas do not possess a soil energy content. For all other
         landuse types, the above equation applies:
 
         >>> from hydpy.models.lland import *
@@ -3377,8 +3377,7 @@ class Return_WSurf_V1(modeltools.Method):
         >>> round_(model.return_wsurf_v1(0))
         10.0
 
-        Method |Return_WSurf_V1| explicitely supports infinite
-        |KTSchnee| values:
+        Method |Return_WSurf_V1| explicitly supports infinite |KTSchnee| values:
 
         >>> ktschnee(inf)
         >>> round_(model.return_wsurf_v1(0))
@@ -3602,43 +3601,41 @@ class Return_TempSSurface_V1(modeltools.Method):
         >>> for hru in range(6):
         ...     _ = model.return_tempssurface_v1(hru)
 
-        For the first, snow-free response unit, we cannot define a reasonable
-        snow surface temperature, of course:
+        For the first, snow-free response unit, we cannot define a reasonable snow
+        surface temperature, of course:
 
         >>> from hydpy import round_
         >>> round_(fluxes.tempssurface[0])
         nan
 
-        Comparing response units two and three shows that a moderate increase
-        in short wave radiation is compensated by a moderate increase in snow
-        surface temperature:
+        Comparing response units two and three shows that a moderate increase in short
+        wave radiation is compensated by a moderate increase in snow surface
+        temperature:
 
         >>> from hydpy import print_vector
         >>> print_vector(fluxes.tempssurface[1:3])
         -8.307868, -7.828995
 
-        To demonstrate the robustness of the implemented approach, response
-        units three to five show the extreme decrease in surface temperature
-        due to an even more extrem decrease in the bulk temperature of the
-        snow layer:
+        To demonstrate the robustness of the implemented approach, response units three
+        to five show the extreme decrease in surface temperature due to an even more
+        extrem decrease in the bulk temperature of the snow layer:
 
         >>> print_vector(fluxes.tempssurface[2:5])
         -7.828995, -20.191197, -66.644357
 
-        The sixths response unit comes with a very high net radiation
-        to clarify that the allowed maximum value of the snow surface temperature
-        is 0°C.  Hence, the snow temperature gradient might actually be too
-        small for conducting all available energy deeper into the snow layer.
-        In reality, only the topmost snow layer would melt in such a situation.
-        Here, we do not differentiate between melting processes in different
-        layers and thus add the potential energy excess at the snow surface to
-        |WSurf|:
+        The sixths response unit comes with a very high net radiation to clarify that
+        the allowed maximum value of the snow surface temperature is 0°C.  Hence, the
+        snow temperature gradient might actually be too small for conducting all
+        available energy deeper into the snow layer.  In reality, only the topmost snow
+        layer would melt in such a situation.  Here, we do not differentiate between
+        melting processes in different layers and thus add the potential energy excess
+        at the snow surface to |WSurf|:
 
         >>> print_vector(fluxes.tempssurface[5:])
         0.0
 
-        As to be expected, the energy fluxes of the snow surface neutralise
-        each other (within the defined numerical accuracy):
+        As expected, the energy fluxes of the snow surface neutralise each other
+        (within the defined numerical accuracy):
 
         >>> print_vector(fluxes.netradiationsnow -
         ...              fluxes.wsenssnow -
@@ -3646,11 +3643,11 @@ class Return_TempSSurface_V1(modeltools.Method):
         ...              fluxes.wsurf)
         nan, 0.0, 0.0, 0.0, 0.0, 0.0
 
-        Through setting parameter |KTSchnee| to |numpy.inf|, we disable
-        the iterative search for the correct surface temperature.  Instead,
-        method |Return_TempSSurface_V1| simply uses the bulk temperature of
-        the snow layer as its surface temperature and sets |WSurf| so that
-        the energy gain of the snow surface is zero:
+        Through setting parameter |KTSchnee| to |numpy.inf|, we disable the iterative
+        search for the correct surface temperature.  Instead, method
+        |Return_TempSSurface_V1| simply uses the bulk temperature of the snow layer as
+        its surface temperature and sets |WSurf| so that the energy gain of the snow
+        surface is zero:
 
         >>> ktschnee(inf)
         >>> for hru in range(6):
@@ -4341,8 +4338,8 @@ class Update_ESnow_V1(modeltools.Method):
         tempssurface(nan, -6.136057, -6.975386, -7.055793, -7.065486, -7.066457,
                      -7.066565, -7.066565)
 
-        As to be expected, the requirement of the Backward Euler method
-        is approximetely fullfilled for each response unit:
+        As expected, the requirement of the Backward Euler method is approximetely
+        fullfilled for each response unit:
 
         >>> esnow = states.esnow.values.copy()
         >>> states.esnow = -1.0
@@ -5092,10 +5089,10 @@ class Calc_EvS_WAeS_WATS_V1(modeltools.Method):
         relative amounts of condensation and deposition so that the fraction
         between the frozen and the total water content of the snow layer
         does not change.  The same holds for vaporisation and sublimation,
-        as shown by response units to to seven.  Note that method
+        as shown by response units two to seven.  Note that method
         |Calc_EvS_WAeS_WATS_V1| prevents negative water contents but does
-        not prevent to high liquid water contents, which eventually needs
-        to be corrected by another method called subsequentially.  The last
+        not prevent excessively high liquid water contents, which eventually needs
+        to be corrected by another method called subsequently.  The last
         response unit shows that method |Calc_EvS_WAeS_WATS_V1| sets |EvS|,
         |WATS| and |WAeS| to zero for water areas:
 
@@ -5597,7 +5594,7 @@ class Calc_QIB2_V1(modeltools.Method):
         generation is 5 mm/12h (parameter |DMax|).  For the seventh zone,
         which contains a saturated soil, the value calculated for the
         second interflow component (|QIB2|) is 3 mm/h.  The "missing"
-        value of 2 mm/12h is be calculated by method |Calc_QIB1_V1|.
+        value of 2 mm/12h is calculated by method |Calc_QIB1_V1|.
 
         (The fourth zone, which is slightly oversaturated, is only intended
         to demonstrate that zero division due to |WMax| = |FK| is circumvented.)
@@ -7187,7 +7184,7 @@ class Calc_QAH_V1(modeltools.Method):
         evi(4.0, 5.0, 3.0)
 
         Note that only 5 mm are added (instead of the |NKor| value 10 mm) and that only
-        2 mm are substracted (instead of the |EvI| value 4 mm, as the first response
+        2 mm are subtracted (instead of the |EvI| value 4 mm, as the first response
         unit area only accounts for 50 % of the total subbasin area.
 
         Setting also the land use class of the second response unit to water type

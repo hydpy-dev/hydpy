@@ -1653,13 +1653,13 @@ class Calc_QAb1_QVs1_BW1_V1(modeltools.Method):
 
         We prepare eight zones with identical values for the control parameters |H1|,
         |TAb1|, and |TVs1|.  We only vary the inflow (|R|) and the initial state
-        (|BW1|).  For the first and the second zones, |BW1| changes but remains
-        permanently below |H1|.  Hence, all water leaving the storage leaves via
-        percolation.  For the third and the fourth zone, |BW1| also changes but is
-        permanently above |H1|.  Hence, there is a continuous generation of percolation
-        and surface runoff.  For the fifth and sixth zones, |BW1| starts below and ends
-        above |H1| and the other way round.  For the seventh and eighth zones, inflow
-        and outflow are balanced:
+        (|BW1|).  For the first and second zones, |BW1| changes but remains permanently
+        below |H1|.  Hence, all water leaving the storage leaves via percolation.  For
+        the third and the fourth zones, |BW1| also changes but is permanently above
+        |H1|.  Hence, there is a continuous generation of percolation and surface
+        runoff.  For the fifth and sixth zones, |BW1| starts below and ends above |H1|
+        and the other way round.  For the seventh and eighth zones, inflow and outflow
+        are balanced:
 
         >>> from hydpy.models.hland import *
         >>> simulationstep("12h")
@@ -2310,7 +2310,7 @@ class Calc_RG1_SG1_V1(modeltools.Method):
 
 
 class Calc_GR2_GR3_V1(modeltools.Method):
-    r"""Calculate the recharge of the first-order and the second-order slow response
+    r"""Calculate the recharge of the first-order and the second-order slow-response
     groundwater reservoir.
 
     Basic equations:

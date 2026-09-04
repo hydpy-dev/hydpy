@@ -62,15 +62,14 @@ class BaseProperty(Generic[T_contra, T_co], BaseDescriptor):
     """Abstract base class for deriving classes similar to |property|.
 
     |BaseProperty| provides the abstract methods |BaseProperty.call_fget|,
-    |BaseProperty.call_fset|, and |BaseProperty.call_fdel|, which are the
-    appropriate places to add custom functionalities (e.g. caching).  See
-    subclass |Property| for an example, which mimics the behaviour of the
-    built-in |property| function.
+    |BaseProperty.call_fset|, and |BaseProperty.call_fdel|, which are the appropriate
+    places to add custom functionalities (e.g. caching).  See subclass |Property| for
+    an example, which mimics the behaviour of the built-in |property| function.
 
-    |BaseProperty| property uses dummy getter, setter and deleter functions
-    to indicate than at an actual getter, setter or deleter function is missing.
-    In case they are called due to the wrong implementation of a |BaseProperty|
-    subclass, they raise a |RuntimeError|:
+    |BaseProperty| property uses dummy getter, setter and deleter functions to indicate
+    that an actual getter, setter or deleter function is missing.  In case they are
+    called due to the wrong implementation of a |BaseProperty| subclass, they raise a
+    |RuntimeError|:
 
     >>> from hydpy.core.propertytools import BaseProperty
     >>> BaseProperty._fgetdummy(None)
@@ -259,7 +258,7 @@ class ProtectedProperty(BaseProperty[T_contra, T_co]):
     before it has been initialised results in a program crash.  Using
     |ProtectedProperty| is a means to prevent such problems.
 
-    The following class `Test` defines most simple getter, setter, and deleter
+    The following class `Test` defines simplest getter, setter, and deleter
     functions for its only property `x`:
 
     >>> from hydpy.core.propertytools import ProtectedProperty
@@ -369,8 +368,8 @@ class ProtectedProperties:
     """Iterable for |ProtectedProperty| objects.
 
     You can collect an arbitrary number of |ProtectedProperty| objects within a
-    |ProtectedProperties| object.  Its |ProtectedProperties.allready| method
-    allows checking the status of all properties at ones:
+    |ProtectedProperties| object.  Its |ProtectedProperties.allready| method allows
+    checking the status of all properties at once:
 
     >>> from hydpy.core import propertytools as pt
     >>> class Test:

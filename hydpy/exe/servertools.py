@@ -455,7 +455,7 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
 
     After initialising the *HydPy* server, each communication via a GET or POST request
     is handled by a new instance of |HydPyServer|.  This handling occurs in a unified
-    way using either method |HydPyServer.do_GET| or [HydPyServer.do_POST|, which select
+    way using either method |HydPyServer.do_GET| or |HydPyServer.do_POST|, which select
     and apply the actual GET or POST method.  All methods provided by class
     |HydPyServer| starting with "GET" or "POST" are accessible via HTTP.
 
@@ -547,10 +547,10 @@ method `query_parameteritemvalues` no query parameter `id` is given.
     Traceback (most recent call last):
     ...
     urllib.error.HTTPError: HTTP Error 400: RuntimeError: The POST method \
-`parameteritemvalues` received a wrongly formated data body.  The following line has \
+`parameteritemvalues` received a wrongly formatted data body.  The following line has \
 been extracted but cannot be further processed: `x == y`.
 
-    Before explaining the more offical methods, we introduce the method
+    Before explaining the more official methods, we introduce the method
     |HydPyServer.POST_evaluate|, which evaluates arbitrary valid Python code within the
     server process.  Its most likely use-case is to access the (sub)attributes of the
     single instance of class |ServerState|, available as a member of class
@@ -1506,7 +1506,7 @@ under the id `0`.  There is nothing registered, so far.
                 self._statuscode = 400
                 raise RuntimeError(
                     f"The POST method `{self._externalname}` received a wrongly "
-                    f"formated data body.  The following line has been extracted but "
+                    f"formatted data body.  The following line has been extracted but "
                     f"cannot be further processed: `{line}`."
                 ) from exc
 
@@ -2285,7 +2285,7 @@ def start_server(
     attribute `extension_map` to class |HydPyServer|.  The reason is to avoid the long
     computation time of function |mimetypes.init| of module |mimetypes|, usually called
     when defining class `BaseHTTPRequestHandler` of module `http.server`.  If file
-    `mimetypes.txt` does not exist or does not work for , |start_server| calls
+    `mimetypes.txt` does not exist or does not work, |start_server| calls
     |mimetypes.init| as usual, (over)writes `mimetypes.txt` and tries to proceed as
     expected.
     """

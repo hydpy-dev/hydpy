@@ -124,7 +124,7 @@ def progressbar(iterable: Iterable[T_inv], length: int = 23) -> Iterator[T_inv]:
     >>> from hydpy import pub
     >>> pub.options.printprogress = True
 
-    You can pass an iterable object.  Say you want to calculate the the sum of all
+    You can pass an iterable object.  Say you want to calculate the sum of all
     integer values from 1 to 100 and print the progress of the calculation.  Using
     function |range|, one just has to interpose function |progressbar|:
 

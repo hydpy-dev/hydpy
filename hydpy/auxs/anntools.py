@@ -35,7 +35,7 @@ class _ANNArrayProperty(propertytools.DependentProperty[T_contra, T_co]):
 
     @classmethod
     def add_cann(cls, obj: Any, cann: annutils.ANN) -> None:
-        """Log the given Cython based ANN for the given object."""
+        """Log the given Cython-based ANN for the given object."""
         cls._obj2cann[obj] = cann
 
     @property
@@ -90,9 +90,9 @@ class ANN(interptools.InterpAlgorithm):
     |ANN| can also be applied directly for testing purposes, as shown in the following
     examples.
 
-    First, define the most simple artificial neural network consisting of only one
-    input node, one hidden neuron, and one output node, and pass arbitrary values for
-    the weights and intercepts:
+    First, define the simplest artificial neural network consisting of only one input
+    node, one hidden neuron, and one output node, and pass arbitrary values for the
+    weights and intercepts:
 
     >>> from hydpy import ANN, nan
     >>> ann = ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
@@ -100,8 +100,8 @@ class ANN(interptools.InterpAlgorithm):
     ...           intercepts_hidden=-16.0, intercepts_output=-1.0)
 
     The following loop subsequently sets the values 0 to 8 as input values, performs
-    the calculation, and prints out the final output.  As to be expected, the results
-    show the shape of the logistic function:
+    the calculation, and prints out the final output.  As expected, the results show
+    the shape of the logistic function:
 
     >>> from hydpy import round_
     >>> for input_ in range(9):
@@ -137,9 +137,9 @@ class ANN(interptools.InterpAlgorithm):
         >>> _ = gc.collect()
 
     Some models might require the derivative of certain outputs with respect to
-    individual inputs.  One example is application model the |dam_llake|, which uses
+    individual inputs.  One example is the application model |dam_llake|, which uses
     class |ANN| to model the relationship between water storage and stage of a lake.
-    During a simulation run , it additionally needs to know the area of the water
+    During a simulation run, it additionally needs to know the area of the water
     surface, which is the derivative of storage with respect to stage.  For such
     purposes, class |ANN| provides method |ANN.calculate_derivatives|.  In the
     following example, we apply this method and compare its results with finite
@@ -177,8 +177,8 @@ class ANN(interptools.InterpAlgorithm):
     multiple times afterwards. Thereby, you can subsequently pass different index
     values to calculate the derivatives with respect to different inputs.
 
-    The following example shows that everything works well for more complex single
-    layer networks  (we checked the results manually):
+    The following example shows that everything works well for more complex
+    single-layer networks  (we checked the results manually):
 
     >>> ann.nmb_inputs = 3
     >>> ann.nmb_neurons = (4,)
@@ -225,7 +225,7 @@ class ANN(interptools.InterpAlgorithm):
     The next example shows how to solve the XOR problem with a two-layer network.  As
     usual, `1` stands for `True` and `0` stands for `False`.
 
-    We define a network with two inputs (`I1` and `I2`), two neurons in mthe first
+    We define a network with two inputs (`I1` and `I2`), two neurons in the first
     hidden layer (`H11` and `H12`), one neuron in the second hidden layer (`H2`), and a
     single output (`O1`):
 
@@ -233,7 +233,7 @@ class ANN(interptools.InterpAlgorithm):
     >>> ann.nmb_neurons = (2, 1)
     >>> ann.nmb_outputs = 1
 
-    The value of `O1` shall be identical with the activation of `H2`:
+    The value of `O1` shall be identical to the activation of `H2`:
 
     >>> ann.weights_output = 1.0
     >>> ann.intercepts_output = 0.0
@@ -262,7 +262,7 @@ class ANN(interptools.InterpAlgorithm):
 
     To recapitulate, `H11` determines if at least one input is `True`, `H12` determines
     if both inputs are `True`, and `H2` determines if precisely  one input is `True`,
-    which is the solution for the XOR-problem:
+    which is the solution for the XOR problem:
 
     >>> ann
     ANN(
@@ -319,7 +319,7 @@ class ANN(interptools.InterpAlgorithm):
 
     To better validate the calculation of derivatives for multi-layer networks, we
     decrease our network's weights (and, accordingly, the intercepts), making its
-    response more smooth:
+    response smoother:
 
     >>> ann = ANN(nmb_inputs=2,
     ...           nmb_neurons=(2, 1),
@@ -373,10 +373,10 @@ class ANN(interptools.InterpAlgorithm):
     0.0, 1.0, 0.694609, 0.694609
     1.0, 1.0, -0.004129, -0.004129
 
-    Note that Python class |ANN| handles a corresponding Cython extension class defined
-    in |annutils|, which does not protect itself against segmentation faults. But class
-    |ANN| takes up this task, meaning using its public members should always result in
-    readable exceptions instead of program crashes, e.g.:
+    Note that the Python class |ANN| handles a corresponding Cython extension class
+    defined in |annutils|, which does not protect itself against segmentation faults.
+    But class |ANN| takes up this task, meaning using its public members should always
+    result in readable exceptions instead of program crashes, e.g.:
 
     >>> corrupted = ANN()
     >>> del corrupted.nmb_outputs
@@ -393,7 +393,7 @@ class ANN(interptools.InterpAlgorithm):
 is not usable so far.  At least, you have to prepare attribute `nmb_outputs` first.
 
     You can compare |ANN| objects for equality.  The following exhaustive tests ensure
-    that one |ANN| is only considered equal with another |ANN| object with the same
+    that one |ANN| is only considered equal to another |ANN| object with the same
     network shape and parameter values:
 
     >>> ann == ann
@@ -605,7 +605,7 @@ object `ann` has not been prepared so far.
     )
 
     def _get_nmb_neurons(self) -> tuple[int, ...]:
-        """The number of neurons of the hidden layers.
+        """The number of neurons in the hidden layers.
 
         >>> from hydpy import ANN
         >>> ann = ANN(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
@@ -682,16 +682,16 @@ object `ann` has not been prepared so far.
         | 0.0, 0.0, 0.0 |
         | 0.0, 0.0, 0.0 |
         
-        The following error occurs when either the number of input nodes or of hidden 
+        The following error occurs when either the number of input nodes or hidden 
         neurons is unknown:
         
         >>> del ann.nmb_inputs
         >>> ann.weights_input
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: Attribute \
-`weights_input` of object `ann` is not usable so far.  At least, \
-you have to prepare attribute `nmb_inputs` first.
+        hydpy.core.exceptiontools.AttributeNotReady: Attribute `weights_input` of \
+object `ann` is not usable so far.  At least, you have to prepare attribute \
+`nmb_inputs` first.
         >>> ann.nmb_inputs = 2
 
         It is allowed to set values via slicing:
@@ -904,15 +904,15 @@ broadcast input array from shape (3,3) into shape (2,3)
         nodes.  However, property |ANN.activation| allows defining other activation 
         functions for the hidden neurons individually.  So far, one can select the 
         identity function and a "filter version" of the logistic function as 
-        alternatives -- others might follow. 
+        alternatives. 
         
         Assume a neuron receives input :math:`i_1` and :math:`i_2` from two nodes of 
-        the input layer or its upstream hidden layer.  We wheight these input values as 
+        the input layer or its upstream hidden layer.  We weight these input values as
         usual:
         
             :math:`x_1 = c + w_1 \\cdot i_1 + w_2 \\cdot i_2`
         
-        When selecting the identity function through setting the index value "0", the 
+        When selecting the identity function by setting the index value "0", the 
         activation of the considered neuron is:
             
             :math:`a_1 = x_1`
@@ -920,17 +920,17 @@ broadcast input array from shape (3,3) into shape (2,3)
         Using the identity function is helpful for educational examples and for 
         bypassing input through one layer without introducing nonlinearity.
         
-        When selecting the logistic function through setting the index value "1", the 
+        When selecting the logistic function by setting the index value "1", the 
         activation of the considered neuron is:
         
             :math:`a_1 = 1-\\frac{1}{1+exp(x_1)}`
         
         The logistic function is a standard function for constructing neural networks.  
-        It allows to approximate any relationship within a specific range and accuracy, 
+        It allows approximating any relationship within a specific range and accuracy, 
         provided the neural network is large enough.
         
-        When selecting the "filter version" of the logistic function through setting 
-        the index value "2", the activation of the considered neuron is:
+        When selecting the "filter version" of the logistic function by setting the 
+        index value to 2, the activation of the considered neuron is:
         
             :math:`a_1 = 1-\\frac{1}{1+exp(x_1)} \\cdot i_1`
             
@@ -995,7 +995,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         )
         
         The agreement between the analytical and the numerical derivatives gives us 
-        confidence everything works fine:
+        confidence that everything works fine:
              
         >>> ann.calculate_values()
         >>> round_(ann.outputs)
@@ -1241,12 +1241,12 @@ broadcast input array from shape (3,3) into shape (2,3)
         >>> ann.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: The shape of the the artificial neural network parameter `ann` \
-of element `?` is not properly defined.
+        RuntimeError: The shape of the artificial neural network parameter `ann` of \
+element `?` is not properly defined.
         """
         if not self.__protectedproperties.allready(self):
             raise RuntimeError(
-                f"The shape of the the artificial neural network parameter "
+                f"The shape of the artificial neural network parameter "
                 f"{objecttools.elementphrase(self)} is not properly defined."
             )
 

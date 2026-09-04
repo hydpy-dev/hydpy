@@ -12,11 +12,11 @@ on method |Calc_GlobalRadiation_V2| explains this in more detail.
 Users that strive for high consistency with *LARSIM's* results should note
 |meteo_glob_morsim| works slightly differently regarding the mentioned approach for
 adjusting hourly global radiation values.  *LARSIM* normalises them so that their sum
-is identical with the directly calculated global radiation sum of the current calendar
+is identical to the directly calculated global radiation sum of the current calendar
 day.  Hence, estimating the global radiation for the early morning takes the sunshine
 duration measured for the late evening into account.  *HydPy* generally does not
 support looking into the future for calculating current states or fluxes.  Instead, we
-decided to let |meteo_glob_morsim| always uses data of the last 24 hours for this
+decided to let |meteo_glob_morsim| always use data of the last 24 hours for this
 adjustment process.  Hence, there are noticeable differences in individual hourly
 radiation estimates of *LARSIM* and |meteo_glob_morsim|, but these are random short
 term fluctuations that do not introduce any long term bias.

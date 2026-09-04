@@ -558,9 +558,8 @@ class PWMax(lland_parameters.ParameterLand):
     """Maximalverhältnis Gesamt- zu Trockenschnee (maximum ratio of the
     total and the frozen water equivalent stored in the snow cover) [-].
 
-    In addition to the |parametertools| call method, it
-    is possible to set the value of parameter |PWMax| in accordance to
-    the keyword arguments `rhot0` and `rhodkrit`.
+    In addition to the |parametertools| call method, it is possible to set the value of
+    parameter |PWMax| in accordance with the keyword arguments `rhot0` and `rhodkrit`.
 
     Basic Equation:
         :math:`PWMax = \\frac{1.474 \\cdot rhodkrit}
@@ -621,7 +620,7 @@ a positional nor a keyword argument is given.
     INIT = 1.4278333871488538
 
     def __call__(self, *args, **kwargs) -> None:
-        """The prefered way to pass values to |PWMax| instances within parameter
+        """The preferred way to pass values to |PWMax| instances within parameter
         control files.
         """
         rhot0 = float(kwargs.pop("rhot0", numpy.nan))
@@ -670,7 +669,7 @@ class KTSchnee(parametertools.Parameter):
     the top snow layer.  As a result, the top layer does not dampen the effects of
     atmospheric influences like radiative heating.  Another aspect is that the snow
     surface temperature does not need to be determined iteratively, as it is always
-    identical with the the snow bulk temperature, which decreases computation times.
+    identical to the snow bulk temperature, which decreases computation times.
     """
 
     NDIM: Final[Literal[0]] = 0
@@ -913,7 +912,7 @@ Keyword `rdmin` is not among the available model constants.
     INIT = 0.0
 
     def __call__(self, *args, **kwargs) -> None:
-        """The prefered way to pass values to |DMin| instances
+        """The preferred way to pass values to |DMin| instances
         within parameter control files.
         """
         try:
@@ -989,7 +988,7 @@ Keyword `rdmax` is not among the available model constants.
     INIT = 1.0
 
     def __call__(self, *args, **kwargs) -> None:
-        """The prefered way to pass values to |DMax| instances
+        """The preferred way to pass values to |DMax| instances
         within parameter control files.
         """
         try:
@@ -1381,14 +1380,13 @@ class A2(parametertools.Parameter):
 class TInd(parametertools.Parameter):
     """Fließzeitindex (factor related to the time of concentration) [T].
 
-    In addition to the |Parameter| call method, it
-    is possible to set the value of parameter |TInd| in accordance to
-    the keyword arguments `tal` (talweg, [km]), `hot` (higher reference
-    altitude, [m]), and `hut` (lower reference altitude, [m]).  This is
-    supposed to decrease the time of runoff concentration in small and/or
-    steep catchments.  Note that |TInd| does not only affect direct
-    runoff, but interflow and base flow as well.  Hence it seems advisable
-    to use this regionalization strategy with caution.
+    In addition to the |Parameter| call method, it is possible to set the value of
+    parameter |TInd| in accordance with the keyword arguments `tal` (talweg, [km]),
+    `hot` (higher reference altitude, [m]), and `hut` (lower reference altitude, [m]).
+    This is supposed to decrease the time of runoff concentration in small and/or steep
+    catchments.  Note that |TInd| does not only affect direct runoff, but interflow and
+    base flow as well.  Hence, it seems advisable to use this regionalization strategy
+    with caution.
 
     Basic Equation:
         :math:`TInd[h] = (0.868 \\cdot \\frac{Tal^3}{HOT-HUT})^{0.385}`
@@ -1417,40 +1415,36 @@ class TInd(parametertools.Parameter):
         >>> tind(tal=5.0, hot=200.0, hut=200.0)
         Traceback (most recent call last):
         ...
-        ValueError: For the alternative calculation of parameter `tind`, \
-the value assigned to keyword argument `tal` must be greater then zero and \
-the one of `hot` must be greater than the one of `hut`.  However, for \
-element ?, the values `5.0`, `200.0` and `200.0` were given respectively.
+        ValueError: For the alternative calculation of parameter `tind`, the value \
+assigned to keyword argument `tal` must be greater than zero and the one of `hot` \
+must be greater than the one of `hut`.  However, for element ?, the values `5.0`, \
+`200.0` and `200.0` were given respectively.
 
         >>> tind(tal=0.0, hot=210.0, hut=200.0)
         Traceback (most recent call last):
         ...
-        ValueError: For the alternative calculation of parameter `tind`, \
-the value assigned to keyword argument `tal` must be greater then zero and \
-the one of `hot` must be greater than the one of `hut`.  However, for \
-element ?, the values `0.0`, `210.0` and `200.0` were given respectively.
+        ValueError: For the alternative calculation of parameter `tind`, the value \
+assigned to keyword argument `tal` must be greater than zero and the one of `hot` \
+must be greater than the one of `hut`.  However, for element ?, the values `0.0`, \
+`210.0` and `200.0` were given respectively.
 
-        However, it is hard to define exact bounds for the value of
-        |TInd| itself.  Whenever it is below 0.001 or above 1000 days,
-        the following warning is given:
+        However, it is hard to define exact bounds for the value of |TInd| itself.
+        Whenever it is below 0.001 or above 1000 days, the following warning is given:
 
         >>> tind(tal=0.001, hot=210.0, hut=200.0)
         Traceback (most recent call last):
         ...
-        UserWarning: Due to the given values for the keyword arguments \
-`tal` (0.001), `hot` (210.0) and `hut` (200.0), parameter `tind` of \
-element `?` has been set to an unrealistic value of 0.000134 hours.
+        UserWarning: Due to the given values for the keyword arguments `tal` \
+(0.001), `hot` (210.0) and `hut` (200.0), parameter `tind` of element `?` has been \
+set to an unrealistic value of 0.000134 hours.
 
-        Additionally, exceptions for missing (or wrong) keywords are
-        implemented
+        Additionally, exceptions for missing (or wrong) keywords are implemented
 
         >>> tind(tal=5.0, hot=210.0)
         Traceback (most recent call last):
         ...
-        ValueError: For the alternative calculation of parameter `tind`, \
-values for all three keyword keyword arguments `tal`, `hot`, and `hut` \
-must be given.
-
+        ValueError: For the alternative calculation of parameter `tind`, values for \
+all three keyword keyword arguments `tal`, `hot`, and `hut` must be given.
     """
 
     NDIM: Final[Literal[0]] = 0
@@ -1469,28 +1463,25 @@ must be given.
                 hut = float(kwargs["hut"])
             except KeyError:
                 raise ValueError(
-                    "For the alternative calculation of parameter `tind`, "
-                    "values for all three keyword keyword arguments `tal`, "
-                    "`hot`, and `hut` must be given."
+                    "For the alternative calculation of parameter `tind`, values for "
+                    "all three keyword keyword arguments `tal`, `hot`, and `hut` must "
+                    "be given."
                 ) from None
             if (tal <= 0.0) or (hot <= hut):
                 raise ValueError(
-                    f"For the alternative calculation of parameter `tind`, "
-                    f"the value assigned to keyword argument `tal` must be "
-                    f"greater then zero and the one of `hot` must be greater "
-                    f"than the one of `hut`.  However, for element "
-                    f"{objecttools.devicename(self)}, the values `{tal}`, "
-                    f"`{hot}` and `{hut}` were given respectively."
+                    f"For the alternative calculation of parameter `tind`, the value "
+                    f"assigned to keyword argument `tal` must be greater than zero "
+                    f"and the one of `hot` must be greater than the one of `hut`.  "
+                    f"However, for element {objecttools.devicename(self)}, the "
+                    f"values `{tal}`, `{hot}` and `{hut}` were given respectively."
                 ) from None
             self.value = (0.868 * tal**3 / (hot - hut)) ** 0.385
             if (self > 1000.0) or (self < 0.001):
                 warnings.warn(
-                    f"Due to the given values for the keyword arguments "
-                    f"`tal` ({tal}), `hot` ({hot}) and `hut` ({hut}), "
-                    f"parameter `tind` of element "
-                    f"`{objecttools.devicename(self)}` has been set to an "
-                    f"unrealistic value of {objecttools.repr_(self.value)} "
-                    f"hours."
+                    f"Due to the given values for the keyword arguments `tal` "
+                    f"({tal}), `hot` ({hot}) and `hut` ({hut}), parameter `tind` of "
+                    f"element `{objecttools.devicename(self)}` has been set to an "
+                    f"unrealistic value of {objecttools.repr_(self.value)} hours."
                 )
             self.value *= timetools.Period("1h") / hydpy.pub.options.simulationstep
 

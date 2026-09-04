@@ -11,7 +11,7 @@ without knowing anything about them.  One exception is the highly specialised
 application model |dam_v004|, which calculates its discharge to a |dam_v005| instance
 based on some knowledge of the other model's internal state.  One purpose of HydPy-Exch
 is to facilitate similar exchanges between different model instances more modularly.
-Application model |exch_weir_hbv96|, for example, simulates a weir.  Conceptionally, it
+Application model |exch_weir_hbv96|, for example, simulates a weir.  Conceptually, it
 enables a bidirectional water exchange between two lakes, where the flow direction
 depends on the difference of the lakes' water levels.  Technically, we can combine
 |exch_weir_hbv96| with all model types, calculating (something like) water level

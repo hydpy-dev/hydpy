@@ -139,7 +139,7 @@ class Keywords(set[str]):
         super().__init__(names)
 
     def startswith(self, name: str) -> list[str]:
-        """Return a list of all keywords, starting with the given string.
+        """Return a list of all keywords starting with the given string.
 
         >>> from hydpy.core.devicetools import Keywords
         >>> keywords = Keywords("first_keyword", "second_keyword",
@@ -266,9 +266,9 @@ class FusedVariable:
     input and output sequences of the different models correlate and are thus
     connectable.
 
-    Using class |FusedVariable| is easiest to explain by a concrete example.  Assume we
-    use |conv_nn| to interpolate the air temperature for a specific location.  We use
-    this temperature as input to an |meteo_temp_io| model, which passes it to an
+    Using class |FusedVariable| is easiest to explain with a concrete example.  Assume
+    we use |conv_nn| to interpolate the air temperature for a specific location.  We
+    use this temperature as input to an |meteo_temp_io| model, which passes it to an
     |evap_ret_fao56| model, which requires this and other meteorological data to
     calculate potential evapotranspiration.  Further, we pass the estimated potential
     evapotranspiration as input to |lland_dd| for calculating the actual
@@ -277,7 +277,7 @@ class FusedVariable:
     |evap_fluxes.MeanReferenceEvapotranspiration| of |evap_ret_fao56| with the input
     sequence |evap_inputs.ReferenceEvapotranspiration| of |evap_ret_io|.
 
-    ToDo: This example needs to be updated.  Today one could directly use
+    ToDo: This example needs to be updated.  Today, one could directly use
           |evap_ret_fao56| as a submodel of |lland_dd|.  However, it still demonstrates
           the relevant connection mechanisms correctly.
 
@@ -289,7 +289,7 @@ class FusedVariable:
 
     We need to create two |FusedVariable| objects, for our concrete example.  `E`
     combines |evap_fluxes.MeanReferenceEvapotranspiration| and
-    |evap_inputs.ReferenceEvapotranspiration| and `T` combines
+    |evap_inputs.ReferenceEvapotranspiration|, and `T` combines
     |meteo_inputs.Temperature| and |lland_inputs.TemL| (for convenience, we import
     their globally available aliases):
 
@@ -547,7 +547,7 @@ class Devices(Generic[TypeDevice]):
     >>> Nodes("na")[0]
     Node("na", variable="Q")
 
-    Other number-based indexed are not allowed:
+    Other number-based indices are not allowed:
 
     >>> Nodes("na", "nb")[1]
     Traceback (most recent call last):
@@ -645,7 +645,7 @@ and is thus not support, hence `NF` is rejected.
     >>> nodes
     Nodes("nb", "nc", "nd", "ne")
 
-    Attempts to add already existing or to remove non-existing devices do no harm:
+    Attempts to add already existing, or to remove non-existing devices, do no harm:
 
     >>> nodes
     Nodes("nb", "nc", "nd", "ne")
@@ -670,7 +670,7 @@ and is thus not support, hence `NF` is rejected.
     >>> subgroup > nodes, nodes > subgroup, nodes > nodes
     (False, True, False)
 
-    Class |Nodes| supports the `in` operator both for |str| and |Node| objects and
+    Class |Nodes| supports the `in` operator for both |str| and |Node| objects and
     generally returns |False| for other types:
 
     >>> "na" in nodes
@@ -868,7 +868,7 @@ allowed.
         objects allow for attribute access via keywords, allowing for an efficient
         search of certain groups of devices.  Let us use the example from above, where
         the nodes `na` and `nb` have no keywords, but each of the other three nodes
-        both belongs to either `group_a` or `group_b` and `group_1` or `group_2`:
+        belongs to either `group_a` or `group_b` and `group_1` or `group_2`:
 
         >>> from hydpy import Node, Nodes
         >>> nodes = Nodes("na",
@@ -896,9 +896,8 @@ allowed.
         Node("ne", variable="Q",
              keywords=["group_1", "group_b"])
 
-        Note that the keywords already used for building a device subgroup are not
-        informative anymore (as they hold for each device) and are thus not shown
-        anymore:
+        Note that the keywords already used for building a device subgroup are no
+        longer informative (as they apply to each device) and are thus no longer shown:
 
         >>> sorted(subgroup.keywords)
         ['group_a', 'group_b']
@@ -949,7 +948,7 @@ allowed.
         """Return a shallow copy of the actual |Nodes| or |Elements| object.
 
         Method |Devices.copy| returns a semi-flat copy of |Nodes| or |Elements| objects
-        due to their devices being not copyable:
+        due to their devices not being copyable:
 
         >>> from hydpy import Nodes
         >>> old = Nodes("x", "y")
@@ -973,7 +972,7 @@ allowed.
         >>> new.z
         Node("z", variable="Q")
 
-        Deep copying is permitted due to the above reason:
+        Deep copying is permitted for the above reason:
 
         >>> copy.deepcopy(old)
         Traceback (most recent call last):
@@ -1366,8 +1365,8 @@ class Elements(Devices["Element"]):
         (for "hydrological" routing neglecting backwater effects) and |sw1d_channel|
         (for "hydrodynamic" routing considering backwater effects).
 
-        First, we create a |FusedVariable| object for connecting the inlets and outlets
-        of |musk_classic| and |sw1d_channel|:
+        First, we create a |FusedVariable| object to connect the inlets and outlets of
+        |musk_classic| and |sw1d_channel|:
 
         >>> from hydpy import FusedVariable
         >>> from hydpy.aliases import (musk_inlets_Q, sw1d_inlets_LongQ,
@@ -1378,8 +1377,8 @@ class Elements(Devices["Element"]):
         The spatial setting is more concise than realistic and consists of four
         channels.  Channel `A` discharges into channel `B`, which discharges into
         channel `C`, which discharges into channel `D`.  We neglect backwater effects
-        within channels `A` and `D`.  Hence we do not need to associate them with a
-        collective and |musk_classic| becomes an appropriate choice.  Channel `B` and
+        within channels `A` and `D`.  Hence, we do not need to associate them with a
+        collective and |musk_classic| becomes an appropriate choice.  Channels `B` and
         `C` are represented by separate collectives.  Hence, the setting could account
         for backwater effects within both channels but not between them.  Channel `B`
         consists only of a single subchannel (represented by element `b`), while
@@ -1482,7 +1481,7 @@ elements belonging to collective `D`, the following error occurred: The model ob
 of element `e_d` has been requested but not been prepared so far.
 
         |Elements.unite_collectives| raises the following error if an element belonging
-        to a collective does handle an unsuitable |Model| instance:
+        to a collective handles an unsuitable |Model| instance:
 
         >>> e_d.model = prepare_model("musk_classic")
         >>> elements.unite_collectives()
@@ -2118,7 +2117,7 @@ following error occurred: Adding devices to immutable Elements objects is not al
 
     @property
     def entries(self) -> Elements:
-        """Group of |Element| objects which set the the simulated value of the |Node|
+        """Group of |Element| objects which set the simulated value of the |Node|
         object."""
         return self._entries
 
@@ -2228,7 +2227,7 @@ that `name` is the unique identifier of node objects.
             values serve as a replacement for missing observed values.
           * obs_bi: Similar to the `obs` mode but triggers "bidirectional" deployment.
             All bidirectional modes only apply if the upstream element(s) do not
-            calculate data for but expect from their downstream nodes.  A typical
+            calculate data for, but expect from their downstream nodes.  A typical
             example is using discharge measurements as lower boundary conditions for a
             hydrodynamical flood routing method.
           * oldsim_bi: The bidirectional version of the `oldsim` mode.
@@ -2348,9 +2347,9 @@ that `name` is the unique identifier of node objects.
         >>> node.sequences.sim = 1.0
         >>> node.sequences.obs = 2.0
 
-        The following `test` function shows for a given |Node.deploymode| if method
-        |Node.get_double| either returns the |Double| object handling the simulated
-        value (1.0) or the one handling the observed value (2.0):
+        The following `test` function shows for a given |Node.deploymode| whether
+        method |Node.get_double| either returns the |Double| object handling the
+        simulated value (1.0) or the one handling the observed value (2.0):
 
         >>> def test(deploymode):
         ...     node.deploymode = deploymode
@@ -2391,14 +2390,14 @@ that `name` is the unique identifier of node objects.
         inlets: 2.0, observers: 2.0, receivers: 2.0, inputs: 2.0
         outlets: 1.0, senders: 1.0, outputs: 1.0
 
-        Similar holds for the `obs_oldsim` mode, but here |Node.get_double| must ensure
-        newly calculated values do not overwrite the "old" ones:
+        The same holds for the `obs_oldsim` mode, but here |Node.get_double| must
+        ensure newly calculated values do not overwrite the "old" ones:
 
         >>> test("obs_oldsim")
         inlets: 2.0, observers: 2.0, receivers: 2.0, inputs: 2.0
         outlets: 0.0, senders: 0.0, outputs: 0.0
 
-        All "bidirectional" modes require symmetrical connections, as they long for
+        All "bidirectional" modes require symmetrical connections, as they require
         passing the same information in the downstream and the upstream direction:
 
         >>> test("obs_bi")
@@ -2503,7 +2502,7 @@ that `name` is the unique identifier of node objects.
         stepsize: StepSize | None = None,
     ) -> figure.Figure:
         """Plot the |IOSequence.series| data of both the |Sim| and the |Obs| sequence
-        object.
+        objects.
 
         We demonstrate the functionalities of method |Node.plot_allseries| based on the
         `Lahn` example project:
@@ -2953,7 +2952,7 @@ class Element(Device):
      * |Element.inlets| and |Element.outlets| nodes handle, for example, the inflow to
        and the outflow from the respective element.
      * |Element.receivers|, |Element.observers|, and |Element.senders| nodes are
-       thought for information flow.  |Element.receivers| nodes allow for arbitrarily
+       designed for information flow.  |Element.receivers| nodes allow for arbitrarily
        directed connections, even to downstream locations (for example, to inform a
        |dam| model about the discharge at a gauge downstream).  In contrast,
        |Element.observers| nodes do not support such cyclic connections.  However,
@@ -2965,7 +2964,7 @@ class Element(Device):
      * |Element.outputs| nodes query optional output information, for example, the
        water level of a dam.
 
-    You can select the relevant nodes either by passing them explicitly or passing
+    You can select the relevant nodes either by passing them explicitly or by passing
     their name both as single objects or as objects contained within an iterable
     object:
 
@@ -3019,7 +3018,7 @@ class Element(Device):
             outputs=["outp1", "outp2"])
 
     The properties try to verify that all connections make sense.  For example, an
-    element should never handle an `inlet` node that is also handles as an `outlet`,
+    element should never handle an `inlet` node that it also handles as an `outlet`,
     `input`, or `output` node:
 
     >>> def try_impossible_combinations(group, *sequences):
@@ -3039,7 +3038,7 @@ node, which is not allowed.
     For element `test`, the given inlet node `outp1` is already defined as an output \
 node, which is not allowed.
 
-    Similar holds for the `outlet` nodes:
+    The same holds for the `outlet` nodes:
 
     >>> try_impossible_combinations("outlets", "inl1", "obs1", "inp1", "outp1")
     For element `test`, the given outlet node `inl1` is already defined as an inlet \
@@ -3097,8 +3096,8 @@ node, which is not allowed.
     For element `test`, the given output node `sen1` is already defined as a sender \
 node, which is not allowed.
 
-    Note that the discussed |Nodes| objects are immutable by default, disallowing to
-    change them in other ways as described above:
+    Note that the discussed |Nodes| objects are immutable by default, disallowing
+    changes to them in other ways as described above:
 
     >>> test.inlets += "inl3"
     Traceback (most recent call last):
@@ -3112,7 +3111,7 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
 
     However, it is up to you to make sure that the added node also handles the relevant
     element in the suitable group.  In the discussed example, only node `inl2` has been
-    added properly but not node `inl3`:
+    added properly, but not node `inl3`:
 
     >>> test.inlets.inl2.exits
     Elements("test")
@@ -3408,7 +3407,7 @@ already a collective `NileRiver` member.
         |Element.model| creates some connection required by the respective model type
         automatically.  These examples should be relevant for developers only.
 
-        The following |exch_branch_hbv96| model branches a single input value (from to
+        The following |exch_branch_hbv96| model branches a single input value (from
         node `inp`) to multiple outputs (nodes `out1` and `out2`):
 
         >>> from hydpy import Element, Node, reverse_model_wildcard_import, pub
@@ -3479,7 +3478,7 @@ already a collective `NileRiver` member.
         |Parameters.update| of class |Parameters|.
 
         See method |HydPy.prepare_models| of class |HydPy| and property |model| of
-        class |Element| fur further information.
+        class |Element| for further information.
         """
         options = hydpy.pub.options
         try:

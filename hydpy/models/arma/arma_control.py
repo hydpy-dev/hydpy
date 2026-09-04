@@ -14,7 +14,7 @@ class Responses(parametertools.Parameter):
     """Assigns different ARMA models to different discharge thresholds.
 
     Parameter |Responses| is not involved in the actual calculations during the
-    simulation run.  Instead, it is thought for the intuitive handling of different
+    simulation run.  Instead, it is intended for the intuitive handling of different
     ARMA models.  It can be applied as follows.
 
     Initially, each new `responses` object is emtpy:
@@ -145,8 +145,8 @@ of range
                        0.014189, 0.001967)))
 
     One may have noted the Linear Storage Cascade model was passed as a positional
-    argument and was assigned to a treshold value of 0.0 m³/s automatically, which is
-    the default value.  As each treshold value has to be unique, one can pass only one
+    argument and was assigned to a threshold value of 0.0 m³/s automatically, which is
+    the default value.  As each threshold value has to be unique, one can pass only one
     positional argument:
 
     >>> responses(tde, lsc)
@@ -193,10 +193,10 @@ the same threshold value(s) twice.
 
     Technical notes:
 
-    The implementation of this class is much to tricky for subpackage `models`.  It
+    The implementation of this class is much too tricky for subpackage `models`.  It
     should be generalized and moved to the framework core later.
 
-    Furthermore, it would be nice to avoid the `nan` values in the coefficent
+    Furthermore, it would be nice to avoid the `nan` values in the coefficient
     representations.  But this would possibly require to define a specialized
     `arrays in list` type in Cython.
     """
@@ -338,20 +338,22 @@ the same threshold value(s) twice.
     def ar_coefs(self) -> MatrixFloat:
         """AR coefficients of the different response functions.
 
-        The first row contains the AR coefficients related to the the smallest
-        threshold value, the last row contains the AR coefficients related to
-        the highest threshold value.  The number of columns depend on the
-        highest number of AR coefficients among all response functions."""
+        The first row contains the AR coefficients related to the smallest threshold
+        value, the last row contains the AR coefficients related to the highest
+        threshold value.  The number of columns depends on the highest number of AR
+        coefficients among all response functions.
+        """
         return self._get_coefs(0)
 
     @property
     def ma_coefs(self) -> MatrixFloat:
         """AR coefficients of the different response functions.
 
-        The first row contains the MA coefficients related to the the smallest
-        threshold value, the last row contains the AR coefficients related to
-        the highest threshold value.  The number of columns depend on the
-        highest number of MA coefficients among all response functions."""
+        The first row contains the MA coefficients related to the smallest threshold
+        value, the last row contains the MA coefficients related to the highest
+        threshold value.  The number of columns depends on the highest number of MA
+        coefficients among all response functions.
+        """
         return self._get_coefs(1)
 
     def __len__(self) -> int:

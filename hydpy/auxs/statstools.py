@@ -135,25 +135,25 @@ def filter_series(
     >>> filter_series(node=node, date_ranges=date_ranges)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to filter the given series, the following error occurred: \
-The given date (2001-10-31 00:00:00) is before the first date of the initialisation \
-period (2001-11-01 00:00:00).
+    ValueError: While trying to filter the given series, the following error \
+occurred: The given date (2001-10-31 00:00:00) is before the first date of the \
+initialisation period (2001-11-01 00:00:00).
 
     >>> date_ranges = [("2001-11-01", "2003-11-02")]
     >>> filter_series(node=node, date_ranges=date_ranges)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to filter the given series, the following error occurred: \
-The given date (2003-11-02 00:00:00) is behind the last date of the initialisation \
-period (2003-11-01 00:00:00).
+    ValueError: While trying to filter the given series, the following error \
+occurred: The given date (2003-11-02 00:00:00) is behind the last date of the \
+initialisation period (2003-11-01 00:00:00).
 
     >>> date_ranges = [("2001-11-02", "2001-11-02")]
     >>> filter_series(node=node, date_ranges=date_ranges)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to filter the given series, the following error occurred: \
-The given first date `2001-11-02 00:00:00` is not before than the given last date \
-`2001-11-02 00:00:00`.
+    ValueError: While trying to filter the given series, the following error \
+occurred: The given first date `2001-11-02 00:00:00` is not before the given last \
+date `2001-11-02 00:00:00`.
 
     Note that function |filter_series| does not remove any duplicates:
 
@@ -269,7 +269,7 @@ given.
                 )
             if date0 >= date1:
                 raise ValueError(
-                    f"The given first date `{date0}` is not before than the given "
+                    f"The given first date `{date0}` is not before the given "
                     f"last date `{date1}`."
                 )
             idx0 = date0.to_string(style="iso1")
@@ -489,7 +489,7 @@ allowed.
 
 
 class Criterion(Protocol):
-    """Callback protocol for efficiency criteria like |nse|."""
+    """Callback protocol for efficiency criterion like |nse|."""
 
     @overload
     def __call__(
@@ -579,7 +579,7 @@ def nse(
     skip_nan: bool = False,
     subperiod: bool | None = None,
 ) -> float:
-    """Calculate the efficiency criteria after Nash & Sutcliffe.
+    """Calculate the efficiency criterion after Nash & Sutcliffe.
 
     If the simulated values predict the observed values and the average observed value
     (regarding the mean square error), the NSE value is zero:
@@ -648,7 +648,8 @@ def nse_log(
     skip_notpositive: bool = False,
     subperiod: bool | None = None,
 ) -> float:
-    """Calculate the efficiency criteria after Nash & Sutcliffe for logarithmic values.
+    """Calculate the efficiency criterion after Nash & Sutcliffe for logarithmic
+    values.
 
     The following calculations replicate those in the documentation for the |nse|
     function, but with exponentiated values.  Hence, the results are identical:
@@ -732,7 +733,7 @@ def fdc_nse(
     skip_nan: bool = False,
     subperiod: bool | None = None,
 ) -> float:
-    """Calculate the efficiency criteria after Nash & Sutcliffe based on sorted
+    """Calculate the efficiency criterion after Nash & Sutcliffe based on sorted
     simulation and observation data (such as when comparing flow duration curves).
 
     |fdc_nse| sorts the simulation and the observation data independently.  Hence, it
@@ -800,7 +801,7 @@ def fdc_nse_log(
     skip_notpositive: bool = False,
     subperiod: bool | None = None,
 ) -> float:
-    """Calculate the efficiency criteria after Nash & Sutcliffe based on sorted
+    """Calculate the efficiency criterion after Nash & Sutcliffe based on sorted
     logarithmic simulation and observation data (such as when comparing logarithmic
     flow duration curves).
 
@@ -1627,10 +1628,10 @@ def hsepd(
     >>> round_(pars, decimals=5)
     0.19966, 0.0, 0.96836, 0.0188
 
-    There is no guarantee that the optimisation numerical optimisation algorithm
-    underlying function |hsepd| will always find the parameters resulting in the
-    largest value returned by function |hsepd_manual|.  You can increase its robustness
-    (and decrease computation time) by supplying close initial parameter values:
+    There is no guarantee that the numerical optimisation algorithm underlying
+    function |hsepd| will always find the parameters resulting in the largest value
+    returned by function |hsepd_manual|.  You can increase its robustness (and decrease
+    computation time) by supplying close initial parameter values:
 
     >>> value, pars = hsepd(sim=sim, obs=obs, return_pars=True,
     ...                     inits=(0.2, 0.0, 1.0, 0.0))
@@ -2122,7 +2123,7 @@ def print_evaluationtable(
 
     One can pass alternative names for the first cell, the node objects, the criteria
     functions, and the row containing the average values, as well as alternative column
-    and decimal separators..  Also, one can use the `filter_` argument to suppress
+    and decimal separators.  Also, one can use the `filter_` argument to suppress
     printing statistics in case of incomplete observation data.  In the following
     example, we set the minimum fraction of required data to 80 %:
 
@@ -2159,8 +2160,8 @@ number of given alternative names being 1.
     Traceback (most recent call last):
     ...
     ValueError: While trying to evaluate the simulation results of some node objects, \
-the following error occurred: 2 criteria functions are given which does not match with \
-number of given alternative names being 1.
+the following error occurred: 2 criteria functions are given which does not match \
+with number of given alternative names being 1.
 
     Set the `average` argument to |False| to omit the row containing the average values:
 

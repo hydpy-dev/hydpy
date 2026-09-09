@@ -11,7 +11,7 @@ from hydpy.models.wq import wq_variables
 
 
 class NmbTrapezes(parametertools.NmbParameter):
-    """Number of trapezes defining the cross section [-]."""
+    """Number of trapeziums defining the cross section [-]."""
 
     SPAN = (1, None)
 
@@ -146,7 +146,7 @@ class Transitions(parametertools.Parameter):
 
     According to the Python convention, the index :math:`0` would mark the first, and
     the index :math:`n - 1` would mark the last height/width pair.  However, precisely
-    these two values are disallowed for reasons we explain in the following.
+    these two values are disallowed for reasons we explain below.
 
     Parameter |Transitions| defines the transitions between all neighbouring sectors.
     Hence, one does not need to specify any value if there is only one sector:
@@ -255,21 +255,21 @@ not strictly rising (1, 4, and 4).
 
 
 class BottomLevels(wq_variables.MixinTrapezes, parametertools.SortedParameter):
-    """The bottom level for each trapeze [m].
+    """The bottom level for each trapezium [m].
 
     If water levels are essential, we encourage using the sea level as a reference.  If
     not (as for common hydrological routing approaches), one could also set the lowest
-    trapeze's bottom level to zero.
+    trapezium's bottom level to zero.
     """
 
 
 class BottomWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
-    """The bottom width for each trapeze [m].
+    """The bottom width for each trapezium [m].
 
 
-    For example, when dealing with the second trapeze, the corresponding value of
-    |BottomWidths| represents the sum of the trapeze's partial bottoms on the left and
-    right sides of the first trapeze.
+    For example, when dealing with the second trapezium, the corresponding value of
+    |BottomWidths| represents the sum of the trapezium's partial bottoms on the left and
+    right sides of the first trapezium.
     """
 
     NDIM: Final[Literal[1]] = 1
@@ -278,11 +278,11 @@ class BottomWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
 
 
 class SideSlopes(wq_variables.MixinTrapezes, parametertools.Parameter):
-    """The side slope for each trapeze[-].
+    """The side slope for each trapezium[-].
 
     A value of zero corresponds to a rectangular shape.  A value of two corresponds to
-    a half-meter elevation increase for each additional meter distance from the
-    trapeze's centre.
+    a half-meter elevation increase for each additional meter of distance from the
+    trapezium's centre.
     """
 
     NDIM: Final[Literal[1]] = 1
@@ -293,7 +293,7 @@ class SideSlopes(wq_variables.MixinTrapezes, parametertools.Parameter):
 class StricklerCoefficients(
     wq_variables.MixinTrapezesOrSectors, parametertools.Parameter
 ):
-    """Manning-Strickler coefficient for each trapeze or sector [m^(1/3)/s].
+    """Manning-Strickler coefficient for each trapezium or sector [m^(1/3)/s].
 
     The higher the coefficient's value, the higher the calculated discharge.  Typical
     values range from 20 to 80.
@@ -304,7 +304,7 @@ class StricklerCoefficients(
 
 
 class CalibrationFactors(wq_variables.MixinTrapezesOrSectors, parametertools.Parameter):
-    """Calibration factor for each trapeze or sector [-]."""
+    """Calibration factor for each trapezium or sector [-]."""
 
     TYPE: Final = float
     SPAN = (0.0, None)

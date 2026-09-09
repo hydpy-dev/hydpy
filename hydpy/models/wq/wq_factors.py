@@ -19,7 +19,7 @@ class WaterLevel(sequencetools.FactorSequence):
 
 
 class WettedAreas(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
-    """Wetted area of each trapeze range [m²]."""
+    """Wetted area of each trapezoidal range [m²]."""
 
     NDIM: Final[Literal[1]] = 1
     SPAN = (0.0, None)
@@ -61,7 +61,7 @@ class TotalArea(sequencetools.FactorSequence):
 
 
 class WettedPerimeters(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
-    """Wetted perimeter of each trapeze range [m]."""
+    """Wetted perimeter of each trapezoidal range [m]."""
 
     NDIM: Final[Literal[1]] = 1
     SPAN = (0.0, None)
@@ -84,7 +84,7 @@ class WettedPerimeter(sequencetools.FactorSequence):
 class WettedPerimeterDerivatives(
     wq_variables.MixinTrapezes, sequencetools.FactorSequence
 ):
-    """Change in the wetted perimeter of each trapeze range with respect to a water
+    """Change in the wetted perimeter of each trapezoidal range with respect to a water
     level increase [-]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -101,7 +101,7 @@ class FlowPerimeterDerivatives(
 
 
 class SurfaceWidths(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
-    """Surface width of each trapeze range [m]."""
+    """Surface width of each trapezoidal range [m]."""
 
     NDIM: Final[Literal[1]] = 1
     SPAN = (0.0, None)
@@ -137,7 +137,7 @@ class TotalWidth(sequencetools.FactorSequence):
 class DischargeDerivatives(
     wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence
 ):
-    """Discharge change of each trapeze range with respect to a water level increase
+    """Discharge change of each trapezoidal range with respect to a water level increase
     [m²/s]."""
 
 

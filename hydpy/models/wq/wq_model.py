@@ -168,12 +168,12 @@ class Calc_WaterDepth_V2(modeltools.Method):
         ...         model.calc_waterdepth_v2()
         ...         print_vector([a, factors.waterdepth.value])
 
-        The first example deals with identical rectangular trapezes.  We pass different
-        wetted areas to the test function.  These are the sums of the wetted areas of
-        the different trapeze ranges calculated in the first example on method
-        |Calc_WettedAreas_V1|.  As expected, method |Calc_WaterDepth_V2| finds the
-        water depths used as input data for this example.  However, note that negative
-        wetted areas result in zero water depths:
+        The first example deals with identical rectangular trapeziums.  We pass
+        different wetted areas to the test function.  These are the sums of the wetted
+        areas of the different trapezoidal ranges calculated in the first example of
+        method |Calc_WettedAreas_V1|.  As expected, method |Calc_WaterDepth_V2| finds
+        the water depths used as input data for this example.  However, note that
+        negative wetted areas result in zero water depths:
 
         >>> from hydpy.models.wq import *
         >>> parameterstep()
@@ -194,7 +194,7 @@ class Calc_WaterDepth_V2(modeltools.Method):
         15.0, 3.5
         18.0, 4.0
 
-        The second example deals with identical triangular trapezes and corresponds to
+        The second example deals with identical triangular trapeziums and corresponds to
         the second example on method |Calc_WettedAreas_V1|:
 
         >>> bottomlevels(1.0, 2.0, 3.0)
@@ -212,8 +212,8 @@ class Calc_WaterDepth_V2(modeltools.Method):
         24.5, 3.5
         32.0, 4.0
 
-        The third example deals with identical "complete" trapezes and corresponds to
-        the third example on method |Calc_WettedAreas_V1|:
+        The third example deals with identical "complete" trapeziums and corresponds to
+        the third example of method |Calc_WettedAreas_V1|:
 
         >>> bottomlevels(1.0, 2.0, 3.0)
         >>> bottomwidths(2.0)
@@ -231,7 +231,7 @@ class Calc_WaterDepth_V2(modeltools.Method):
         50.0, 4.0
 
         The fourth example mixes three different geometries and corresponds to the
-        fourth example on method |Calc_WettedAreas_V1|:
+        fourth example of method |Calc_WettedAreas_V1|:
 
         >>> bottomlevels(1.0, 3.0, 4.0)
         >>> bottomwidths(2.0, 0.0, 2.0)
@@ -459,7 +459,7 @@ class Calc_Index_Excess_Weight_V1(modeltools.Method):
 
 
 class Calc_WettedAreas_V1(modeltools.Method):
-    r"""Calculate the wetted area for each trapeze range.
+    r"""Calculate the wetted area for each trapezoidal range.
 
     Basic equation:
       .. math::
@@ -491,7 +491,7 @@ class Calc_WettedAreas_V1(modeltools.Method):
         ...         round_(d, end=": ")
         ...         print_vector(factors.wettedareas.values)
 
-        The first example deals with identical rectangular trapezes.  There are no
+        The first example deals with identical rectangular trapeziums.  There are no
         differences except those due to the different bottom levels:
 
         >>> from hydpy.models.wq import *
@@ -511,8 +511,8 @@ class Calc_WettedAreas_V1(modeltools.Method):
         3.5: 7.0, 5.0, 3.0
         4.0: 8.0, 6.0, 4.0
 
-        The second example deals with identical triangular trapezes.  Here, the heights
-        of the individual trapezes also matter because they mark where the triangular
+        The second example deals with identical triangular trapeziums.  Here, the heights
+        of the individual trapeziums also matter because they mark where the triangular
         shape switches to a rectangular shape:
 
         >>> bottomlevels(1.0, 2.0, 3.0)
@@ -529,7 +529,7 @@ class Calc_WettedAreas_V1(modeltools.Method):
         3.5: 12.0, 8.0, 4.5
         4.0: 14.0, 10.0, 8.0
 
-        The third example deals with identical "complete" trapezes by combining the
+        The third example deals with identical "complete" trapeziums by combining the
         first two geometries:
 
         >>> bottomlevels(1.0, 2.0, 3.0)
@@ -727,7 +727,7 @@ class Calc_TotalAreas_V1(modeltools.Method):
 
 
 class Calc_WettedArea_V1(modeltools.Method):
-    r"""Sum up the individual trapeze ranges' wetted areas.
+    r"""Sum up the individual trapezoidal  ranges' wetted areas.
 
     Basic equation:
       :math:`WettedArea = \sum_{i=1}^{NmbTrapezes} WettedAreas_i`
@@ -820,7 +820,7 @@ class Calc_TotalArea_V1(modeltools.Method):
 
 
 class Calc_WettedPerimeters_V1(modeltools.Method):
-    r"""Calculate the wetted perimeter for each trapeze range.
+    r"""Calculate the wetted perimeter for each trapezoidal range.
 
     Basic equation:
       .. math::
@@ -850,9 +850,9 @@ class Calc_WettedPerimeters_V1(modeltools.Method):
         ...         round_(d, end=": ")
         ...         print_vector(factors.wettedperimeters.values)
 
-        The first example deals with identical rectangular trapezes.  Note that method
-        |Calc_WettedPerimeters_V1| adds the contact surface between two adjacent trapeze
-        ranges only to the wetted perimeter of the inner one:
+        The first example deals with identical rectangular trapeziums.  Note that method
+        |Calc_WettedPerimeters_V1| adds the contact surface between two adjacent
+        trapezium ranges only to the wetted perimeter of the inner one:
 
         >>> from hydpy.models.wq import *
         >>> parameterstep()
@@ -871,9 +871,9 @@ class Calc_WettedPerimeters_V1(modeltools.Method):
         3.5: 9.0, 7.0, 5.0
         4.0: 10.0, 8.0, 6.0
 
-        The second example deals with identical triangular trapezes.  Here, the heights
-        of the individual trapezes also matter because they mark where the triangular
-        shape switches to a rectangular shape:
+        The second example deals with identical triangular trapeziums.  Here, the
+        heights of the individual trapeziums also matter because they mark where the
+        triangular shape switches to a rectangular shape:
 
         >>> bottomlevels(1.0, 2.0, 3.0)
         >>> bottomwidths(0.0)
@@ -889,7 +889,7 @@ class Calc_WettedPerimeters_V1(modeltools.Method):
         3.5: 9.472136, 7.472136, 6.708204
         4.0: 10.472136, 8.472136, 8.944272
 
-        The third example deals with identical "complete" trapezes by combining the
+        The third example deals with identical "complete" trapeziums by combining the
         first two geometries:
 
         >>> bottomlevels(1.0, 2.0, 3.0)
@@ -1029,7 +1029,7 @@ class Calc_FlowPerimeters_V1(modeltools.Method):
 
 
 class Calc_WettedPerimeter_V1(modeltools.Method):
-    r"""Sum up the individual trapeze ranges' wetted perimeters.
+    r"""Sum up the individual trapezoidal ranges' wetted perimeters.
 
     Basic equation:
       :math:`WettedPerimeter = \sum_{i=1}^{NmbTrapezes} WettedPerimeters_i`
@@ -1060,8 +1060,8 @@ class Calc_WettedPerimeter_V1(modeltools.Method):
 
 
 class Calc_WettedPerimeterDerivatives_V1(modeltools.Method):
-    r"""Calculate the change in the wetted perimeter of each trapeze range with respect
-    to the water level increase.
+    r"""Calculate the change in the wetted perimeter of each trapezoidal range with
+    respect to the water level increase.
 
     Basic equation:
       .. math::
@@ -1091,10 +1091,10 @@ class Calc_WettedPerimeterDerivatives_V1(modeltools.Method):
         ...         round_(d, end=": ")
         ...         print_vector(factors.wettedperimeterderivatives.values)
 
-        The first example deals with identical rectangular trapezes.  Note that method
+        The first example deals with identical rectangular trapeziums.  Note that method
         |Calc_WettedPerimeterDerivatives_V1| adds the contact surface increase between
-        two adjacent trapeze ranges only to the wetted perimeter derivative of the inner
-        one:
+        two adjacent trapezoidal ranges only to the wetted perimeter derivative of the
+        inner one:
 
         >>> from hydpy.models.wq import *
         >>> parameterstep()
@@ -1113,9 +1113,9 @@ class Calc_WettedPerimeterDerivatives_V1(modeltools.Method):
         3.5: 2.0, 2.0, 2.0
         4.0: 2.0, 2.0, 2.0
 
-        The second example deals with identical triangular trapezes.  Here, the heights
-        of the individual trapezes also matter because they mark where the triangular
-        shape switches to a rectangular shape:
+        The second example deals with identical triangular trapeziums.  Here, the
+        heights of the individual trapeziums also matter because they mark where the
+        triangular shape switches to a rectangular shape:
 
         >>> bottomlevels(1.0, 2.0, 3.0)
         >>> bottomwidths(0.0)
@@ -1131,7 +1131,7 @@ class Calc_WettedPerimeterDerivatives_V1(modeltools.Method):
         3.5: 2.0, 2.0, 4.472136
         4.0: 2.0, 2.0, 4.472136
 
-        The third example deals with identical "complete" trapezes by combining the
+        The third example deals with identical "complete" trapeziums by combining the
         first two geometries:
 
         >>> bottomlevels(1.0, 2.0, 3.0)
@@ -1250,7 +1250,7 @@ class Calc_FlowPerimeterDerivatives_V1(modeltools.Method):
 
 
 class Calc_SurfaceWidths_V1(modeltools.Method):
-    r"""Calculate the surface width for each trapeze range.
+    r"""Calculate the surface width for each trapezoidal range.
 
     Basic equation:
       .. math::
@@ -1282,7 +1282,7 @@ class Calc_SurfaceWidths_V1(modeltools.Method):
         ...         round_(d, end=": ")
         ...         print_vector(factors.surfacewidths.values)
 
-        The first example deals with identical rectangular trapezes.  There are no
+        The first example deals with identical rectangular trapeziums.  There are no
         differences except those due to the different bottom levels:
 
         >>> from hydpy.models.wq import *
@@ -1302,9 +1302,9 @@ class Calc_SurfaceWidths_V1(modeltools.Method):
         3.5: 2.0, 2.0, 2.0
         4.0: 2.0, 2.0, 2.0
 
-        The second example deals with identical triangular trapezes.  Here, the heights
-        of the individual trapezes also matter because they mark where the triangular
-        shape switches to a rectangular shape:
+        The second example deals with identical triangular trapeziums.  Here, the
+        heights of the individual trapeziums also matter because they mark where the
+        triangular shape switches to a rectangular shape:
 
         >>> bottomlevels(1.0, 2.0, 3.0)
         >>> bottomwidths(0.0)
@@ -1320,7 +1320,7 @@ class Calc_SurfaceWidths_V1(modeltools.Method):
         3.5: 4.0, 4.0, 6.0
         4.0: 4.0, 4.0, 8.0
 
-        The third example deals with identical "complete" trapezes by combining the
+        The third example deals with identical "complete" trapeziums by combining the
         first two geometries:
 
         >>> bottomlevels(1.0, 2.0, 3.0)
@@ -1384,7 +1384,7 @@ class Calc_SurfaceWidths_V1(modeltools.Method):
 
 
 class Calc_SurfaceWidth_V1(modeltools.Method):
-    r"""Sum the individual trapeze ranges' surface widths.
+    r"""Sum the individual trapezoidal  ranges' surface widths.
 
     Basic equation:
       :math:`SurfaceWidth = \sum_{i=1}^{NmbTrapezes} SurfaceWidths_i`
@@ -1581,7 +1581,7 @@ class Calc_TotalWidth_V1(modeltools.Method):
 
 
 class Calc_Discharges_V1(modeltools.Method):
-    r"""Calculate the discharge for each trapeze range.
+    r"""Calculate the discharge for each trapezoidal range.
 
     Basic equation:
       .. math::
@@ -1709,7 +1709,7 @@ class Calc_Discharges_V2(modeltools.Method):
 
 
 class Calc_Discharge_V2(modeltools.Method):
-    r"""Sum the individual trapeze ranges' discharges.
+    r"""Sum the individual trapezoidal ranges' discharges.
 
     Basic equation:
       :math:`Discharge = \sum_{i=1}^{NmbTrapezes} Discharges_i`
@@ -1771,8 +1771,8 @@ class Calc_Discharge_V3(modeltools.Method):
 
 
 class Calc_DischargeDerivatives_V1(modeltools.Method):
-    r"""Calculate the discharge change for each trapeze range with respect to a water
-    level increase.
+    r"""Calculate the discharge change for each trapezoidal range with respect to a
+    water level increase.
 
     Basic equation:
      .. math::
@@ -1977,7 +1977,7 @@ class Calc_DischargeDerivatives_V2(modeltools.Method):
 
 
 class Calc_DischargeDerivative_V1(modeltools.Method):
-    r"""Sum the individual trapeze ranges' discharge derivatives.
+    r"""Sum the individual trapezoidal ranges' discharge derivatives.
 
     Basic equation:
       :math:`DischargeDerivative = \sum_{i=1}^{NmbTrapezes} DischargeDerivatives_i`
@@ -3080,8 +3080,8 @@ class WidthsModel(modeltools.AdHocModel):
         >>> flowwidths(2.0)
 
         We set the "total widths" to 3 m, so that a rest of 1 m, which contributes to
-        storing but not to routing water, remains (this can be useful to approximately
-        consider, for example, the effects of groynes):
+        storing water but not to routing water, remains (this can be useful to
+        approximately consider, for example, the effects of groynes):
 
         >>> totalwidths(3.0)
 

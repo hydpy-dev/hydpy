@@ -6,7 +6,7 @@ from hydpy.models.wq import wq_variables
 
 
 class Discharges(wq_variables.MixinTrapezesOrSectors, sequencetools.FluxSequence):
-    """The discharge of each trapeze range [m³/s]."""
+    """The discharge of each trapezoidal range [m³/s]."""
 
 
 class Discharge(sequencetools.FluxSequence):

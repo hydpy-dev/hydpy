@@ -14,7 +14,7 @@ from hydpy.models.wq import wq_variables
 
 
 class BottomDepths(wq_variables.MixinTrapezes, parametertools.Parameter):
-    """The cumulated depth of a trapeze and its lower neighbours [m]."""
+    """The cumulated depth of a trapezium and its lower neighbours [m]."""
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
@@ -39,9 +39,9 @@ class BottomDepths(wq_variables.MixinTrapezes, parametertools.Parameter):
 
 
 class TrapezeHeights(wq_variables.MixinTrapezes, parametertools.Parameter):
-    """The individual height of each trapeze [m].
+    """The individual height of each trapezium [m].
 
-    The highest trapeze has no upper neighbour and is thus infinitely high.
+    The highest trapezium has no upper neighbour and is thus infinitely high.
     """
 
     NDIM: Final[Literal[1]] = 1
@@ -67,9 +67,9 @@ class TrapezeHeights(wq_variables.MixinTrapezes, parametertools.Parameter):
 
 
 class SlopeWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
-    """The total width of both side slopes of each trapeze.
+    """The total width of both side slopes of each trapezium.
 
-    The highest trapeze has no upper neighbour and is thus infinitely high and
+    The highest trapezium has no upper neighbour and is thus infinitely high and
     potentially infinitely wide.
     """
 
@@ -100,9 +100,9 @@ class SlopeWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
 
 
 class TrapezeAreas(wq_variables.MixinTrapezes, parametertools.Parameter):
-    """The individual area of each trapeze [m].
+    """The individual area of each trapezium [m].
 
-    The highest trapeze has no upper neighbour and is thus infinitely large.
+    The highest trapezium has no upper neighbour and is thus infinitely large.
     """
 
     NDIM: Final[Literal[1]] = 1
@@ -137,8 +137,8 @@ class TrapezeAreas(wq_variables.MixinTrapezes, parametertools.Parameter):
 
 
 class PerimeterDerivatives(wq_variables.MixinTrapezes, parametertools.Parameter):
-    """Change of the perimeter of each trapeze relative to a water level increase
-    within the trapeze's range [-].
+    """Change of the perimeter of each trapezium relative to a water level increase
+    within the trapezoidal's range [-].
     """
 
     NDIM: Final[Literal[1]] = 1
@@ -266,7 +266,7 @@ class SectorFlowAreas(_SectorAreas):
     DERIVEDPARAMETERS = (SectorFlowWidths,)
 
     def update(self) -> None:
-        """Calculate the cumulative sum of the individual trapeze areas defined by the
+        """Calculate the cumulative sum of the individual trapezium areas defined by the
         height-width pairs of the individual sectors.
 
         >>> from hydpy.models.wq import *
@@ -295,7 +295,7 @@ class SectorTotalAreas(_SectorAreas):
     DERIVEDPARAMETERS = (SectorTotalWidths,)
 
     def update(self) -> None:
-        """Calculate the cumulative sum of the individual trapeze areas defined by the
+        """Calculate the cumulative sum of the individual trapezium areas defined by the
         height-width pairs of the individual sectors.
 
         >>> from hydpy.models.wq import *
@@ -330,8 +330,8 @@ class SectorFlowPerimeters(
     DERIVEDPARAMETERS = (SectorFlowWidths,)
 
     def update(self) -> None:
-        """Calculate the cumulative sum of the individual trapeze perimeters defined by
-        the height-width pairs of the individual sectors.
+        """Calculate the cumulative sum of the individual trapezium perimeters defined
+        by the height-width pairs of the individual sectors.
 
         >>> from hydpy.models.wq import *
         >>> parameterstep()

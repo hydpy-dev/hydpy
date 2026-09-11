@@ -39,8 +39,37 @@ class NmbWidths(parametertools.NmbParameter):
         >>> nmbwidths(2)
         Traceback (most recent call last):
         ...
-        ValueError: The value `2` of parameter `nmbwidths` of element `?` is not \
-valid.
+        ValueError: The value `2` of parameter `nmbwidths` of element `?` is not valid.
+        """
+
+        lower = exceptiontools.getattr_(self.subpars.nmbsectors, "value", lower)
+        return super().trim(lower, upper)
+
+
+class NmbShapes(parametertools.NmbParameter):
+    """Number of shapes that define the cross section [-]."""
+
+    SPAN = (1, None)
+
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
+        """Check according to :math:`NmbShapes \\geq NmbSectors`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+
+        >>> nmbshapes(5)
+        >>> nmbshapes
+        nmbshapes(5)
+
+        >>> nmbsectors(3)
+        >>> nmbshapes(3)
+        >>> nmbshapes
+        nmbshapes(3)
+
+        >>> nmbshapes(2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The value `2` of parameter `nmbshapes` of element `?` is not valid.
         """
 
         lower = exceptiontools.getattr_(self.subpars.nmbsectors, "value", lower)
@@ -53,7 +82,8 @@ class NmbSectors(parametertools.NmbParameter):
     SPAN = (1, None)
 
     def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
-        """Check according to :math:`NmbSectors \\leq NmbWidths`.
+        """Check according to :math:`NmbSectors \\leq NmbWidths` and
+        :math:`NmbSectors \\leq NmbShapes`.
 
         >>> from hydpy.models.wq import *
         >>> parameterstep()
@@ -63,6 +93,7 @@ class NmbSectors(parametertools.NmbParameter):
         nmbsectors(2)
 
         >>> nmbwidths(4)
+        >>> nmbshapes(5)
         >>> nmbsectors(4)
         >>> nmbsectors
         nmbsectors(4)
@@ -72,13 +103,29 @@ class NmbSectors(parametertools.NmbParameter):
         ...
         ValueError: The value `5` of parameter `nmbsectors` of element `?` is not \
 valid.
+
+        >>> nmbwidths(6)
+        >>> nmbsectors(6)
+        Traceback (most recent call last):
+        ...
+        ValueError: The value `6` of parameter `nmbsectors` of element `?` is not \
+valid.
         """
 
-        upper = exceptiontools.getattr_(self.subpars.nmbwidths, "value", upper)
+        if upper is None:
+            control = self.subpars
+            if hasattr(control, "nmbwidths"):
+                upper = exceptiontools.getattr_(self.subpars.nmbwidths, "value", None)
+            if hasattr(control, "nmbshapes"):
+                temp = exceptiontools.getattr_(self.subpars.nmbshapes, "value", None)
+                if upper is None:
+                    upper = temp
+                elif temp is not None:
+                    upper = min(upper, temp)
         return super().trim(lower, upper)
 
 
-class Heights(wq_variables.MixinWidths, parametertools.SortedParameter):
+class Heights(wq_variables.MixinWidthsOrShapes, parametertools.SortedParameter):
     """The measurement heights of the widths defining the cross section [m].
 
     If water levels are essential, we encourage using the sea level as a reference.  If
@@ -87,7 +134,7 @@ class Heights(wq_variables.MixinWidths, parametertools.SortedParameter):
     """
 
 
-class FlowWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
+class FlowWidths(wq_variables.MixinWidthsOrShapes, parametertools.SortedParameter):
     """The widths of those subareas of the cross section involved in water routing
     [m]."""
 
@@ -114,7 +161,7 @@ class FlowWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
         return super().trim(lower, upper)
 
 
-class TotalWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
+class TotalWidths(wq_variables.MixinWidthsOrShapes, parametertools.SortedParameter):
     """The widths of the total cross section [m]."""
 
     SPAN = (0.0, None)
@@ -137,6 +184,110 @@ class TotalWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
         """
 
         lower = exceptiontools.getattr_(self.subpars.flowwidths, "values", lower)
+        return super().trim(lower, upper)
+
+
+class FlowAreas(wq_variables.MixinWidthsOrShapes, parametertools.SortedParameter):
+    """The wetted areas of the cross section involved in water routing [m²]."""
+
+    SPAN = (0.0, None)
+
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
+        """Trim according to :math:`FlowAreas \\leq TotalAreas`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+
+        >>> nmbshapes(3)
+        >>> flowareas(1.0, 2.0, 3.0)
+        >>> flowareas
+        flowareas(1.0, 2.0, 3.0)
+
+        >>> totalareas(3.0, 4.0, 5.0)
+        >>> flowareas(2.0, 4.0, 6.0)
+        >>> flowareas
+        flowareas(2.0, 4.0, 5.0)
+        """
+
+        upper = exceptiontools.getattr_(self.subpars.totalareas, "values", upper)
+        return super().trim(lower, upper)
+
+
+class TotalAreas(wq_variables.MixinWidthsOrShapes, parametertools.SortedParameter):
+    """The wetted areas of the total cross section [m]."""
+
+    SPAN = (0.0, None)
+
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
+        """Trim according to :math:`TotalAreas \\geq FlowAreas`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+
+        >>> nmbshapes(3)
+        >>> totalareas(4.0, 5.0, 6.0)
+        >>> totalareas
+        totalareas(4.0, 5.0, 6.0)
+
+        >>> flowareas(3.0, 4.0, 5.0)
+        >>> totalareas(2.0, 4.0, 6.0)
+        >>> totalareas
+        totalareas(3.0, 4.0, 6.0)
+        """
+
+        lower = exceptiontools.getattr_(self.subpars.flowareas, "values", lower)
+        return super().trim(lower, upper)
+
+
+class FlowPerimeters(wq_variables.MixinWidthsOrShapes, parametertools.SortedParameter):
+    """The wetted perimeters of the cross section involved in water routing [m]."""
+
+    SPAN = (0.0, None)
+
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
+        """Trim according to :math:`FlowPerimeters \\leq TotalPerimeters`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+
+        >>> nmbshapes(3)
+        >>> flowperimeters(1.0, 2.0, 3.0)
+        >>> flowperimeters
+        flowperimeters(1.0, 2.0, 3.0)
+
+        >>> totalperimeters(3.0, 4.0, 5.0)
+        >>> flowperimeters(2.0, 4.0, 6.0)
+        >>> flowperimeters
+        flowperimeters(2.0, 4.0, 5.0)
+        """
+
+        upper = exceptiontools.getattr_(self.subpars.totalperimeters, "values", upper)
+        return super().trim(lower, upper)
+
+
+class TotalPerimeters(wq_variables.MixinWidthsOrShapes, parametertools.SortedParameter):
+    """The wetted perimeters of the total cross section [m]."""
+
+    SPAN = (0.0, None)
+
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
+        """Trim according to :math:`TotalPerimeters \\geq FlowPerimeters`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+
+        >>> nmbshapes(3)
+        >>> totalperimeters(4.0, 5.0, 6.0)
+        >>> totalperimeters
+        totalperimeters(4.0, 5.0, 6.0)
+
+        >>> flowperimeters(3.0, 4.0, 5.0)
+        >>> totalperimeters(2.0, 4.0, 6.0)
+        >>> totalperimeters
+        totalperimeters(3.0, 4.0, 6.0)
+        """
+
+        lower = exceptiontools.getattr_(self.subpars.flowperimeters, "values", lower)
         return super().trim(lower, upper)
 
 
@@ -290,9 +441,7 @@ class SideSlopes(wq_variables.MixinTrapezes, parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class StricklerCoefficients(
-    wq_variables.MixinTrapezesOrSectors, parametertools.Parameter
-):
+class StricklerCoefficients(wq_variables.MixinWidthsOrShapes, parametertools.Parameter):
     """Manning-Strickler coefficient for each trapezium or sector [m^(1/3)/s].
 
     The higher the coefficient's value, the higher the calculated discharge.  Typical
@@ -303,7 +452,7 @@ class StricklerCoefficients(
     SPAN = (0.0, None)
 
 
-class CalibrationFactors(wq_variables.MixinTrapezesOrSectors, parametertools.Parameter):
+class CalibrationFactors(wq_variables.MixinWidthsOrShapes, parametertools.Parameter):
     """Calibration factor for each trapezium or sector [-]."""
 
     TYPE: Final = float

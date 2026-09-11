@@ -644,7 +644,10 @@ class Calc_FlowAreas_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wq_control.NmbSectors,)
-    DERIVEDPARAMETERS = (wq_derived.SectorFlowAreas, wq_derived.SectorFlowWidths)
+    DERIVEDPARAMETERS = (
+        wq_derived.SectorFlowAreasFromWidths,
+        wq_derived.SectorFlowWidths,
+    )
     REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Excess, wq_factors.FlowWidths)
     RESULTSEQUENCES = (wq_factors.FlowAreas,)
 
@@ -708,7 +711,10 @@ class Calc_TotalAreas_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wq_control.NmbSectors,)
-    DERIVEDPARAMETERS = (wq_derived.SectorTotalAreas, wq_derived.SectorTotalWidths)
+    DERIVEDPARAMETERS = (
+        wq_derived.SectorTotalAreasFromWidths,
+        wq_derived.SectorTotalWidths,
+    )
     REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Excess, wq_factors.TotalWidths)
     RESULTSEQUENCES = (wq_factors.TotalAreas,)
 
@@ -1003,7 +1009,7 @@ class Calc_FlowPerimeters_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wq_control.NmbSectors,)
-    DERIVEDPARAMETERS = (wq_derived.SectorFlowPerimeters,)
+    DERIVEDPARAMETERS = (wq_derived.SectorFlowPerimetersFromWidths,)
     REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Weight, wq_aides.Excess)
     RESULTSEQUENCES = (wq_factors.FlowPerimeters,)
 
@@ -2373,9 +2379,9 @@ class Use_WaterDepth_V3(modeltools.SetAutoMethod):
     DERIVEDPARAMETERS = (
         wq_derived.SectorFlowWidths,
         wq_derived.SectorTotalWidths,
-        wq_derived.SectorFlowAreas,
-        wq_derived.SectorTotalAreas,
-        wq_derived.SectorFlowPerimeters,
+        wq_derived.SectorFlowAreasFromWidths,
+        wq_derived.SectorTotalAreasFromWidths,
+        wq_derived.SectorFlowPerimetersFromWidths,
         wq_derived.SectorFlowPerimeterDerivatives,
     )
     RESULTSEQUENCES = (
@@ -2601,9 +2607,9 @@ class Use_WaterLevel_V3(modeltools.SetAutoMethod):
     DERIVEDPARAMETERS = (
         wq_derived.SectorFlowWidths,
         wq_derived.SectorTotalWidths,
-        wq_derived.SectorFlowAreas,
-        wq_derived.SectorTotalAreas,
-        wq_derived.SectorFlowPerimeters,
+        wq_derived.SectorFlowAreasFromWidths,
+        wq_derived.SectorTotalAreasFromWidths,
+        wq_derived.SectorFlowPerimetersFromWidths,
         wq_derived.SectorFlowPerimeterDerivatives,
     )
     RESULTSEQUENCES = (
@@ -2866,6 +2872,18 @@ class Get_Celerity_V1(modeltools.Method):
         2.0
     """
 
+    CONTROLPARAMETERS = (
+        wq_control.NmbShapes,
+        wq_control.FlowAreas,
+        wq_control.TotalAreas,
+        wq_control.FlowPerimeters,
+        wq_control.TotalPerimeters,
+    )
+    DERIVEDPARAMETERS = (
+        wq_derived.SectorFlowAreasFromShapes,
+        wq_derived.SectorTotalAreasFromShapes,
+        wq_derived.SectorFlowPerimetersFromShapes,
+    )
     REQUIREDSEQUENCES = (wq_factors.Celerity,)
 
     @staticmethod

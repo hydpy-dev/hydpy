@@ -18,23 +18,25 @@ class MixinTrapezes(variabletools.Variable, abc.ABC):
             self.__hydpy__change_shape_if_necessary__((p.value,))
 
 
-class MixinWidths(variabletools.Variable, abc.ABC):
+class MixinWidthsOrShapes(variabletools.Variable, abc.ABC):
     """Mixin class for 1-dimensional parameters and sequences whose shape depends on
-    the value of the parameter |NmbWidths|."""
+    the value of parameter |NmbWidths| or |NmbShapes|."""
+
+    NDIM: Final[Literal[1]] = 1
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
-        if isinstance(p, wq_control.NmbWidths):
+        if isinstance(p, (wq_control.NmbWidths, wq_control.NmbShapes)):
             self.__hydpy__change_shape_if_necessary__((p.value,))
 
 
-class MixinSectorsAndWidths(variabletools.Variable, abc.ABC):
+class MixinSectorsAndWidthsOrShapes(variabletools.Variable, abc.ABC):
     """Mixin class for 2-dimensional parameters and sequences whose shape depends on
-    the values of the parameters |NmbSectors| and |NmbWidths|."""
+    the values of the parameters |NmbSectors| and |NmbWidths| or |NmbShapes|."""
 
     NDIM: Final[Literal[2]] = 2
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
-        if isinstance(p, wq_control.NmbWidths):
+        if isinstance(p, (wq_control.NmbWidths, wq_control.NmbShapes)):
             sectors = exceptiontools.getattr_(p.subpars.nmbsectors, "value", None)
             if sectors is not None:
                 self.__hydpy__change_shape_if_necessary__((sectors, p.value))

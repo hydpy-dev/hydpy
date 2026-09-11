@@ -163,7 +163,9 @@ class PerimeterDerivatives(wq_variables.MixinTrapezes, parametertools.Parameter)
         self.values = 2.0 * (1.0 + sideslopes**2.0) ** 0.5
 
 
-class _SectorWidths(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
+class _SectorWidths(
+    wq_variables.MixinSectorsAndWidthsOrShapes, parametertools.Parameter
+):
     TYPE: Final = float
     SPAN = (0.0, None)
 
@@ -245,7 +247,9 @@ class SectorTotalWidths(_SectorWidths):
         self._update(totalwidths)
 
 
-class _SectorAreas(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
+class _SectorAreasFromWidths(
+    wq_variables.MixinSectorsAndWidthsOrShapes, parametertools.Parameter
+):
     TYPE: Final = float
     SPAN = (0.0, None)
 
@@ -258,7 +262,7 @@ class _SectorAreas(wq_variables.MixinSectorsAndWidths, parametertools.Parameter)
         self.values[:, 1:] = numpy.cumsum(h_diff * w_mean, axis=1)
 
 
-class SectorFlowAreas(_SectorAreas):
+class SectorFlowAreasFromWidths(_SectorAreasFromWidths):
     """The sector-specific wetted areas of those subareas of the cross section
     involved in water routing [m²]."""
 
@@ -266,8 +270,8 @@ class SectorFlowAreas(_SectorAreas):
     DERIVEDPARAMETERS = (SectorFlowWidths,)
 
     def update(self) -> None:
-        """Calculate the cumulative sum of the individual trapezium areas defined by the
-        height-width pairs of the individual sectors.
+        """Calculate the cumulative sum of the individual trapezoidal areas defined by
+        the height-width pairs of the individual sectors.
 
         >>> from hydpy.models.wq import *
         >>> parameterstep()
@@ -277,26 +281,30 @@ class SectorFlowAreas(_SectorAreas):
         >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
         >>> derived.sectorflowwidths.update()
-        >>> derived.sectorflowareas.update()
-        >>> derived.sectorflowareas
-        sectorflowareas([[0.0, 6.0, 11.0, 11.0, 11.0, 17.0, 23.0, 29.0, 35.0],
-                         [0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 16.0, 24.0, 32.0],
-                         [0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 8.0, 12.0, 16.0],
-                         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])
+        >>> derived.sectorflowareasfromwidths.update()
+        >>> derived.sectorflowareasfromwidths
+        sectorflowareasfromwidths([[0.0, 6.0, 11.0, 11.0, 11.0, 17.0, 23.0,
+                                    29.0, 35.0],
+                                   [0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 16.0, 24.0,
+                                    32.0],
+                                   [0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 8.0, 12.0,
+                                    16.0],
+                                   [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0,
+                                    22.0]])
         """
         sectorflowwidths = self.subpars.sectorflowwidths
         self._update(sectorflowwidths)
 
 
-class SectorTotalAreas(_SectorAreas):
+class SectorTotalAreasFromWidths(_SectorAreasFromWidths):
     """The sector-specific wetted areas of the total cross section [m²]."""
 
     CONTROLPARAMETERS = (wq_control.Heights,)
     DERIVEDPARAMETERS = (SectorTotalWidths,)
 
     def update(self) -> None:
-        """Calculate the cumulative sum of the individual trapezium areas defined by the
-        height-width pairs of the individual sectors.
+        """Calculate the cumulative sum of the individual trapezoidal areas defined by
+        the height-width pairs of the individual sectors.
 
         >>> from hydpy.models.wq import *
         >>> parameterstep()
@@ -306,19 +314,185 @@ class SectorTotalAreas(_SectorAreas):
         >>> totalwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
         >>> derived.sectortotalwidths.update()
-        >>> derived.sectortotalareas.update()
-        >>> derived.sectortotalareas
-        sectortotalareas([[0.0, 6.0, 11.0, 11.0, 11.0, 17.0, 23.0, 29.0, 35.0],
-                          [0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 16.0, 24.0, 32.0],
-                          [0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 8.0, 12.0, 16.0],
-                          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])
+        >>> derived.sectortotalareasfromwidths.update()
+        >>> derived.sectortotalareasfromwidths
+        sectortotalareasfromwidths([[0.0, 6.0, 11.0, 11.0, 11.0, 17.0, 23.0,
+                                     29.0, 35.0],
+                                    [0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 16.0, 24.0,
+                                     32.0],
+                                    [0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 8.0, 12.0,
+                                     16.0],
+                                    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0,
+                                     22.0]])
         """
         sectortotalwidths = self.subpars.sectortotalwidths
         self._update(sectortotalwidths)
 
 
-class SectorFlowPerimeters(
-    wq_variables.MixinSectorsAndWidths, parametertools.Parameter
+class _SectorAreasFromShapes(
+    wq_variables.MixinSectorsAndWidthsOrShapes, parametertools.Parameter
+):
+
+    TYPE: Final = float
+
+    def _update(self, *, widths: VectorFloat, areas: VectorFloat) -> None:
+
+        control = self.subpars.pars.control
+        nw = control.nmbwidths.value
+        ns = control.nmbsectors.value
+        ts = control.transitions.values
+        hs = control.heights.values
+
+        self.values = 0.0
+        vs = self.values
+        for i in range(ns):
+            t = (nw - 1) if (i == ns - 1) else ts[i]
+            vs[i, : t + 1] = areas[: t + 1]
+            vs[i, t + 1 :] = areas[t] + numpy.cumsum(widths[t] * numpy.diff(hs[t:]))
+            if i > 0:
+                vs[i, :] -= numpy.sum(vs[:i, :], axis=0)
+
+
+class SectorFlowAreasFromShapes(_SectorAreasFromShapes):
+    """The sector-specific wetted areas of those subareas of the cross section involved
+    in water routing [m²]."""
+
+    CONTROLPARAMETERS = (wq_control.TotalAreas,)
+
+    def update(self) -> None:
+        """Divide the routing-relevant wetted areas of the complete cross section into the
+        individual sections.
+
+        We perform the following test calculation using geometric input data, assuming
+        a pattern of stacked trapezoids for simplicity:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(7)
+        >>> nmbsectors(4)
+        >>> transitions(2, 3, 5)
+        >>> heights(1.0, 3.0, 4.0, 6.0, 6.0, 9.0, 10.0)
+        >>> flowwidths(2.0, 4.0, 4.0, 6.0, 8.0, 8.0, 12.0)
+        >>> flowareas(0.0)
+        >>> import numpy
+        >>> flowareas.values[1:] = numpy.cumsum(
+        ...     numpy.diff(heights) * (flowwidths[:-1] + flowwidths[1:]) / 2.0
+        ... )
+        >>> flowareas
+        flowareas(0.0, 6.0, 10.0, 20.0, 20.0, 44.0, 54.0)
+        >>> derived.sectorflowareasfromshapes.update()
+        >>> derived.sectorflowareasfromshapes
+        sectorflowareasfromshapes([[0.0, 6.0, 10.0, 18.0, 18.0, 30.0, 34.0],
+                                   [0.0, 0.0, 0.0, 2.0, 2.0, 8.0, 10.0],
+                                   [0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 8.0],
+                                   [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0]])
+        >>> assert numpy.array_equal(
+        ...     numpy.sum(derived.sectorflowareasfromshapes.values, axis=0),
+        ...     flowareas.values,
+        ... )
+        """
+
+        control = self.subpars.pars.control
+        self._update(widths=control.flowwidths.values, areas=control.flowareas.values)
+
+
+class SectorTotalAreasFromShapes(_SectorAreasFromShapes):
+    """The sector-specific wetted areas of the total cross section [m²]."""
+
+    CONTROLPARAMETERS = (wq_control.TotalAreas,)
+
+    def update(self) -> None:
+        """Divide the total wetted areas of the complete cross section into the
+        individual sections.
+
+        We perform the following test calculation using geometric input data, assuming
+        a pattern of stacked trapezoids for simplicity:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(7)
+        >>> nmbsectors(4)
+        >>> transitions(2, 3, 5)
+        >>> heights(1.0, 3.0, 4.0, 6.0, 6.0, 9.0, 10.0)
+        >>> totalwidths(2.0, 4.0, 4.0, 6.0, 8.0, 8.0, 12.0)
+        >>> totalareas(0.0)
+        >>> import numpy
+        >>> totalareas.values[1:] = numpy.cumsum(
+        ...     numpy.diff(heights) * (totalwidths[:-1] + totalwidths[1:]) / 2.0
+        ... )
+        >>> totalareas
+        totalareas(0.0, 6.0, 10.0, 20.0, 20.0, 44.0, 54.0)
+        >>> derived.sectortotalareasfromshapes.update()
+        >>> derived.sectortotalareasfromshapes
+        sectortotalareasfromshapes([[0.0, 6.0, 10.0, 18.0, 18.0, 30.0, 34.0],
+                                    [0.0, 0.0, 0.0, 2.0, 2.0, 8.0, 10.0],
+                                    [0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 8.0],
+                                    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0]])
+        >>> assert numpy.array_equal(
+        ...     numpy.sum(derived.sectortotalareasfromshapes.values, axis=0),
+        ...     totalareas.values,
+        ... )
+        """
+
+        control = self.subpars.pars.control
+        self._update(widths=control.totalwidths.values, areas=control.totalareas.values)
+
+
+class SectorFlowPerimetersFromWidths(
+    wq_variables.MixinSectorsAndWidthsOrShapes, parametertools.Parameter
+):
+    """The sector-specific wetted perimeters of those subareas of the cross section
+    involved in water routing [m]."""
+
+    TYPE: Final = float
+    SPAN = (0.0, None)
+
+    CONTROLPARAMETERS = (wq_control.Heights,)
+    DERIVEDPARAMETERS = (SectorFlowWidths,)
+
+    def update(self) -> None:
+        """Divide the total wetted perimeters of the complete cross section into the
+        individual sections.
+
+        We perform the following test calculation using geometric input data, assuming
+        a pattern of stacked trapezoids for simplicity:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowperimetersfromwidths.update()
+        >>> derived.sectorflowperimetersfromwidths
+        sectorflowperimetersfromwidths([[2.0, 6.472136, 9.300563, 9.300563,
+                                         9.300563, 11.300563, 13.300563,
+                                         15.300563, 17.300563],
+                                        [0.0, 0.0, 0.0, 8.0, 8.0, 10.0, 12.0,
+                                         14.0, 16.0],
+                                        [0.0, 0.0, 0.0, 0.0, 4.0, 6.0, 8.0,
+                                         10.0, 12.0],
+                                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.324555,
+                                         10.796691, 13.625118]])
+        """
+
+        control = self.subpars.pars.control
+        h = control.heights.values
+        w = self.subpars.sectorflowwidths.values
+        dh = numpy.diff(h)
+        dw = numpy.diff(w)
+        p = numpy.sqrt(numpy.square(2.0 * dh) + numpy.square(dw))
+        self.values = 0.0
+        for i, t in enumerate(
+            itertools.chain([numpy.int64(0)], control.transitions.values)
+        ):
+            self.values[i, t:] = w[i, t]
+            self.values[i, t + 1 :] += numpy.cumsum(p[i, t:])
+
+class SectorFlowPerimetersFromShapes(
+    wq_variables.MixinSectorsAndWidthsOrShapes, parametertools.Parameter
 ):
     """The sector-specific wetted perimeters of those subareas of the cross section
     involved in water routing [m]."""
@@ -335,37 +509,53 @@ class SectorFlowPerimeters(
 
         >>> from hydpy.models.wq import *
         >>> parameterstep()
-        >>> nmbwidths(9)
+        >>> nmbwidths(7)
         >>> nmbsectors(4)
-        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
-        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
-        >>> derived.sectorflowwidths.update()
-        >>> derived.sectorflowperimeters.update()
-        >>> derived.sectorflowperimeters
-        sectorflowperimeters([[2.0, 6.472136, 9.300563, 9.300563, 9.300563,
-                               11.300563, 13.300563, 15.300563, 17.300563],
-                              [0.0, 0.0, 0.0, 8.0, 8.0, 10.0, 12.0, 14.0, 16.0],
-                              [0.0, 0.0, 0.0, 0.0, 4.0, 6.0, 8.0, 10.0, 12.0],
-                              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.324555,
-                               10.796691, 13.625118]])
+        >>> heights(1.0, 3.0, 4.0, 6.0, 6.0, 9.0, 10.0)
+        >>> flowwidths(2.0, 4.0, 4.0, 6.0, 8.0, 8.0, 12.0)
+        >>> flowperimeters(2.0)
+        >>> import numpy
+        >>> flowperimeters.values[1:] = 2.0 + numpy.cumsum(
+        ...     2.0 * numpy.sqrt(
+        ...         (heights[:-1] - heights[1:]) ** 2
+        ...         + ((flowwidths[:-1] - flowwidths[1:]) / 2.0) ** 2
+        ...     )
+        ... )
+        >>> flowperimeters
+        flowperimeters(2.0, 6.472136, 8.472136, 12.944272, 14.944272, 20.944272,
+                       25.416408)
+        >>> derived.sectorflowperimetersfromshapes.update()
+        >>> derived.sectorflowperimetersfromshapes
+        sectorflowperimetersfromshapes([[2.0, 6.472136, 8.472136, 12.472136,
+                                         12.472136, 18.472136, 20.472136],
+                                        [0.0, 0.0, 0.0, 4.472136, 4.472136,
+                                         10.472136, 12.472136],
+                                        [0.0, 0.0, 0.0, 0.0, 2.0, 8.0, 10.0],
+                                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.472136]])
         """
-        control = self.subpars.pars.control
-        h = control.heights.values
-        w = self.subpars.sectorflowwidths.values
-        dh = numpy.diff(h)
-        dw = numpy.diff(w)
-        p = numpy.sqrt(numpy.square(2.0 * dh) + numpy.square(dw))
-        self.values = 0.0
-        for i, t in enumerate(
-            itertools.chain([numpy.int64(0)], control.transitions.values)
-        ):
-            self.values[i, t:] = w[i, t]
-            self.values[i, t + 1 :] += numpy.cumsum(p[i, t:])
 
+        control = self.subpars.pars.control
+        nw = control.nmbwidths.value
+        ns = control.nmbsectors.value
+        ts = control.transitions.values
+        hs = control.heights.values
+        ws = control.flowwidths.values
+        ps = control.flowperimeters.values
+
+        self.values = 0.0
+        vs = self.values
+        for i in range(ns):
+            t1 = (nw - 1) if (i == ns - 1) else ts[i]
+            if i == 0:
+                vs[i, : t1 + 1] = ps[: t1 + 1]
+            else:
+                t0 = ts[i - 1]
+                vs[i, t0 + 1: t1 + 1] = ps[t0 + 1: t1 + 1] - ps[t0]
+            vs[i, t1 + 1:] = vs[i, t1] + numpy.cumsum(2.0 * numpy.diff(hs[t1:]))
 
 class SectorFlowPerimeterDerivatives(
-    wq_variables.MixinSectorsAndWidths, parametertools.Parameter
+    wq_variables.MixinSectorsAndWidthsOrShapes, parametertools.Parameter
 ):
     """The sector-specific changes in the wetted perimeters of those subareas of the
     cross section involved in water routing with respect to water level increases

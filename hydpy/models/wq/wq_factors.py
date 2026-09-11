@@ -32,7 +32,7 @@ class WettedArea(sequencetools.FactorSequence):
     SPAN = (0.0, None)
 
 
-class FlowAreas(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
+class FlowAreas(wq_variables.MixinWidthsOrShapes, sequencetools.FactorSequence):
     """The sector-specific wetted areas of those subareas of the cross section
     involved in water routing [m²]."""
 
@@ -47,7 +47,7 @@ class FlowArea(sequencetools.FactorSequence):
     SPAN = (0.0, None)
 
 
-class TotalAreas(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
+class TotalAreas(wq_variables.MixinWidthsOrShapes, sequencetools.FactorSequence):
     """The sector-specific wetted areas of the total cross section [m²]."""
 
     SPAN = (0.0, None)
@@ -67,7 +67,7 @@ class WettedPerimeters(wq_variables.MixinTrapezes, sequencetools.FactorSequence)
     SPAN = (0.0, None)
 
 
-class FlowPerimeters(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
+class FlowPerimeters(wq_variables.MixinWidthsOrShapes, sequencetools.FactorSequence):
     """The sector-specific wetted perimeters of those subareas of the cross section
     involved in water routing [m]."""
 
@@ -92,7 +92,7 @@ class WettedPerimeterDerivatives(
 
 
 class FlowPerimeterDerivatives(
-    wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence
+    wq_variables.MixinWidthsOrShapes, sequencetools.FactorSequence
 ):
     """The sector-specific wetted perimeters of those subareas of the cross section
     involved in water routing [m]."""
@@ -114,14 +114,14 @@ class SurfaceWidth(sequencetools.FactorSequence):
     SPAN = (0.0, None)
 
 
-class FlowWidths(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
+class FlowWidths(wq_variables.MixinWidthsOrShapes, sequencetools.FactorSequence):
     """The sector-specific widths of those subareas of the cross section involved in
     water routing [m]."""
 
     SPAN = (0.0, None)
 
 
-class TotalWidths(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
+class TotalWidths(wq_variables.MixinWidthsOrShapes, sequencetools.FactorSequence):
     """The sector-specific widths of the total cross section [m]."""
 
     SPAN = (0.0, None)
@@ -135,7 +135,7 @@ class TotalWidth(sequencetools.FactorSequence):
 
 
 class DischargeDerivatives(
-    wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence
+    wq_variables.MixinWidthsOrShapes, sequencetools.FactorSequence
 ):
     """Discharge change of each trapezoidal range with respect to a water level increase
     [m²/s]."""

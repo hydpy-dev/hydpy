@@ -1726,6 +1726,7 @@ class SubmodelGraph:
         conv_idw
         ...
         wland_wag
+        wq_table_strickler
         wq_trapeze
         wq_trapeze_strickler
         wq_walrus

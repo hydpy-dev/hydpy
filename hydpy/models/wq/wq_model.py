@@ -8,7 +8,6 @@ from matplotlib import pyplot
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
-from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.cythons import smoothutils
 from hydpy.interfaces import dischargeinterfaces
@@ -511,9 +510,9 @@ class Calc_WettedAreas_V1(modeltools.Method):
         3.5: 7.0, 5.0, 3.0
         4.0: 8.0, 6.0, 4.0
 
-        The second example deals with identical triangular trapeziums.  Here, the heights
-        of the individual trapeziums also matter because they mark where the triangular
-        shape switches to a rectangular shape:
+        The second example deals with identical triangular trapeziums.  Here, the
+        heights of the individual trapeziums also matter because they mark where the
+        triangular shape switches to a rectangular shape:
 
         >>> bottomlevels(1.0, 2.0, 3.0)
         >>> bottomwidths(0.0)
@@ -603,16 +602,19 @@ class Calc_FlowAreas_V1(modeltools.Method):
 
     Basic equation:
       .. math::
-        A = AS_i + E \cdot (SW_i + W) / 2
+        A = A^S_i + E \cdot (W^S_i + W) / 2
         \\ \\
         i = Index \\
         E = Excess \\
         A = FlowAreas \\
         W = FlowWidths \\
-        AS = SectorFlowAreas \\
-        WS = SectorFlowWidths
+        A^S = SectorFlowAreasFromWidths \\
+        W^S = SectorFlowWidths
 
     Example:
+
+        Method |Calc_FlowAreas_V1| calculates the required wetted area based on the
+        previously interpolated water table widths:
 
         >>> from hydpy.models.wq import *
         >>> parameterstep()
@@ -622,29 +624,42 @@ class Calc_FlowAreas_V1(modeltools.Method):
         >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
         >>> derived.sectorflowwidths.update()
-        >>> derived.sectorflowareas.update()
+        >>> derived.sectorflowareasfromwidths.update()
         >>> from hydpy import print_vector
-        >>> for waterlevel in range(11):
-        ...     factors.waterlevel = waterlevel
+        >>> for waterlevel in range(21):
+        ...     factors.waterlevel = waterlevel / 2.0
         ...     model.calc_index_excess_weight_v1()
         ...     model.calc_flowwidths_v1()
         ...     model.calc_flowareas_v1()
-        ...     print_vector([waterlevel, *factors.flowareas.values])
-        0, 0.0, 0.0, 0.0, 0.0
-        1, 0.0, 0.0, 0.0, 0.0
-        2, 2.5, 0.0, 0.0, 0.0
-        3, 6.0, 0.0, 0.0, 0.0
-        4, 11.0, 0.0, 0.0, 0.0
-        5, 17.0, 8.0, 4.0, 0.0
-        6, 23.0, 16.0, 8.0, 3.0
-        7, 29.0, 24.0, 12.0, 11.0
-        8, 35.0, 32.0, 16.0, 22.0
-        9, 41.0, 40.0, 20.0, 34.0
-        10, 47.0, 48.0, 24.0, 46.0
+        ...     print_vector([waterlevel / 2.0, *factors.flowareas.values])
+        0.0, 0.0, 0.0, 0.0, 0.0
+        0.5, 0.0, 0.0, 0.0, 0.0
+        1.0, 0.0, 0.0, 0.0, 0.0
+        1.5, 1.125, 0.0, 0.0, 0.0
+        2.0, 2.5, 0.0, 0.0, 0.0
+        2.5, 4.125, 0.0, 0.0, 0.0
+        3.0, 6.0, 0.0, 0.0, 0.0
+        3.5, 8.25, 0.0, 0.0, 0.0
+        4.0, 11.0, 0.0, 0.0, 0.0
+        4.5, 14.0, 4.0, 2.0, 0.0
+        5.0, 17.0, 8.0, 4.0, 0.0
+        5.5, 20.0, 12.0, 6.0, 0.75
+        6.0, 23.0, 16.0, 8.0, 3.0
+        6.5, 26.0, 20.0, 10.0, 6.5
+        7.0, 29.0, 24.0, 12.0, 11.0
+        7.5, 32.0, 28.0, 14.0, 16.25
+        8.0, 35.0, 32.0, 16.0, 22.0
+        8.5, 38.0, 36.0, 18.0, 28.0
+        9.0, 41.0, 40.0, 20.0, 34.0
+        9.5, 44.0, 44.0, 22.0, 40.0
+        10.0, 47.0, 48.0, 24.0, 46.0
     """
 
     CONTROLPARAMETERS = (wq_control.NmbSectors,)
-    DERIVEDPARAMETERS = (wq_derived.SectorFlowAreas, wq_derived.SectorFlowWidths)
+    DERIVEDPARAMETERS = (
+        wq_derived.SectorFlowAreasFromWidths,
+        wq_derived.SectorFlowWidths,
+    )
     REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Excess, wq_factors.FlowWidths)
     RESULTSEQUENCES = (wq_factors.FlowAreas,)
 
@@ -657,9 +672,147 @@ class Calc_FlowAreas_V1(modeltools.Method):
 
         j = int(aid.index)
         for i in range(con.nmbsectors):
-            fac.flowareas[i] = der.sectorflowareas[i, j] + (
+            fac.flowareas[i] = der.sectorflowareasfromwidths[i, j] + (
                 aid.excess * (der.sectorflowwidths[i, j] + fac.flowwidths[i]) / 2.0
             )
+
+
+class Calc_FlowAreas_V2(modeltools.Method):
+    r"""Calculate the sector-specific wetted areas of those subareas of the cross
+    section involved in water routing.
+
+    Basic equation:
+      .. math::
+        A = A^S_i + E \cdot \begin{cases}
+        C_i \cdot (W + W^S_i) / 2 &|& \omega \neq NaN
+        \\
+        W^S_i &|& \omega = NaN
+        \end{cases}
+        \\ \\
+        A = FlowAreas \\
+        i = Index \\
+        \omega = Weight \\
+        E = Excess \\
+        W = TotalWidths \\
+        W^S = SectorTotalWidths \\
+        A^S = SectorTotalAreasFromTable \\
+        C = TotalAdjustments
+
+    Example:
+
+        Principally, method |Calc_FlowAreas_V2| interpolates the required wetted area
+        by assuming trapezoidal geometries.  To demonstrate this, we reuse the data from
+        the example of method |Calc_FlowAreas_V1| and calculate the corresponding
+        trapezium areas:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> flowareas.approximate()
+        >>> flowareas
+        flowareas(0.0, 6.0, 11.0, 11.0, 11.0, 29.0, 50.0, 76.0, 105.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowareasfromtable.update()
+        >>> derived.flowareaadjustments.update()
+        >>> derived.flowareaadjustments
+        flowareaadjustments(1.0)
+
+        The results are identical for both interpolation and extrapolation:
+
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(21):
+        ...     factors.waterlevel = waterlevel / 2.0
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_flowwidths_v1()
+        ...     model.calc_flowareas_v2()
+        ...     print_vector([waterlevel / 2.0, *factors.flowareas.values])
+        0.0, 0.0, 0.0, 0.0, 0.0
+        0.5, 0.0, 0.0, 0.0, 0.0
+        1.0, 0.0, 0.0, 0.0, 0.0
+        1.5, 1.125, 0.0, 0.0, 0.0
+        2.0, 2.5, 0.0, 0.0, 0.0
+        2.5, 4.125, 0.0, 0.0, 0.0
+        3.0, 6.0, 0.0, 0.0, 0.0
+        3.5, 8.25, 0.0, 0.0, 0.0
+        4.0, 11.0, 0.0, 0.0, 0.0
+        4.5, 14.0, 4.0, 2.0, 0.0
+        5.0, 17.0, 8.0, 4.0, 0.0
+        5.5, 20.0, 12.0, 6.0, 0.75
+        6.0, 23.0, 16.0, 8.0, 3.0
+        6.5, 26.0, 20.0, 10.0, 6.5
+        7.0, 29.0, 24.0, 12.0, 11.0
+        7.5, 32.0, 28.0, 14.0, 16.25
+        8.0, 35.0, 32.0, 16.0, 22.0
+        8.5, 38.0, 36.0, 18.0, 28.0
+        9.0, 41.0, 40.0, 20.0, 34.0
+        9.5, 44.0, 44.0, 22.0, 40.0
+        10.0, 47.0, 48.0, 24.0, 46.0
+
+        Interpolations between subsequent heights where the actual area is smaller or
+        larger than the corresponding trapezium area are adjusted by the related factor
+        provided by |FlowAreaAdjustments|:
+
+        >>> flowareas[1] = 3.0
+        >>> derived.sectorflowareasfromtable.update()
+        >>> derived.flowareaadjustments.update()
+        >>> derived.flowareaadjustments
+        flowareaadjustments([[0.5, 1.6, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                             [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                             [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                             [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]])
+        >>> for waterlevel in range(9):
+        ...     factors.waterlevel = waterlevel / 2.0
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_flowwidths_v1()
+        ...     model.calc_flowareas_v2()
+        ...     print_vector([waterlevel / 2.0, *factors.flowareas.values])
+        0.0, 0.0, 0.0, 0.0, 0.0
+        0.5, 0.0, 0.0, 0.0, 0.0
+        1.0, 0.0, 0.0, 0.0, 0.0
+        1.5, 0.5625, 0.0, 0.0, 0.0
+        2.0, 1.25, 0.0, 0.0, 0.0
+        2.5, 2.0625, 0.0, 0.0, 0.0
+        3.0, 3.0, 0.0, 0.0, 0.0
+        3.5, 6.6, 0.0, 0.0, 0.0
+        4.0, 11.0, 0.0, 0.0, 0.0
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors, wq_control.FlowWidths)
+    DERIVEDPARAMETERS = (
+        wq_derived.SectorFlowWidths,
+        wq_derived.SectorFlowAreasFromTable,
+        wq_derived.FlowAreaAdjustments,
+    )
+    REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Excess, wq_aides.Weight)
+    RESULTSEQUENCES = (wq_factors.FlowAreas,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel, /) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        w: float = aid.weight
+        j = int(aid.index)
+        if modelutils.isnan(w):
+            for i in range(con.nmbsectors):
+                fac.flowareas[i] = (
+                    der.sectorflowareasfromtable[i, j]
+                    + aid.excess * der.sectorflowwidths[i, j]
+                )
+        else:
+            for i in range(con.nmbsectors):
+                fac.flowareas[i] = der.sectorflowareasfromtable[i, j] + (
+                    aid.excess
+                    * (fac.flowwidths[i] + der.sectorflowwidths[i, j])
+                    / 2.0
+                    * der.flowareaadjustments[i, j]
+                )
 
 
 class Calc_TotalAreas_V1(modeltools.Method):
@@ -667,14 +820,14 @@ class Calc_TotalAreas_V1(modeltools.Method):
 
     Basic equation:
       .. math::
-        A = AS_i + E \cdot (SW_i + W) / 2
+        A = A^S_i + E \cdot (W^S_i + W) / 2
         \\ \\
         i = Index \\
         E = Excess \\
         A = TotalAreas \\
         W = TotalWidths \\
-        AS = SectorTotalAreas \\
-        WS = SectorTotalWidths
+        A^S = SectorTotalAreasFromWidths \\
+        W^S = SectorTotalWidths
 
     Example:
 
@@ -686,7 +839,7 @@ class Calc_TotalAreas_V1(modeltools.Method):
         >>> totalwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
         >>> derived.sectortotalwidths.update()
-        >>> derived.sectortotalareas.update()
+        >>> derived.sectortotalareasfromwidths.update()
         >>> from hydpy import print_vector
         >>> for waterlevel in range(11):
         ...     factors.waterlevel = waterlevel
@@ -708,7 +861,10 @@ class Calc_TotalAreas_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wq_control.NmbSectors,)
-    DERIVEDPARAMETERS = (wq_derived.SectorTotalAreas, wq_derived.SectorTotalWidths)
+    DERIVEDPARAMETERS = (
+        wq_derived.SectorTotalAreasFromWidths,
+        wq_derived.SectorTotalWidths,
+    )
     REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Excess, wq_factors.TotalWidths)
     RESULTSEQUENCES = (wq_factors.TotalAreas,)
 
@@ -721,9 +877,147 @@ class Calc_TotalAreas_V1(modeltools.Method):
 
         j = int(aid.index)
         for i in range(con.nmbsectors):
-            fac.totalareas[i] = der.sectortotalareas[i, j] + (
+            fac.totalareas[i] = der.sectortotalareasfromwidths[i, j] + (
                 aid.excess * (der.sectortotalwidths[i, j] + fac.totalwidths[i]) / 2.0
             )
+
+
+class Calc_TotalAreas_V2(modeltools.Method):
+    r"""Calculate the sector-specific wetted areas of the total cross section.
+
+    Basic equation:
+      .. math::
+        A = A^S_i + E \cdot \begin{cases}
+        C_i \cdot (W + W^S_i) / 2 &|& \omega \neq NaN
+        \\
+        W^S_i &|& \omega = NaN
+        \end{cases}
+        \\ \\
+        A = FlowAreas \\
+        i = Index \\
+        \omega = Weight \\
+        E = Excess \\
+        W = FlowWidths \\
+        W^S = SectorFlowWidths \\
+        A^S = SectorFlowAreasFromTable \\
+        C = FlowAdjustments
+
+    Example:
+
+        Principally, method |Calc_TotalAreas_V2| interpolates the required wetted area
+        by assuming trapezoidal geometries.  To demonstrate this, we reuse the data from
+        the example of method |Calc_TotalAreas_V1| and calculate the corresponding
+        trapezium areas:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> totalwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> import numpy
+        >>> totalareas.approximate()
+        >>> totalareas
+        totalareas(0.0, 6.0, 11.0, 11.0, 11.0, 29.0, 50.0, 76.0, 105.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectortotalwidths.update()
+        >>> derived.sectortotalareasfromtable.update()
+        >>> derived.totalareaadjustments.update()
+        >>> derived.totalareaadjustments
+        totalareaadjustments(1.0)
+
+        The results are identical for both interpolation and extrapolation:
+
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(21):
+        ...     factors.waterlevel = waterlevel / 2.0
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_totalwidths_v1()
+        ...     model.calc_totalareas_v2()
+        ...     print_vector([waterlevel / 2.0, *factors.totalareas.values])
+        0.0, 0.0, 0.0, 0.0, 0.0
+        0.5, 0.0, 0.0, 0.0, 0.0
+        1.0, 0.0, 0.0, 0.0, 0.0
+        1.5, 1.125, 0.0, 0.0, 0.0
+        2.0, 2.5, 0.0, 0.0, 0.0
+        2.5, 4.125, 0.0, 0.0, 0.0
+        3.0, 6.0, 0.0, 0.0, 0.0
+        3.5, 8.25, 0.0, 0.0, 0.0
+        4.0, 11.0, 0.0, 0.0, 0.0
+        4.5, 14.0, 4.0, 2.0, 0.0
+        5.0, 17.0, 8.0, 4.0, 0.0
+        5.5, 20.0, 12.0, 6.0, 0.75
+        6.0, 23.0, 16.0, 8.0, 3.0
+        6.5, 26.0, 20.0, 10.0, 6.5
+        7.0, 29.0, 24.0, 12.0, 11.0
+        7.5, 32.0, 28.0, 14.0, 16.25
+        8.0, 35.0, 32.0, 16.0, 22.0
+        8.5, 38.0, 36.0, 18.0, 28.0
+        9.0, 41.0, 40.0, 20.0, 34.0
+        9.5, 44.0, 44.0, 22.0, 40.0
+        10.0, 47.0, 48.0, 24.0, 46.0
+
+        Interpolations between subsequent heights where the actual area is smaller or
+        larger than the corresponding trapezium area are adjusted by the related factor
+        provided by |TotalAreaAdjustments|:
+
+        >>> totalareas[1] = 3.0
+        >>> derived.sectortotalareasfromtable.update()
+        >>> derived.totalareaadjustments.update()
+        >>> derived.totalareaadjustments
+        totalareaadjustments([[0.5, 1.6, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                              [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                              [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                              [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]])
+        >>> for waterlevel in range(9):
+        ...     factors.waterlevel = waterlevel / 2.0
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_totalwidths_v1()
+        ...     model.calc_totalareas_v2()
+        ...     print_vector([waterlevel / 2.0, *factors.totalareas.values])
+        0.0, 0.0, 0.0, 0.0, 0.0
+        0.5, 0.0, 0.0, 0.0, 0.0
+        1.0, 0.0, 0.0, 0.0, 0.0
+        1.5, 0.5625, 0.0, 0.0, 0.0
+        2.0, 1.25, 0.0, 0.0, 0.0
+        2.5, 2.0625, 0.0, 0.0, 0.0
+        3.0, 3.0, 0.0, 0.0, 0.0
+        3.5, 6.6, 0.0, 0.0, 0.0
+        4.0, 11.0, 0.0, 0.0, 0.0
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors, wq_control.TotalWidths)
+    DERIVEDPARAMETERS = (
+        wq_derived.SectorTotalAreasFromTable,
+        wq_derived.SectorTotalWidths,
+        wq_derived.TotalAreaAdjustments,
+    )
+    REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Excess, wq_aides.Weight)
+    RESULTSEQUENCES = (wq_factors.TotalAreas,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel, /) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        w: float = aid.weight
+        j = int(aid.index)
+        if modelutils.isnan(w):
+            for i in range(con.nmbsectors):
+                fac.totalareas[i] = (
+                    der.sectortotalareasfromtable[i, j]
+                    + aid.excess * der.sectortotalwidths[i, j]
+                )
+        else:
+            for i in range(con.nmbsectors):
+                fac.totalareas[i] = der.sectortotalareasfromtable[i, j] + (
+                    aid.excess
+                    * (fac.totalwidths[i] + der.sectortotalwidths[i, j])
+                    / 2.0
+                    * der.totalareaadjustments[i, j]
+                )
 
 
 class Calc_WettedArea_V1(modeltools.Method):
@@ -955,21 +1249,21 @@ class Calc_WettedPerimeters_V1(modeltools.Method):
 
 
 class Calc_FlowPerimeters_V1(modeltools.Method):
-    r"""Interpolate the sector-specific wetted perimeters of those subareas of the cross
-    section involved in water routing.
+    r"""Interpolate the sector-specific wetted perimeters of those subareas of the
+    cross section involved in water routing.
 
     Basic equations:
       .. math::
         P = \begin{cases}
-        (1 - w) \cdot PS_i + w \cdot PS_{i+1} &|\ w \neq nan \\
-        PS_i + 2 \cdot E &|\ w = nan
+        (1 - w) \cdot P^S_i + w \cdot P^S_{i+1} &|\ w \neq nan \\
+        P^S_i + 2 \cdot E &|\ w = nan
         \end{cases}
         \\ \\
+        P = FlowPerimeters \\
         i = Index \\
         w = Weight \\
         E = Excess \\
-        P = FlowPerimeters \\
-        PS = SectorFlowPerimeters
+        P^S = SectorFlowPerimetersFromWidths
 
     Example:
 
@@ -981,12 +1275,11 @@ class Calc_FlowPerimeters_V1(modeltools.Method):
         >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
         >>> derived.sectorflowwidths.update()
-        >>> derived.sectorflowperimeters.update()
+        >>> derived.sectorflowperimetersfromwidths.update()
         >>> from hydpy import print_vector
         >>> for waterlevel in range(11):
         ...     factors.waterlevel = waterlevel
         ...     model.calc_index_excess_weight_v1()
-        ...     model.calc_flowwidths_v1()
         ...     model.calc_flowperimeters_v1()
         ...     print_vector([waterlevel, *factors.flowperimeters.values])
         0, 2.0, 0.0, 0.0, 0.0
@@ -1003,7 +1296,7 @@ class Calc_FlowPerimeters_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wq_control.NmbSectors,)
-    DERIVEDPARAMETERS = (wq_derived.SectorFlowPerimeters,)
+    DERIVEDPARAMETERS = (wq_derived.SectorFlowPerimetersFromWidths,)
     REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Weight, wq_aides.Excess)
     RESULTSEQUENCES = (wq_factors.FlowPerimeters,)
 
@@ -1018,14 +1311,91 @@ class Calc_FlowPerimeters_V1(modeltools.Method):
         if modelutils.isnan(aid.weight):
             for i in range(con.nmbsectors):
                 fac.flowperimeters[i] = (
-                    der.sectorflowperimeters[i, j] + 2.0 * aid.excess
+                    der.sectorflowperimetersfromwidths[i, j] + 2.0 * aid.excess
                 )
         else:
+            w: float = aid.weight
             for i in range(con.nmbsectors):
-                w: float = aid.weight
-                fac.flowperimeters[i] = (1.0 - w) * der.sectorflowperimeters[
-                    i, j
-                ] + w * der.sectorflowperimeters[i, j + 1]
+                a0: float = der.sectorflowperimetersfromwidths[i, j]
+                a1: float = der.sectorflowperimetersfromwidths[i, j + 1]
+                fac.flowperimeters[i] = (1.0 - w) * a0 + w * a1
+
+
+class Calc_FlowPerimeters_V2(modeltools.Method):
+    r"""Interpolate the sector-specific wetted perimeters of those subareas of the
+    cross section involved in water routing.
+
+    Basic equations:
+      .. math::
+        P = \begin{cases}
+        (1 - w) \cdot P^S_i + w \cdot P^S_{i+1} &|\ w \neq nan \\
+        P^S_i + 2 \cdot E &|\ w = nan
+        \end{cases}
+        \\ \\
+        P = FlowPerimeters \\
+        i = Index \\
+        w = Weight \\
+        E = Excess \\
+        P^S = SectorFlowPerimetersFromShapes
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> flowperimeters.approximate()
+        >>> flowperimeters
+        flowperimeters(2.0, 6.472136, 9.300563, 17.300563, 21.300563, 23.300563,
+                       29.625118, 34.097254, 36.925681)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowperimetersfromtable.update()
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(11):
+        ...     factors.waterlevel = waterlevel
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_flowperimeters_v2()
+        ...     print_vector([waterlevel, *factors.flowperimeters.values])
+        0, 2.0, 0.0, 0.0, 0.0
+        1, 2.0, 0.0, 0.0, 0.0
+        2, 4.236068, 0.0, 0.0, 0.0
+        3, 6.472136, 0.0, 0.0, 0.0
+        4, 9.300563, 8.0, 4.0, 0.0
+        5, 11.300563, 10.0, 6.0, 0.0
+        6, 13.300563, 12.0, 8.0, 6.324555
+        7, 15.300563, 14.0, 10.0, 10.796691
+        8, 17.300563, 16.0, 12.0, 13.625118
+        9, 19.300563, 18.0, 14.0, 15.625118
+        10, 21.300563, 20.0, 16.0, 17.625118
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    DERIVEDPARAMETERS = (wq_derived.SectorFlowPerimetersFromTable,)
+    REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Weight, wq_aides.Excess)
+    RESULTSEQUENCES = (wq_factors.FlowPerimeters,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel, /) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        j = int(aid.index)
+        if modelutils.isnan(aid.weight):
+            for i in range(con.nmbsectors):
+                fac.flowperimeters[i] = (
+                    der.sectorflowperimetersfromtable[i, j] + 2.0 * aid.excess
+                )
+        else:
+            w: float = aid.weight
+            for i in range(con.nmbsectors):
+                a0: float = der.sectorflowperimetersfromtable[i, j]
+                a1: float = der.sectorflowperimetersfromtable[i, j + 1]
+                fac.flowperimeters[i] = (1.0 - w) * a0 + w * a1
 
 
 class Calc_WettedPerimeter_V1(modeltools.Method):
@@ -1191,16 +1561,16 @@ class Calc_WettedPerimeterDerivatives_V1(modeltools.Method):
 
 
 class Calc_FlowPerimeterDerivatives_V1(modeltools.Method):
-    """Take the sector-specific wetted perimeter derivatives of those subareas of the
+    """Adopt the sector-specific wetted perimeter derivatives of the subareas of the
     cross section involved in water routing.
 
     Basic equations:
       .. math::
-        P = DS_i
+        P = D^S_i
         \\ \\
         i = Index \\
         D = FlowPerimeterDerivatives \\
-        DS = SectorFlowPerimeterDerivatives
+        D^S = SectorFlowPerimeterDerivativesFromWidths
 
     Example:
 
@@ -1212,7 +1582,7 @@ class Calc_FlowPerimeterDerivatives_V1(modeltools.Method):
         >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
         >>> derived.sectorflowwidths.update()
-        >>> derived.sectorflowperimeterderivatives.update()
+        >>> derived.sectorflowperimeterderivativesfromwidths.update()
         >>> from hydpy import print_vector
         >>> for waterlevel in range(11):
         ...     factors.waterlevel = waterlevel
@@ -1233,7 +1603,7 @@ class Calc_FlowPerimeterDerivatives_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wq_control.NmbSectors,)
-    DERIVEDPARAMETERS = (wq_derived.SectorFlowPerimeterDerivatives,)
+    DERIVEDPARAMETERS = (wq_derived.SectorFlowPerimeterDerivativesFromWidths,)
     REQUIREDSEQUENCES = (wq_aides.Index,)
     RESULTSEQUENCES = (wq_factors.FlowPerimeterDerivatives,)
 
@@ -1246,7 +1616,72 @@ class Calc_FlowPerimeterDerivatives_V1(modeltools.Method):
 
         j = int(aid.index)
         for i in range(con.nmbsectors):
-            fac.flowperimeterderivatives[i] = der.sectorflowperimeterderivatives[i, j]
+            fac.flowperimeterderivatives[i] = (
+                der.sectorflowperimeterderivativesfromwidths[i, j]
+            )
+
+
+class Calc_FlowPerimeterDerivatives_V2(modeltools.Method):
+    """Adopt the sector-specific wetted perimeter derivatives of the subareas of the
+    cross section involved in water routing.
+
+    Basic equations:
+      .. math::
+        P = D^S_i
+        \\ \\
+        i = Index \\
+        D = FlowPerimeterDerivatives \\
+        D^S = SectorFlowPerimeterDerivativesFromTable
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> flowperimeters.approximate()
+        >>> transitions(2, 3, 5)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowperimetersfromtable.update()
+        >>> derived.sectorflowperimeterderivativesfromtable.update()
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(11):
+        ...     factors.waterlevel = waterlevel
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_flowperimeterderivatives_v2()
+        ...     print_vector([waterlevel, *factors.flowperimeterderivatives.values])
+        0, 2.236068, nan, nan, nan
+        1, 2.236068, nan, nan, nan
+        2, 2.236068, nan, nan, nan
+        3, 2.828427, nan, nan, nan
+        4, 2.0, 2.0, 2.0, nan
+        5, 2.0, 2.0, 2.0, 6.324555
+        6, 2.0, 2.0, 2.0, 4.472136
+        7, 2.0, 2.0, 2.0, 2.828427
+        8, 2.0, 2.0, 2.0, 2.0
+        9, 2.0, 2.0, 2.0, 2.0
+        10, 2.0, 2.0, 2.0, 2.0
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    DERIVEDPARAMETERS = (wq_derived.SectorFlowPerimeterDerivativesFromTable,)
+    REQUIREDSEQUENCES = (wq_aides.Index,)
+    RESULTSEQUENCES = (wq_factors.FlowPerimeterDerivatives,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel, /) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        j = int(aid.index)
+        for i in range(con.nmbsectors):
+            fac.flowperimeterderivatives[i] = (
+                der.sectorflowperimeterderivativesfromtable[i, j]
+            )
 
 
 class Calc_SurfaceWidths_V1(modeltools.Method):
@@ -1921,9 +2356,9 @@ class Calc_DischargeDerivatives_V2(modeltools.Method):
         >>> stricklercoefficients(20.0, 40.0, 20.0, 60.0)
         >>> calibrationfactors(1.0, 1.0, 3.0, 1.0)
         >>> derived.sectorflowwidths.update()
-        >>> derived.sectorflowareas.update()
-        >>> derived.sectorflowperimeterderivatives.update()
-        >>> derived.sectorflowperimeters.update()
+        >>> derived.sectorflowareasfromwidths.update()
+        >>> derived.sectorflowperimeterderivativesfromwidths.update()
+        >>> derived.sectorflowperimetersfromwidths.update()
         >>> factors.waterlevel = 4.5
         >>> model.calc_index_excess_weight_v1()
         >>> model.calc_flowwidths_v1()
@@ -2323,10 +2758,10 @@ class Use_WaterDepth_V3(modeltools.SetAutoMethod):
         >>> bottomslope(0.01)
         >>> derived.sectorflowwidths.update()
         >>> derived.sectortotalwidths.update()
-        >>> derived.sectorflowareas.update()
-        >>> derived.sectortotalareas.update()
-        >>> derived.sectorflowperimeters.update()
-        >>> derived.sectorflowperimeterderivatives.update()
+        >>> derived.sectorflowareasfromwidths.update()
+        >>> derived.sectortotalareasfromwidths.update()
+        >>> derived.sectorflowperimetersfromwidths.update()
+        >>> derived.sectorflowperimeterderivativesfromwidths.update()
         >>> model.use_waterdepth_v3(3.0)
         >>> factors.waterdepth
         waterdepth(3.0)
@@ -2373,10 +2808,115 @@ class Use_WaterDepth_V3(modeltools.SetAutoMethod):
     DERIVEDPARAMETERS = (
         wq_derived.SectorFlowWidths,
         wq_derived.SectorTotalWidths,
-        wq_derived.SectorFlowAreas,
-        wq_derived.SectorTotalAreas,
-        wq_derived.SectorFlowPerimeters,
-        wq_derived.SectorFlowPerimeterDerivatives,
+        wq_derived.SectorFlowAreasFromWidths,
+        wq_derived.SectorTotalAreasFromWidths,
+        wq_derived.SectorFlowPerimetersFromWidths,
+        wq_derived.SectorFlowPerimeterDerivativesFromWidths,
+    )
+    RESULTSEQUENCES = (
+        wq_factors.WaterDepth,
+        wq_factors.WaterLevel,
+        wq_aides.Index,
+        wq_aides.Excess,
+        wq_aides.Weight,
+        wq_factors.FlowAreas,
+        wq_factors.FlowArea,
+        wq_factors.TotalAreas,
+        wq_factors.TotalArea,
+        wq_factors.FlowPerimeters,
+        wq_factors.FlowPerimeterDerivatives,
+        wq_factors.FlowWidths,
+        wq_factors.TotalWidths,
+        wq_factors.TotalWidth,
+        wq_factors.DischargeDerivatives,
+        wq_factors.DischargeDerivative,
+        wq_fluxes.Discharges,
+        wq_fluxes.Discharge,
+        wq_factors.Celerity,
+    )
+
+
+class Use_WaterDepth_V4(modeltools.SetAutoMethod):
+    """Set the water depth in m and use it to calculate all other properties.
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbsectors(2)
+        >>> nmbwidths(3)
+        >>> heights(1.0, 3.0, 3.0)
+        >>> flowwidths(2.0, 2.0, 4.0)
+        >>> totalwidths(2.0, 2.0, 4.0)
+        >>> flowareas.approximate()
+        >>> totalareas.approximate()
+        >>> flowperimeters.approximate()
+        >>> transitions(1)
+        >>> stricklercoefficients(20.0, 40.0)
+        >>> calibrationfactors(1.0)
+        >>> bottomslope(0.01)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectortotalwidths.update()
+        >>> derived.sectorflowareasfromtable.update()
+        >>> derived.sectortotalareasfromtable.update()
+        >>> derived.sectorflowperimetersfromtable.update()
+        >>> derived.sectorflowperimeterderivativesfromtable.update()
+        >>> derived.flowareaadjustments.update()
+        >>> derived.totalareaadjustments.update()
+        >>> model.use_waterdepth_v4(3.0)
+        >>> factors.waterdepth
+        waterdepth(3.0)
+        >>> factors.waterlevel
+        waterlevel(4.0)
+        >>> factors.flowarea
+        flowarea(8.0)
+        >>> factors.totalarea
+        totalarea(8.0)
+        >>> fluxes.discharge
+        discharge(14.945466)
+        >>> factors.celerity
+        celerity(2.642957)
+    """
+
+    SUBMETHODS = (
+        Set_WaterDepth_V1,
+        Calc_WaterLevel_V2,
+        Calc_Index_Excess_Weight_V1,
+        Calc_FlowWidths_V1,
+        Calc_TotalWidths_V1,
+        Calc_TotalWidth_V1,
+        Calc_FlowAreas_V2,
+        Calc_TotalAreas_V2,
+        Calc_FlowPerimeters_V2,
+        Calc_FlowPerimeterDerivatives_V2,
+        Calc_FlowArea_V1,
+        Calc_TotalArea_V1,
+        Calc_Discharges_V2,
+        Calc_Discharge_V3,
+        Calc_DischargeDerivatives_V2,
+        Calc_DischargeDerivative_V2,
+        Calc_Celerity_V2,
+    )
+    CONTROLPARAMETERS = (
+        wq_control.NmbSectors,
+        wq_control.NmbWidths,
+        wq_control.Transitions,
+        wq_control.Heights,
+        wq_control.FlowWidths,
+        wq_control.TotalWidths,
+        wq_control.StricklerCoefficients,
+        wq_control.CalibrationFactors,
+        wq_control.BottomSlope,
+    )
+    DERIVEDPARAMETERS = (
+        wq_derived.SectorFlowWidths,
+        wq_derived.SectorTotalWidths,
+        wq_derived.SectorFlowAreasFromTable,
+        wq_derived.SectorTotalAreasFromTable,
+        wq_derived.SectorFlowPerimetersFromTable,
+        wq_derived.SectorFlowPerimeterDerivativesFromTable,
+        wq_derived.FlowAreaAdjustments,
+        wq_derived.TotalAreaAdjustments,
     )
     RESULTSEQUENCES = (
         wq_factors.WaterDepth,
@@ -2551,10 +3091,10 @@ class Use_WaterLevel_V3(modeltools.SetAutoMethod):
         >>> bottomslope(0.01)
         >>> derived.sectorflowwidths.update()
         >>> derived.sectortotalwidths.update()
-        >>> derived.sectorflowareas.update()
-        >>> derived.sectortotalareas.update()
-        >>> derived.sectorflowperimeters.update()
-        >>> derived.sectorflowperimeterderivatives.update()
+        >>> derived.sectorflowareasfromwidths.update()
+        >>> derived.sectortotalareasfromwidths.update()
+        >>> derived.sectorflowperimetersfromwidths.update()
+        >>> derived.sectorflowperimeterderivativesfromwidths.update()
         >>> model.use_waterlevel_v3(4.0)
         >>> factors.waterdepth
         waterdepth(3.0)
@@ -2601,10 +3141,115 @@ class Use_WaterLevel_V3(modeltools.SetAutoMethod):
     DERIVEDPARAMETERS = (
         wq_derived.SectorFlowWidths,
         wq_derived.SectorTotalWidths,
-        wq_derived.SectorFlowAreas,
-        wq_derived.SectorTotalAreas,
-        wq_derived.SectorFlowPerimeters,
-        wq_derived.SectorFlowPerimeterDerivatives,
+        wq_derived.SectorFlowAreasFromWidths,
+        wq_derived.SectorTotalAreasFromWidths,
+        wq_derived.SectorFlowPerimetersFromWidths,
+        wq_derived.SectorFlowPerimeterDerivativesFromWidths,
+    )
+    RESULTSEQUENCES = (
+        wq_factors.WaterDepth,
+        wq_factors.WaterLevel,
+        wq_aides.Index,
+        wq_aides.Excess,
+        wq_aides.Weight,
+        wq_factors.FlowAreas,
+        wq_factors.FlowArea,
+        wq_factors.TotalAreas,
+        wq_factors.TotalArea,
+        wq_factors.FlowPerimeters,
+        wq_factors.FlowPerimeterDerivatives,
+        wq_factors.FlowWidths,
+        wq_factors.TotalWidths,
+        wq_factors.TotalWidth,
+        wq_factors.DischargeDerivatives,
+        wq_factors.DischargeDerivative,
+        wq_fluxes.Discharges,
+        wq_fluxes.Discharge,
+        wq_factors.Celerity,
+    )
+
+
+class Use_WaterLevel_V4(modeltools.SetAutoMethod):
+    """Set the water level in m and use it to calculate all other properties.
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbsectors(2)
+        >>> nmbwidths(3)
+        >>> heights(1.0, 3.0, 3.0)
+        >>> flowwidths(2.0, 2.0, 4.0)
+        >>> totalwidths(2.0, 2.0, 4.0)
+        >>> flowareas.approximate()
+        >>> totalareas.approximate()
+        >>> flowperimeters.approximate()
+        >>> transitions(1)
+        >>> stricklercoefficients(20.0, 40.0)
+        >>> calibrationfactors(1.0)
+        >>> bottomslope(0.01)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectortotalwidths.update()
+        >>> derived.sectorflowareasfromtable.update()
+        >>> derived.sectortotalareasfromtable.update()
+        >>> derived.sectorflowperimetersfromtable.update()
+        >>> derived.sectorflowperimeterderivativesfromtable.update()
+        >>> derived.flowareaadjustments.update()
+        >>> derived.totalareaadjustments.update()
+        >>> model.use_waterlevel_v4(4.0)
+        >>> factors.waterdepth
+        waterdepth(3.0)
+        >>> factors.waterlevel
+        waterlevel(4.0)
+        >>> factors.flowarea
+        flowarea(8.0)
+        >>> factors.totalarea
+        totalarea(8.0)
+        >>> fluxes.discharge
+        discharge(14.945466)
+        >>> factors.celerity
+        celerity(2.642957)
+    """
+
+    SUBMETHODS = (
+        Set_WaterLevel_V1,
+        Calc_WaterDepth_V3,
+        Calc_Index_Excess_Weight_V1,
+        Calc_FlowWidths_V1,
+        Calc_TotalWidths_V1,
+        Calc_TotalWidth_V1,
+        Calc_FlowAreas_V2,
+        Calc_TotalAreas_V2,
+        Calc_FlowPerimeters_V2,
+        Calc_FlowPerimeterDerivatives_V2,
+        Calc_FlowArea_V1,
+        Calc_TotalArea_V1,
+        Calc_Discharges_V2,
+        Calc_Discharge_V3,
+        Calc_DischargeDerivatives_V2,
+        Calc_DischargeDerivative_V2,
+        Calc_Celerity_V2,
+    )
+    CONTROLPARAMETERS = (
+        wq_control.NmbSectors,
+        wq_control.NmbWidths,
+        wq_control.Transitions,
+        wq_control.Heights,
+        wq_control.FlowWidths,
+        wq_control.TotalWidths,
+        wq_control.StricklerCoefficients,
+        wq_control.CalibrationFactors,
+        wq_control.BottomSlope,
+    )
+    DERIVEDPARAMETERS = (
+        wq_derived.SectorFlowWidths,
+        wq_derived.SectorTotalWidths,
+        wq_derived.SectorFlowAreasFromTable,
+        wq_derived.SectorTotalAreasFromTable,
+        wq_derived.SectorFlowPerimetersFromTable,
+        wq_derived.SectorFlowPerimeterDerivativesFromTable,
+        wq_derived.FlowAreaAdjustments,
+        wq_derived.TotalAreaAdjustments,
     )
     RESULTSEQUENCES = (
         wq_factors.WaterDepth,
@@ -2893,9 +3538,11 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Use_WaterDepth_V1,
         Use_WaterDepth_V2,
         Use_WaterDepth_V3,
+        Use_WaterDepth_V4,
         Use_WaterLevel_V1,
         Use_WaterLevel_V2,
         Use_WaterLevel_V3,
+        Use_WaterLevel_V4,
         Use_WettedArea_V1,
         Get_WaterDepth_V1,
         Get_WaterLevel_V1,
@@ -2916,15 +3563,19 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_Index_Excess_Weight_V1,
         Calc_WettedAreas_V1,
         Calc_FlowAreas_V1,
+        Calc_FlowAreas_V2,
         Calc_TotalAreas_V1,
+        Calc_TotalAreas_V2,
         Calc_WettedArea_V1,
         Calc_FlowArea_V1,
         Calc_TotalArea_V1,
         Calc_WettedPerimeters_V1,
         Calc_FlowPerimeters_V1,
+        Calc_FlowPerimeters_V2,
         Calc_WettedPerimeter_V1,
         Calc_WettedPerimeterDerivatives_V1,
         Calc_FlowPerimeterDerivatives_V1,
+        Calc_FlowPerimeterDerivatives_V2,
         Calc_SurfaceWidths_V1,
         Calc_SurfaceWidth_V1,
         Calc_FlowWidths_V1,

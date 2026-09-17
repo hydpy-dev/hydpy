@@ -15,6 +15,7 @@ Available models:
    :maxdepth: 1
 
    wq
+   wq_table_strickler
    wq_trapeze
    wq_trapeze_strickler
    wq_walrus

@@ -6,7 +6,7 @@ Model overview
 
 This section briefly introduces in HydPy's model collection, separating it into the
 available :ref:`main models <main_models>` and :ref:`submodels <submodels>`. Beginners
-should first become familiar with the main models, which open up various ways of
+should first become familiar with the main models, which offer various ways of
 targeting general processes or process groups (click :ref:`here <main_model>` for more
 details).  Submodels, in contrast, are a means of configuring specific subprocesses or
 subprocess aspects (click :ref:`here <submodel>` for more information).
@@ -46,8 +46,8 @@ There are currently four land model families.
 Besides |hland_96|, which implements the original HBV96 model
 :cite:p:`ref-Lindstrom1997HBV96`, :ref:`HydPy-H` provides combination models.
 |hland_96p| contains components of the HBV-like model PREVAH
-:cite:p:`ref-Viviroli2009PREVAH`, and |hland_96c| of the HBV-like model COSERO
-:cite:p:`ref-Kling2005,ref-Kling2006`.
+:cite:p:`ref-Viviroli2009PREVAH`, and |hland_96c| contains components of the HBV-like
+model COSERO :cite:p:`ref-Kling2005,ref-Kling2006`.
 
 :ref:`HydPy-L` provides replicas of the LARSIM model :cite:p:`ref-LARSIM`, which many
 European flood forecasting services use.  While application model |lland_dd| relies on
@@ -114,10 +114,11 @@ below).
 :ref:`HydPy-KinW` contains storage-based routing methods that rely on simplifying
 kinematic wave assumptions.  |kinw_williams| and |kinw_williams_ext| are both related
 to the :cite:t:`ref-Williams1969` method in the sense of its implementation in the
-LARSIM model :cite:p:`ref-LARSIM` but differ in |kinw_williams| using explicit channel
-geometries and |kinw_williams_ext| using preprocessed storage-discharge relationships.
-Before deciding to use any of its members, please read the current development status
-of :ref:`HydPy-KinW`, as we are likely to introduce some breaking changes soon.
+LARSIM model :cite:p:`ref-LARSIM` but differ in using explicit channel geometries
+(|kinw_williams|) or preprocessed storage-discharge relationships
+(|kinw_williams_ext|).  Before deciding to use any of its members, please read the
+current development status of :ref:`HydPy-KinW`, as we are likely to introduce some
+breaking changes soon.
 
 .. _lake_models:
 
@@ -134,7 +135,7 @@ functionalities.
 "SEEG", "RUEC", and "TALS" for simulating controlled lakes, retention basins, and
 reservoirs :cite:p:`ref-LARSIM`. |dam_pump|, |dam_sluice|, and |dam_pump_sluice| serve
 to simulate the drainage of lowlands via active pumping and sluice-controlled free
-flow.  The applications models |dam_v001| to |dam_v005| (which we might replace with a
+flow.  The application models |dam_v001| to |dam_v005| (which we might replace with a
 single, more flexible model type in the future) cover more complex dam and reservoir
 functionalities, including water transfers between model instances.
 
@@ -184,7 +185,7 @@ for the latter case.
 
 :ref:`HydPy-Conv` implements three interpolation methods: nearest-neighbour
 (|conv_nn|), inverse distance weighting (|conv_idw|), and a combination of inverse
-distance weighting and linear regression, somehow similar to External Drift Kriging
+distance weighting and linear regression, somewhat similar to External Drift Kriging
 (|conv_idw_ed|).
 
 .. _submodels:
@@ -201,8 +202,8 @@ Meteorological models
 Some submodels (especially those concerned with calculating evapotranspiration) require
 meteorological input data and can take it from different sources: from their main
 models (if provided), from a sub-submodel that reads it from files, or from a
-sub-submodel that calculates it on demand.  The `meteorology models` cover the two
-latter cases.
+sub-submodel that calculates it on demand.  The `meteorology models` cover the latter
+two cases.
 
 :ref:`HydPy-Meteo` provides all these submodels.  For the second case, there are those
 "io submodels" that handle individual factors like |meteo_temp_io| (air temperature),
@@ -218,16 +219,16 @@ Evapotranspiration models
 -------------------------
 
 HydPy's `evapotranspiration models` are all submodels, although some also work as
-special-purpose main models.  We divide them into those calculating and reference
+special-purpose main models.  We divide them into those calculating reference
 evapotranspiration (RET), potential evapotranspiration (PET), and actual
 evapotranspiration (AET).
 
-Note there is a strict technical separation between the AET on the one side and the RET
-and PET models on the other, but only a lax nominal separation between the RET and PET
-models.  This means it is always clear if a main model requires an AET submodel, but a
-RET model like |evap_ret_io| technically also works for a main model requiring a PET
-submodel.  It is up to the user to check if a contemplated combination makes sense from
-the hydrological perspective.
+Note that there is a strict technical separation between the AET on the one side and
+the RET and PET models on the other, but only a lax nominal separation between the RET
+and PET models.  This means it is always clear if a main model requires an AET
+submodel, but a RET model like |evap_ret_io| technically also works for a main model
+requiring a PET submodel.  It is up to the user to check if a contemplated combination
+makes sense from the hydrological perspective.
 
 :ref:`HydPy-Evap` provides all available `evapotranspiration models`.
 
@@ -240,7 +241,7 @@ There are two groups of PET models.  |evap_pet_hbv96| and |evap_pet_ambav1| calc
 the potential evapotranspiration in agreement with the HBV96 model
 :cite:p:`ref-Lindstrom1997HBV96` and version 1.0 of the AMBAV model
 :cite:p:`ref-Löpmeier2014`, whereas |evap_pet_m| and |evap_pet_mlc| require reference
-evapotranspiration estimates of a RET sub-submodel and adjust them according the
+evapotranspiration estimates of a RET sub-submodel and adjust them according to the
 current month and, in the case of |evap_pet_mlc|, also to the land cover of the
 respective hydrological response units.
 
@@ -283,16 +284,16 @@ words, the conversion of effective precipitation to direct runoff).
 :ref:`HydPy-Rconc` provides two submodels that allow configuring runoff concentration
 in different ways.  |rconc_nash| implements the Nash cascade and relies on explicitly
 modelled storage contents.  |rconc_uh|, on the other hand, implements the Unit
-Hydrograph approach, which ordinates that can be set freely or, more convenience,
-following the simplifying assumptions of HBV96 :cite:p:`ref-Lindstrom1997HBV96` and
-GR4J :cite:p:`ref-Perrin2007`.
+Hydrograph approach, which ordinates can be set freely or, more conveniently, following
+the simplifying assumptions of HBV96 :cite:p:`ref-Lindstrom1997HBV96` and GR4J
+:cite:p:`ref-Perrin2007`.
 
 Routing models
 --------------
 
 All `routing models` provide means to fine-tune the water movement within rivers and
-channels.  As to be expected, many are potential `stream model` submodels.  Others fit
-to  `land models` and control the routing of a subbasin's discharge into the stream
+channels.  As expected, many can serve as `stream model` submodels.  Others fit to
+`land models` and control the routing of a subbasin's discharge into the stream
 network.
 
 The submodels of :ref:`HydPy-SW1D` are specially designed to be used by |sw1d_channel|
@@ -306,7 +307,12 @@ weirs |sw1d_weir_out|, and gates |sw1d_gate_out|.
 :ref:`HydPy-WQ` provides more general "function-like" submodels that calculate
 discharge or related factors based on water level information or the other way round.
 |wq_trapeze| and |wq_trapeze_strickler| are channel profile models that approximate a
-real channel geometry by an arbitrary number of trapezes, with |wq_trapeze_strickler|
-providing additional variables based on the Manning-Strickler equation.  |wq_walrus|,
-however, determines a subbasin's discharge over a weir into a stream network in
-agreement with the WALRUS model :cite:p:`ref-Brauer2014`.
+real channel geometry by an arbitrary number of trapeziums, with |wq_trapeze_strickler|
+providing additional variables based on the Manning-Strickler equation.
+|wq_widths_strickler| and |wq_table_strickler| are similar to |wq_trapeze_strickler|,
+but are a little more flexible (at the cost of being a little more complicated) and
+offer the additional feature of differentiating those parts of a cross section that are
+relevantly involved in water routing from those that are not but still provide
+additional storage capacity (for example, between groynes).  |wq_walrus|, however,
+determines a subbasin's discharge over a weir into a stream network in agreement with
+the WALRUS model :cite:p:`ref-Brauer2014`.

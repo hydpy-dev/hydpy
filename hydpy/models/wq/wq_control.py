@@ -39,8 +39,7 @@ class NmbWidths(parametertools.NmbParameter):
         >>> nmbwidths(2)
         Traceback (most recent call last):
         ...
-        ValueError: The value `2` of parameter `nmbwidths` of element `?` is not \
-valid.
+        ValueError: The value `2` of parameter `nmbwidths` of element `?` is not valid.
         """
 
         lower = exceptiontools.getattr_(self.subpars.nmbsectors, "value", lower)
@@ -140,6 +139,130 @@ class TotalWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
         return super().trim(lower, upper)
 
 
+class FlowAreas(wq_variables.MixinWidths, parametertools.SortedParameter):
+    """The wetted areas of the cross section involved in water routing [m²]."""
+
+    SPAN = (0.0, None)
+
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
+        r"""Trim according to :math:`FlowAreas \leq TotalAreas`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+
+        >>> nmbwidths(3)
+        >>> flowareas(1.0, 2.0, 3.0)
+        >>> flowareas
+        flowareas(1.0, 2.0, 3.0)
+
+        >>> totalareas(3.0, 4.0, 5.0)
+        >>> flowareas(2.0, 4.0, 6.0)
+        >>> flowareas
+        flowareas(2.0, 4.0, 5.0)
+        """
+
+        upper = exceptiontools.getattr_(self.subpars.totalareas, "values", upper)
+        return super().trim(lower, upper)
+
+    def approximate(self) -> None:
+        """Approximate the individual areas by assuming trapezoidal geometries.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(7)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 6.0, 6.0, 9.0, 10.0)
+        >>> flowwidths(2.0, 4.0, 4.0, 6.0, 8.0, 8.0, 12.0)
+        >>> flowareas.approximate()
+        >>> flowareas
+        flowareas(0.0, 6.0, 10.0, 20.0, 20.0, 44.0, 54.0)
+        """
+        hs = self.subpars.heights.values
+        ws = self.subpars.flowwidths.values
+        self.values = 0.0
+        self.values[1:] = numpy.cumsum(numpy.diff(hs) * (ws[:-1] + ws[1:])) / 2.0
+
+
+class TotalAreas(wq_variables.MixinWidths, parametertools.SortedParameter):
+    """The wetted areas of the total cross section [m]."""
+
+    SPAN = (0.0, None)
+
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
+        r"""Trim according to :math:`TotalAreas \geq FlowAreas`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+
+        >>> nmbwidths(3)
+        >>> totalareas(4.0, 5.0, 6.0)
+        >>> totalareas
+        totalareas(4.0, 5.0, 6.0)
+
+        >>> flowareas(3.0, 4.0, 5.0)
+        >>> totalareas(2.0, 4.0, 6.0)
+        >>> totalareas
+        totalareas(3.0, 4.0, 6.0)
+        """
+
+        lower = exceptiontools.getattr_(self.subpars.flowareas, "values", lower)
+        return super().trim(lower, upper)
+
+    def approximate(self) -> None:
+        """Approximate the individual areas by assuming trapezoidal geometries.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(7)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 6.0, 6.0, 9.0, 10.0)
+        >>> totalwidths(2.0, 4.0, 4.0, 6.0, 8.0, 8.0, 12.0)
+        >>> totalareas.approximate()
+        >>> totalareas
+        totalareas(0.0, 6.0, 10.0, 20.0, 20.0, 44.0, 54.0)
+        """
+        hs = self.subpars.heights.values
+        ws = self.subpars.totalwidths.values
+        self.values = 0.0
+        self.values[1:] = numpy.cumsum(numpy.diff(hs) * (ws[:-1] + ws[1:])) / 2.0
+
+
+class FlowPerimeters(wq_variables.MixinWidths, parametertools.SortedParameter):
+    """The wetted perimeters of the cross section involved in water routing [m]."""
+
+    SPAN = (0.0, None)
+
+    def approximate(self) -> None:
+        """Approximate the individual perimeters by assuming trapezoidal geometries.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(7)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 6.0, 6.0, 9.0, 10.0)
+        >>> flowwidths(2.0, 4.0, 4.0, 6.0, 8.0, 8.0, 12.0)
+        >>> flowperimeters.approximate()
+        >>> flowperimeters
+        flowperimeters(2.0, 6.472136, 8.472136, 12.944272, 14.944272, 20.944272,
+                       25.416408)
+        """
+        hs = self.subpars.heights.values
+        ws = self.subpars.flowwidths.values
+        self.values = ws[0]
+        self.values[1:] += 2.0 * numpy.cumsum(
+            numpy.sqrt(numpy.diff(hs) ** 2 + numpy.diff(ws / 2.0) ** 2)
+        )
+
+
+class FlowPerimeterDerivatives(wq_variables.MixinWidths, parametertools.Parameter):
+    """Changes in the wetted perimeters of subareas of the cross section involved in
+    water routing with respect to water-level increases [-]."""
+
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
+
+
 class Transitions(parametertools.Parameter):
     """Indexes that mark the transitions between separately calculated cross-section
     sectors [m].
@@ -190,8 +313,8 @@ element `?` is 1, but 0 is given.
     >>> transitions(1, 4, 6)
     Traceback (most recent call last):
     ...
-    ValueError: The largest possible index value of parameter `transitions` of element \
-`?` is 5 (NmbWidths - 2), but 6 is given.
+    ValueError: The largest possible index value of parameter `transitions` of \
+element `?` is 5 (NmbWidths - 2), but 6 is given.
 
     >>> transitions
     transitions(-999999)
@@ -239,8 +362,8 @@ not strictly rising (1, 4, and 4).
                     self.values = variabletools.INT_NAN
                     raise ValueError(
                         f"The largest possible index value of parameter "
-                        f"{objecttools.elementphrase(self)} is {max_} (NmbWidths - 2), "
-                        f"but {values[-1]} is given."
+                        f"{objecttools.elementphrase(self)} is {max_} "
+                        f"(NmbWidths - 2), but {values[-1]} is given."
                     )
 
     def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:

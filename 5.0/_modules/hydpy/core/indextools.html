@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.indextools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.indextools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.indextools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module implements tools to determine time-related indices.&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">propertytools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">timetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core.typingtools</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="k">def</span> <span class="nf">_get_timegrids</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="n">timegrids</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="p">,</span> <span class="s2">&quot;timegrids&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">timegrids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">raise</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;An Indexer object has been asked for an `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` array.  &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Such an array has neither been determined yet nor can it &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;be determined automatically at the moment.   Either define &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;an `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` array manually and pass it to the Indexer &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;object, or make a proper Timegrids object available within &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;the pub module.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">timegrids</span>
+
+
+<div class="viewcode-block" id="IndexerProperty">
+<a class="viewcode-back" href="../../../indextools.html#hydpy.core.indextools.IndexerProperty">[docs]</a>
+<span class="k">class</span> <span class="nc">IndexerProperty</span><span class="p">(</span><span class="n">propertytools</span><span class="o">.</span><span class="n">BaseProperty</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A property for handling time-related indices.</span>
+
+<span class="sd">    Some models (e.g. |lland_v1|) require time related index values.</span>
+<span class="sd">    |IndexerProperty| provides some caching functionalities to avoid</span>
+<span class="sd">    recalculating the same indices for different model instances over</span>
+<span class="sd">    and over again.  We illustrate this by taking property</span>
+<span class="sd">    |Indexer.monthofyear| as an example.</span>
+
+<span class="sd">    Generally, |Indexer| needs to know the relevant initialisation</span>
+<span class="sd">    period before being able to calculate any time-related index values.</span>
+<span class="sd">    If you forget to define one first, you get the following error</span>
+<span class="sd">    message:</span>
+
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: An Indexer object has \</span>
+<span class="sd">been asked for an `monthofyear` array.  Such an array has neither been \</span>
+<span class="sd">determined yet nor can it be determined automatically at the moment.   \</span>
+<span class="sd">Either define an `monthofyear` array manually and pass it to the Indexer \</span>
+<span class="sd">object, or make a proper Timegrids object available within the pub module.</span>
+
+<span class="sd">    For efficiency, repeated querying of |Indexer.monthofyear| returns</span>
+<span class="sd">    the same |numpy| |numpy.array| object:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = &quot;27.02.2004&quot;, &quot;3.03.2004&quot;, &quot;1d&quot;</span>
+<span class="sd">    &gt;&gt;&gt; monthofyear = pub.indexer.monthofyear</span>
+<span class="sd">    &gt;&gt;&gt; monthofyear</span>
+<span class="sd">    array([1, 1, 1, 2, 2])</span>
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear</span>
+<span class="sd">    array([1, 1, 1, 2, 2])</span>
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear is monthofyear</span>
+<span class="sd">    True</span>
+
+<span class="sd">    When the |Timegrids| object handled by module |pub| changes,</span>
+<span class="sd">    |IndexerProperty| calculates and returns a new index array:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.timegrids.init.firstdate += &quot;1d&quot;</span>
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear</span>
+<span class="sd">    array([1, 1, 2, 2])</span>
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear is monthofyear</span>
+<span class="sd">    False</span>
+
+<span class="sd">    When in doubt, you can manually delete the cached |numpy| |numpy.ndarray|</span>
+<span class="sd">    and receive a freshly calculated index array afterwards:</span>
+
+<span class="sd">    &gt;&gt;&gt; monthofyear = pub.indexer.monthofyear</span>
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear is monthofyear</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; del pub.indexer.monthofyear</span>
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear</span>
+<span class="sd">    array([1, 1, 2, 2])</span>
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear is monthofyear</span>
+<span class="sd">    False</span>
+
+<span class="sd">    You are allowed to define alternative values manually, which</span>
+<span class="sd">    seems advisable only for testing purposes:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear = 0, 1, 2, 3</span>
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear</span>
+<span class="sd">    array([0, 1, 2, 3])</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids.init.firstdate -= &quot;1d&quot;</span>
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear</span>
+<span class="sd">    array([1, 1, 1, 2, 2])</span>
+
+<span class="sd">    When assigning inadequate data, you get errors like the following:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear = &quot;wrong&quot;</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to assign a new `monthofyear` index array \</span>
+<span class="sd">to an Indexer object, the following error occurred: invalid literal for \</span>
+<span class="sd">int() with base 10: &#39;wrong&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear = [[0, 1, 2, 3], [4, 5, 6, 7]]</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The `monthofyear` index array of an Indexer object \</span>
+<span class="sd">must be 1-dimensional.  However, the given value has interpreted as \</span>
+<span class="sd">a 2-dimensional object.</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.indexer.monthofyear = 0, 1, 2, 3</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The `monthofyear` index array of an Indexer object must have \</span>
+<span class="sd">a number of entries fitting to the initialization time period precisely.  \</span>
+<span class="sd">However, the given value has been interpreted to be of length `4` and the \</span>
+<span class="sd">length of the Timegrid object representing the actual initialisation \</span>
+<span class="sd">period is `5`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fget</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fget</span> <span class="o">=</span> <span class="n">fget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fdel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fdel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">fget</span><span class="o">.</span><span class="vm">__doc__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="IndexerProperty.call_fget">
+<a class="viewcode-back" href="../../../indextools.html#hydpy.core.indextools.IndexerProperty.call_fget">[docs]</a>
+    <span class="k">def</span> <span class="nf">call_fget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArrayFloat</span><span class="p">:</span>
+        <span class="n">timegrids</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="p">,</span> <span class="s2">&quot;timegrids&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">!=</span> <span class="n">timegrids</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calcidxs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fget</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">timegrids</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span></div>
+
+
+<div class="viewcode-block" id="IndexerProperty.call_fset">
+<a class="viewcode-back" href="../../../indextools.html#hydpy.core.indextools.IndexerProperty.call_fset">[docs]</a>
+    <span class="k">def</span> <span class="nf">call_fset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fset</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_fset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convertandtest</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="p">,</span> <span class="s2">&quot;timegrids&quot;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="IndexerProperty.call_fdel">
+<a class="viewcode-back" href="../../../indextools.html#hydpy.core.indextools.IndexerProperty.call_fdel">[docs]</a>
+    <span class="k">def</span> <span class="nf">call_fdel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fdel</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_fdel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_convertandtest</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">type_</span> <span class="o">=</span> <span class="nb">float</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">float</span><span class="p">)</span> <span class="k">else</span> <span class="nb">int</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">type_</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to assign a new `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;index array to an Indexer object&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` index array of an Indexer object must be &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;1-dimensional.  However, the given value has interpreted &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;as a </span><span class="si">{</span><span class="n">array</span><span class="o">.</span><span class="n">ndim</span><span class="si">}</span><span class="s2">-dimensional object.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">timegrids</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="p">,</span> <span class="s2">&quot;timegrids&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">timegrids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` index array of an Indexer object must have &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;a number of entries fitting to the initialization time &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;period precisely.  However, the given value has been &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;interpreted to be of length `</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span><span class="si">}</span><span class="s2">` and the &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;length of the Timegrid object representing the actual &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;initialisation period is `</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="p">)</span><span class="si">}</span><span class="s2">`.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="n">array</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_calcidxs</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="n">timegrids</span> <span class="o">=</span> <span class="n">_get_timegrids</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="n">type_</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">type_</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">timestampleft</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jdx</span><span class="p">,</span> <span class="n">date</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="p">):</span>
+                <span class="n">idxs</span><span class="p">[</span><span class="n">jdx</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">idxs</span></div>
+
+
+
+<div class="viewcode-block" id="Indexer">
+<a class="viewcode-back" href="../../../indextools.html#hydpy.core.indextools.Indexer">[docs]</a>
+<span class="k">class</span> <span class="nc">Indexer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles different |IndexerProperty| objects defining time-related</span>
+<span class="sd">    indices.</span>
+
+<span class="sd">    One can specify the index arrays manually, but they are usually</span>
+<span class="sd">    determined automatically based on the |Timegrids| object made</span>
+<span class="sd">    available through module |pub|.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_monthofyear</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_monthofyear_timegrids</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dayofyear</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dayofyear_hash</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_timeofyear</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_timeofyear_hash</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Indexer.monthofyear">
+<a class="viewcode-back" href="../../../indextools.html#hydpy.core.indextools.Indexer.monthofyear">[docs]</a>
+    <span class="nd">@IndexerProperty</span>
+    <span class="k">def</span> <span class="nf">monthofyear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Index values, representing the month of the year.</span>
+
+<span class="sd">        The following example shows the month indices of the last days of</span>
+<span class="sd">        February and the first days of March for a leap year:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;27.02.2004&quot;, &quot;3.03.2004&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; monthofyear = pub.indexer.monthofyear</span>
+<span class="sd">        &gt;&gt;&gt; monthofyear</span>
+<span class="sd">        array([1, 1, 1, 2, 2])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_monthofyear</span><span class="p">(</span><span class="n">date</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">date</span><span class="o">.</span><span class="n">month</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">_monthofyear</span></div>
+
+
+<div class="viewcode-block" id="Indexer.dayofyear">
+<a class="viewcode-back" href="../../../indextools.html#hydpy.core.indextools.Indexer.dayofyear">[docs]</a>
+    <span class="nd">@IndexerProperty</span>
+    <span class="k">def</span> <span class="nf">dayofyear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Index values, representing the month of the year.</span>
+
+<span class="sd">        For reasons of consistency between leap years and non-leap years,</span>
+<span class="sd">        assuming a daily time step, index 59 is always associated with the</span>
+<span class="sd">        29th of February.  Hence, it is missing in non-leap years:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.indextools import Indexer</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;27.02.2004&quot;, &quot;3.03.2004&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; Indexer().dayofyear</span>
+<span class="sd">        array([57, 58, 59, 60, 61])</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;27.02.2005&quot;, &quot;3.03.2005&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; Indexer().dayofyear</span>
+<span class="sd">        array([57, 58, 60, 61])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_dayofyear</span><span class="p">(</span><span class="n">date</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">date</span><span class="o">.</span><span class="n">dayofyear</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="p">((</span><span class="n">date</span><span class="o">.</span><span class="n">month</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">date</span><span class="o">.</span><span class="n">leapyear</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">_dayofyear</span></div>
+
+
+<div class="viewcode-block" id="Indexer.timeofyear">
+<a class="viewcode-back" href="../../../indextools.html#hydpy.core.indextools.Indexer.timeofyear">[docs]</a>
+    <span class="nd">@IndexerProperty</span>
+    <span class="k">def</span> <span class="nf">timeofyear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Index values, representing the time of the year.</span>
+
+<span class="sd">        Let us reconsider one of the examples of the documentation on</span>
+<span class="sd">        property |Indexer.dayofyear|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import Timegrids, Timegrid</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.indextools import Indexer</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;27.02.2005&quot;, &quot;3.03.2005&quot;, &quot;1d&quot;</span>
+
+<span class="sd">        Due to the simulation step size of one day, the index arrays</span>
+<span class="sd">        calculated by properties |Indexer.dayofyear| and |Indexer.timeofyear|</span>
+<span class="sd">        are identical:</span>
+
+<span class="sd">        &gt;&gt;&gt; Indexer().dayofyear</span>
+<span class="sd">        array([57, 58, 60, 61])</span>
+<span class="sd">        &gt;&gt;&gt; Indexer().timeofyear</span>
+<span class="sd">        array([57, 58, 60, 61])</span>
+
+<span class="sd">        In the next example, we halve the step size:</span>
+
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;27.02.2005&quot;, &quot;3.03.2005&quot;, &quot;12h&quot;</span>
+
+<span class="sd">        Now two subsequent simulation steps associated are with the same day:</span>
+
+<span class="sd">        &gt;&gt;&gt; Indexer().dayofyear</span>
+<span class="sd">        array([57, 57, 58, 58, 60, 60, 61, 61])</span>
+
+<span class="sd">        However, the `timeofyear` array gives the index of the</span>
+<span class="sd">        respective simulation steps of the actual year:</span>
+
+<span class="sd">        &gt;&gt;&gt; Indexer().timeofyear</span>
+<span class="sd">        array([114, 115, 116, 117, 120, 121, 122, 123])</span>
+
+<span class="sd">        Note the gap in the returned index array due to 2005 being not a</span>
+<span class="sd">        leap year.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_timeofyear</span><span class="p">(</span><span class="n">date</span><span class="p">):</span>
+            <span class="n">date</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+            <span class="n">date</span><span class="o">.</span><span class="n">year</span> <span class="o">=</span> <span class="mi">2000</span>
+            <span class="k">return</span> <span class="n">refgrid</span><span class="p">[</span><span class="n">date</span><span class="p">]</span>
+
+        <span class="n">refgrid</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Timegrid</span><span class="p">(</span>
+            <span class="n">timetools</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="s2">&quot;2000.01.01&quot;</span><span class="p">),</span>
+            <span class="n">timetools</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="s2">&quot;2001.01.01&quot;</span><span class="p">),</span>
+            <span class="n">_get_timegrids</span><span class="p">(</span><span class="n">_timeofyear</span><span class="p">)</span><span class="o">.</span><span class="n">stepsize</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">_timeofyear</span></div>
+
+
+<div class="viewcode-block" id="Indexer.standardclocktime">
+<a class="viewcode-back" href="../../../indextools.html#hydpy.core.indextools.Indexer.standardclocktime">[docs]</a>
+    <span class="nd">@IndexerProperty</span>
+    <span class="k">def</span> <span class="nf">standardclocktime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Standard clock time at the midpoints of the initialisation time</span>
+<span class="sd">        steps in hours.</span>
+
+<span class="sd">        Note that the standard clock time is not usable as an index.  Hence,</span>
+<span class="sd">        we might later move property |Indexer.standardclocktime| somewhere</span>
+<span class="sd">        else or give class |Indexer| a more general purpose (and name) later.</span>
+
+<span class="sd">        The following examples demonstrate the calculation of the standard</span>
+<span class="sd">        clock time for simulation step sizes of one day, one hour, one minute,</span>
+<span class="sd">        and one second, respectively:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub, print_values</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;27.02.2004&quot;, &quot;3.03.2004&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; print_values(pub.indexer.standardclocktime)</span>
+<span class="sd">        12.0, 12.0, 12.0, 12.0, 12.0</span>
+
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;27.02.2004 21:00&quot;, &quot;28.02.2004 03:00&quot;, &quot;1h&quot;</span>
+<span class="sd">        &gt;&gt;&gt; print_values(pub.indexer.standardclocktime)</span>
+<span class="sd">        21.5, 22.5, 23.5, 0.5, 1.5, 2.5</span>
+
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;27.02.2004 23:57:0&quot;, &quot;28.02.2004 00:03:00&quot;, &quot;1m&quot;</span>
+<span class="sd">        &gt;&gt;&gt; print_values(pub.indexer.standardclocktime)</span>
+<span class="sd">        23.958333, 23.975, 23.991667, 0.008333, 0.025, 0.041667</span>
+
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;27.02.2004 23:59:57&quot;, &quot;28.02.2004 00:00:03&quot;, &quot;1s&quot;</span>
+<span class="sd">        &gt;&gt;&gt; print_values(pub.indexer.standardclocktime)</span>
+<span class="sd">        23.999306, 23.999583, 23.999861, 0.000139, 0.000417, 0.000694</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_standardclocktime</span><span class="p">(</span><span class="n">date</span><span class="p">):</span>
+            <span class="n">t0</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">hour</span> <span class="o">+</span> <span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">minute</span> <span class="o">+</span> <span class="n">date</span><span class="o">.</span><span class="n">second</span> <span class="o">/</span> <span class="mf">60.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">60.0</span>
+            <span class="k">return</span> <span class="n">t0</span> <span class="o">+</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">stepsize</span><span class="o">.</span><span class="n">hours</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+        <span class="k">return</span> <span class="n">_standardclocktime</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.indextools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

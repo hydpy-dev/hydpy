@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.wland.wland_control &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.wland.wland_control</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.wland.wland_control</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-module-docstring</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.wland</span> <span class="kn">import</span> <span class="n">wland_parameters</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.wland</span> <span class="kn">import</span> <span class="n">wland_constants</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.wland.wland_constants</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="AL">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.AL">[docs]</a>
+<span class="k">class</span> <span class="nc">AL</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Land area [km²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AS_">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.AS_">[docs]</a>
+<span class="k">class</span> <span class="nc">AS_</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Surface water area [km²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="NU">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.NU">[docs]</a>
+<span class="k">class</span> <span class="nc">NU</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Number of hydrological response units [-].</span>
+
+<span class="sd">    Parameter |NU| automatically sets the length of most 1-dimensional parameters</span>
+<span class="sd">    and sequences of *HydPy-W-Land*:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.wland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nu(3)</span>
+<span class="sd">    &gt;&gt;&gt; lt.shape</span>
+<span class="sd">    (3,)</span>
+<span class="sd">    &gt;&gt;&gt; states.ic.shape</span>
+<span class="sd">    (3,)</span>
+
+<span class="sd">    Changing the value of parameter |NU| reshapes the related parameters</span>
+<span class="sd">    and sequences and thereby eventually deletes predefined values:</span>
+
+<span class="sd">    &gt;&gt;&gt; states.ic = 1.0</span>
+<span class="sd">    &gt;&gt;&gt; states.ic</span>
+<span class="sd">    ic(1.0, 1.0, 1.0)</span>
+<span class="sd">    &gt;&gt;&gt; nu(2)</span>
+<span class="sd">    &gt;&gt;&gt; states.ic</span>
+<span class="sd">    ic(nan, nan)</span>
+
+<span class="sd">    Redefining the same value for parameter |NU| does not affect any related</span>
+<span class="sd">    parameter and sequence object:</span>
+
+<span class="sd">    &gt;&gt;&gt; states.ic = 1.0</span>
+<span class="sd">    &gt;&gt;&gt; states.ic</span>
+<span class="sd">    ic(1.0, 1.0)</span>
+<span class="sd">    &gt;&gt;&gt; nu(2)</span>
+<span class="sd">    &gt;&gt;&gt; states.ic</span>
+<span class="sd">    ic(1.0, 1.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hydpy__get_value__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">new</span> <span class="o">!=</span> <span class="n">old</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">subpars</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">subpars</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+                        <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">MonthParameter</span><span class="p">)</span>
+                    <span class="p">):</span>
+                        <span class="n">par</span><span class="o">.</span><span class="n">__hydpy__set_shape__</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">subseqs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">subseqs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">seq</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">seq</span><span class="o">.</span><span class="n">__hydpy__set_shape__</span><span class="p">(</span><span class="n">new</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LT">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.LT">[docs]</a>
+<span class="k">class</span> <span class="nc">LT</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">NameParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Landuse type [-].</span>
+
+<span class="sd">    For better readability, use the land-use related constants defined in</span>
+<span class="sd">    module |wland_constants| to set the individual hydrological response</span>
+<span class="sd">    units&#39; land-use types:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.wland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nu(11)</span>
+<span class="sd">    &gt;&gt;&gt; lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND,</span>
+<span class="sd">    ...    TREES, CONIFER, DECIDIOUS, MIXED)</span>
+<span class="sd">    &gt;&gt;&gt; lt</span>
+<span class="sd">    lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND, TREES,</span>
+<span class="sd">       CONIFER, DECIDIOUS, MIXED)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">min</span><span class="p">(</span><span class="n">wland_constants</span><span class="o">.</span><span class="n">LANDUSE_CONSTANTS</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+        <span class="nb">max</span><span class="p">(</span><span class="n">wland_constants</span><span class="o">.</span><span class="n">LANDUSE_CONSTANTS</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+    <span class="p">)</span>
+    <span class="n">CONSTANTS</span> <span class="o">=</span> <span class="n">wland_constants</span><span class="o">.</span><span class="n">LANDUSE_CONSTANTS</span></div>
+
+
+
+<div class="viewcode-block" id="AUR">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.AUR">[docs]</a>
+<span class="k">class</span> <span class="nc">AUR</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relative area of each hydrological response unit [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CP">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.CP">[docs]</a>
+<span class="k">class</span> <span class="nc">CP</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factor for correcting precipitation [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CPET">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.CPET">[docs]</a>
+<span class="k">class</span> <span class="nc">CPET</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factor for correcting potential evapotranspiration [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CPETL">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.CPETL">[docs]</a>
+<span class="k">class</span> <span class="nc">CPETL</span><span class="p">(</span><span class="n">wland_parameters</span><span class="o">.</span><span class="n">LanduseMonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factor for converting general potential evapotranspiration (usually grass</span>
+<span class="sd">    reference evapotranspiration) to land-use specific potential evapotranspiration</span>
+<span class="sd">    [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CPES">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.CPES">[docs]</a>
+<span class="k">class</span> <span class="nc">CPES</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">MonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factor for converting general potential evapotranspiration (usually grass</span>
+<span class="sd">    reference evapotranspiration) to potential evaporation from water areas [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LAI">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.LAI">[docs]</a>
+<span class="k">class</span> <span class="nc">LAI</span><span class="p">(</span><span class="n">wland_parameters</span><span class="o">.</span><span class="n">LanduseMonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Leaf area index [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="IH">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.IH">[docs]</a>
+<span class="k">class</span> <span class="nc">IH</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interception capacity with respect to the leaf surface area [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="TT">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.TT">[docs]</a>
+<span class="k">class</span> <span class="nc">TT</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Threshold temperature for snow/rain [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="TI">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.TI">[docs]</a>
+<span class="k">class</span> <span class="nc">TI</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Temperature interval with a mixture of snow and rain [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="DDF">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.DDF">[docs]</a>
+<span class="k">class</span> <span class="nc">DDF</span><span class="p">(</span><span class="n">wland_parameters</span><span class="o">.</span><span class="n">LanduseParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Day degree factor [mm/°C/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="DDT">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.DDT">[docs]</a>
+<span class="k">class</span> <span class="nc">DDT</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Day degree threshold temperature [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CW">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.CW">[docs]</a>
+<span class="k">class</span> <span class="nc">CW</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wetness index parameter [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CV">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.CV">[docs]</a>
+<span class="k">class</span> <span class="nc">CV</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Vadose zone relaxation time constant [T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CG">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.CG">[docs]</a>
+<span class="k">class</span> <span class="nc">CG</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Groundwater reservoir constant [mm T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CGF">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.CGF">[docs]</a>
+<span class="k">class</span> <span class="nc">CGF</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Groundwater reservoir flood factor [1/mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CQ">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.CQ">[docs]</a>
+<span class="k">class</span> <span class="nc">CQ</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Quickflow reservoir relaxation time [T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CD">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.CD">[docs]</a>
+<span class="k">class</span> <span class="nc">CD</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Channel depth [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CS">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.CS">[docs]</a>
+<span class="k">class</span> <span class="nc">CS</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Surface water parameter for bankfull discharge [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="HSMin">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.HSMin">[docs]</a>
+<span class="k">class</span> <span class="nc">HSMin</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Surface water level where and below which discharge is zero [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="XS">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.XS">[docs]</a>
+<span class="k">class</span> <span class="nc">XS</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stage-discharge relation exponent [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.5</span></div>
+
+
+
+<div class="viewcode-block" id="B">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.B">[docs]</a>
+<span class="k">class</span> <span class="nc">B</span><span class="p">(</span><span class="n">wland_parameters</span><span class="o">.</span><span class="n">SoilParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pore size distribution parameter [-].</span>
+
+<span class="sd">    Parameter |B| comes with the following default values:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.wland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; b.print_defaults()</span>
+<span class="sd">    SAND: 4.05</span>
+<span class="sd">    LOAMY_SAND: 4.38</span>
+<span class="sd">    SANDY_LOAM: 4.9</span>
+<span class="sd">    SILT_LOAM: 5.3</span>
+<span class="sd">    LOAM: 5.39</span>
+<span class="sd">    SANDY_CLAY_LOAM: 7.12</span>
+<span class="sd">    SILT_CLAY_LOAM: 7.75</span>
+<span class="sd">    CLAY_LOAM: 8.52</span>
+<span class="sd">    SANDY_CLAY: 10.4</span>
+<span class="sd">    SILTY_CLAY: 10.4</span>
+<span class="sd">    CLAY: 11.4</span>
+
+<span class="sd">    See the documentation on class |SoilParameter| for further information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">_SOIL2VALUE</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">SAND</span><span class="p">:</span> <span class="mf">4.05</span><span class="p">,</span>
+        <span class="n">LOAMY_SAND</span><span class="p">:</span> <span class="mf">4.38</span><span class="p">,</span>
+        <span class="n">SANDY_LOAM</span><span class="p">:</span> <span class="mf">4.9</span><span class="p">,</span>
+        <span class="n">SILT_LOAM</span><span class="p">:</span> <span class="mf">5.3</span><span class="p">,</span>
+        <span class="n">LOAM</span><span class="p">:</span> <span class="mf">5.39</span><span class="p">,</span>
+        <span class="n">SANDY_CLAY_LOAM</span><span class="p">:</span> <span class="mf">7.12</span><span class="p">,</span>
+        <span class="n">SILT_CLAY_LOAM</span><span class="p">:</span> <span class="mf">7.75</span><span class="p">,</span>
+        <span class="n">CLAY_LOAM</span><span class="p">:</span> <span class="mf">8.52</span><span class="p">,</span>
+        <span class="n">SANDY_CLAY</span><span class="p">:</span> <span class="mf">10.4</span><span class="p">,</span>
+        <span class="n">SILTY_CLAY</span><span class="p">:</span> <span class="mf">10.4</span><span class="p">,</span>
+        <span class="n">CLAY</span><span class="p">:</span> <span class="mf">11.4</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="PsiAE">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.PsiAE">[docs]</a>
+<span class="k">class</span> <span class="nc">PsiAE</span><span class="p">(</span><span class="n">wland_parameters</span><span class="o">.</span><span class="n">SoilParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Air entry pressure [mm].</span>
+
+<span class="sd">    Parameter |PsiAE| comes with the following default values:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.wland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; psiae.print_defaults()</span>
+<span class="sd">    SAND: 121.0</span>
+<span class="sd">    LOAMY_SAND: 90.0</span>
+<span class="sd">    SANDY_LOAM: 218.0</span>
+<span class="sd">    SILT_LOAM: 786.0</span>
+<span class="sd">    LOAM: 478.0</span>
+<span class="sd">    SANDY_CLAY_LOAM: 299.0</span>
+<span class="sd">    SILT_CLAY_LOAM: 356.0</span>
+<span class="sd">    CLAY_LOAM: 630.0</span>
+<span class="sd">    SANDY_CLAY: 153.0</span>
+<span class="sd">    SILTY_CLAY: 490.0</span>
+<span class="sd">    CLAY: 405.0</span>
+
+<span class="sd">    See the documentation on class |SoilParameter| for further information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">_SOIL2VALUE</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">SAND</span><span class="p">:</span> <span class="mf">121.0</span><span class="p">,</span>
+        <span class="n">LOAMY_SAND</span><span class="p">:</span> <span class="mf">90.0</span><span class="p">,</span>
+        <span class="n">SANDY_LOAM</span><span class="p">:</span> <span class="mf">218.0</span><span class="p">,</span>
+        <span class="n">SILT_LOAM</span><span class="p">:</span> <span class="mf">786.0</span><span class="p">,</span>
+        <span class="n">LOAM</span><span class="p">:</span> <span class="mf">478.0</span><span class="p">,</span>
+        <span class="n">SANDY_CLAY_LOAM</span><span class="p">:</span> <span class="mf">299.0</span><span class="p">,</span>
+        <span class="n">SILT_CLAY_LOAM</span><span class="p">:</span> <span class="mf">356.0</span><span class="p">,</span>
+        <span class="n">CLAY_LOAM</span><span class="p">:</span> <span class="mf">630.0</span><span class="p">,</span>
+        <span class="n">SANDY_CLAY</span><span class="p">:</span> <span class="mf">153.0</span><span class="p">,</span>
+        <span class="n">SILTY_CLAY</span><span class="p">:</span> <span class="mf">490.0</span><span class="p">,</span>
+        <span class="n">CLAY</span><span class="p">:</span> <span class="mf">405.0</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="ThetaS">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.ThetaS">[docs]</a>
+<span class="k">class</span> <span class="nc">ThetaS</span><span class="p">(</span><span class="n">wland_parameters</span><span class="o">.</span><span class="n">SoilParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Soil moisture content at saturation [-].</span>
+
+<span class="sd">    Parameter |ThetaS| comes with the following default values:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.wland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; thetas.print_defaults()</span>
+<span class="sd">    SAND: 0.395</span>
+<span class="sd">    LOAMY_SAND: 0.41</span>
+<span class="sd">    SANDY_LOAM: 0.435</span>
+<span class="sd">    SILT_LOAM: 0.485</span>
+<span class="sd">    LOAM: 0.451</span>
+<span class="sd">    SANDY_CLAY_LOAM: 0.42</span>
+<span class="sd">    SILT_CLAY_LOAM: 0.477</span>
+<span class="sd">    CLAY_LOAM: 0.476</span>
+<span class="sd">    SANDY_CLAY: 0.426</span>
+<span class="sd">    SILTY_CLAY: 0.492</span>
+<span class="sd">    CLAY: 0.482</span>
+
+<span class="sd">    See the documentation on class |SoilParameter| for further information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="n">_SOIL2VALUE</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">SAND</span><span class="p">:</span> <span class="mf">0.395</span><span class="p">,</span>
+        <span class="n">LOAMY_SAND</span><span class="p">:</span> <span class="mf">0.41</span><span class="p">,</span>
+        <span class="n">SANDY_LOAM</span><span class="p">:</span> <span class="mf">0.435</span><span class="p">,</span>
+        <span class="n">SILT_LOAM</span><span class="p">:</span> <span class="mf">0.485</span><span class="p">,</span>
+        <span class="n">LOAM</span><span class="p">:</span> <span class="mf">0.451</span><span class="p">,</span>
+        <span class="n">SANDY_CLAY_LOAM</span><span class="p">:</span> <span class="mf">0.42</span><span class="p">,</span>
+        <span class="n">SILT_CLAY_LOAM</span><span class="p">:</span> <span class="mf">0.477</span><span class="p">,</span>
+        <span class="n">CLAY_LOAM</span><span class="p">:</span> <span class="mf">0.476</span><span class="p">,</span>
+        <span class="n">SANDY_CLAY</span><span class="p">:</span> <span class="mf">0.426</span><span class="p">,</span>
+        <span class="n">SILTY_CLAY</span><span class="p">:</span> <span class="mf">0.492</span><span class="p">,</span>
+        <span class="n">CLAY</span><span class="p">:</span> <span class="mf">0.482</span><span class="p">,</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="ThetaS.trim">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.ThetaS.trim">[docs]</a>
+    <span class="k">def</span> <span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Trim |ThetaS| following :math:`1e^{-6} \leq ThetaS \leq 1.0` and,</span>
+<span class="sd">        if |ThetaR| exists for the relevant application model, also following</span>
+<span class="sd">        :math:`ThetaR \leq ThetaS`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">        &gt;&gt;&gt; thetas(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; thetas</span>
+<span class="sd">        thetas(0.000001)</span>
+
+<span class="sd">        &gt;&gt;&gt; thetar.value = 0.5</span>
+<span class="sd">        &gt;&gt;&gt; thetas(0.4)</span>
+<span class="sd">        &gt;&gt;&gt; thetas</span>
+<span class="sd">        thetas(0.5)</span>
+
+<span class="sd">        &gt;&gt;&gt; thetas(soil=SANDY_LOAM)</span>
+<span class="sd">        &gt;&gt;&gt; thetas</span>
+<span class="sd">        thetas(0.5)</span>
+
+<span class="sd">        &gt;&gt;&gt; thetas(1.01)</span>
+<span class="sd">        &gt;&gt;&gt; thetas</span>
+<span class="sd">        thetas(1.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">lower</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">hasattr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="p">,</span> <span class="s2">&quot;thetar&quot;</span><span class="p">):</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">thetar</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="mf">1e-6</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ThetaR">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.ThetaR">[docs]</a>
+<span class="k">class</span> <span class="nc">ThetaR</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Residual soil moisture deficit at tension saturation [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">1e-6</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.01</span>
+
+<div class="viewcode-block" id="ThetaR.trim">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.ThetaR.trim">[docs]</a>
+    <span class="k">def</span> <span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Trim |ThetaR| following :math:`1e^{-6} \leq ThetaR \leq ThetaS`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; thetar(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; thetar</span>
+<span class="sd">        thetar(0.000001)</span>
+<span class="sd">        &gt;&gt;&gt; thetas(0.41)</span>
+<span class="sd">        &gt;&gt;&gt; thetar(0.42)</span>
+<span class="sd">        &gt;&gt;&gt; thetar</span>
+<span class="sd">        thetar(0.41)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">upper</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">upper</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">thetas</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Zeta1">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.Zeta1">[docs]</a>
+<span class="k">class</span> <span class="nc">Zeta1</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Curvature parameter of the evapotranspiration reduction function [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.02</span></div>
+
+
+
+<div class="viewcode-block" id="Zeta2">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.Zeta2">[docs]</a>
+<span class="k">class</span> <span class="nc">Zeta2</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Inflection point of the evapotranspiration reduction function [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">400.0</span></div>
+
+
+
+<div class="viewcode-block" id="SH">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.SH">[docs]</a>
+<span class="k">class</span> <span class="nc">SH</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;General smoothing parameter related to the height of water columns [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ST">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_control.ST">[docs]</a>
+<span class="k">class</span> <span class="nc">ST</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;General smoothing parameter related to temperature [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.wland.wland_control</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

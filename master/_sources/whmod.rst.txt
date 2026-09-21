@@ -1,0 +1,50 @@
+.. |AETModel_V1| replace:: :class:`~hydpy.interfaces.aetinterfaces.AETModel_V1`
+.. |AvailableFieldCapacity| replace:: :class:`~hydpy.models.whmod.whmod_control.AvailableFieldCapacity`
+.. |BaseflowIndex| replace:: :class:`~hydpy.models.whmod.whmod_control.BaseflowIndex`
+.. |Baseflow| replace:: :class:`~hydpy.models.whmod.whmod_fluxes.Baseflow`
+.. |Beta| replace:: :class:`~hydpy.models.whmod.whmod_derived.Beta`
+.. |Calc_CapillaryRise_V1| replace:: :class:`~hydpy.models.whmod.whmod_model.Calc_CapillaryRise_V1`
+.. |Calc_CapillaryRise_V2| replace:: :class:`~hydpy.models.whmod.whmod_model.Calc_CapillaryRise_V2`
+.. |Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1| replace:: :class:`~hydpy.models.whmod.whmod_model.Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1`
+.. |Calc_LakeEvaporation_AETModel_V1| replace:: :class:`~hydpy.models.whmod.whmod_model.Calc_LakeEvaporation_AETModel_V1`
+.. |Calc_PotentialRecharge_V1| replace:: :class:`~hydpy.models.whmod.whmod_model.Calc_PotentialRecharge_V1`
+.. |Calc_PotentialRecharge_V2| replace:: :class:`~hydpy.models.whmod.whmod_model.Calc_PotentialRecharge_V2`
+.. |Calc_SoilEvapotranspiration_AETModel_V1| replace:: :class:`~hydpy.models.whmod.whmod_model.Calc_SoilEvapotranspiration_AETModel_V1`
+.. |CisternWater| replace:: :class:`~hydpy.models.whmod.whmod_states.CisternWater`
+.. |DegreeDayFactor| replace:: :class:`~hydpy.models.whmod.whmod_control.DegreeDayFactor`
+.. |IntercModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.IntercModel_V1`
+.. |InterceptedWater| replace:: :class:`~hydpy.models.whmod.whmod_states.InterceptedWater`
+.. |InterceptionEvaporation| replace:: :class:`~hydpy.models.whmod.whmod_fluxes.InterceptionEvaporation`
+.. |IrrigationTarget| replace:: :class:`~hydpy.models.whmod.whmod_control.IrrigationTarget`
+.. |IrrigationTrigger| replace:: :class:`~hydpy.models.whmod.whmod_control.IrrigationTrigger`
+.. |LakeEvaporation| replace:: :class:`~hydpy.models.whmod.whmod_fluxes.LakeEvaporation`
+.. |LandType| replace:: :class:`~hydpy.models.whmod.whmod_control.LandType`
+.. |NmbZones| replace:: :class:`~hydpy.models.whmod.whmod_control.NmbZones`
+.. |Percolation| replace:: :class:`~hydpy.models.whmod.whmod_fluxes.Percolation`
+.. |PrecipModel_V1| replace:: :class:`~hydpy.interfaces.precipinterfaces.PrecipModel_V1`
+.. |RelativeSoilMoisture| replace:: :class:`~hydpy.models.whmod.whmod_factors.RelativeSoilMoisture`
+.. |RootingDepth| replace:: :class:`~hydpy.models.whmod.whmod_control.RootingDepth`
+.. |SnowCoverModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.SnowCoverModel_V1`
+.. |SoilMoisture| replace:: :class:`~hydpy.models.whmod.whmod_states.SoilMoisture`
+.. |SoilType| replace:: :class:`~hydpy.models.whmod.whmod_control.SoilType`
+.. |SoilWaterModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.SoilWaterModel_V1`
+.. |TempModel_V1| replace:: :class:`~hydpy.interfaces.tempinterfaces.TempModel_V1`
+.. |Throughfall| replace:: :class:`~hydpy.models.whmod.whmod_fluxes.Throughfall`
+.. |TotalEvapotranspiration| replace:: :class:`~hydpy.models.whmod.whmod_fluxes.TotalEvapotranspiration`
+.. |ZoneArea| replace:: :class:`~hydpy.models.whmod.whmod_control.ZoneArea`
+.. |ZoneRatio| replace:: :class:`~hydpy.models.whmod.whmod_derived.ZoneRatio`
+.. |evap_aet_minhas| replace:: :mod:`~hydpy.models.evap_aet_minhas`
+.. |evap_ret_io| replace:: :mod:`~hydpy.models.evap_ret_io`
+.. |whmod.DOCNAME.complete| replace:: HydPy-WHMod (base model)
+.. |whmod.DOCNAME.long| replace:: HydPy-WHMod
+.. |whmod| replace:: :mod:`~hydpy.models.whmod`
+
+.. _whmod:
+
+whmod
+=====
+
+.. automodule:: hydpy.models.whmod
+    :members:
+    :show-inheritance:
+    :exclude-members: AbstractSet, SupportsRound, Never, TypeAliasType, Dict, dataclass_transform, SupportsFloat, DefaultDict, get_overloads, NewType, SOLVERSEQUENCES, KeysView, subpars, CapsuleType, cast, SenderSequences, ItemsView, AsyncIterator, OBSERVER_METHODS, Generator, override, INTERFACE_METHODS, TypeVarTuple, get_origin, Mapping, Callable, Generic, AsyncContextManager, Annotated, ParamSpecArgs, InletSequences, IntVar, ADD_METHODS, Sized, PART_ODE_METHODS, Reversible, TypeVar, Match, NamedTuple, Coroutine, CONTROLPARAMETERS, TypeIs, FIXEDPARAMETERS, no_type_check, TypedDict, REQUIREDSEQUENCES, Type, TYPE_CHECKING, MutableSet, MutableMapping, Union, Hashable, SupportsComplex, TypeAlias, Set, get_protocol_members, disjoint_base, get_original_bases, fastaccess_old, UPDATEDSEQUENCES, ReadOnly, get_type_hints, SupportsBytes, TypeForm, RESULTSEQUENCES, Iterator, SENDER_METHODS, ReceiverSequences, Required, List, FrozenSet, subseqs, Final, ObserverSequences, deprecated, SupportsInt, SUBMODELINTERFACES, Buffer, SUBMODELS, BinaryIO, is_protocol, IO, ParamSpec, ClassVar, TextIO, subvars, no_type_check_decorator, AideSequences, clear_overloads, runtime, Awaitable, type_repr, LogSequences, ContextManager, Counter, OutletSequences, ChainMap, AsyncIterable, TypeGuard, overload, INLET_METHODS, OUTLET_METHODS, SOLVERPARAMETERS, Doc, SUBMETHODS, ByteString, Optional, Sequence, NoExtraItems, Pattern, NoDefault, Reader, RUN_METHODS, final, AnyStr, LiteralString, ParamSpecKwargs, Deque, ForwardRef, Text, pars, fastaccess_new, SupportsIndex, MappingView, sentinel, Protocol, NoReturn, evaluate_forward_ref, seqs, assert_never, get_args, Collection, CLASSES, Iterable, MutableSequence, Any, ValuesView, DERIVEDPARAMETERS, assert_type, AsyncGenerator, fastaccess, get_annotations, Self, NotRequired, RECEIVER_METHODS, Literal, Container, Tuple, OrderedDict, Writer, Sentinel, Concatenate, is_typeddict, runtime_checkable, SupportsAbs, reveal_type, FULL_ODE_METHODS, Format, Unpack

@@ -1,0 +1,367 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>exceptiontools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="filetools" href="filetools.html" />
+    <link rel="prev" title="devicetools" href="devicetools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="filetools.html" title="filetools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="devicetools.html" title="devicetools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">exceptiontools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="exceptiontools">
+<span id="id1"></span><h1>exceptiontools<a class="headerlink" href="#exceptiontools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.exceptiontools"></span><p>This module implements some exception classes and related features.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.exceptiontools" title="hydpy.core.exceptiontools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exceptiontools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">T</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">T1</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">T2</span></code> Type variable.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.exceptiontools.HydPyDeprecationWarning" title="hydpy.core.exceptiontools.HydPyDeprecationWarning"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPyDeprecationWarning</span></code></a> Warning for deprecated <em>HydPy</em> features.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.exceptiontools.AttributeNotReady" title="hydpy.core.exceptiontools.AttributeNotReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeNotReady</span></code></a> The attribute is principally defined but so far unprepared.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.exceptiontools.attrready" title="hydpy.core.exceptiontools.attrready"><code class="xref py py-func docutils literal notranslate"><span class="pre">attrready()</span></code></a> Return <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code> when trying the access the attribute of the given object results in an <a class="reference internal" href="#hydpy.core.exceptiontools.AttributeNotReady" title="hydpy.core.exceptiontools.AttributeNotReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeNotReady</span></code></a> error and otherwise return <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.exceptiontools.hasattr_" title="hydpy.core.exceptiontools.hasattr_"><code class="xref py py-func docutils literal notranslate"><span class="pre">hasattr_()</span></code></a> Return <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code> or <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code> whether the object has an attribute with the given name or not.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.exceptiontools.getattr_" title="hydpy.core.exceptiontools.getattr_"><code class="xref py py-func docutils literal notranslate"><span class="pre">getattr_()</span></code></a> Return the attribute with the given name or, if it does not exist, the default value, if available.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.exceptiontools.OptionalModuleNotAvailable" title="hydpy.core.exceptiontools.OptionalModuleNotAvailable"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionalModuleNotAvailable</span></code></a> A <cite>HydPy</cite> function requiring an optional module is called, but this module is not available.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.exceptiontools.OptionalImport" title="hydpy.core.exceptiontools.OptionalImport"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionalImport</span></code></a> Imports the first found module “lazily”.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py exception">
+<dt id="hydpy.core.exceptiontools.HydPyDeprecationWarning">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.exceptiontools.</span></code><code class="sig-name descname"><span class="pre">HydPyDeprecationWarning</span></code><a class="reference internal" href="_modules/hydpy/core/exceptiontools.html#HydPyDeprecationWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.exceptiontools.HydPyDeprecationWarning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#DeprecationWarning" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DeprecationWarning</span></code></a></p>
+<p>Warning for deprecated <em>HydPy</em> features.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="hydpy.core.exceptiontools.AttributeNotReady">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.exceptiontools.</span></code><code class="sig-name descname"><span class="pre">AttributeNotReady</span></code><a class="reference internal" href="_modules/hydpy/core/exceptiontools.html#AttributeNotReady"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.exceptiontools.AttributeNotReady" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<p>The attribute is principally defined but  so far unprepared.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="hydpy.core.exceptiontools.attrready">
+<code class="sig-prename descclassname"><span class="pre">hydpy.core.exceptiontools.</span></code><code class="sig-name descname"><span class="pre">attrready</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><a class="reference internal" href="_modules/hydpy/core/exceptiontools.html#attrready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.exceptiontools.attrready" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code> when trying the access the attribute of the given object
+results in an <a class="reference internal" href="#hydpy.core.exceptiontools.AttributeNotReady" title="hydpy.core.exceptiontools.AttributeNotReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeNotReady</span></code></a> error and otherwise return <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<p>In <em>HydPy</em>, some properties raise an <a class="reference internal" href="#hydpy.core.exceptiontools.AttributeNotReady" title="hydpy.core.exceptiontools.AttributeNotReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeNotReady</span></code></a> error when one
+tries to access them before they are correctly set.  You can use method
+<a class="reference internal" href="#hydpy.core.exceptiontools.attrready" title="hydpy.core.exceptiontools.attrready"><code class="xref py py-func docutils literal notranslate"><span class="pre">attrready()</span></code></a> to find out the current state of such properties without
+doing the related exception handling on your own:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">attrready</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.parametertools</span> <span class="kn">import</span> <span class="n">Parameter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Par</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">par</span> <span class="o">=</span> <span class="n">Par</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attrready</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;NDIM&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attrready</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;ndim&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">&#39;Par&#39; object has no attribute &#39;ndim&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attrready</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">par</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attrready</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="hydpy.core.exceptiontools.hasattr_">
+<code class="sig-prename descclassname"><span class="pre">hydpy.core.exceptiontools.</span></code><code class="sig-name descname"><span class="pre">hasattr_</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><a class="reference internal" href="_modules/hydpy/core/exceptiontools.html#hasattr_"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.exceptiontools.hasattr_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code> or <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code> whether the object has an attribute with the
+given name or not.</p>
+<p>In <em>HydPy</em>, some properties raise an <a class="reference internal" href="#hydpy.core.exceptiontools.AttributeNotReady" title="hydpy.core.exceptiontools.AttributeNotReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeNotReady</span></code></a> error when one
+tries to access them before they are correctly set, which also happens
+when one applies function <a class="reference external" href="https://docs.python.org/3/library/functions.html#hasattr" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">hasattr()</span></code></a> to find out if the related object
+handles the property at all.  Function <a class="reference internal" href="#hydpy.core.exceptiontools.hasattr_" title="hydpy.core.exceptiontools.hasattr_"><code class="xref py py-func docutils literal notranslate"><span class="pre">hasattr_()</span></code></a> extends function
+<a class="reference external" href="https://docs.python.org/3/library/functions.html#hasattr" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">hasattr()</span></code></a> by also catching <a class="reference internal" href="#hydpy.core.exceptiontools.AttributeNotReady" title="hydpy.core.exceptiontools.AttributeNotReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeNotReady</span></code></a> errors:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">hasattr_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.parametertools</span> <span class="kn">import</span> <span class="n">Parameter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Par</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">par</span> <span class="o">=</span> <span class="n">Par</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hasattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;NDIM&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hasattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;ndim&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hasattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">par</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attrready</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="hydpy.core.exceptiontools.getattr_">
+<code class="sig-prename descclassname"><span class="pre">hydpy.core.exceptiontools.</span></code><code class="sig-name descname"><span class="pre">getattr_</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">obj:</span> <span class="pre">Any</span></em>, <em class="sig-param"><span class="pre">name:</span> <span class="pre">str</span></em>, <em class="sig-param"><span class="pre">default:</span> <span class="pre">Union[T</span></em>, <em class="sig-param"><span class="pre">hydpy.core.exceptiontools._Enum]</span> <span class="pre">=</span> <span class="pre">&lt;_Enum.GETATTR_NO_DEFAULT:</span> <span class="pre">1&gt;</span></em>, <em class="sig-param"><span class="pre">type_:</span> <span class="pre">Optional[Type[T]]</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Any</span><a class="reference internal" href="_modules/hydpy/core/exceptiontools.html#getattr_"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.exceptiontools.getattr_" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the attribute with the given name or, if it does not exist,
+the default value, if available.</p>
+<p>In <em>HydPy</em>, some properties raise an <a class="reference internal" href="#hydpy.core.exceptiontools.AttributeNotReady" title="hydpy.core.exceptiontools.AttributeNotReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeNotReady</span></code></a> error when one
+tries to access them before they are correctly set, which also happens
+when one applies function <a class="reference external" href="https://docs.python.org/3/library/functions.html#getattr" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">getattr()</span></code></a> with default values.  Function
+<a class="reference internal" href="#hydpy.core.exceptiontools.getattr_" title="hydpy.core.exceptiontools.getattr_"><code class="xref py py-func docutils literal notranslate"><span class="pre">getattr_()</span></code></a> extends function <a class="reference external" href="https://docs.python.org/3/library/functions.html#getattr" title="(in Python v3.9)"><code class="xref py py-func docutils literal notranslate"><span class="pre">getattr()</span></code></a> by also returning the default
+value when an <a class="reference internal" href="#hydpy.core.exceptiontools.AttributeNotReady" title="hydpy.core.exceptiontools.AttributeNotReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeNotReady</span></code></a> error occurs:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">getattr_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.parametertools</span> <span class="kn">import</span> <span class="n">Parameter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Par</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">par</span> <span class="o">=</span> <span class="n">Par</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">getattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;NDIM&quot;</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">getattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;NDIM&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">getattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;ndim&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">&#39;Par&#39; object has no attribute &#39;ndim&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">getattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;ndim&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">getattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Shape information for variable `par` can only be retrieved after it has been defined.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">getattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">4</span><span class="p">,))</span>
+<span class="go">(4,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">par</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">getattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">)</span>
+<span class="go">(2,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">getattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">4</span><span class="p">,))</span>
+<span class="go">(2,)</span>
+</pre></div>
+</div>
+<p>Function <a class="reference internal" href="#hydpy.core.exceptiontools.getattr_" title="hydpy.core.exceptiontools.getattr_"><code class="xref py py-func docutils literal notranslate"><span class="pre">getattr_()</span></code></a> allows to specify the expected return type and raises
+an <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#AssertionError" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">AssertionError</span></code></a> if necessary:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">getattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;NDIM&quot;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">getattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;NDIM&quot;</span><span class="p">,</span> <span class="n">type_</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AssertionError</span>: <span class="n">returned type: int, allowed type: str</span>
+</pre></div>
+</div>
+<p>Additionally, it infers the expected return type from the default argument
+automatically:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">getattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;NDIM&quot;</span><span class="p">,</span> <span class="s2">&quot;wrong&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AssertionError</span>: <span class="n">returned type: int, allowed type(s): str</span>
+</pre></div>
+</div>
+<p>If the attribute type differs from the default value type, you need to define
+the attribute type explicitly:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">getattr_</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="s2">&quot;NDIM&quot;</span><span class="p">,</span> <span class="s2">&quot;wrong&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="hydpy.core.exceptiontools.OptionalModuleNotAvailable">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.exceptiontools.</span></code><code class="sig-name descname"><span class="pre">OptionalModuleNotAvailable</span></code><a class="reference internal" href="_modules/hydpy/core/exceptiontools.html#OptionalModuleNotAvailable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.exceptiontools.OptionalModuleNotAvailable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ImportError" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImportError</span></code></a></p>
+<p>A <cite>HydPy</cite> function requiring an optional module is called, but this
+module is not available.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.exceptiontools.OptionalImport">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.exceptiontools.</span></code><code class="sig-name descname"><span class="pre">OptionalImport</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/exceptiontools.html#OptionalImport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.exceptiontools.OptionalImport" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">module</span></code></p>
+<p>Imports the first found module “lazily”.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.exceptiontools</span> <span class="kn">import</span> <span class="n">OptionalImport</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span> <span class="o">=</span> <span class="n">OptionalImport</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;numpy&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;numpie&quot;</span><span class="p">,</span> <span class="s2">&quot;numpy&quot;</span><span class="p">,</span> <span class="s2">&quot;os&quot;</span><span class="p">],</span> <span class="nb">locals</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+<span class="go">nan</span>
+</pre></div>
+</div>
+<p>If no module could be imported at all, <a class="reference internal" href="#hydpy.core.exceptiontools.OptionalImport" title="hydpy.core.exceptiontools.OptionalImport"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionalImport</span></code></a> returns a
+dummy object which raises a <a class="reference internal" href="#hydpy.core.exceptiontools.OptionalModuleNotAvailable" title="hydpy.core.exceptiontools.OptionalModuleNotAvailable"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionalModuleNotAvailable</span></code></a> each time
+a one tries to access a member of the original module.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">numpie</span> <span class="o">=</span> <span class="n">OptionalImport</span><span class="p">(</span><span class="s2">&quot;numpie&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;numpie&quot;</span><span class="p">],</span> <span class="nb">locals</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">numpie</span><span class="o">.</span><span class="n">nan</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.OptionalModuleNotAvailable</span>: <span class="n">HydPy could not load one of the following modules: `numpie`.  These modules are no general requirement but installing at least one of them is necessary for some specific functionalities.</span>
+</pre></div>
+</div>
+<p>Note the very special case that <a class="reference internal" href="#hydpy.core.exceptiontools.OptionalImport" title="hydpy.core.exceptiontools.OptionalImport"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionalImport</span></code></a> raises a plain
+<a class="reference external" href="https://docs.python.org/3/library/exceptions.html#AttributeError" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeError</span></code></a> when asked for the attribute <cite>__wrapped__</cite> (to avoid
+trouble when applying function <cite>wrapt</cite> of module <a class="reference external" href="https://docs.python.org/3/library/inspect.html#module-inspect" title="(in Python v3.9)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">inspect</span></code></a>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">numpie</span><span class="o">.</span><span class="n">__wrapped__</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="devicetools.html"
+                        title="previous chapter">devicetools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="filetools.html"
+                        title="next chapter">filetools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/exceptiontools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/exceptiontools.html">6</a></li>
+<li><a href="../5.0/exceptiontools.html">5.0</a></li>
+<li><a href="../4.0/exceptiontools.html">4.0</a></li>
+<li><a href="../master/exceptiontools.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="filetools.html" title="filetools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="devicetools.html" title="devicetools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">exceptiontools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

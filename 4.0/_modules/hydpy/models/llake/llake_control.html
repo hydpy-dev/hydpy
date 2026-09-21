@@ -1,0 +1,274 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.llake.llake_control &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.llake.llake_control</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.llake.llake_control</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">timetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+
+
+<div class="viewcode-block" id="N"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_control.N">[docs]</a><span class="k">class</span> <span class="nc">N</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Anzahl Interpolationsstützstellen (number of nodes for the</span>
+<span class="sd">    interpolation between water state, volume and discharge) [-].</span>
+
+<span class="sd">    Parameter |N| determines the length of all 1- and 2-dimensional</span>
+<span class="sd">    parameters of HydPy-L-Lake.  This requires that the value of</span>
+<span class="sd">    the respective |N| instance is set before any of the values</span>
+<span class="sd">    of these 1- and 2-dimensional parameters are set.  Changing the</span>
+<span class="sd">    value of the |N| instance necessitates setting their values</span>
+<span class="sd">    again.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.llake import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; n(5)</span>
+
+<span class="sd">        For &quot;simple&quot; 1-dimensional parameters, the shape depends on the</span>
+<span class="sd">        value of |N| only:</span>
+
+<span class="sd">        &gt;&gt;&gt; w.shape</span>
+<span class="sd">        (5,)</span>
+
+<span class="sd">        For time varying parameters (derived from |SeasonalParameter|),</span>
+<span class="sd">        it also depends on the defined number simulation steps per leap year:</span>
+
+<span class="sd">        &gt;&gt;&gt; verzw.shape</span>
+<span class="sd">        (732,)</span>
+<span class="sd">        &gt;&gt;&gt; q.shape</span>
+<span class="sd">        (732, 5)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The prefered way to pass a value to |N| instances</span>
+<span class="sd">        within parameter control files.  Sets the shape of the associated</span>
+<span class="sd">        1- and 2-dimensional parameter objects additionally.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">subpars</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">subpars</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;toy&quot;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+                        <span class="n">par</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">par</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
+                    <span class="n">par</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span>
+                <span class="p">):</span>
+                    <span class="n">par</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="W"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_control.W">[docs]</a><span class="k">class</span> <span class="nc">W</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wasserstand (water stage) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="V"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_control.V">[docs]</a><span class="k">class</span> <span class="nc">V</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wasservolumen bei vorgegebenem Wasserstand (water volume for a</span>
+<span class="sd">    given water stage) [m³].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Q"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_control.Q">[docs]</a><span class="k">class</span> <span class="nc">Q</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Üblicher Seeausfluss bei vorgegebenem Wasserstand (sea outlet discharge</span>
+<span class="sd">    for a given water stage) [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MaxDT"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_control.MaxDT">[docs]</a><span class="k">class</span> <span class="nc">MaxDT</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Maximale interne Rechenschrittweite (maximum of the internal step size)</span>
+<span class="sd">    [T].</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Initialize a llake model and set different time step length for</span>
+<span class="sd">        parameterstep, simulationstep and maxdt:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.llake import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; maxdt</span>
+<span class="sd">        maxdt(?)</span>
+<span class="sd">        &gt;&gt;&gt; maxdt(&quot;1h&quot;)</span>
+
+<span class="sd">        Internally, the value of maxdt is stored in seconds, but in string</span>
+<span class="sd">        representations it is shown as a |Period| string:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxdt.value</span>
+<span class="sd">        3600.0</span>
+<span class="sd">        &gt;&gt;&gt; maxdt</span>
+<span class="sd">        maxdt(&quot;1h&quot;)</span>
+
+<span class="sd">        Note that maxdt only defines the maximum internal step size, not the</span>
+<span class="sd">        one actually used.  Hence, maxdt is e.g. allowed to be larger than the</span>
+<span class="sd">        actual simulation step size:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxdt(&quot;2d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; maxdt</span>
+<span class="sd">        maxdt(&quot;2d&quot;)</span>
+
+<span class="sd">        It is allowed the set the number of seconds directly or modify it</span>
+<span class="sd">        by mathematical operations:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxdt.value = 60.</span>
+<span class="sd">        &gt;&gt;&gt; maxdt</span>
+<span class="sd">        maxdt(&quot;1m&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; maxdt *= 120.</span>
+<span class="sd">        &gt;&gt;&gt; maxdt</span>
+<span class="sd">        maxdt(&quot;2h&quot;)</span>
+
+<span class="sd">        However, for the more secure way of calling the object trying to</span>
+<span class="sd">        pass an argument which cannot be converted to a Period instance</span>
+<span class="sd">        unambiguously results in an exception:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxdt(60.)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        TypeError: While trying the set the value of parameter `maxdt` of \</span>
+<span class="sd">the lake model handled by element `?`, the following error occurred: \</span>
+<span class="sd">While trying to initialise a `Period` object based argument `60.0`, the \</span>
+<span class="sd">following error occurred: The supplied argument must be either an instance \</span>
+<span class="sd">of `Period`, `datetime.timedelta`, or `str`, but the given type is `float`. \</span>
+<span class="sd">(An example: set `max dt` to 3600 seconds by writing `maxdt(&quot;1h&quot;))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">seconds</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying the set the value of parameter `maxdt` &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;of the lake model handled by element &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">devicename</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">,</span>
+                <span class="s1">&#39;(An example: set `max dt` to 3600 seconds by writing `maxdt(&quot;1h&quot;))&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">(&quot;</span><span class="si">{</span><span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="o">.</span><span class="n">from_seconds</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s1">&quot;)&#39;</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(?)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span></div>
+
+
+<div class="viewcode-block" id="MaxDW"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_control.MaxDW">[docs]</a><span class="k">class</span> <span class="nc">MaxDW</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Maximale Absenkgeschwindigkeit (maximum drop in water level) [m/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Verzw"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_control.Verzw">[docs]</a><span class="k">class</span> <span class="nc">Verzw</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Zu- oder Abschlag des Seeausflusses (addition to or abstraction from</span>
+<span class="sd">    the seas outlet discharge) [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.llake.llake_control</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

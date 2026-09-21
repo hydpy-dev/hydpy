@@ -1,0 +1,221 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Core Tools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="aliastools" href="aliastools.html" />
+    <link rel="prev" title="Framework Tools" href="framework.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="aliastools.html" title="aliastools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="framework.html" title="Framework Tools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" accesskey="U">Framework Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Core Tools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Core Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="framework.html"
+                          title="previous chapter">Framework Tools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="aliastools.html"
+                          title="next chapter">aliastools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/core.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/core.html">6</a></li>
+<li><a href="../5.0/core.html">5.0</a></li>
+<li><a href="../4.0/core.html">4.0</a></li>
+<li><a href="../master/core.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="core-tools">
+<span id="core"></span><h1>Core Tools<a class="headerlink" href="#core-tools" title="Link to this heading">¶</a></h1>
+<p>The core subpackage of <em>HydPy</em> essentially defines how models can
+and should be programmed, documented and applied.  As can be seen in
+the side-bar, the list of modules contained in the core subpackage
+is quite large.  The following paragraphs try to give some hints to
+novices, which basic aspects of using <em>HydPy</em> are related with
+which module.</p>
+<p>Module <a class="reference internal" href="hydpytools.html#module-hydpy.core.hydpytools" title="hydpy.core.hydpytools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hydpytools</span></code></a> provides the <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> class.  The main purpose
+of this class is to help users accomplish possibly complex things via
+a simple interface.  Very often, you will only need to initialize an
+<a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object and to call its methods in order to e.g. load all input
+data, perform a simulation run, and to store the relevant results.
+So trying to get an overview of the methods of class <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> is generally
+a good idea.</p>
+<p>The documentation on module <a class="reference internal" href="filetools.html#module-hydpy.core.filetools" title="hydpy.core.filetools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filetools</span></code></a> describes the standard
+directory structure of <em>HydPy</em> projects.  Module <a class="reference internal" href="filetools.html#module-hydpy.core.filetools" title="hydpy.core.filetools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filetools</span></code></a>
+offers some flexibility in adjusting this project structure to your
+needs.  Also, it is responsible for many aspects of loading data from
+files and storing data to files.  It is supplemented by module
+<a class="reference internal" href="netcdftools.html#module-hydpy.core.netcdftools" title="hydpy.core.netcdftools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">netcdftools</span></code></a> for reading data from and storing data to NetCDF files.</p>
+<p><em>HydPy</em> represents the network of a river basin via connected
+objects of the classes <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> and <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>.  These are defined in module
+<a class="reference internal" href="devicetools.html#module-hydpy.core.devicetools" title="hydpy.core.devicetools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">devicetools</span></code></a>. It is often helpful to define subsets of networks, which
+is provided by module <a class="reference internal" href="selectiontools.html#module-hydpy.core.selectiontools" title="hydpy.core.selectiontools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">selectiontools</span></code></a>.  In this context, reading the
+documentation on module <a class="reference internal" href="networktools.html#module-hydpy.auxs.networktools" title="hydpy.auxs.networktools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">networktools</span></code></a> could also be of interest, as it
+implements strategies to define <em>HydPy</em> networks in large basins.</p>
+<p>The actual data to run a certain model is handled in <cite>control files</cite>
+(containing parameter values), <cite>condition files</cite> (containing state
+conditions) and <cite>sequence files</cite> (containing input or output time
+series).  Modules <a class="reference internal" href="parametertools.html#module-hydpy.core.parametertools" title="hydpy.core.parametertools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">parametertools</span></code></a> and <a class="reference internal" href="sequencetools.html#module-hydpy.core.sequencetools" title="hydpy.core.sequencetools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sequencetools</span></code></a> provide
+features to handle these different kinds of data.</p>
+<p>Module <a class="reference internal" href="timetools.html#module-hydpy.core.timetools" title="hydpy.core.timetools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">timetools</span></code></a> provides the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> class, of which an object
+needs to be stored in the “global information” module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.  Use this
+<a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> object to define the time period for  which data shall be
+initialized and the time period for which one simulation (or multiple
+simulations) shall be performed.</p>
+<p>The other modules serve more special purposes.  If you are thinking
+about adding new code to <em>HydPy</em> or changing existing one, you
+should read the documentation of some other modules as well.
+<a class="reference internal" href="autodoctools.html#module-hydpy.core.autodoctools" title="hydpy.core.autodoctools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">autodoctools</span></code></a> provides features for automatically generating this
+online documentation.  Modules <a class="reference internal" href="testtools.html#module-hydpy.core.testtools" title="hydpy.core.testtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">testtools</span></code></a> provides features for
+testing new code (or old code, that has not been covered by the
+existing tests so far).  Module <a class="reference internal" href="objecttools.html#module-hydpy.core.objecttools" title="hydpy.core.objecttools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">objecttools</span></code></a> (need to be refactored)
+provides very different kinds of features to simplify and standardize
+writing <em>HydPy</em> code.</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="aliastools.html" title="aliastools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="framework.html" title="Framework Tools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Core Tools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

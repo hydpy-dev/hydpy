@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.hstream.hstream_model &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hstream.hstream_model</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.hstream.hstream_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hstream</span> <span class="kn">import</span> <span class="n">hstream_derived</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hstream</span> <span class="kn">import</span> <span class="n">hstream_states</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hstream</span> <span class="kn">import</span> <span class="n">hstream_inlets</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hstream</span> <span class="kn">import</span> <span class="n">hstream_outlets</span>
+
+
+<div class="viewcode-block" id="Calc_QJoints_V1"><a class="viewcode-back" href="../../../../hstream.html#hydpy.models.hstream.hstream_model.Calc_QJoints_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_QJoints_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Apply the routing equation.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`Q_{space+1,time+1} =</span>
+<span class="sd">      c1 \\cdot Q_{space,time+1} +</span>
+<span class="sd">      c2 \\cdot Q_{space,time} +</span>
+<span class="sd">      c3 \\cdot Q_{space+1,time}`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Firstly, define a reach divided into four segments:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hstream import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbsegments(4)</span>
+<span class="sd">        &gt;&gt;&gt; states.qjoints.shape = 5</span>
+
+<span class="sd">        Zero damping is achieved through the following coefficients:</span>
+
+<span class="sd">        &gt;&gt;&gt; derived.c1(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.c2(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.c3(0.0)</span>
+
+<span class="sd">        For initialization, assume a base flow of 2m³/s:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.qjoints.old = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.qjoints.new = 2.0</span>
+
+<span class="sd">        Through successive assignements of different discharge values</span>
+<span class="sd">        to the upper junction one can see that these discharge values</span>
+<span class="sd">        are simply shifted from each junction to the respective lower</span>
+<span class="sd">        junction at each time step:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.qjoints[0] = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qjoints_v1()</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.qjoints</span>
+<span class="sd">        qjoints(5.0, 2.0, 2.0, 2.0, 2.0)</span>
+<span class="sd">        &gt;&gt;&gt; states.qjoints[0] = 8.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qjoints_v1()</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.qjoints</span>
+<span class="sd">        qjoints(8.0, 5.0, 2.0, 2.0, 2.0)</span>
+<span class="sd">        &gt;&gt;&gt; states.qjoints[0] = 6.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qjoints_v1()</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.qjoints</span>
+<span class="sd">        qjoints(6.0, 8.0, 5.0, 2.0, 2.0)</span>
+
+<span class="sd">        With the maximum damping allowed, the values of the derived</span>
+<span class="sd">        parameters are:</span>
+
+<span class="sd">        &gt;&gt;&gt; derived.c1(0.5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.c2(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.c3(0.5)</span>
+
+<span class="sd">        Assuming again a base flow of 2m³/s and the same input values</span>
+<span class="sd">        results in:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.qjoints.old = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.qjoints.new = 2.0</span>
+
+<span class="sd">        &gt;&gt;&gt; states.qjoints[0] = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qjoints_v1()</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.qjoints</span>
+<span class="sd">        qjoints(5.0, 3.5, 2.75, 2.375, 2.1875)</span>
+<span class="sd">        &gt;&gt;&gt; states.qjoints[0] = 8.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qjoints_v1()</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.qjoints</span>
+<span class="sd">        qjoints(8.0, 5.75, 4.25, 3.3125, 2.75)</span>
+<span class="sd">        &gt;&gt;&gt; states.qjoints[0] = 6.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qjoints_v1()</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.qjoints</span>
+<span class="sd">        qjoints(6.0, 5.875, 5.0625, 4.1875, 3.46875)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">hstream_derived</span><span class="o">.</span><span class="n">NmbSegments</span><span class="p">,</span>
+        <span class="n">hstream_derived</span><span class="o">.</span><span class="n">C1</span><span class="p">,</span>
+        <span class="n">hstream_derived</span><span class="o">.</span><span class="n">C2</span><span class="p">,</span>
+        <span class="n">hstream_derived</span><span class="o">.</span><span class="n">C3</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">hstream_states</span><span class="o">.</span><span class="n">QJoints</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_old</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmbsegments</span><span class="p">):</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">qjoints</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">der</span><span class="o">.</span><span class="n">c1</span> <span class="o">*</span> <span class="n">new</span><span class="o">.</span><span class="n">qjoints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="o">+</span> <span class="n">der</span><span class="o">.</span><span class="n">c2</span> <span class="o">*</span> <span class="n">old</span><span class="o">.</span><span class="n">qjoints</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="o">+</span> <span class="n">der</span><span class="o">.</span><span class="n">c3</span> <span class="o">*</span> <span class="n">old</span><span class="o">.</span><span class="n">qjoints</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Pick_Q_V1"><a class="viewcode-back" href="../../../../hstream.html#hydpy.models.hstream.hstream_model.Pick_Q_V1">[docs]</a><span class="k">class</span> <span class="nc">Pick_Q_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Assign the actual value of the inlet sequence to the upper joint</span>
+<span class="sd">    of the subreach upstream.&quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">hstream_inlets</span><span class="o">.</span><span class="n">Q</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">hstream_states</span><span class="o">.</span><span class="n">QJoints</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inl</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">qjoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inl</span><span class="o">.</span><span class="n">len_q</span><span class="p">):</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">qjoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">inl</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Pass_Q_V1"><a class="viewcode-back" href="../../../../hstream.html#hydpy.models.hstream.hstream_model.Pass_Q_V1">[docs]</a><span class="k">class</span> <span class="nc">Pass_Q_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Assing the actual value of the lower joint of of the subreach</span>
+<span class="sd">    downstream to the outlet sequence.&quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hstream_derived</span><span class="o">.</span><span class="n">NmbSegments</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">hstream_states</span><span class="o">.</span><span class="n">QJoints</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">hstream_outlets</span><span class="o">.</span><span class="n">Q</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">new</span><span class="o">.</span><span class="n">qjoints</span><span class="p">[</span><span class="n">der</span><span class="o">.</span><span class="n">nmbsegments</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../../hstream.html#hydpy.models.hstream.hstream_model.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The HydPy-H-Stream model.&quot;&quot;&quot;</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Pick_Q_V1</span><span class="p">,)</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Calc_QJoints_V1</span><span class="p">,)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Pass_Q_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hstream.hstream_model</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

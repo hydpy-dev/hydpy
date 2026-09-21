@@ -1,0 +1,24 @@
+.. |Calc_EarthSunDistance_V1| replace:: :class:`~hydpy.models.evap.evap_model.Calc_EarthSunDistance_V1`
+.. |Calc_ExtraterrestrialRadiation_V1| replace:: :class:`~hydpy.models.evap.evap_model.Calc_ExtraterrestrialRadiation_V1`
+.. |Calc_GlobalRadiation_V1| replace:: :class:`~hydpy.models.evap.evap_model.Calc_GlobalRadiation_V1`
+.. |Calc_ReferenceEvapotranspiration_V1| replace:: :class:`~hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V1`
+.. |Calc_SoilHeatFlux_V1| replace:: :class:`~hydpy.models.evap.evap_model.Calc_SoilHeatFlux_V1`
+.. |Calc_SolarDeclination_V1| replace:: :class:`~hydpy.models.evap.evap_model.Calc_SolarDeclination_V1`
+.. |DOY| replace:: :class:`~hydpy.models.evap.evap_derived.DOY`
+.. |GlobalRadiation| replace:: :class:`~hydpy.models.evap.evap_fluxes.GlobalRadiation`
+.. |LatitudeRad| replace:: :class:`~hydpy.models.evap.evap_derived.LatitudeRad`
+.. |Latitude| replace:: :class:`~hydpy.models.evap.evap_control.Latitude`
+.. |Longitude| replace:: :class:`~hydpy.models.evap.evap_control.Longitude`
+.. |NetRadiation| replace:: :class:`~hydpy.models.evap.evap_fluxes.NetRadiation`
+.. |SoilHeatFlux| replace:: :class:`~hydpy.models.evap.evap_fluxes.SoilHeatFlux`
+.. |UTCLongitude| replace:: :class:`~hydpy.models.evap.evap_derived.UTCLongitude`
+
+.. _evap:
+
+evap
+====
+
+.. automodule:: hydpy.models.evap
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, InletSequences, ReceiverSequences, StateSequences, AideSequences, OutletSequences, SenderSequences

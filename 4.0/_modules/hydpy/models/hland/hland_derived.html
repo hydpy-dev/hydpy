@@ -1,0 +1,438 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.hland.hland_derived &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hland.hland_derived</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.hland.hland_derived</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">parametertools</span>
+
+<span class="c1"># ...from hland</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hland</span> <span class="kn">import</span> <span class="n">hland_parameters</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hland</span> <span class="kn">import</span> <span class="n">hland_control</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hland.hland_constants</span> <span class="kn">import</span> <span class="n">ILAKE</span><span class="p">,</span> <span class="n">GLACIER</span>
+
+
+<div class="viewcode-block" id="RelSoilArea"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.RelSoilArea">[docs]</a><span class="k">class</span> <span class="nc">RelSoilArea</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Relative area of all |FIELD| and |FOREST| zones [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">hland_control</span><span class="o">.</span><span class="n">ZoneArea</span><span class="p">,</span>
+        <span class="n">hland_control</span><span class="o">.</span><span class="n">ZoneType</span><span class="p">,</span>
+        <span class="n">hland_control</span><span class="o">.</span><span class="n">Area</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="RelSoilArea.update"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.RelSoilArea.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |RelSoilArea| based on |Area|, |ZoneArea|, and |ZoneType|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(4)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD, FOREST, GLACIER, ILAKE)</span>
+<span class="sd">        &gt;&gt;&gt; area(100.0)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea(10.0, 20.0, 30.0, 40.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.relsoilarea.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.relsoilarea</span>
+<span class="sd">        relsoilarea(0.3)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">zonearea</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">temp</span><span class="p">[</span><span class="n">con</span><span class="o">.</span><span class="n">zonetype</span><span class="o">.</span><span class="n">values</span> <span class="o">==</span> <span class="n">GLACIER</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">temp</span><span class="p">[</span><span class="n">con</span><span class="o">.</span><span class="n">zonetype</span><span class="o">.</span><span class="n">values</span> <span class="o">==</span> <span class="n">ILAKE</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">area</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="RelLandArea"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.RelLandArea">[docs]</a><span class="k">class</span> <span class="nc">RelLandArea</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Relative area of all |FIELD|, |FOREST|, and |GLACIER| zones [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">hland_control</span><span class="o">.</span><span class="n">ZoneArea</span><span class="p">,</span>
+        <span class="n">hland_control</span><span class="o">.</span><span class="n">ZoneType</span><span class="p">,</span>
+        <span class="n">hland_control</span><span class="o">.</span><span class="n">Area</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="RelLandArea.update"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.RelLandArea.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |RelLandArea| based on |Area|, |ZoneArea|, and |ZoneType|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(4)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD, FOREST, GLACIER, ILAKE)</span>
+<span class="sd">        &gt;&gt;&gt; area(100.0)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea(10.0, 20.0, 30.0, 40.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.rellandarea.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.rellandarea</span>
+<span class="sd">        rellandarea(0.6)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">zonearea</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">temp</span><span class="p">[</span><span class="n">con</span><span class="o">.</span><span class="n">zonetype</span><span class="o">.</span><span class="n">values</span> <span class="o">==</span> <span class="n">ILAKE</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">area</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="RelZoneArea"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.RelZoneArea">[docs]</a><span class="k">class</span> <span class="nc">RelZoneArea</span><span class="p">(</span>
+    <span class="n">parametertools</span><span class="o">.</span><span class="n">RelSubweightsMixin</span><span class="p">,</span> <span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterComplete</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Relative zone area of all zone types [-].</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(4)</span>
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD, FOREST, GLACIER, ILAKE)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(10.0, 40.0, 20.0, 30.0)</span>
+<span class="sd">    &gt;&gt;&gt; derived.relzonearea.update()</span>
+<span class="sd">    &gt;&gt;&gt; derived.relzonearea</span>
+<span class="sd">    relzonearea(field=0.1, forest=0.4, glacier=0.2, ilake=0.3)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">strict_valuehandling</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RelSoilZoneArea"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.RelSoilZoneArea">[docs]</a><span class="k">class</span> <span class="nc">RelSoilZoneArea</span><span class="p">(</span>
+    <span class="n">parametertools</span><span class="o">.</span><span class="n">RelSubweightsMixin</span><span class="p">,</span> <span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterSoil</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Relative zone area of all |FIELD| and |FOREST| zones [-].</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(4)</span>
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD, FOREST, GLACIER, ILAKE)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(10.0, 40.0, 20.0, 30.0)</span>
+<span class="sd">    &gt;&gt;&gt; derived.relsoilzonearea.update()</span>
+<span class="sd">    &gt;&gt;&gt; derived.relsoilzonearea</span>
+<span class="sd">    relsoilzonearea(field=0.2, forest=0.8)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">strict_valuehandling</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RelLandZoneArea"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.RelLandZoneArea">[docs]</a><span class="k">class</span> <span class="nc">RelLandZoneArea</span><span class="p">(</span>
+    <span class="n">parametertools</span><span class="o">.</span><span class="n">RelSubweightsMixin</span><span class="p">,</span> <span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterLand</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Relative zone area of all |FIELD|, |FOREST|, and |GLACIER| zones [-].</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(4)</span>
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD, FOREST, GLACIER, ILAKE)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(10.0, 40.0, 20.0, 30.0)</span>
+<span class="sd">    &gt;&gt;&gt; derived.rellandzonearea.update()</span>
+<span class="sd">    &gt;&gt;&gt; derived.rellandzonearea</span>
+<span class="sd">    rellandzonearea(field=0.142857, forest=0.571429, glacier=0.285714)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">strict_valuehandling</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="TTM"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.TTM">[docs]</a><span class="k">class</span> <span class="nc">TTM</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterLand</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Threshold temperature for snow melting and refreezing [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">hland_control</span><span class="o">.</span><span class="n">TT</span><span class="p">,</span>
+        <span class="n">hland_control</span><span class="o">.</span><span class="n">DTTM</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="TTM.update"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.TTM.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |TTM| based on :math:`TTM = TT+DTTM`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(1)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD)</span>
+<span class="sd">        &gt;&gt;&gt; tt(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; dttm(-2.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.ttm.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.ttm</span>
+<span class="sd">        ttm(-1.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">tt</span> <span class="o">+</span> <span class="n">con</span><span class="o">.</span><span class="n">dttm</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="DT"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.DT">[docs]</a><span class="k">class</span> <span class="nc">DT</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Relative time step length for the upper zone layer calculations [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hland_control</span><span class="o">.</span><span class="n">RecStep</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="DT.update"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.DT.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |DT| based on :math:`DT = \\frac{1}{RecStep}`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; recstep(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.dt.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.dt</span>
+<span class="sd">        dt(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; recstep(10.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.dt.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.dt</span>
+<span class="sd">        dt(0.2)</span>
+
+<span class="sd">        Note that the value assigned to recstep is related to the given</span>
+<span class="sd">        parameter step size of one day.  The actually applied recstep of</span>
+<span class="sd">        the last example is:</span>
+
+<span class="sd">        &gt;&gt;&gt; recstep.value</span>
+<span class="sd">        5</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">recstep</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="UH"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.UH">[docs]</a><span class="k">class</span> <span class="nc">UH</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Unit hydrograph ordinates based on a isosceles triangle [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">strict_valuehandling</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hland_control</span><span class="o">.</span><span class="n">MaxBaz</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="UH.update"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.UH.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |UH| based on |MaxBaz|.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            This method also updates the shape of log sequence |QUH|.</span>
+
+<span class="sd">        |MaxBaz| determines the end point of the triangle.  A value of</span>
+<span class="sd">        |MaxBaz| being not larger than the simulation step size is</span>
+<span class="sd">        identical with applying no unit hydrograph at all:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; maxbaz(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.uh.update()</span>
+<span class="sd">        &gt;&gt;&gt; logs.quh.shape</span>
+<span class="sd">        (1,)</span>
+<span class="sd">        &gt;&gt;&gt; derived.uh</span>
+<span class="sd">        uh(1.0)</span>
+
+<span class="sd">        Note that, due to difference of the parameter and the simulation</span>
+<span class="sd">        step size in the given example, the largest assignment resulting</span>
+<span class="sd">        in a `inactive` unit hydrograph is 1/2:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxbaz(0.5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.uh.update()</span>
+<span class="sd">        &gt;&gt;&gt; logs.quh.shape</span>
+<span class="sd">        (1,)</span>
+<span class="sd">        &gt;&gt;&gt; derived.uh</span>
+<span class="sd">        uh(1.0)</span>
+
+<span class="sd">        When |MaxBaz| is in accordance with two simulation steps, both</span>
+<span class="sd">        unit hydrograph ordinats must be 1/2 due to symmetry of the</span>
+<span class="sd">        triangle:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxbaz(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.uh.update()</span>
+<span class="sd">        &gt;&gt;&gt; logs.quh.shape</span>
+<span class="sd">        (2,)</span>
+<span class="sd">        &gt;&gt;&gt; derived.uh</span>
+<span class="sd">        uh(0.5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.uh.values</span>
+<span class="sd">        array([ 0.5,  0.5])</span>
+
+<span class="sd">        A |MaxBaz| value in accordance with three simulation steps results</span>
+<span class="sd">        in the ordinate values 2/9, 5/9, and 2/9:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxbaz(1.5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.uh.update()</span>
+<span class="sd">        &gt;&gt;&gt; logs.quh.shape</span>
+<span class="sd">        (3,)</span>
+<span class="sd">        &gt;&gt;&gt; derived.uh</span>
+<span class="sd">        uh(0.222222, 0.555556, 0.222222)</span>
+
+<span class="sd">        And a final example, where the end of the triangle lies within</span>
+<span class="sd">        a simulation step, resulting in the fractions 8/49, 23/49, 16/49,</span>
+<span class="sd">        and 2/49:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxbaz(1.75)</span>
+<span class="sd">        &gt;&gt;&gt; derived.uh.update()</span>
+<span class="sd">        &gt;&gt;&gt; logs.quh.shape</span>
+<span class="sd">        (4,)</span>
+<span class="sd">        &gt;&gt;&gt; derived.uh</span>
+<span class="sd">        uh(0.163265, 0.469388, 0.326531, 0.040816)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">maxbaz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">maxbaz</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">quh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span>
+        <span class="c1"># Determine UH parameters...</span>
+        <span class="k">if</span> <span class="n">maxbaz</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="c1"># ...when MaxBaz smaller than or equal to the simulation time step.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">quh</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># ...when MaxBaz is greater than the simulation time step.</span>
+            <span class="c1"># Define some shortcuts for the following calculations.</span>
+            <span class="n">full</span> <span class="o">=</span> <span class="n">maxbaz</span>
+            <span class="c1"># Now comes a terrible trick due to rounding problems coming from</span>
+            <span class="c1"># the conversation of the SMHI parameter set to the HydPy</span>
+            <span class="c1"># parameter set.  Time to get rid of it...</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">full</span> <span class="o">%</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-4</span><span class="p">:</span>
+                <span class="n">full</span> <span class="o">//=</span> <span class="mf">1.0</span>
+            <span class="n">full_f</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">full</span><span class="p">))</span>
+            <span class="n">full_c</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">full</span><span class="p">))</span>
+            <span class="n">half</span> <span class="o">=</span> <span class="n">full</span> <span class="o">/</span> <span class="mf">2.0</span>
+            <span class="n">half_f</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">half</span><span class="p">))</span>
+            <span class="n">half_c</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">half</span><span class="p">))</span>
+            <span class="n">full_2</span> <span class="o">=</span> <span class="n">full</span> <span class="o">**</span> <span class="mf">2.0</span>
+            <span class="c1"># Calculate the triangle ordinate(s)...</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">full_c</span>
+            <span class="n">uh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">quh</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">full_c</span>
+            <span class="c1"># ...of the rising limb.</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">half_f</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">uh</span><span class="p">[:</span><span class="n">half_f</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">points</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">full_2</span><span class="p">)</span>
+            <span class="c1"># ...around the peak (if it exists).</span>
+            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">half</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="n">uh</span><span class="p">[</span><span class="n">half_f</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">half_c</span> <span class="o">-</span> <span class="n">half</span><span class="p">)</span> <span class="o">/</span> <span class="n">full</span> <span class="o">+</span> <span class="p">(</span>
+                    <span class="mi">2</span> <span class="o">*</span> <span class="n">half</span> <span class="o">**</span> <span class="mf">2.0</span> <span class="o">-</span> <span class="n">half_f</span> <span class="o">**</span> <span class="mf">2.0</span> <span class="o">-</span> <span class="n">half_c</span> <span class="o">**</span> <span class="mf">2.0</span>
+                <span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">full_2</span><span class="p">)</span>
+            <span class="c1"># ...of the falling limb (eventually except the last one).</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">half_c</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">full_f</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">uh</span><span class="p">[</span><span class="n">half_c</span><span class="p">:</span><span class="n">full_f</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">full</span> <span class="o">-</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">points</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">full_2</span><span class="p">)</span>
+            <span class="c1"># ...at the end (if not already done).</span>
+            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">full</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="n">uh</span><span class="p">[</span><span class="n">full_f</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">full</span> <span class="o">-</span> <span class="n">full_f</span><span class="p">)</span> <span class="o">/</span> <span class="n">full</span> <span class="o">-</span> <span class="p">(</span><span class="n">full_2</span> <span class="o">-</span> <span class="n">full_f</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+                    <span class="mf">2.0</span> <span class="o">*</span> <span class="n">full_2</span>
+                <span class="p">)</span>
+            <span class="c1"># Normalize the ordinates.</span>
+            <span class="bp">self</span><span class="p">(</span><span class="n">uh</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">uh</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="QFactor"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.QFactor">[docs]</a><span class="k">class</span> <span class="nc">QFactor</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Factor for converting mm/stepsize to m³/s.&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hland_control</span><span class="o">.</span><span class="n">Area</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="QFactor.update"><a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_derived.QFactor.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update |QFactor| based on |Area| and the current simulation</span>
+<span class="sd">        step size.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; area(50.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.qfactor.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.qfactor</span>
+<span class="sd">        qfactor(1.157407)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">area</span>
+            <span class="o">*</span> <span class="mf">1000.0</span>
+            <span class="o">/</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span><span class="o">.</span><span class="n">seconds</span>
+        <span class="p">)</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hland.hland_derived</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

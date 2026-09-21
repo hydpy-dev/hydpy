@@ -1,0 +1,21 @@
+.. |Elements| replace:: :class:`~hydpy.core.devicetools.Elements`
+.. |False| replace:: :const:`False`
+.. |Nodes| replace:: :class:`~hydpy.core.devicetools.Nodes`
+.. |None| replace:: :const:`None`
+.. |RiverBasinNumbers2Selection.router_elements| replace:: :const:`~hydpy.auxs.networktools.RiverBasinNumbers2Selection.router_elements`
+.. |RiverBasinNumbers2Selection.supplier_elements| replace:: :const:`~hydpy.auxs.networktools.RiverBasinNumbers2Selection.supplier_elements`
+.. |RiverBasinNumbers2Selection| replace:: :class:`~hydpy.auxs.networktools.RiverBasinNumbers2Selection`
+.. |RiverBasinNumbers| replace:: :class:`~hydpy.auxs.networktools.RiverBasinNumbers`
+.. |RiverBasinNumber| replace:: :class:`~hydpy.auxs.networktools.RiverBasinNumber`
+.. |Selection| replace:: :class:`~hydpy.core.selectiontools.Selection`
+.. |tuple| replace:: :class:`tuple`
+
+.. _networktools:
+
+networktools
+============
+
+.. automodule:: hydpy.auxs.networktools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

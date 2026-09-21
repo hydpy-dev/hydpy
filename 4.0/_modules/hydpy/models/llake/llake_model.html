@@ -1,0 +1,792 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.llake.llake_model &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.llake.llake_model</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.llake.llake_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+
+<span class="c1"># imports...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.llake</span> <span class="kn">import</span> <span class="n">llake_control</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.llake</span> <span class="kn">import</span> <span class="n">llake_derived</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.llake</span> <span class="kn">import</span> <span class="n">llake_fluxes</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.llake</span> <span class="kn">import</span> <span class="n">llake_states</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.llake</span> <span class="kn">import</span> <span class="n">llake_aides</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.llake</span> <span class="kn">import</span> <span class="n">llake_inlets</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.llake</span> <span class="kn">import</span> <span class="n">llake_outlets</span>
+
+
+<div class="viewcode-block" id="Solve_DV_DT_V1"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_model.Solve_DV_DT_V1">[docs]</a><span class="k">class</span> <span class="nc">Solve_DV_DT_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Solve the differential equation of HydPy-L.</span>
+
+<span class="sd">    At the moment, HydPy-L only implements a simple numerical solution of</span>
+<span class="sd">    its underlying ordinary differential equation.  To increase the accuracy</span>
+<span class="sd">    (or sometimes even to prevent instability) of this approximation, one</span>
+<span class="sd">    can set the value of parameter |MaxDT| to a value smaller than the actual</span>
+<span class="sd">    simulation step size.  Method |Solve_DV_DT_V1| then applies the methods</span>
+<span class="sd">    related to the numerical approximation multiple times and aggregates</span>
+<span class="sd">    the results.</span>
+
+<span class="sd">    Note that the order of convergence is one only.  It is hard to tell how</span>
+<span class="sd">    short the internal simulation step needs to be to ensure a certain degree</span>
+<span class="sd">    of accuracy.  In most cases one hour or very often even one day should be</span>
+<span class="sd">    sufficient to gain acceptable results.  However, this strongly depends on</span>
+<span class="sd">    the given water stage-volume-discharge relationship.  Hence it seems</span>
+<span class="sd">    advisable to always define a few test waves and apply the llake model with</span>
+<span class="sd">    different |MaxDT| values.  Afterwards, select a |MaxDT| value  lower than</span>
+<span class="sd">    one which results in acceptable approximations for all test waves.  The</span>
+<span class="sd">    computation time of the llake mode per substep is rather small, so always</span>
+<span class="sd">    include a safety factor.</span>
+
+<span class="sd">    Of course, an adaptive step size determination would be much more</span>
+<span class="sd">    convenient...</span>
+
+<span class="sd">    Note that method |Solve_DV_DT_V1| calls the versions of `calc_vq`,</span>
+<span class="sd">    `interp_qa` and `calc_v_qa` selected by the respective application model.</span>
+<span class="sd">    Hence, also their parameter and sequence specifications need to be</span>
+<span class="sd">    considered.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`\\frac{dV}{dt}= QZ - QA(V)`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_derived</span><span class="o">.</span><span class="n">NmbSubsteps</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_states</span><span class="o">.</span><span class="n">V</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">llake_aides</span><span class="o">.</span><span class="n">V</span><span class="p">,</span>
+        <span class="n">llake_fluxes</span><span class="o">.</span><span class="n">QA</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_old</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">aides</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">qa</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">aid</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="n">old</span><span class="o">.</span><span class="n">v</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmbsubsteps</span><span class="p">):</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">calc_vq</span><span class="p">()</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">interp_qa</span><span class="p">()</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">calc_v_qa</span><span class="p">()</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">qa</span> <span class="o">+=</span> <span class="n">aid</span><span class="o">.</span><span class="n">qa</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">qa</span> <span class="o">/=</span> <span class="n">der</span><span class="o">.</span><span class="n">nmbsubsteps</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="n">aid</span><span class="o">.</span><span class="n">v</span></div>
+
+
+<div class="viewcode-block" id="Calc_VQ_V1"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_model.Calc_VQ_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_VQ_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the auxiliary term.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`VQ = 2 \\cdot V + \\frac{Seconds}{NmbSubsteps} \\cdot QZ`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        The following example shows that the auxiliary term `vq` does not</span>
+<span class="sd">        depend on the (outer) simulation step size but on the (inner)</span>
+<span class="sd">        calculation step size defined by parameter `maxdt`:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.llake import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; maxdt(&quot;6h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbsubsteps.update()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qz = 2.</span>
+<span class="sd">        &gt;&gt;&gt; aides.v = 1e5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_vq_v1()</span>
+<span class="sd">        &gt;&gt;&gt; aides.vq</span>
+<span class="sd">        vq(243200.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">llake_derived</span><span class="o">.</span><span class="n">Seconds</span><span class="p">,</span>
+        <span class="n">llake_derived</span><span class="o">.</span><span class="n">NmbSubsteps</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">llake_aides</span><span class="o">.</span><span class="n">V</span><span class="p">,</span>
+        <span class="n">llake_fluxes</span><span class="o">.</span><span class="n">QZ</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_aides</span><span class="o">.</span><span class="n">VQ</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">aides</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">aid</span><span class="o">.</span><span class="n">vq</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">aid</span><span class="o">.</span><span class="n">v</span> <span class="o">+</span> <span class="n">der</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="n">der</span><span class="o">.</span><span class="n">nmbsubsteps</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">qz</span></div>
+
+
+<div class="viewcode-block" id="Interp_QA_V1"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_model.Interp_QA_V1">[docs]</a><span class="k">class</span> <span class="nc">Interp_QA_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the lake outflow based on linear interpolation.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        In preparation for the following examples, define a short simulation</span>
+<span class="sd">        time period with a simulation step size of 12 hours and initialize</span>
+<span class="sd">        the required model object:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000.01.01&quot;,&quot;2000.01.04&quot;, &quot;12h&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.llake import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">        Next, for the sake of brevity, define a test function:</span>
+
+<span class="sd">        &gt;&gt;&gt; def test(*vqs):</span>
+<span class="sd">        ...     for vq in vqs:</span>
+<span class="sd">        ...         aides.vq(vq)</span>
+<span class="sd">        ...         model.interp_qa_v1()</span>
+<span class="sd">        ...         print(repr(aides.vq), repr(aides.qa))</span>
+
+<span class="sd">        The following three relationships between the auxiliary term `vq` and</span>
+<span class="sd">        the tabulated discharge `q` are taken as examples.  Each one is valid</span>
+<span class="sd">        for one of the first three days in January and is defined via five</span>
+<span class="sd">        nodes:</span>
+
+<span class="sd">        &gt;&gt;&gt; n(5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.toy.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.vq(_1_1_6=[0., 1., 2., 2., 3.],</span>
+<span class="sd">        ...            _1_2_6=[0., 1., 2., 2., 3.],</span>
+<span class="sd">        ...            _1_3_6=[0., 1., 2., 3., 4.])</span>
+<span class="sd">        &gt;&gt;&gt; q(_1_1_6=[0., 0., 0., 0., 0.],</span>
+<span class="sd">        ...   _1_2_6=[0., 2., 5., 6., 9.],</span>
+<span class="sd">        ...   _1_3_6=[0., 2., 1., 3., 2.])</span>
+
+<span class="sd">        In the first example, discharge does not depend on the actual value</span>
+<span class="sd">        of the auxiliary term and is always zero:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = pub.timegrids.init[&quot;2000.01.01&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; test(0., .75, 1., 4./3., 2., 7./3., 3., 10./3.)</span>
+<span class="sd">        vq(0.0) qa(0.0)</span>
+<span class="sd">        vq(0.75) qa(0.0)</span>
+<span class="sd">        vq(1.0) qa(0.0)</span>
+<span class="sd">        vq(1.333333) qa(0.0)</span>
+<span class="sd">        vq(2.0) qa(0.0)</span>
+<span class="sd">        vq(2.333333) qa(0.0)</span>
+<span class="sd">        vq(3.0) qa(0.0)</span>
+<span class="sd">        vq(3.333333) qa(0.0)</span>
+
+<span class="sd">        The seconds example demonstrates that relationships are allowed to</span>
+<span class="sd">        contain jumps, which is the case for the (`vq`,`q`) pairs (2,6) and</span>
+<span class="sd">        (2,7).  Also it demonstrates that when the highest `vq` value is</span>
+<span class="sd">        exceeded linear extrapolation based on the two highest (`vq`,`q`)</span>
+<span class="sd">        pairs is performed:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = pub.timegrids.init[&quot;2000.01.02&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; test(0., .75, 1., 4./3., 2., 7./3., 3., 10./3.)</span>
+<span class="sd">        vq(0.0) qa(0.0)</span>
+<span class="sd">        vq(0.75) qa(1.5)</span>
+<span class="sd">        vq(1.0) qa(2.0)</span>
+<span class="sd">        vq(1.333333) qa(3.0)</span>
+<span class="sd">        vq(2.0) qa(5.0)</span>
+<span class="sd">        vq(2.333333) qa(7.0)</span>
+<span class="sd">        vq(3.0) qa(9.0)</span>
+<span class="sd">        vq(3.333333) qa(10.0)</span>
+
+<span class="sd">        The third example shows that the relationships do not need to be</span>
+<span class="sd">        arranged monotonously increasing.  Particualarly for the extrapolation</span>
+<span class="sd">        range, this could result in negative values of `qa`, which is avoided</span>
+<span class="sd">        by setting it to zero in such cases:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = pub.timegrids.init[&quot;2000.01.03&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; test(.5, 1.5, 2.5, 3.5, 4.5, 10.)</span>
+<span class="sd">        vq(0.5) qa(1.0)</span>
+<span class="sd">        vq(1.5) qa(1.5)</span>
+<span class="sd">        vq(2.5) qa(2.0)</span>
+<span class="sd">        vq(3.5) qa(2.5)</span>
+<span class="sd">        vq(4.5) qa(1.5)</span>
+<span class="sd">        vq(10.0) qa(0.0)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">llake_control</span><span class="o">.</span><span class="n">N</span><span class="p">,</span>
+        <span class="n">llake_control</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">llake_derived</span><span class="o">.</span><span class="n">TOY</span><span class="p">,</span>
+        <span class="n">llake_derived</span><span class="o">.</span><span class="n">VQ</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_aides</span><span class="o">.</span><span class="n">VQ</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_aides</span><span class="o">.</span><span class="n">QA</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">aides</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">der</span><span class="o">.</span><span class="n">toy</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">idx_sim</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">jdx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">con</span><span class="o">.</span><span class="n">n</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">der</span><span class="o">.</span><span class="n">vq</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">jdx</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">aid</span><span class="o">.</span><span class="n">vq</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="n">aid</span><span class="o">.</span><span class="n">qa</span> <span class="o">=</span> <span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">vq</span> <span class="o">-</span> <span class="n">der</span><span class="o">.</span><span class="n">vq</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="n">con</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">jdx</span><span class="p">]</span> <span class="o">-</span> <span class="n">con</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">vq</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">jdx</span><span class="p">]</span> <span class="o">-</span> <span class="n">der</span><span class="o">.</span><span class="n">vq</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">con</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">aid</span><span class="o">.</span><span class="n">qa</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">qa</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_V_QA_V1"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_model.Calc_V_QA_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_V_QA_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Update the stored water volume based on the equation of continuity.</span>
+
+<span class="sd">    Note that for too high outflow values, which would result in overdraining</span>
+<span class="sd">    the lake, the outflow is trimmed.</span>
+
+<span class="sd">    Basic Equation:</span>
+<span class="sd">      :math:`\\frac{dV}{dt}= QZ - QA`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Prepare a lake model with an initial storage of 100.000 m³ and an</span>
+<span class="sd">        inflow of 2 m³/s and a (potential) outflow of 6 m³/s:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.llake import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; maxdt(&quot;6h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbsubsteps.update()</span>
+<span class="sd">        &gt;&gt;&gt; aides.v = 1e5</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qz = 2.</span>
+<span class="sd">        &gt;&gt;&gt; aides.qa = 6.</span>
+
+<span class="sd">        Through calling method `calc_v_qa_v1` three times with the same inflow</span>
+<span class="sd">        and outflow values, the storage is emptied after the second step and</span>
+<span class="sd">        outflow is equal to inflow after the third step:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.calc_v_qa_v1()</span>
+<span class="sd">        &gt;&gt;&gt; aides.v</span>
+<span class="sd">        v(13600.0)</span>
+<span class="sd">        &gt;&gt;&gt; aides.qa</span>
+<span class="sd">        qa(6.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_v_qa_v1()</span>
+<span class="sd">        &gt;&gt;&gt; aides.v</span>
+<span class="sd">        v(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; aides.qa</span>
+<span class="sd">        qa(2.62963)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_v_qa_v1()</span>
+<span class="sd">        &gt;&gt;&gt; aides.v</span>
+<span class="sd">        v(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; aides.qa</span>
+<span class="sd">        qa(2.0)</span>
+
+<span class="sd">        Note that the results of method |Calc_V_QA_V1| are not based</span>
+<span class="sd">        depend on the (outer) simulation step size but on the (inner)</span>
+<span class="sd">        calculation step size defined by parameter `maxdt`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">llake_derived</span><span class="o">.</span><span class="n">NmbSubsteps</span><span class="p">,</span>
+        <span class="n">llake_derived</span><span class="o">.</span><span class="n">Seconds</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_fluxes</span><span class="o">.</span><span class="n">QZ</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">llake_aides</span><span class="o">.</span><span class="n">QA</span><span class="p">,</span>
+        <span class="n">llake_aides</span><span class="o">.</span><span class="n">V</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">aid</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">aides</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">aid</span><span class="o">.</span><span class="n">qa</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">qa</span><span class="p">,</span> <span class="n">flu</span><span class="o">.</span><span class="n">qz</span> <span class="o">+</span> <span class="n">der</span><span class="o">.</span><span class="n">nmbsubsteps</span> <span class="o">/</span> <span class="n">der</span><span class="o">.</span><span class="n">seconds</span> <span class="o">*</span> <span class="n">aid</span><span class="o">.</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">aid</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">aid</span><span class="o">.</span><span class="n">v</span> <span class="o">+</span> <span class="n">der</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="n">der</span><span class="o">.</span><span class="n">nmbsubsteps</span> <span class="o">*</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">qz</span> <span class="o">-</span> <span class="n">aid</span><span class="o">.</span><span class="n">qa</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Interp_W_V1"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_model.Interp_W_V1">[docs]</a><span class="k">class</span> <span class="nc">Interp_W_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the actual water stage based on linear interpolation.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Prepare a model object:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.llake import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+
+<span class="sd">        For the sake of brevity, define a test function:</span>
+
+<span class="sd">        &gt;&gt;&gt; def test(*vs):</span>
+<span class="sd">        ...     for v in vs:</span>
+<span class="sd">        ...         states.v.new = v</span>
+<span class="sd">        ...         model.interp_w_v1()</span>
+<span class="sd">        ...         print(repr(states.v), repr(states.w))</span>
+
+<span class="sd">        Define a simple `w`-`v` relationship consisting of three nodes and</span>
+<span class="sd">        calculate the water stages for different volumes:</span>
+
+<span class="sd">        &gt;&gt;&gt; n(3)</span>
+<span class="sd">        &gt;&gt;&gt; v(0., 2., 4.)</span>
+<span class="sd">        &gt;&gt;&gt; w(-1., 1., 2.)</span>
+
+<span class="sd">        Perform the interpolation for a few test points:</span>
+
+<span class="sd">        &gt;&gt;&gt; test(0., .5, 2., 3., 4., 5.)</span>
+<span class="sd">        v(0.0) w(-1.0)</span>
+<span class="sd">        v(0.5) w(-0.5)</span>
+<span class="sd">        v(2.0) w(1.0)</span>
+<span class="sd">        v(3.0) w(1.5)</span>
+<span class="sd">        v(4.0) w(2.0)</span>
+<span class="sd">        v(5.0) w(2.5)</span>
+
+<span class="sd">        The reference water stage of the relationship can be selected</span>
+<span class="sd">        arbitrarily.  Even negative water stages are returned, as is</span>
+<span class="sd">        demonstrated by the first two calculations.  For volumes outside</span>
+<span class="sd">        the range of the (`v`,`w`) pairs, the outer two highest pairs are</span>
+<span class="sd">        used for linear extrapolation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">llake_control</span><span class="o">.</span><span class="n">N</span><span class="p">,</span>
+        <span class="n">llake_control</span><span class="o">.</span><span class="n">V</span><span class="p">,</span>
+        <span class="n">llake_control</span><span class="o">.</span><span class="n">W</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_states</span><span class="o">.</span><span class="n">V</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_states</span><span class="o">.</span><span class="n">W</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="k">for</span> <span class="n">jdx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">con</span><span class="o">.</span><span class="n">n</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">con</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">jdx</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">new</span><span class="o">.</span><span class="n">v</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">v</span> <span class="o">-</span> <span class="n">con</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">jdx</span><span class="p">]</span> <span class="o">-</span> <span class="n">con</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="n">con</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">jdx</span><span class="p">]</span> <span class="o">-</span> <span class="n">con</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span> <span class="o">+</span> <span class="n">con</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Interp_V_V1"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_model.Interp_V_V1">[docs]</a><span class="k">class</span> <span class="nc">Interp_V_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the actual water volume based on linear interpolation.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Prepare a model object:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.llake import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+
+<span class="sd">        For the sake of brevity, define a test function:</span>
+
+<span class="sd">        &gt;&gt;&gt; def test(*ws):</span>
+<span class="sd">        ...     for w in ws:</span>
+<span class="sd">        ...         states.w.new = w</span>
+<span class="sd">        ...         model.interp_v_v1()</span>
+<span class="sd">        ...         print(repr(states.w), repr(states.v))</span>
+
+<span class="sd">        Define a simple `v`-`w` relationship consisting of three nodes and</span>
+<span class="sd">        calculate the water stages for different volumes:</span>
+
+<span class="sd">        &gt;&gt;&gt; n(3)</span>
+<span class="sd">        &gt;&gt;&gt; w(-1., 1., 2.)</span>
+<span class="sd">        &gt;&gt;&gt; v(0., 2., 4.)</span>
+
+<span class="sd">        Perform the interpolation for a few test points:</span>
+
+<span class="sd">        &gt;&gt;&gt; test(-1., -.5, 1., 1.5, 2., 2.5)</span>
+<span class="sd">        w(-1.0) v(0.0)</span>
+<span class="sd">        w(-0.5) v(0.5)</span>
+<span class="sd">        w(1.0) v(2.0)</span>
+<span class="sd">        w(1.5) v(3.0)</span>
+<span class="sd">        w(2.0) v(4.0)</span>
+<span class="sd">        w(2.5) v(5.0)</span>
+
+<span class="sd">        The reference water stage of the relationship can be selected</span>
+<span class="sd">        arbitrarily, hence even the negative water contained in the given</span>
+<span class="sd">        example is allowed.  For volumes outside the range of the (`w`,`v`)</span>
+<span class="sd">        pairs, the outer two highest pairs are used for linear extrapolation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">llake_control</span><span class="o">.</span><span class="n">N</span><span class="p">,</span>
+        <span class="n">llake_control</span><span class="o">.</span><span class="n">V</span><span class="p">,</span>
+        <span class="n">llake_control</span><span class="o">.</span><span class="n">W</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_states</span><span class="o">.</span><span class="n">W</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_states</span><span class="o">.</span><span class="n">V</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="k">for</span> <span class="n">jdx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">con</span><span class="o">.</span><span class="n">n</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">con</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">jdx</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">new</span><span class="o">.</span><span class="n">w</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">w</span> <span class="o">-</span> <span class="n">con</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">jdx</span><span class="p">]</span> <span class="o">-</span> <span class="n">con</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="n">con</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">jdx</span><span class="p">]</span> <span class="o">-</span> <span class="n">con</span><span class="o">.</span><span class="n">w</span><span class="p">[</span><span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span> <span class="o">+</span> <span class="n">con</span><span class="o">.</span><span class="n">v</span><span class="p">[</span><span class="n">jdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Corr_DW_V1"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_model.Corr_DW_V1">[docs]</a><span class="k">class</span> <span class="nc">Corr_DW_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Adjust the water stage drop to the highest value allowed and correct</span>
+<span class="sd">    the associated fluxes.</span>
+
+<span class="sd">    Note that method |Corr_DW_V1| calls the method `interp_v` of the</span>
+<span class="sd">    respective application model.  Hence the requirements of the actual</span>
+<span class="sd">    `interp_v` need to be considered additionally.</span>
+
+<span class="sd">    Basic Restriction:</span>
+<span class="sd">      :math:`W_{old} - W_{new} \\leq MaxDW`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        In preparation for the following examples, define a short simulation</span>
+<span class="sd">        time period with a simulation step size of 12 hours and initialize</span>
+<span class="sd">        the required model object:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000.01.01&quot;, &quot;2000.01.04&quot;, &quot;12h&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.llake import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.toy.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds.update()</span>
+
+<span class="sd">        Select the first half of the second day of January as the simulation</span>
+<span class="sd">        step relevant for the following examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = pub.timegrids.init[&quot;2000.01.02&quot;]</span>
+
+<span class="sd">        The following tests are based on method |Interp_V_V1| for the</span>
+<span class="sd">        interpolation of the stored water volume based on the corrected</span>
+<span class="sd">        water stage:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.interp_v = model.interp_v_v1</span>
+
+<span class="sd">        For the sake of simplicity, the underlying `w`-`v` relationship is</span>
+<span class="sd">        assumed to be linear:</span>
+
+<span class="sd">        &gt;&gt;&gt; n(2.)</span>
+<span class="sd">        &gt;&gt;&gt; w(0., 1.)</span>
+<span class="sd">        &gt;&gt;&gt; v(0., 1e6)</span>
+
+<span class="sd">        The maximum drop in water stage for the first half of the second</span>
+<span class="sd">        day of January is set to 0.4 m/d.  Note that, due to the difference</span>
+<span class="sd">        between the parameter step size and the simulation step size, the</span>
+<span class="sd">        actual value used for calculation is 0.2 m/12h:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxdw(_1_1_18=.1,</span>
+<span class="sd">        ...       _1_2_6=.4,</span>
+<span class="sd">        ...       _1_2_18=.1)</span>
+<span class="sd">        &gt;&gt;&gt; maxdw</span>
+<span class="sd">        maxdw(toy_1_1_18_0_0=0.1,</span>
+<span class="sd">              toy_1_2_6_0_0=0.4,</span>
+<span class="sd">              toy_1_2_18_0_0=0.1)</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(maxdw.value[2])</span>
+<span class="sd">        0.2</span>
+
+<span class="sd">        Define old and new water stages and volumes in agreement with the</span>
+<span class="sd">        given linear relationship:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.w.old = 1.</span>
+<span class="sd">        &gt;&gt;&gt; states.v.old = 1e6</span>
+<span class="sd">        &gt;&gt;&gt; states.w.new = .9</span>
+<span class="sd">        &gt;&gt;&gt; states.v.new = 9e5</span>
+
+<span class="sd">        Also define an inflow and an outflow value.  Note the that the latter</span>
+<span class="sd">        is set to zero, which is inconsistent with the actual water stage drop</span>
+<span class="sd">        defined above, but done for didactic reasons:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.qz = 1.</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qa = 0.</span>
+
+<span class="sd">        Calling the |Corr_DW_V1| method does not change the values of</span>
+<span class="sd">        either of following sequences, as the actual drop (0.1 m/12h) is</span>
+<span class="sd">        smaller than the allowed drop (0.2 m/12h):</span>
+
+<span class="sd">        &gt;&gt;&gt; model.corr_dw_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.w</span>
+<span class="sd">        w(0.9)</span>
+<span class="sd">        &gt;&gt;&gt; states.v</span>
+<span class="sd">        v(900000.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qa</span>
+<span class="sd">        qa(0.0)</span>
+
+<span class="sd">        Note that the values given above are not recalculated, which can</span>
+<span class="sd">        clearly be seen for the lake outflow, which is still zero.</span>
+
+<span class="sd">        Through setting the new value of the water stage to 0.6 m, the actual</span>
+<span class="sd">        drop (0.4 m/12h) exceeds the allowed drop (0.2 m/12h). Hence the</span>
+<span class="sd">        water stage is trimmed and the other values are recalculated:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.w.new = .6</span>
+<span class="sd">        &gt;&gt;&gt; model.corr_dw_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.w</span>
+<span class="sd">        w(0.8)</span>
+<span class="sd">        &gt;&gt;&gt; states.v</span>
+<span class="sd">        v(800000.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qa</span>
+<span class="sd">        qa(5.62963)</span>
+
+<span class="sd">        Through setting the maximum water stage drop to zero, method</span>
+<span class="sd">        |Corr_DW_V1| is effectively disabled.  Regardless of the actual</span>
+<span class="sd">        change in water stage, no trimming or recalculating is performed:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxdw.toy_01_02_06 = 0.</span>
+<span class="sd">        &gt;&gt;&gt; states.w.new = .6</span>
+<span class="sd">        &gt;&gt;&gt; model.corr_dw_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.w</span>
+<span class="sd">        w(0.6)</span>
+<span class="sd">        &gt;&gt;&gt; states.v</span>
+<span class="sd">        v(800000.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qa</span>
+<span class="sd">        qa(5.62963)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_control</span><span class="o">.</span><span class="n">MaxDW</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">llake_derived</span><span class="o">.</span><span class="n">TOY</span><span class="p">,</span>
+        <span class="n">llake_derived</span><span class="o">.</span><span class="n">Seconds</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_fluxes</span><span class="o">.</span><span class="n">QZ</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">llake_states</span><span class="o">.</span><span class="n">W</span><span class="p">,</span>
+        <span class="n">llake_states</span><span class="o">.</span><span class="n">V</span><span class="p">,</span>
+        <span class="n">llake_fluxes</span><span class="o">.</span><span class="n">QA</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_old</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">der</span><span class="o">.</span><span class="n">toy</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">idx_sim</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">maxdw</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">((</span><span class="n">old</span><span class="o">.</span><span class="n">w</span> <span class="o">-</span> <span class="n">new</span><span class="o">.</span><span class="n">w</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">con</span><span class="o">.</span><span class="n">maxdw</span><span class="p">[</span><span class="n">idx</span><span class="p">]):</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">w</span> <span class="o">=</span> <span class="n">old</span><span class="o">.</span><span class="n">w</span> <span class="o">-</span> <span class="n">con</span><span class="o">.</span><span class="n">maxdw</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">interp_v</span><span class="p">()</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">qa</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qz</span> <span class="o">+</span> <span class="p">(</span><span class="n">old</span><span class="o">.</span><span class="n">v</span> <span class="o">-</span> <span class="n">new</span><span class="o">.</span><span class="n">v</span><span class="p">)</span> <span class="o">/</span> <span class="n">der</span><span class="o">.</span><span class="n">seconds</span></div>
+
+
+<div class="viewcode-block" id="Modify_QA_V1"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_model.Modify_QA_V1">[docs]</a><span class="k">class</span> <span class="nc">Modify_QA_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add water to or remove water from the calculated lake outflow.</span>
+
+<span class="sd">    Basic Equation:</span>
+<span class="sd">      :math:`QA = QA* - Verzw`</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        In preparation for the following examples, define a short simulation</span>
+<span class="sd">        time period with a simulation step size of 12 hours and initialize</span>
+<span class="sd">        the required model object:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000.01.01&quot;, &quot;2000.01.04&quot;, &quot;12h&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.llake import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.toy.update()</span>
+
+<span class="sd">        Select the first half of the second day of January as the simulation</span>
+<span class="sd">        step relevant for the following examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = pub.timegrids.init[&quot;2000.01.02&quot;]</span>
+
+<span class="sd">        Assume that, in accordance with previous calculations, the original</span>
+<span class="sd">        outflow value is 3 m³/s:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.qa = 3.0</span>
+
+<span class="sd">        Prepare the shape of parameter `verzw` (usually, this is done</span>
+<span class="sd">        automatically when calling parameter `n`):</span>
+
+<span class="sd">        &gt;&gt;&gt; verzw.shape = (None,)</span>
+
+<span class="sd">        Set the value of the abstraction on the first half of the second</span>
+<span class="sd">        day of January to 2 m³/s:</span>
+
+<span class="sd">        &gt;&gt;&gt; verzw(_1_1_18=0.0,</span>
+<span class="sd">        ...       _1_2_6=2.0,</span>
+<span class="sd">        ...       _1_2_18=0.0)</span>
+
+<span class="sd">        In the first example `verzw` is simply subtracted from `qa`:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.modify_qa_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qa</span>
+<span class="sd">        qa(1.0)</span>
+
+<span class="sd">        In the second example `verzw` exceeds `qa`, resulting in a zero</span>
+<span class="sd">        outflow value:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.modify_qa_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qa</span>
+<span class="sd">        qa(0.0)</span>
+
+<span class="sd">        The last example demonstrates, that &quot;negative abstractions&quot; are</span>
+<span class="sd">        allowed, resulting in an increase in simulated outflow:</span>
+
+<span class="sd">        &gt;&gt;&gt; verzw.toy_1_2_6 = -2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.modify_qa_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qa</span>
+<span class="sd">        qa(2.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_control</span><span class="o">.</span><span class="n">Verzw</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_derived</span><span class="o">.</span><span class="n">TOY</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_fluxes</span><span class="o">.</span><span class="n">QA</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">der</span><span class="o">.</span><span class="n">toy</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">idx_sim</span><span class="p">]</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">qa</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">qa</span> <span class="o">-</span> <span class="n">con</span><span class="o">.</span><span class="n">verzw</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Pick_Q_V1"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_model.Pick_Q_V1">[docs]</a><span class="k">class</span> <span class="nc">Pick_Q_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Update the inlet link sequence.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`QZ = \\sum Q`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_inlets</span><span class="o">.</span><span class="n">Q</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_fluxes</span><span class="o">.</span><span class="n">QZ</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">inl</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">qz</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inl</span><span class="o">.</span><span class="n">len_q</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">qz</span> <span class="o">+=</span> <span class="n">inl</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Pass_Q_V1"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_model.Pass_Q_V1">[docs]</a><span class="k">class</span> <span class="nc">Pass_Q_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Update the outlet link sequence.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`Q = QA`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_fluxes</span><span class="o">.</span><span class="n">QA</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_outlets</span><span class="o">.</span><span class="n">Q</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qa</span></div>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_model.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base model for HydPy-L-Lake.&quot;&quot;&quot;</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Pick_Q_V1</span><span class="p">,)</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Solve_DV_DT_V1</span><span class="p">,</span>
+        <span class="n">Interp_W_V1</span><span class="p">,</span>
+        <span class="n">Corr_DW_V1</span><span class="p">,</span>
+        <span class="n">Modify_QA_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Interp_V_V1</span><span class="p">,</span>
+        <span class="n">Calc_VQ_V1</span><span class="p">,</span>
+        <span class="n">Interp_QA_V1</span><span class="p">,</span>
+        <span class="n">Calc_V_QA_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Pass_Q_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.llake.llake_model</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

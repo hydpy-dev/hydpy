@@ -1,0 +1,1937 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.objecttools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.objecttools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.objecttools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module implements tools to help to standardize the functionality</span>
+<span class="sd">of the different objects defined by the HydPy framework.&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span> <span class="nn">builtins</span>
+<span class="kn">import</span> <span class="nn">contextlib</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">numbers</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NoReturn</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TextIO</span>
+<span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Literal</span>  <span class="c1"># type: ignore[misc]</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span> <span class="nn">black</span>
+<span class="kn">import</span> <span class="nn">wrapt</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">typingtools</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">devicetools</span>
+
+
+<span class="n">_builtinnames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">dir</span><span class="p">(</span><span class="n">builtins</span><span class="p">))</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+<span class="n">T1</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T1&quot;</span><span class="p">)</span>
+<span class="n">T2</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T2&quot;</span><span class="p">)</span>
+<span class="n">T3</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T3&quot;</span><span class="p">)</span>
+<span class="n">ReprArg</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span>
+    <span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">,</span>
+    <span class="n">Iterable</span><span class="p">[</span><span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">],</span>
+    <span class="n">Iterable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">]],</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="dir_"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.dir_">[docs]</a><span class="k">def</span> <span class="nf">dir_</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;The prefered way for HydPy objects to respond to |dir|.</span>
+
+<span class="sd">    Note the depencence on the `pub.options.dirverbose`.  If this option is</span>
+<span class="sd">    set `True`, all attributes and methods of the given instance and its</span>
+<span class="sd">    class (including those inherited from the parent classes) are returned:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.dirverbose = True</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import dir_</span>
+<span class="sd">    &gt;&gt;&gt; class Test:</span>
+<span class="sd">    ...     only_public_attribute =  None</span>
+<span class="sd">    &gt;&gt;&gt; print(len(dir_(Test())) &gt; 1) # Long list, try it yourself...</span>
+<span class="sd">    True</span>
+
+<span class="sd">    If the option is set to `False`, only the `public` attributes and methods</span>
+<span class="sd">    (which do need begin with `_`) are returned:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.options.dirverbose = False</span>
+<span class="sd">    &gt;&gt;&gt; print(dir_(Test())) # Short list with one single entry...</span>
+<span class="sd">    [&#39;only_public_attribute&#39;]</span>
+
+<span class="sd">    If none of those does exists, |dir_| returns a list with a single string</span>
+<span class="sd">    containing a single empty space (which seems to work better for most</span>
+<span class="sd">    IDEs than returning an emtpy list):</span>
+
+<span class="sd">    &gt;&gt;&gt; del Test.only_public_attribute</span>
+<span class="sd">    &gt;&gt;&gt; print(dir_(Test()))</span>
+<span class="sd">    [&#39; &#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">thing</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getmro</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)),</span> <span class="p">(</span><span class="bp">self</span><span class="p">,)):</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">thing</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">dirverbose</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+                <span class="n">names</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">names</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s2">&quot; &quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="classname"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.classname">[docs]</a><span class="k">def</span> <span class="nf">classname</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return the class name of the given instance object or class.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import classname</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; classname(float)</span>
+<span class="sd">    &#39;float&#39;</span>
+<span class="sd">    &gt;&gt;&gt; classname(pub.options)</span>
+<span class="sd">    &#39;Options&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__name__</span>  <span class="c1"># type: ignore [attr-defined, no-any-return]</span>
+    <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span></div>
+
+
+<div class="viewcode-block" id="value_of_type"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.value_of_type">[docs]</a><span class="k">def</span> <span class="nf">value_of_type</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Returns a string containing both the informal string and the type</span>
+<span class="sd">    of the given value.</span>
+
+<span class="sd">    This function is intended to simplifying writing HydPy exceptions,</span>
+<span class="sd">    which frequently contain the following phrase:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import value_of_type</span>
+<span class="sd">    &gt;&gt;&gt; value_of_type(999)</span>
+<span class="sd">    &#39;value `999` of type `int`&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;value `</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">` of type `</span><span class="si">{</span><span class="n">classname</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">`&quot;</span></div>
+
+
+<div class="viewcode-block" id="modulename"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.modulename">[docs]</a><span class="k">def</span> <span class="nf">modulename</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return the module name of the given instance object.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import modulename</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; print(modulename(pub.options))</span>
+<span class="sd">    optiontools</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__module__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_search_device</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="s2">&quot;devicetools.Node&quot;</span><span class="p">,</span> <span class="s2">&quot;devicetools.Element&quot;</span><span class="p">]]:</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">devicetools</span>  <span class="c1"># pylint: disable=import-outside-toplevel</span>
+
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;node&quot;</span><span class="p">,</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;element&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="p">(</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">device</span>
+        <span class="k">for</span> <span class="n">test</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;model&quot;</span><span class="p">,</span> <span class="s2">&quot;seqs&quot;</span><span class="p">,</span> <span class="s2">&quot;pars&quot;</span><span class="p">,</span> <span class="s2">&quot;subvars&quot;</span><span class="p">):</span>
+            <span class="n">master</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">master</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span> <span class="o">=</span> <span class="n">master</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="devicename"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.devicename">[docs]</a><span class="k">def</span> <span class="nf">devicename</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Try to return the name of the (indirect) master |Node| or</span>
+<span class="sd">    |Element| instance, if not possible return `?`.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">    &gt;&gt;&gt; model = prepare_model(&quot;hland_v1&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import devicename</span>
+<span class="sd">    &gt;&gt;&gt; devicename(model)</span>
+<span class="sd">    &#39;?&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import Element</span>
+<span class="sd">    &gt;&gt;&gt; e1 = Element(&quot;e1&quot;, outlets=&quot;n1&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; e1.model = model</span>
+<span class="sd">    &gt;&gt;&gt; devicename(e1)</span>
+<span class="sd">    &#39;e1&#39;</span>
+<span class="sd">    &gt;&gt;&gt; devicename(model)</span>
+<span class="sd">    &#39;e1&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">_search_device</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;?&quot;</span>
+    <span class="k">return</span> <span class="n">device</span><span class="o">.</span><span class="n">name</span></div>
+
+
+<span class="k">def</span> <span class="nf">_devicephrase</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">objname</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">name_</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">_search_device</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">device</span> <span class="ow">and</span> <span class="n">objname</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">name_</span><span class="si">}</span><span class="s2">` of </span><span class="si">{</span><span class="n">objname</span><span class="si">}</span><span class="s2"> `</span><span class="si">{</span><span class="n">device</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">`&quot;</span>
+    <span class="k">if</span> <span class="n">objname</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">name_</span><span class="si">}</span><span class="s2">` of </span><span class="si">{</span><span class="n">objname</span><span class="si">}</span><span class="s2"> `?`&quot;</span>
+    <span class="k">if</span> <span class="n">device</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">name_</span><span class="si">}</span><span class="s2">` of </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2"> `</span><span class="si">{</span><span class="n">device</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">`&quot;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">name_</span><span class="si">}</span><span class="s2">`&quot;</span>
+
+
+<div class="viewcode-block" id="elementphrase"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.elementphrase">[docs]</a><span class="k">def</span> <span class="nf">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return the phrase used in exception messages to indicate</span>
+<span class="sd">    which |Element| is affected.</span>
+
+<span class="sd">    &gt;&gt;&gt; class Model:</span>
+<span class="sd">    ...     pass</span>
+<span class="sd">    &gt;&gt;&gt; model = Model()</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import elementphrase</span>
+<span class="sd">    &gt;&gt;&gt; elementphrase(model)</span>
+<span class="sd">    &#39;`model` of element `?`&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; model.name = &quot;test&quot;</span>
+<span class="sd">    &gt;&gt;&gt; elementphrase(model)</span>
+<span class="sd">    &#39;`test` of element `?`&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import Element</span>
+<span class="sd">    &gt;&gt;&gt; model.element = Element(&quot;e1&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; elementphrase(model)</span>
+<span class="sd">    &#39;`test` of element `e1`&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_devicephrase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;element&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="nodephrase"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.nodephrase">[docs]</a><span class="k">def</span> <span class="nf">nodephrase</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return the phrase used in exception messages to indicate</span>
+<span class="sd">    which |Node| is affected.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.sequencetools import Sequences</span>
+<span class="sd">    &gt;&gt;&gt; sequences = Sequences(None)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import nodephrase</span>
+<span class="sd">    &gt;&gt;&gt; nodephrase(sequences)</span>
+<span class="sd">    &#39;`sequences` of node `?`&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; sequences.name = &quot;test&quot;</span>
+<span class="sd">    &gt;&gt;&gt; nodephrase(sequences)</span>
+<span class="sd">    &#39;`test` of node `?`&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import Node</span>
+<span class="sd">    &gt;&gt;&gt; n1 = Node(&quot;n1&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nodephrase(n1.sequences.sim)</span>
+<span class="sd">    &#39;`sim` of node `n1`&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_devicephrase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;node&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="devicephrase"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.devicephrase">[docs]</a><span class="k">def</span> <span class="nf">devicephrase</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Try to return the phrase used in exception messages to</span>
+<span class="sd">    indicate which |Element| or which |Node| is affected.</span>
+<span class="sd">    If not possible, return just the name of the given object.</span>
+
+<span class="sd">    &gt;&gt;&gt; class Model:</span>
+<span class="sd">    ...     name = &quot;test&quot;</span>
+<span class="sd">    &gt;&gt;&gt; model = Model()</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import devicephrase</span>
+<span class="sd">    &gt;&gt;&gt; devicephrase(model)</span>
+<span class="sd">    &#39;`test`&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import Element</span>
+<span class="sd">    &gt;&gt;&gt; model.element = Element(&quot;e1&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; devicephrase(model)</span>
+<span class="sd">    &#39;`test` of element `e1`&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import Node</span>
+<span class="sd">    &gt;&gt;&gt; n1 = Node(&quot;n1&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; devicephrase(n1.sequences.sim)</span>
+<span class="sd">    &#39;`sim` of node `n1`&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_devicephrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="valid_variable_identifier"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.valid_variable_identifier">[docs]</a><span class="k">def</span> <span class="nf">valid_variable_identifier</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Raises an |ValueError| if the given name is not a valid Python</span>
+<span class="sd">    identifier.</span>
+
+<span class="sd">    For example, the string `test_1` (with underscore) is valid...</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import valid_variable_identifier</span>
+<span class="sd">    &gt;&gt;&gt; valid_variable_identifier(&quot;test_1&quot;)</span>
+
+<span class="sd">    ...but the string `test 1` (with white space) is not:</span>
+
+<span class="sd">    &gt;&gt;&gt; valid_variable_identifier(&quot;test 1&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The given name string `test 1` does not define a valid \</span>
+<span class="sd">variable identifier.  Valid identifiers do not contain characters like \</span>
+<span class="sd">`-` or empty spaces, do not start with numbers, cannot be mistaken with \</span>
+<span class="sd">Python built-ins like `for`...)</span>
+
+<span class="sd">    Also, names of Python built ins are not allowed:</span>
+
+<span class="sd">    &gt;&gt;&gt; valid_variable_identifier(&quot;print&quot;)   # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The given name string `print` does not define...</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">string</span> <span class="ow">in</span> <span class="n">_builtinnames</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">string</span><span class="o">.</span><span class="n">isidentifier</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The given name string `</span><span class="si">{</span><span class="n">string</span><span class="si">}</span><span class="s2">` does not define a valid &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;variable identifier.  Valid identifiers do not contain &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;characters like `-` or empty spaces, do not start with &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;numbers, cannot be mistaken with Python built-ins like &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;`for`...)&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="augment_excmessage"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.augment_excmessage">[docs]</a><span class="k">def</span> <span class="nf">augment_excmessage</span><span class="p">(</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">suffix</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Augment an exception message with additional information while keeping</span>
+<span class="sd">    the original traceback.</span>
+
+<span class="sd">    You can prefix and/or suffix text.  If you prefix something (which happens</span>
+<span class="sd">    much more often in the HydPy framework), the sub-clause &#39;, the following</span>
+<span class="sd">    error occurred:&#39; is automatically included:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core import objecttools</span>
+<span class="sd">    &gt;&gt;&gt; import textwrap</span>
+<span class="sd">    &gt;&gt;&gt; try:</span>
+<span class="sd">    ...     1 + &quot;1&quot;</span>
+<span class="sd">    ... except BaseException:</span>
+<span class="sd">    ...     prefix = &quot;While showing how prefixing works&quot;</span>
+<span class="sd">    ...     suffix = &quot;(This is a final remark.)&quot;</span>
+<span class="sd">    ...     objecttools.augment_excmessage(prefix, suffix)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While showing how prefixing works, the following error \</span>
+<span class="sd">occurred: unsupported operand type(s) for +: &#39;int&#39; and &#39;str&#39; \</span>
+<span class="sd">(This is a final remark.)</span>
+
+<span class="sd">    Some exceptions derived by site-packages do not support exception</span>
+<span class="sd">    chaining due to requiring multiple initialisation arguments.</span>
+<span class="sd">    In such cases, |augment_excmessage| generates an exception with the</span>
+<span class="sd">    same name on the fly and raises it afterwards:</span>
+
+<span class="sd">    &gt;&gt;&gt; class WrongError(BaseException):</span>
+<span class="sd">    ...     def __init__(self, arg1, arg2):</span>
+<span class="sd">    ...         pass</span>
+<span class="sd">    &gt;&gt;&gt; try:</span>
+<span class="sd">    ...     raise WrongError(&quot;info 1&quot;, &quot;info 2&quot;)</span>
+<span class="sd">    ... except BaseException:</span>
+<span class="sd">    ...     objecttools.augment_excmessage(&quot;While showing how prefixing works&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.objecttools.WrongError: While showing how prefixing works, \</span>
+<span class="sd">the following error occurred: (&#39;info 1&#39;, &#39;info 2&#39;)</span>
+
+<span class="sd">    Never use function |augment_excmessage| outside except clauses:</span>
+
+<span class="sd">    &gt;&gt;&gt; objecttools.augment_excmessage(&quot;While trying to do something&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: No exception available.  (Call function `augment_excmessage` \</span>
+<span class="sd">only inside except clauses.)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">exc_old</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">exc_old</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;No exception available.  (Call function `augment_excmessage` &quot;</span>
+            <span class="s2">&quot;only inside except clauses.)&quot;</span>
+        <span class="p">)</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc_old</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">prefix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">, the following error occurred: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">if</span> <span class="n">suffix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">suffix</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">exc_new</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">exc_old</span><span class="p">)(</span><span class="n">message</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="n">exc_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">exc_old</span><span class="p">))</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">exc_type</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">exc_name</span><span class="p">,</span> <span class="p">(</span><span class="ne">BaseException</span><span class="p">,),</span> <span class="p">{})</span>
+        <span class="n">exc_type</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">=</span> <span class="n">exc_old</span><span class="o">.</span><span class="vm">__module__</span>
+        <span class="k">raise</span> <span class="n">exc_type</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">exc_old</span>
+    <span class="k">raise</span> <span class="n">exc_new</span> <span class="kn">from</span> <span class="nn">exc_old</span></div>
+
+
+<span class="n">F</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="decorator"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.decorator">[docs]</a><span class="k">def</span> <span class="nf">decorator</span><span class="p">(</span><span class="n">wrapper</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">F</span><span class="p">],</span> <span class="n">F</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Function |decorator| adds type hints to function `decorator` of the</span>
+<span class="sd">    site-package `wrapt` without changing its functionality.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">Callable</span><span class="p">[[</span><span class="n">F</span><span class="p">],</span> <span class="n">F</span><span class="p">],</span> <span class="n">wrapt</span><span class="o">.</span><span class="n">decorator</span><span class="p">(</span><span class="n">wrapper</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="excmessage_decorator"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.excmessage_decorator">[docs]</a><span class="k">def</span> <span class="nf">excmessage_decorator</span><span class="p">(</span><span class="n">description_</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">F</span><span class="p">],</span> <span class="n">F</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Wrap a function with |augment_excmessage|.</span>
+
+<span class="sd">    Function |excmessage_decorator| is a means to apply function</span>
+<span class="sd">    |augment_excmessage| more efficiently.  Suppose you would apply</span>
+<span class="sd">    function |augment_excmessage| in a function that adds and returns</span>
+<span class="sd">    to numbers:</span>
+
+<span class="sd">    &gt;&gt;&gt; from  hydpy.core import objecttools</span>
+<span class="sd">    &gt;&gt;&gt; def add(x, y):</span>
+<span class="sd">    ...     try:</span>
+<span class="sd">    ...         return x + y</span>
+<span class="sd">    ...     except BaseException:</span>
+<span class="sd">    ...         objecttools.augment_excmessage(&quot;While trying to add `x` and `y`&quot;)</span>
+
+<span class="sd">    This works as excepted...</span>
+
+<span class="sd">    &gt;&gt;&gt; add(1, 2)</span>
+<span class="sd">    3</span>
+<span class="sd">    &gt;&gt;&gt; add(1, [])</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to add `x` and `y`, the following error \</span>
+<span class="sd">occurred: unsupported operand type(s) for +: &#39;int&#39; and &#39;list&#39;</span>
+
+<span class="sd">    ...but can be achieved with much less code using |excmessage_decorator|:</span>
+
+<span class="sd">    &gt;&gt;&gt; @objecttools.excmessage_decorator(&quot;add `x` and `y`&quot;)</span>
+<span class="sd">    ... def add(x, y):</span>
+<span class="sd">    ...     return x+y</span>
+
+<span class="sd">    &gt;&gt;&gt; add(1, 2)</span>
+<span class="sd">    3</span>
+
+<span class="sd">    &gt;&gt;&gt; add(1, [])</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to add `x` and `y`, the following error \</span>
+<span class="sd">occurred: unsupported operand type(s) for +: &#39;int&#39; and &#39;list&#39;</span>
+
+<span class="sd">    Additionally, exception messages related to wrong function calls</span>
+<span class="sd">    are now also augmented:</span>
+
+<span class="sd">    &gt;&gt;&gt; add(1)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to add `x` and `y`, the following error \</span>
+<span class="sd">occurred: add() missing 1 required positional argument: &#39;y&#39;</span>
+
+<span class="sd">    |excmessage_decorator| evaluates the given string like an f-string,</span>
+<span class="sd">    allowing to mention the argument values of the called function and</span>
+<span class="sd">    to make use of all string modification functions provided by modules</span>
+<span class="sd">    |objecttools|:</span>
+
+<span class="sd">    &gt;&gt;&gt; @objecttools.excmessage_decorator(</span>
+<span class="sd">    ...     &quot;add `x` ({repr_(x, 2)}) and `y` ({repr_(y, 2)})&quot;)</span>
+<span class="sd">    ... def add(x, y):</span>
+<span class="sd">    ...     return x+y</span>
+
+<span class="sd">    &gt;&gt;&gt; add(1.1111, &quot;wrong&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to add `x` (1.11) and `y` (wrong), the following \</span>
+<span class="sd">error occurred: unsupported operand type(s) for +: &#39;float&#39; and &#39;str&#39;</span>
+<span class="sd">    &gt;&gt;&gt; add(1)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to add `x` (1) and `y` (?), the following error \</span>
+<span class="sd">occurred: add() missing 1 required positional argument: &#39;y&#39;</span>
+<span class="sd">    &gt;&gt;&gt; add(y=1)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to add `x` (?) and `y` (1), the following error \</span>
+<span class="sd">occurred: add() missing 1 required positional argument: &#39;x&#39;</span>
+
+<span class="sd">    Apply |excmessage_decorator| on methods also works fine:</span>
+
+<span class="sd">    &gt;&gt;&gt; class Adder:</span>
+<span class="sd">    ...     def __init__(self):</span>
+<span class="sd">    ...         self.value = 0</span>
+<span class="sd">    ...     @objecttools.excmessage_decorator(</span>
+<span class="sd">    ...         &quot;add an instance of class `{classname(self)}` with value &quot;</span>
+<span class="sd">    ...         &quot;`{repr_(other, 2)}` of type `{classname(other)}`&quot;)</span>
+<span class="sd">    ...     def __iadd__(self, other):</span>
+<span class="sd">    ...         self.value += other</span>
+<span class="sd">    ...         return self</span>
+
+<span class="sd">    &gt;&gt;&gt; adder = Adder()</span>
+<span class="sd">    &gt;&gt;&gt; adder += 1</span>
+<span class="sd">    &gt;&gt;&gt; adder.value</span>
+<span class="sd">    1</span>
+<span class="sd">    &gt;&gt;&gt; adder += &quot;wrong&quot;</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to add an instance of class `Adder` with value \</span>
+<span class="sd">`wrong` of type `str`, the following error occurred: unsupported operand \</span>
+<span class="sd">type(s) for +=: &#39;int&#39; and &#39;str&#39;</span>
+
+<span class="sd">    It is made sure that no information of the decorated function is lost:</span>
+
+<span class="sd">    &gt;&gt;&gt; add.__name__</span>
+<span class="sd">    &#39;add&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@wrapt</span><span class="o">.</span><span class="n">decorator</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="n">wrapped</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore[no-untyped-def]</span>
+        <span class="sd">&quot;&quot;&quot;Apply |augment_excmessage| when the wrapped function fails.&quot;&quot;&quot;</span>
+        <span class="c1"># pylint: disable=unused-argument</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">wrapped</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;self&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">instance</span>
+            <span class="n">argnames</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getfullargspec</span><span class="p">(</span><span class="n">wrapped</span><span class="p">)</span><span class="o">.</span><span class="n">args</span>
+            <span class="k">if</span> <span class="n">argnames</span> <span class="ow">and</span> <span class="p">(</span><span class="n">argnames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;self&quot;</span><span class="p">):</span>
+                <span class="n">argnames</span> <span class="o">=</span> <span class="n">argnames</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="k">for</span> <span class="n">argname</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">argnames</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+                <span class="n">info</span><span class="p">[</span><span class="n">argname</span><span class="p">]</span> <span class="o">=</span> <span class="n">arg</span>
+            <span class="k">for</span> <span class="n">argname</span> <span class="ow">in</span> <span class="n">argnames</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">argname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+                    <span class="n">info</span><span class="p">[</span><span class="n">argname</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;?&quot;</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;f&#39;While trying to </span><span class="si">{</span><span class="n">description_</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">,</span> <span class="nb">globals</span><span class="p">(),</span> <span class="n">info</span><span class="p">)</span>
+            <span class="n">augment_excmessage</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">Callable</span><span class="p">[[</span><span class="n">F</span><span class="p">],</span> <span class="n">F</span><span class="p">],</span> <span class="n">wrapper</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ResetAttrFuncs"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.ResetAttrFuncs">[docs]</a><span class="k">class</span> <span class="nc">ResetAttrFuncs</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Reset all attribute related methods of the given class temporarily.</span>
+
+<span class="sd">    The &quot;related methods&quot; are defined in class attribute</span>
+<span class="sd">    |ResetAttrFuncs.funcnames|.</span>
+
+<span class="sd">    There are (at least) two use cases for  class |ResetAttrFuncs|,</span>
+<span class="sd">    initialization and copying, which are described below.</span>
+
+<span class="sd">    In HydPy, some classes define a `__setattr__` method which raises</span>
+<span class="sd">    exceptions when one tries to set &quot;improper&quot; instance attributes.</span>
+<span class="sd">    The problem is, that such customized `setattr` methods often prevent</span>
+<span class="sd">    from defining instance attributes within `__init__` methods in the</span>
+<span class="sd">    usual manner.  Working on instance dictionaries instead can confuse</span>
+<span class="sd">    some automatic tools (e.g. pylint).  Class |ResetAttrFuncs|</span>
+<span class="sd">    implements a trick to circumvent this problem.</span>
+
+<span class="sd">    To show how |ResetAttrFuncs| works, we first define a class</span>
+<span class="sd">    with a `__setattr__` method that does not allow to set any attribute:</span>
+
+<span class="sd">    &gt;&gt;&gt; class Test:</span>
+<span class="sd">    ...     def __setattr__(self, name, value):</span>
+<span class="sd">    ...         raise AttributeError</span>
+<span class="sd">    &gt;&gt;&gt; test = Test()</span>
+<span class="sd">    &gt;&gt;&gt; test.var1 = 1</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError</span>
+
+<span class="sd">    Assigning this class to |ResetAttrFuncs| allows for setting</span>
+<span class="sd">    attributes to all its instances inside a `with` block in the</span>
+<span class="sd">    usual manner:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import ResetAttrFuncs</span>
+<span class="sd">    &gt;&gt;&gt; with ResetAttrFuncs(test):</span>
+<span class="sd">    ...     test.var1 = 1</span>
+<span class="sd">    &gt;&gt;&gt; test.var1</span>
+<span class="sd">    1</span>
+
+<span class="sd">    After the end of the `with` block, the custom `__setattr__` method</span>
+<span class="sd">    of the test class works again and prevents from setting attributes:</span>
+
+<span class="sd">    &gt;&gt;&gt; test.var2 = 2</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError</span>
+
+<span class="sd">    The second use case is related to method `__getattr__` and copying.</span>
+<span class="sd">    The following test class stores its attributes (for whatever reasons)</span>
+<span class="sd">    in a special dictionary called &quot;dic&quot; (note that how</span>
+<span class="sd">    |ResetAttrFuncs| is used in the `__init__` method):</span>
+
+<span class="sd">    &gt;&gt;&gt; class Test:</span>
+<span class="sd">    ...     def __init__(self):</span>
+<span class="sd">    ...         with ResetAttrFuncs(self):</span>
+<span class="sd">    ...             self.dic = {}</span>
+<span class="sd">    ...     def __setattr__(self, name, value):</span>
+<span class="sd">    ...         self.dic[name] = value</span>
+<span class="sd">    ...     def __getattr__(self, name):</span>
+<span class="sd">    ...         try:</span>
+<span class="sd">    ...             return self.dic[name]</span>
+<span class="sd">    ...         except KeyError:</span>
+<span class="sd">    ...             raise AttributeError</span>
+
+<span class="sd">    Principally, this simple implementation does its job but its</span>
+<span class="sd">    instances are not easily copyable under all Python versions:</span>
+
+<span class="sd">    &gt;&gt;&gt; test = Test()</span>
+<span class="sd">    &gt;&gt;&gt; test.var1 = 1</span>
+<span class="sd">    &gt;&gt;&gt; test.var1</span>
+<span class="sd">    1</span>
+<span class="sd">    &gt;&gt;&gt; import copy</span>
+<span class="sd">    &gt;&gt;&gt; copy.deepcopy(test)   # doctest: +SKIP</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RecursionError: maximum recursion depth exceeded ...</span>
+
+<span class="sd">    |ResetAttrFuncs| can be used to implement specialized</span>
+<span class="sd">    `__copy__` and `__deepcopy__` methods, which rely on the temporary</span>
+<span class="sd">    disabling of `__getattr__`.  For simple cases, one can import the</span>
+<span class="sd">    predefined functions |copy_| and |deepcopy_|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import copy_, deepcopy_</span>
+<span class="sd">    &gt;&gt;&gt; Test.__copy__ = copy_</span>
+<span class="sd">    &gt;&gt;&gt; test2 = copy.copy(test)</span>
+<span class="sd">    &gt;&gt;&gt; test2.var1</span>
+<span class="sd">    1</span>
+<span class="sd">    &gt;&gt;&gt; Test.__deepcopy__ = deepcopy_</span>
+<span class="sd">    &gt;&gt;&gt; test3 = copy.deepcopy(test)</span>
+<span class="sd">    &gt;&gt;&gt; test3.var1</span>
+<span class="sd">    1</span>
+
+<span class="sd">    Note that an infinite recursion is avoided by also disabling methods</span>
+<span class="sd">    `__copy__` and `__deepcopy__` themselves.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;cls&quot;</span><span class="p">,</span> <span class="s2">&quot;name2func&quot;</span><span class="p">)</span>
+    <span class="n">funcnames</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;__getattr__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__setattr__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__delattr__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__copy__&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;__deepcopy__&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name2func</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">funcnames</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cls</span><span class="p">,</span> <span class="n">name_</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name2func</span><span class="p">[</span><span class="n">name_</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cls</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name_</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ResetAttrFuncs&quot;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">name_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">name2func</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name_</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;__setattr__&quot;</span><span class="p">,</span> <span class="s2">&quot;__delattr__&quot;</span><span class="p">):</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cls</span><span class="p">,</span> <span class="n">name_</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="n">name_</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">name_</span> <span class="o">==</span> <span class="s2">&quot;__getattr__&quot;</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cls</span><span class="p">,</span> <span class="n">name_</span><span class="p">,</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cls</span><span class="p">,</span> <span class="n">name_</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">exception_type</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span>
+        <span class="n">exception_value</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">,</span>
+        <span class="n">traceback_</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">TracebackType</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">name_</span><span class="p">,</span> <span class="n">func</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">name2func</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">func</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cls</span><span class="p">,</span> <span class="n">name_</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cls</span><span class="p">,</span> <span class="n">name_</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="copy_"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.copy_">[docs]</a><span class="k">def</span> <span class="nf">copy_</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Copy function for classes with modified attribute functions.</span>
+
+<span class="sd">    See the documentation on class |ResetAttrFuncs| for further information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">ResetAttrFuncs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="deepcopy_"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.deepcopy_">[docs]</a><span class="k">def</span> <span class="nf">deepcopy_</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="n">T</span><span class="p">,</span> <span class="n">memo</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">object</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Deepcopy function for classes with modified attribute functions.</span>
+
+<span class="sd">    See the documentation on class |ResetAttrFuncs| for further information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">ResetAttrFuncs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memo</span><span class="p">)</span>  <span class="c1"># type: ignore [return-value]  # ???</span></div>
+
+
+<span class="k">class</span> <span class="nc">_PreserveStrings</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Helper class for |_Repr_|.&quot;&quot;&quot;</span>
+
+    <span class="n">newvalue</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">oldvalue</span><span class="p">:</span> <span class="nb">bool</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preserve_strings</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">newvalue</span> <span class="o">=</span> <span class="n">preserve_strings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oldvalue</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">repr_</span><span class="p">,</span> <span class="s2">&quot;_preserve_strings&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">repr_</span><span class="p">,</span> <span class="s2">&quot;_preserve_strings&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">newvalue</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">exception_type</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span>
+        <span class="n">exception_value</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">,</span>
+        <span class="n">traceback</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">TracebackType</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">repr_</span><span class="p">,</span> <span class="s2">&quot;_preserve_strings&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">oldvalue</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_Repr</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Modifies |repr| for strings and floats, mainly for supporting</span>
+<span class="sd">    clean float and path representations that are compatible with |doctest|.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_preserve_strings</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">decimals</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">decimals</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">decimals</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_preserve_strings</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">string</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
+            <span class="k">return</span> <span class="n">string</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Real</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Integral</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">decimals</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">string</span> <span class="o">=</span> <span class="s2">&quot;{0:.</span><span class="si">{1}</span><span class="s2">f}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">decimals</span><span class="p">)</span>
+                <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">string</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
+                    <span class="n">string</span> <span class="o">+=</span> <span class="s2">&quot;0&quot;</span>
+                <span class="k">if</span> <span class="n">string</span> <span class="o">==</span> <span class="s2">&quot;-0.0&quot;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="s2">&quot;0.0&quot;</span>
+                <span class="k">return</span> <span class="n">string</span>
+        <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">preserve_strings</span><span class="p">(</span><span class="n">preserve_strings</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_PreserveStrings</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Change the `preserve_string` option inside a with block.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_PreserveStrings</span><span class="p">(</span><span class="n">preserve_strings</span><span class="p">)</span>
+
+
+<span class="n">repr_</span> <span class="o">=</span> <span class="n">_Repr</span><span class="p">()</span>
+<span class="sa">r</span><span class="sd">&quot;&quot;&quot;Modifies |repr| for strings and floats, mainly for supporting</span>
+<span class="sd">clean float and path representations that are compatible with |doctest|.</span>
+
+<span class="sd">Use the already available instance `repr_` instead of initialising</span>
+<span class="sd">a new |Repr_| object.</span>
+
+<span class="sd">When value is a string, it is returned without any modification,</span>
+<span class="sd">except that the path separator &quot;\&quot; (Windows) is replaced with &quot;/&quot;</span>
+<span class="sd">(Linux):</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.core.objecttools import repr_</span>
+
+<span class="sd">&gt;&gt;&gt; print(r&quot;directory\file&quot;)</span>
+<span class="sd">directory\file</span>
+<span class="sd">&gt;&gt;&gt; print(repr(r&quot;directory\file&quot;))</span>
+<span class="sd">&#39;directory\\file&#39;</span>
+<span class="sd">&gt;&gt;&gt; print(repr_(r&quot;directory\file&quot;))</span>
+<span class="sd">directory/file</span>
+
+<span class="sd">You can change this behaviour of function object |repr|,</span>
+<span class="sd">when necessary:</span>
+
+<span class="sd">&gt;&gt;&gt; with repr_.preserve_strings(True):</span>
+<span class="sd">...     print(repr_(r&quot;directory\file&quot;))</span>
+<span class="sd">&quot;directory/file&quot;</span>
+
+<span class="sd">Behind the with block, |repr_| works as before</span>
+<span class="sd">(even in case of an error):</span>
+
+<span class="sd">&gt;&gt;&gt; print(repr_(r&quot;directory\file&quot;))</span>
+<span class="sd">directory/file</span>
+
+<span class="sd">When value is a float, the result depends on how the option</span>
+<span class="sd">|Options.reprdigits| is set.  Without defining a special value,</span>
+<span class="sd">|repr| defines the number of digits in the usual, system dependent</span>
+<span class="sd">manner:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">&gt;&gt;&gt; del pub.options.reprdigits</span>
+<span class="sd">&gt;&gt;&gt; repr(1./3.) == repr_(1./3.)</span>
+<span class="sd">True</span>
+
+<span class="sd">Through setting |Options.reprdigits| to a positive integer value,</span>
+<span class="sd">one defines the maximum number of decimal places, which allows for</span>
+<span class="sd">doctesting across different systems and Python versions:</span>
+
+<span class="sd">&gt;&gt;&gt; pub.options.reprdigits = 6</span>
+<span class="sd">&gt;&gt;&gt; repr_(1./3.)</span>
+<span class="sd">&#39;0.333333&#39;</span>
+<span class="sd">&gt;&gt;&gt; repr_(2./3.)</span>
+<span class="sd">&#39;0.666667&#39;</span>
+<span class="sd">&gt;&gt;&gt; repr_(1./2.)</span>
+<span class="sd">&#39;0.5&#39;</span>
+
+<span class="sd">Changing the number of decimal places can be done via a with block:</span>
+
+<span class="sd">&gt;&gt;&gt; with pub.options.reprdigits(3):</span>
+<span class="sd">...     print(repr_(1./3.))</span>
+<span class="sd">0.333</span>
+
+<span class="sd">Such a change is only temporary (even in case of an error):</span>
+<span class="sd">&gt;&gt;&gt; repr_(1./3.)</span>
+<span class="sd">&#39;0.333333&#39;</span>
+
+<span class="sd">|repr| can also be applied on numpy&#39;s float types:</span>
+
+<span class="sd">&gt;&gt;&gt; import numpy</span>
+<span class="sd">&gt;&gt;&gt; repr_(numpy.float(1./3.))</span>
+<span class="sd">&#39;0.333333&#39;</span>
+<span class="sd">&gt;&gt;&gt; repr_(numpy.float64(1./3.))</span>
+<span class="sd">&#39;0.333333&#39;</span>
+<span class="sd">&gt;&gt;&gt; repr_(numpy.float32(1./3.))</span>
+<span class="sd">&#39;0.333333&#39;</span>
+<span class="sd">&gt;&gt;&gt; repr_(numpy.float16(1./3.))</span>
+<span class="sd">&#39;0.333252&#39;</span>
+
+<span class="sd">Note that the deviation from the `true` result in the last example is due</span>
+<span class="sd">to the low precision of |numpy.float16|.</span>
+
+<span class="sd">On all types not mentioned above, the usual |repr| function is</span>
+<span class="sd">applied, e.g.:</span>
+
+<span class="sd">&gt;&gt;&gt; repr([1, 2, 3])</span>
+<span class="sd">&#39;[1, 2, 3]&#39;</span>
+<span class="sd">&gt;&gt;&gt; repr_([1, 2, 3])</span>
+<span class="sd">&#39;[1, 2, 3]&#39;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="repr_values"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.repr_values">[docs]</a><span class="k">def</span> <span class="nf">repr_values</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return comma separated representations of the given values using</span>
+<span class="sd">    function |repr_|.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import repr_values</span>
+<span class="sd">    &gt;&gt;&gt; repr_values([1.0/1.0, 1.0/2.0, 1.0/3.0])</span>
+<span class="sd">    &#39;1.0, 0.5, 0.333333&#39;</span>
+
+<span class="sd">    Note that the returned string is not wrapped.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">repr_</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="repr_numbers"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.repr_numbers">[docs]</a><span class="k">def</span> <span class="nf">repr_numbers</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">ReprArg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return comma separated representations of the given numbers using</span>
+<span class="sd">    function |repr_|.</span>
+
+<span class="sd">    Currently, function |repr_numbers| can handle scalar values,</span>
+<span class="sd">    1-dimensional vectors, and 2-dimensional matrices:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import repr_numbers</span>
+<span class="sd">    &gt;&gt;&gt; repr_numbers(1.0/3.0)</span>
+<span class="sd">    &#39;0.333333&#39;</span>
+<span class="sd">    &gt;&gt;&gt; repr_numbers([1.0/1.0, 1.0/2.0, 1.0/3.0])</span>
+<span class="sd">    &#39;1.0, 0.5, 0.333333&#39;</span>
+<span class="sd">    &gt;&gt;&gt; repr_numbers([[1.0/1.0, 1.0/2.0, 1.0/3.0], [1.0/4.0, 1.0/5.0, 1.0/6.0]])</span>
+<span class="sd">    &#39;1.0, 0.5, 0.333333; 0.25, 0.2, 0.166667&#39;</span>
+
+<span class="sd">    Note that the returned string is not wrapped.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">repr_</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ndim</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">repr_</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">repr_</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">))</span>
+            <span class="n">ndim</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="print_values"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.print_values">[docs]</a><span class="k">def</span> <span class="nf">print_values</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">],</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">70</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Print the given values in multiple lines with a certain maximum width.</span>
+
+<span class="sd">    By default, each line contains at most 70 characters:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import print_values</span>
+<span class="sd">    &gt;&gt;&gt; print_values(range(21))</span>
+<span class="sd">    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,</span>
+<span class="sd">    20</span>
+
+<span class="sd">    You can change this default behaviour by passing an alternative</span>
+<span class="sd">    number of characters:</span>
+
+<span class="sd">    &gt;&gt;&gt; print_values(range(21), width=30)</span>
+<span class="sd">    0, 1, 2, 3, 4, 5, 6, 7, 8, 9,</span>
+<span class="sd">    10, 11, 12, 13, 14, 15, 16,</span>
+<span class="sd">    17, 18, 19, 20</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">repr_values</span><span class="p">(</span><span class="n">values</span><span class="p">),</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+        <span class="n">break_long_words</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="repr_tuple"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.repr_tuple">[docs]</a><span class="k">def</span> <span class="nf">repr_tuple</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a tuple representation of the given values using function</span>
+<span class="sd">    |repr|.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import repr_tuple</span>
+<span class="sd">    &gt;&gt;&gt; repr_tuple([1./1., 1./2., 1./3.])</span>
+<span class="sd">    &#39;(1.0, 0.5, 0.333333)&#39;</span>
+
+<span class="sd">    Note that the returned string is not wrapped.</span>
+
+<span class="sd">    In the special case of an iterable with only one entry, the returned</span>
+<span class="sd">    string is still a valid tuple:</span>
+
+<span class="sd">    &gt;&gt;&gt; repr_tuple([1.])</span>
+<span class="sd">    &#39;(1.0,)&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">values</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">repr_values</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">,)&quot;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">repr_values</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+
+
+<div class="viewcode-block" id="repr_list"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.repr_list">[docs]</a><span class="k">def</span> <span class="nf">repr_list</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a list representation of the given values using function</span>
+<span class="sd">    |repr|.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import repr_list</span>
+<span class="sd">    &gt;&gt;&gt; repr_list([1./1., 1./2., 1./3.])</span>
+<span class="sd">    &#39;[1.0, 0.5, 0.333333]&#39;</span>
+
+<span class="sd">    Note that the returned string is not wrapped.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">repr_values</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">]&quot;</span></div>
+
+
+<div class="viewcode-block" id="assignrepr_value"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.assignrepr_value">[docs]</a><span class="k">def</span> <span class="nf">assignrepr_value</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a prefixed string representation of the given value using</span>
+<span class="sd">    function |repr|.</span>
+
+<span class="sd">    Note that the argument has no effect. It is thought for increasing</span>
+<span class="sd">    usage compatibility with functions like |assignrepr_list| only.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import assignrepr_value</span>
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_value(1./3., &quot;test = &quot;))</span>
+<span class="sd">    test = 0.333333</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">repr_</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="assignrepr_values"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.assignrepr_values">[docs]</a><span class="k">def</span> <span class="nf">assignrepr_values</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">],</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">_fakeend</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a prefixed, wrapped and properly aligned string representation</span>
+<span class="sd">    of the given values using function |repr|.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import assignrepr_values</span>
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_values(range(1, 13), &quot;test(&quot;, 20) + &quot;)&quot;)</span>
+<span class="sd">    test(1, 2, 3, 4, 5,</span>
+<span class="sd">         6, 7, 8, 9, 10,</span>
+<span class="sd">         11, 12)</span>
+
+<span class="sd">    If no width is given, no wrapping is performed:</span>
+
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_values(range(1, 13), &quot;test(&quot;) + &quot;)&quot;)</span>
+<span class="sd">    test(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)</span>
+
+
+<span class="sd">    To circumvent defining too long string representations, make use of the</span>
+<span class="sd">    ellipsis option:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; with pub.options.ellipsis(1):</span>
+<span class="sd">    ...     print(assignrepr_values(range(1, 13), &quot;test(&quot;, 20) + &quot;)&quot;)</span>
+<span class="sd">    test(1, ...,12)</span>
+
+<span class="sd">    &gt;&gt;&gt; with pub.options.ellipsis(5):</span>
+<span class="sd">    ...     print(assignrepr_values(range(1, 13), &quot;test(&quot;, 20) + &quot;)&quot;)</span>
+<span class="sd">    test(1, 2, 3, 4, 5,</span>
+<span class="sd">         ...,8, 9, 10,</span>
+<span class="sd">         11, 12)</span>
+
+<span class="sd">    &gt;&gt;&gt; with pub.options.ellipsis(6):</span>
+<span class="sd">    ...     print(assignrepr_values(range(1, 13), &quot;test(&quot;, 20) + &quot;)&quot;)</span>
+<span class="sd">    test(1, 2, 3, 4, 5,</span>
+<span class="sd">         6, 7, 8, 9, 10,</span>
+<span class="sd">         11, 12)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ellipsis_</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">ellipsis</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ellipsis_</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ellipsis_</span><span class="p">):</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">repr_values</span><span class="p">(</span><span class="n">values</span><span class="p">[:</span><span class="n">ellipsis_</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;, ...,&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">repr_values</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="n">ellipsis_</span><span class="p">:])</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="n">repr_values</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">blanks</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">width</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">wrapped</span> <span class="o">=</span> <span class="p">[</span><span class="n">string</span><span class="p">]</span>
+        <span class="n">_fakeend</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">width</span> <span class="o">-=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="n">wrapped</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span>
+            <span class="n">text</span><span class="o">=</span><span class="n">string</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">*</span> <span class="n">_fakeend</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">break_long_words</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">wrapped</span><span class="p">:</span>
+        <span class="n">wrapped</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">wrapped</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">line</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">blanks</span><span class="si">}{</span><span class="n">line</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">string</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">string</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="o">-</span> <span class="n">_fakeend</span><span class="p">]</span></div>
+
+
+<span class="k">class</span> <span class="nc">_AssignReprBracketed</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; &quot;Double Singleton class&quot;, see the documentation on</span>
+<span class="sd">    |assignrepr_tuple| and |assignrepr_list|.&quot;&quot;&quot;</span>
+
+    <span class="k">class</span> <span class="nc">_AlwaysBracketed</span><span class="p">:</span>
+
+        <span class="n">_new_value</span><span class="p">:</span> <span class="nb">bool</span>
+        <span class="n">_old_value</span><span class="p">:</span> <span class="nb">bool</span>
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_new_value</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_old_value</span> <span class="o">=</span> <span class="n">_AssignReprBracketed</span><span class="o">.</span><span class="n">_always_bracketed</span>
+
+        <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_AssignReprBracketed</span><span class="o">.</span><span class="n">_always_bracketed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_value</span>
+
+        <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">exception_type</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span>
+            <span class="n">exception_value</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">,</span>
+            <span class="n">traceback</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">TracebackType</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_AssignReprBracketed</span><span class="o">.</span><span class="n">_always_bracketed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_old_value</span>
+
+    <span class="n">_always_bracketed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">_brackets</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;()&quot;</span><span class="p">,</span> <span class="s2">&quot;[]&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">brackets</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;()&quot;</span><span class="p">,</span> <span class="s2">&quot;[]&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_brackets</span> <span class="o">=</span> <span class="n">brackets</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">],</span>
+        <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">width</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">nmb_values</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">nmb_values</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_always_bracketed</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">assignrepr_value</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">prefix</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nmb_values</span><span class="p">:</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">assignrepr_values</span><span class="p">(</span>
+                    <span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">,</span>
+                    <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_brackets</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+                    <span class="n">_fakeend</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_brackets</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_brackets</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;)&quot;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">string</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;,)&quot;</span>
+            <span class="k">return</span> <span class="n">string</span>
+        <span class="k">return</span> <span class="n">prefix</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_brackets</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">always_bracketed</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">always_bracketed</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_AlwaysBracketed</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Change the `always_bracketed` option inside a with block.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_AlwaysBracketed</span><span class="p">(</span><span class="n">always_bracketed</span><span class="p">)</span>
+
+
+<span class="n">assignrepr_tuple</span> <span class="o">=</span> <span class="n">_AssignReprBracketed</span><span class="p">(</span><span class="s2">&quot;()&quot;</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot;Return a prefixed, wrapped and properly aligned tuple string</span>
+<span class="sd">representation of the given values using function |repr|.</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.core.objecttools import assignrepr_tuple</span>
+<span class="sd">&gt;&gt;&gt; print(assignrepr_tuple(range(10), &quot;test = &quot;, 22))</span>
+<span class="sd">test = (0, 1, 2, 3, 4,</span>
+<span class="sd">        5, 6, 7, 8, 9)</span>
+
+<span class="sd">If no width is given, no wrapping is performed:</span>
+
+<span class="sd">&gt;&gt;&gt; print(assignrepr_tuple(range(10), &quot;test = &quot;))</span>
+<span class="sd">test = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)</span>
+
+<span class="sd">Functions |assignrepr_tuple| works also on empty iterables and</span>
+<span class="sd">those which possess only one entry:</span>
+
+<span class="sd">&gt;&gt;&gt; print(assignrepr_tuple([], &quot;test = &quot;))</span>
+<span class="sd">test = ()</span>
+<span class="sd">&gt;&gt;&gt; print(assignrepr_tuple([10], &quot;test = &quot;))</span>
+<span class="sd">test = (10,)</span>
+
+<span class="sd">Optionally, bracketing single values can be prevented:</span>
+
+<span class="sd">&gt;&gt;&gt; with assignrepr_tuple.always_bracketed(False):</span>
+<span class="sd">...     print(assignrepr_tuple([], &quot;test = &quot;))</span>
+<span class="sd">...     print(assignrepr_tuple([10], &quot;test = &quot;))</span>
+<span class="sd">...     print(assignrepr_tuple([10, 10], &quot;test = &quot;))</span>
+<span class="sd">test = ()</span>
+<span class="sd">test = 10</span>
+<span class="sd">test = (10, 10)</span>
+
+<span class="sd">Behind the with block, |assignrepr_tuple| works as before</span>
+<span class="sd">(even in case of an error):</span>
+
+<span class="sd">&gt;&gt;&gt; print(assignrepr_tuple([10], &quot;test = &quot;))</span>
+<span class="sd">test = (10,)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="n">assignrepr_list</span> <span class="o">=</span> <span class="n">_AssignReprBracketed</span><span class="p">(</span><span class="s2">&quot;[]&quot;</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot;Return a prefixed, wrapped and properly aligned list string</span>
+<span class="sd">representation of the given values using function |repr|.</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.core.objecttools import assignrepr_list</span>
+<span class="sd">&gt;&gt;&gt; print(assignrepr_list(range(10), &quot;test = &quot;, 22))</span>
+<span class="sd">test = [0, 1, 2, 3, 4,</span>
+<span class="sd">        5, 6, 7, 8, 9]</span>
+
+<span class="sd">If no width is given, no wrapping is performed:</span>
+
+<span class="sd">&gt;&gt;&gt; print(assignrepr_list(range(10), &quot;test = &quot;))</span>
+<span class="sd">test = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]</span>
+
+<span class="sd">Functions |assignrepr_list| works also on empty iterables:</span>
+
+<span class="sd">&gt;&gt;&gt; print(assignrepr_list((), &quot;test = &quot;))</span>
+<span class="sd">test = []</span>
+
+<span class="sd">Optionally, bracketing single values can be prevented:</span>
+
+<span class="sd">&gt;&gt;&gt; with assignrepr_list.always_bracketed(False):</span>
+<span class="sd">...     print(assignrepr_list([], &quot;test = &quot;))</span>
+<span class="sd">...     print(assignrepr_list([10], &quot;test = &quot;))</span>
+<span class="sd">...     print(assignrepr_list([10, 10], &quot;test = &quot;))</span>
+<span class="sd">test = []</span>
+<span class="sd">test = 10</span>
+<span class="sd">test = [10, 10]</span>
+
+<span class="sd">Behind the with block, |assignrepr_list| works as before</span>
+<span class="sd">(even in case of an error):</span>
+
+<span class="sd">&gt;&gt;&gt; print(assignrepr_list([10], &quot;test = &quot;))</span>
+<span class="sd">test = [10,]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="assignrepr_values2"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.assignrepr_values2">[docs]</a><span class="k">def</span> <span class="nf">assignrepr_values2</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">]],</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a prefixed and properly aligned string representation</span>
+<span class="sd">    of the given 2-dimensional value matrix using function |repr|.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import assignrepr_values2</span>
+<span class="sd">    &gt;&gt;&gt; import numpy</span>
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_values2(numpy.eye(3), &quot;test(&quot;) + &quot;)&quot;)</span>
+<span class="sd">    test(1.0, 0.0, 0.0,</span>
+<span class="sd">         0.0, 1.0, 0.0,</span>
+<span class="sd">         0.0, 0.0, 1.0)</span>
+
+<span class="sd">    Functions |assignrepr_values2| works also on empty iterables:</span>
+
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_values2([[]], &quot;test(&quot;) + &quot;)&quot;)</span>
+<span class="sd">    test()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">blanks</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">subvalues</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">repr_values</span><span class="p">(</span><span class="n">subvalues</span><span class="p">)</span><span class="si">}</span><span class="s2">,&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">blanks</span><span class="si">}{</span><span class="n">repr_values</span><span class="p">(</span><span class="n">subvalues</span><span class="p">)</span><span class="si">}</span><span class="s2">,&quot;</span><span class="p">)</span>
+    <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_assignrepr_bracketed2</span><span class="p">(</span>
+    <span class="n">assignrepr_bracketed1</span><span class="p">:</span> <span class="n">_AssignReprBracketed</span><span class="p">,</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]],</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a prefixed, wrapped and properly aligned bracketed string</span>
+<span class="sd">    representation of the given 2-dimensional value matrix using function</span>
+<span class="sd">    |repr|.&quot;&quot;&quot;</span>
+    <span class="n">brackets</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">assignrepr_bracketed1</span><span class="p">,</span> <span class="s2">&quot;_brackets&quot;</span><span class="p">)</span>
+    <span class="n">prefix</span> <span class="o">+=</span> <span class="n">brackets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">blanks</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">subvalues</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">assignrepr_bracketed1</span><span class="p">(</span><span class="n">subvalues</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">assignrepr_bracketed1</span><span class="p">(</span><span class="n">subvalues</span><span class="p">,</span> <span class="n">blanks</span><span class="p">,</span> <span class="n">width</span><span class="p">))</span>
+        <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s2">&quot;,&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">brackets</span> <span class="o">!=</span> <span class="s2">&quot;()&quot;</span><span class="p">):</span>
+        <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">brackets</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="assignrepr_tuple2"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.assignrepr_tuple2">[docs]</a><span class="k">def</span> <span class="nf">assignrepr_tuple2</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]],</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a prefixed, wrapped and properly aligned tuple string</span>
+<span class="sd">    representation of the given 2-dimensional value matrix using function</span>
+<span class="sd">    |repr|.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import assignrepr_tuple2</span>
+<span class="sd">    &gt;&gt;&gt; import numpy</span>
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_tuple2(numpy.eye(3), &quot;test = &quot;, 18))</span>
+<span class="sd">    test = ((1.0, 0.0,</span>
+<span class="sd">             0.0),</span>
+<span class="sd">            (0.0, 1.0,</span>
+<span class="sd">             0.0),</span>
+<span class="sd">            (0.0, 0.0,</span>
+<span class="sd">             1.0))</span>
+
+<span class="sd">    If no width is given, no wrapping is performed:</span>
+
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_tuple2(numpy.eye(3), &quot;test = &quot;))</span>
+<span class="sd">    test = ((1.0, 0.0, 0.0),</span>
+<span class="sd">            (0.0, 1.0, 0.0),</span>
+<span class="sd">            (0.0, 0.0, 1.0))</span>
+
+<span class="sd">    Functions |assignrepr_tuple2| works also on empty iterables and</span>
+<span class="sd">    those which possess only one entry:</span>
+
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_tuple2([[]], &quot;test = &quot;))</span>
+<span class="sd">    test = ((),)</span>
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_tuple2([[], [1]], &quot;test = &quot;))</span>
+<span class="sd">    test = ((),</span>
+<span class="sd">            (1,))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_assignrepr_bracketed2</span><span class="p">(</span><span class="n">assignrepr_tuple</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="assignrepr_list2"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.assignrepr_list2">[docs]</a><span class="k">def</span> <span class="nf">assignrepr_list2</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]],</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a prefixed, wrapped and properly aligned list string</span>
+<span class="sd">    representation of the given 2-dimensional value matrix using function</span>
+<span class="sd">    |repr|.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import assignrepr_list2</span>
+<span class="sd">    &gt;&gt;&gt; import numpy</span>
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_list2(numpy.eye(3), &quot;test = &quot;, 18))</span>
+<span class="sd">    test = [[1.0, 0.0,</span>
+<span class="sd">             0.0],</span>
+<span class="sd">            [0.0, 1.0,</span>
+<span class="sd">             0.0],</span>
+<span class="sd">            [0.0, 0.0,</span>
+<span class="sd">             1.0]]</span>
+
+<span class="sd">    If no width is given, no wrapping is performed:</span>
+
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_list2(numpy.eye(3), &quot;test = &quot;))</span>
+<span class="sd">    test = [[1.0, 0.0, 0.0],</span>
+<span class="sd">            [0.0, 1.0, 0.0],</span>
+<span class="sd">            [0.0, 0.0, 1.0]]</span>
+
+<span class="sd">    Functions |assignrepr_list2| works also on empty iterables:</span>
+
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_list2([[]], &quot;test = &quot;))</span>
+<span class="sd">    test = [[]]</span>
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_list2([[], [1]], &quot;test = &quot;))</span>
+<span class="sd">    test = [[],</span>
+<span class="sd">            [1]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_assignrepr_bracketed2</span><span class="p">(</span><span class="n">assignrepr_list</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_assignrepr_bracketed3</span><span class="p">(</span>
+    <span class="n">assignrepr_bracketed1</span><span class="p">:</span> <span class="n">_AssignReprBracketed</span><span class="p">,</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]]],</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a prefixed, wrapped and properly aligned bracketed string</span>
+<span class="sd">    representation of the given 3-dimensional value matrix using function</span>
+<span class="sd">    |repr|.&quot;&quot;&quot;</span>
+    <span class="n">brackets</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">assignrepr_bracketed1</span><span class="p">,</span> <span class="s2">&quot;_brackets&quot;</span><span class="p">)</span>
+    <span class="n">prefix</span> <span class="o">+=</span> <span class="n">brackets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">blanks</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">subvalues</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">_assignrepr_bracketed2</span><span class="p">(</span><span class="n">assignrepr_bracketed1</span><span class="p">,</span> <span class="n">subvalues</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">_assignrepr_bracketed2</span><span class="p">(</span><span class="n">assignrepr_bracketed1</span><span class="p">,</span> <span class="n">subvalues</span><span class="p">,</span> <span class="n">blanks</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s2">&quot;,&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">brackets</span> <span class="o">!=</span> <span class="s2">&quot;()&quot;</span><span class="p">):</span>
+        <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">brackets</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="assignrepr_tuple3"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.assignrepr_tuple3">[docs]</a><span class="k">def</span> <span class="nf">assignrepr_tuple3</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]]],</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a prefixed, wrapped and properly aligned tuple string</span>
+<span class="sd">    representation of the given 3-dimensional value matrix using function</span>
+<span class="sd">    |repr|.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import assignrepr_tuple3</span>
+<span class="sd">    &gt;&gt;&gt; import numpy</span>
+<span class="sd">    &gt;&gt;&gt; values = [numpy.eye(3), numpy.ones((3, 3))]</span>
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_tuple3(values, &quot;test = &quot;, 18))</span>
+<span class="sd">    test = (((1.0,</span>
+<span class="sd">              0.0,</span>
+<span class="sd">              0.0),</span>
+<span class="sd">             (0.0,</span>
+<span class="sd">              1.0,</span>
+<span class="sd">              0.0),</span>
+<span class="sd">             (0.0,</span>
+<span class="sd">              0.0,</span>
+<span class="sd">              1.0)),</span>
+<span class="sd">            ((1.0,</span>
+<span class="sd">              1.0,</span>
+<span class="sd">              1.0),</span>
+<span class="sd">             (1.0,</span>
+<span class="sd">              1.0,</span>
+<span class="sd">              1.0),</span>
+<span class="sd">             (1.0,</span>
+<span class="sd">              1.0,</span>
+<span class="sd">              1.0)))</span>
+
+<span class="sd">    If no width is given, no wrapping is performed:</span>
+
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_tuple3(values, &quot;test = &quot;))</span>
+<span class="sd">    test = (((1.0, 0.0, 0.0),</span>
+<span class="sd">             (0.0, 1.0, 0.0),</span>
+<span class="sd">             (0.0, 0.0, 1.0)),</span>
+<span class="sd">            ((1.0, 1.0, 1.0),</span>
+<span class="sd">             (1.0, 1.0, 1.0),</span>
+<span class="sd">             (1.0, 1.0, 1.0)))</span>
+
+<span class="sd">    Functions |assignrepr_tuple3| works also on empty iterables and</span>
+<span class="sd">    those which possess only one entry:</span>
+
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_tuple3([[[]]], &quot;test = &quot;))</span>
+<span class="sd">    test = (((),),)</span>
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_tuple3([[[], [1]]], &quot;test = &quot;))</span>
+<span class="sd">    test = (((),</span>
+<span class="sd">             (1,)),)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_assignrepr_bracketed3</span><span class="p">(</span><span class="n">assignrepr_tuple</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="assignrepr_list3"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.assignrepr_list3">[docs]</a><span class="k">def</span> <span class="nf">assignrepr_list3</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">]]],</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a prefixed, wrapped and properly aligned list string</span>
+<span class="sd">    representation of the given 3-dimensional value matrix using function</span>
+<span class="sd">    |repr|.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import assignrepr_list3</span>
+<span class="sd">    &gt;&gt;&gt; import numpy</span>
+<span class="sd">    &gt;&gt;&gt; values = [numpy.eye(3), numpy.ones((3, 3))]</span>
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_list3(values, &quot;test = &quot;, 18))</span>
+<span class="sd">    test = [[[1.0,</span>
+<span class="sd">              0.0,</span>
+<span class="sd">              0.0],</span>
+<span class="sd">             [0.0,</span>
+<span class="sd">              1.0,</span>
+<span class="sd">              0.0],</span>
+<span class="sd">             [0.0,</span>
+<span class="sd">              0.0,</span>
+<span class="sd">              1.0]],</span>
+<span class="sd">            [[1.0,</span>
+<span class="sd">              1.0,</span>
+<span class="sd">              1.0],</span>
+<span class="sd">             [1.0,</span>
+<span class="sd">              1.0,</span>
+<span class="sd">              1.0],</span>
+<span class="sd">             [1.0,</span>
+<span class="sd">              1.0,</span>
+<span class="sd">              1.0]]]</span>
+
+<span class="sd">    If no width is given, no wrapping is performed:</span>
+
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_list3(values, &quot;test = &quot;))</span>
+<span class="sd">    test = [[[1.0, 0.0, 0.0],</span>
+<span class="sd">             [0.0, 1.0, 0.0],</span>
+<span class="sd">             [0.0, 0.0, 1.0]],</span>
+<span class="sd">            [[1.0, 1.0, 1.0],</span>
+<span class="sd">             [1.0, 1.0, 1.0],</span>
+<span class="sd">             [1.0, 1.0, 1.0]]]</span>
+
+<span class="sd">    Functions |assignrepr_list3| works also on empty iterables and</span>
+<span class="sd">    those which possess only one entry:</span>
+
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_list3([[[]]], &quot;test = &quot;))</span>
+<span class="sd">    test = [[[]]]</span>
+<span class="sd">    &gt;&gt;&gt; print(assignrepr_list3([[[], [1]]], &quot;test = &quot;))</span>
+<span class="sd">    test = [[[],</span>
+<span class="sd">             [1]]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_assignrepr_bracketed3</span><span class="p">(</span><span class="n">assignrepr_list</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="flatten_repr"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.flatten_repr">[docs]</a><span class="k">def</span> <span class="nf">flatten_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Remove the newline characters from the string representation of the</span>
+<span class="sd">    given object.</span>
+
+<span class="sd">    Complex string representations like the following one convenient when working</span>
+<span class="sd">    interactively, but cause line breaks when included in strings like in exception</span>
+<span class="sd">    messages:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import Node</span>
+<span class="sd">    &gt;&gt;&gt; node = Node(&quot;name&quot;, keywords=&quot;test&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; node</span>
+<span class="sd">    Node(&quot;name&quot;, variable=&quot;Q&quot;,</span>
+<span class="sd">         keywords=&quot;test&quot;)</span>
+
+<span class="sd">    Use function |flatten_repr| to prevent any line breaks:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import flatten_repr</span>
+<span class="sd">    &gt;&gt;&gt; print(flatten_repr(node))</span>
+<span class="sd">    Node(&quot;name&quot;, variable=&quot;Q&quot;, keywords=&quot;test&quot;)</span>
+
+<span class="sd">    When implementing a new class into the HydPy framework requiring a complex</span>
+<span class="sd">    &quot;|repr| string&quot;, either customise a simpler &quot;|str| string&quot; manually (as</span>
+<span class="sd">    already done for the class |Node| or use function |flatten_repr|:</span>
+
+<span class="sd">    &gt;&gt;&gt; print(f&quot;We print {node}!&quot;)</span>
+<span class="sd">    We print name!</span>
+<span class="sd">    &gt;&gt;&gt; __str__ = Node.__str__</span>
+<span class="sd">    &gt;&gt;&gt; Node.__str__ = flatten_repr</span>
+<span class="sd">    &gt;&gt;&gt; print(f&quot;We print {node}!&quot;)</span>
+<span class="sd">    We print Node(&quot;name&quot;, variable=&quot;Q&quot;, keywords=&quot;test&quot;)!</span>
+
+<span class="sd">    &gt;&gt;&gt; Node.__str__ = __str__</span>
+
+<span class="sd">    The named tuple subclass |lstream_v001.Characteristics| of application</span>
+<span class="sd">    model |lstream_v001| relies on function |flatten_repr|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.lstream_v001 import Characteristics</span>
+<span class="sd">    &gt;&gt;&gt; characteristics = Characteristics(</span>
+<span class="sd">    ...     waterstage=1.0,</span>
+<span class="sd">    ...     discharge=5.0,</span>
+<span class="sd">    ...     derivative=0.1,</span>
+<span class="sd">    ...     length_orig=3.0,</span>
+<span class="sd">    ...     nmb_subsections=4,</span>
+<span class="sd">    ...     length_adj=2.0,</span>
+<span class="sd">    ... )</span>
+
+<span class="sd">    &gt;&gt;&gt; characteristics</span>
+<span class="sd">    Characteristics(</span>
+<span class="sd">        waterstage=1.0,</span>
+<span class="sd">        discharge=5.0,</span>
+<span class="sd">        derivative=0.1,</span>
+<span class="sd">        length_orig=3.0,</span>
+<span class="sd">        nmb_subsections=4,</span>
+<span class="sd">        length_adj=2.0,</span>
+<span class="sd">    )</span>
+
+<span class="sd">    &gt;&gt;&gt; print(characteristics)</span>
+<span class="sd">    Characteristics(waterstage=1.0, discharge=5.0, derivative=0.1, \</span>
+<span class="sd">length_orig=3.0, nmb_subsections=4, length_adj=2.0)</span>
+
+<span class="sd">    You can apply function |flatten_repr| on arbitrary objects on the fly, but</span>
+<span class="sd">    without any guarantee, the result always looks good.  For the following</span>
+<span class="sd">    simple examples on some built-in types, everything seems to work:</span>
+
+<span class="sd">    &gt;&gt;&gt; flatten_repr(1)</span>
+<span class="sd">    &#39;1&#39;</span>
+<span class="sd">    &gt;&gt;&gt; flatten_repr((1, 2))</span>
+<span class="sd">    &#39;(1, 2)&#39;</span>
+<span class="sd">    &gt;&gt;&gt; flatten_repr([(1,2),(3,4)])</span>
+<span class="sd">    &#39;[(1, 2), (3, 4)]&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">string</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">string</span> <span class="ow">in</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">idx</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">string</span><span class="p">[:</span><span class="n">idx</span><span class="p">]</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">string</span><span class="p">[</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="n">string</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;, )&quot;</span><span class="p">):</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">string</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+    <span class="k">return</span> <span class="n">string</span></div>
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span> <span class="nf">round_</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">]],</span>
+    <span class="n">decimals</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
+    <span class="n">end</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="n">file_</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TextIO</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span> <span class="nf">round_</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">]],</span>
+    <span class="n">decimals</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">lfill</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
+    <span class="n">end</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="n">file_</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TextIO</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span> <span class="nf">round_</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">]],</span>
+    <span class="n">decimals</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">rfill</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
+    <span class="n">end</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="n">file_</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TextIO</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="o">...</span>
+
+
+<div class="viewcode-block" id="round_"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.round_">[docs]</a><span class="k">def</span> <span class="nf">round_</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">object</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">]],</span>
+    <span class="n">decimals</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">lfill</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">rfill</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
+    <span class="n">end</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="n">file_</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TextIO</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Prints values with a maximum number of digits in doctests.</span>
+
+<span class="sd">    See the documentation on function |repr| for more details.  And</span>
+<span class="sd">    note thate the option keyword arguments are passed to the print function.</span>
+
+<span class="sd">    Usually one would apply function |round_| on a single or a vector</span>
+<span class="sd">    of numbers:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(1./3., decimals=6)</span>
+<span class="sd">    0.333333</span>
+<span class="sd">    &gt;&gt;&gt; round_((1./2., 1./3., 1./4.), decimals=4)</span>
+<span class="sd">    0.5, 0.3333, 0.25</span>
+
+<span class="sd">    Additionally, one can supply a `width` and a `rfill` argument:</span>
+<span class="sd">    &gt;&gt;&gt; round_(1.0, width=6, rfill=&quot;0&quot;)</span>
+<span class="sd">    1.0000</span>
+
+<span class="sd">    Alternatively, one can use the `lfill` arguments, which</span>
+<span class="sd">    might e.g. be usefull for aligning different strings:</span>
+
+<span class="sd">    &gt;&gt;&gt; round_(&quot;test&quot;, width=6, lfill=&quot;_&quot;)</span>
+<span class="sd">    __test</span>
+
+<span class="sd">    Using both the `lfill` and the `rfill` argument raises an error:</span>
+
+<span class="sd">    &gt;&gt;&gt; round_(1.0, lfill=&quot;_&quot;, rfill=&quot;0&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: For function `round_` values are passed for both \</span>
+<span class="sd">arguments `lfill` and `rfill`.  This is not allowed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">decimals</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">decimals</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span>
+    <span class="k">with</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span><span class="p">(</span><span class="n">decimals</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">typingtools</span><span class="o">.</span><span class="n">IterableNonString</span><span class="p">):</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">repr_values</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">repr_</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">lfill</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">rfill</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;For function `round_` values are passed for both arguments &quot;</span>
+                <span class="s2">&quot;`lfill` and `rfill`.  This is not allowed.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">lfill</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">lfill</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rfill</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">rfill</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">file_</span><span class="p">)</span></div>
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span> <span class="nf">extract</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">],</span> <span class="nb">object</span><span class="p">],</span>
+    <span class="n">types_</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">T1</span><span class="p">]],</span>
+    <span class="n">skip</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">T1</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Extract all objects of one defined type.&quot;&quot;&quot;</span>
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span> <span class="nf">extract</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">],</span> <span class="nb">object</span><span class="p">],</span>
+    <span class="n">types_</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">T1</span><span class="p">],</span> <span class="n">Type</span><span class="p">[</span><span class="n">T2</span><span class="p">]],</span>
+    <span class="n">skip</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;Extract all objects of two defined types.&quot;&quot;&quot;</span>
+
+
+<span class="nd">@overload</span>
+<span class="k">def</span> <span class="nf">extract</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">],</span> <span class="nb">object</span><span class="p">],</span>
+    <span class="n">types_</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">T1</span><span class="p">],</span> <span class="n">Type</span><span class="p">[</span><span class="n">T2</span><span class="p">],</span> <span class="n">Type</span><span class="p">[</span><span class="n">T3</span><span class="p">]],</span>
+    <span class="n">skip</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;Extract all objects of three defined types.&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="extract"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.extract">[docs]</a><span class="k">def</span> <span class="nf">extract</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">object</span><span class="p">],</span> <span class="nb">object</span><span class="p">],</span>
+    <span class="n">types_</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+        <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">T1</span><span class="p">]],</span>
+        <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">T1</span><span class="p">],</span> <span class="n">Type</span><span class="p">[</span><span class="n">T2</span><span class="p">]],</span>
+        <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">T1</span><span class="p">],</span> <span class="n">Type</span><span class="p">[</span><span class="n">T2</span><span class="p">],</span> <span class="n">Type</span><span class="p">[</span><span class="n">T3</span><span class="p">]],</span>
+    <span class="p">],</span>
+    <span class="n">skip</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;Return a generator that extracts certain objects from `values`.</span>
+
+<span class="sd">    This function is thought for supporting the definition of functions</span>
+<span class="sd">    with arguments, that can be objects of certain types or that can</span>
+<span class="sd">    be iterables containing these objects.</span>
+
+<span class="sd">    The following examples show that function |extract|</span>
+<span class="sd">    basically implements a type specific flattening mechanism:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import extract</span>
+<span class="sd">    &gt;&gt;&gt; tuple(extract(&quot;str1&quot;, (str, int)))</span>
+<span class="sd">    (&#39;str1&#39;,)</span>
+<span class="sd">    &gt;&gt;&gt; tuple(extract([&quot;str1&quot;, &quot;str2&quot;], (str, int)))</span>
+<span class="sd">    (&#39;str1&#39;, &#39;str2&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; tuple(extract(([&quot;str1&quot;, &quot;str2&quot;], [1,]), (str, int)))</span>
+<span class="sd">    (&#39;str1&#39;, &#39;str2&#39;, 1)</span>
+
+<span class="sd">    If an object is neither iterable nor of the required type, the</span>
+<span class="sd">    following exception is raised:</span>
+
+<span class="sd">    &gt;&gt;&gt; tuple(extract(&quot;str1&quot;, (int,)))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: The given (sub)value `&#39;str1&#39;` is not an instance of \</span>
+<span class="sd">the following classes: int.</span>
+
+<span class="sd">    &gt;&gt;&gt; tuple(extract(([&quot;str1&quot;, &quot;str2&quot;], [None, 1]), (str, int)))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: The given (sub)value `None` is not an instance of \</span>
+<span class="sd">the following classes: str and int.</span>
+
+<span class="sd">    Optionally, |None| values can be skipped:</span>
+
+<span class="sd">    &gt;&gt;&gt; tuple(extract(None, (str, int), True))</span>
+<span class="sd">    ()</span>
+<span class="sd">    &gt;&gt;&gt; tuple(extract(([&quot;str1&quot;, &quot;str2&quot;], [None, 1]), (str, int), True))</span>
+<span class="sd">    (&#39;str1&#39;, &#39;str2&#39;, 1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">types_</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">values</span>  <span class="c1"># type: ignore[misc]  # see issue 4949</span>
+    <span class="k">elif</span> <span class="n">skip</span> <span class="ow">and</span> <span class="p">(</span><span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;temp&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">subvalue</span> <span class="ow">in</span> <span class="n">extract</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">types_</span><span class="p">,</span> <span class="n">skip</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">subvalue</span>
+        <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">exc</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;The given (sub)value&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">exc</span>
+            <span class="n">enum</span> <span class="o">=</span> <span class="n">enumeration</span><span class="p">(</span><span class="n">types_</span><span class="p">,</span> <span class="n">converter</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The given (sub)value `</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">` is not an &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;instance of the following classes: </span><span class="si">{</span><span class="n">enum</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span></div>
+
+
+<div class="viewcode-block" id="enumeration"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.enumeration">[docs]</a><span class="k">def</span> <span class="nf">enumeration</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T</span><span class="p">],</span>
+    <span class="n">converter</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">T</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">default</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return an enumeration string based on the given values.</span>
+
+<span class="sd">    The following four examples show the standard output of function</span>
+<span class="sd">    |enumeration|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import enumeration</span>
+<span class="sd">    &gt;&gt;&gt; enumeration((&quot;text&quot;, 3, []))</span>
+<span class="sd">    &#39;text, 3, and []&#39;</span>
+<span class="sd">    &gt;&gt;&gt; enumeration((&#39;text&#39;, 3))</span>
+<span class="sd">    &#39;text and 3&#39;</span>
+<span class="sd">    &gt;&gt;&gt; enumeration((&#39;text&#39;,))</span>
+<span class="sd">    &#39;text&#39;</span>
+<span class="sd">    &gt;&gt;&gt; enumeration(())</span>
+<span class="sd">    &#39;&#39;</span>
+
+<span class="sd">    All given objects are converted to strings by function |str|, as shown</span>
+<span class="sd">    by the first two examples.  This behaviour can be changed by another</span>
+<span class="sd">    function expecting a single argument and returning a string:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import classname</span>
+<span class="sd">    &gt;&gt;&gt; enumeration((&quot;text&quot;, 3, []), converter=classname)</span>
+<span class="sd">    &#39;str, int, and list&#39;</span>
+
+<span class="sd">    You can define a default string that is returned in case an empty</span>
+<span class="sd">    iterable is given:</span>
+
+<span class="sd">    &gt;&gt;&gt; enumeration((), default=&quot;nothing&quot;)</span>
+<span class="sd">    &#39;nothing&#39;</span>
+
+<span class="sd">    Functin |enumeration| respects option |Options.ellipsis|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; with pub.options.ellipsis(3):</span>
+<span class="sd">    ...     enumeration(range(10))</span>
+<span class="sd">    &#39;0, 1, 2, ..., 7, 8, and 9&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">values_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">converter</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">values_</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">default</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">values_</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values_</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot; and &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">values_</span><span class="p">)</span>
+    <span class="n">ellipsis_</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">ellipsis</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ellipsis_</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">values_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ellipsis_</span><span class="p">):</span>
+        <span class="n">values_</span> <span class="o">=</span> <span class="n">values_</span><span class="p">[:</span><span class="n">ellipsis_</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;...&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">values_</span><span class="p">[</span><span class="o">-</span><span class="n">ellipsis_</span><span class="p">:]</span>
+    <span class="k">return</span> <span class="s2">&quot;, and &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">values_</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span> <span class="n">values_</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span></div>
+
+
+<div class="viewcode-block" id="description"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.description">[docs]</a><span class="k">def</span> <span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Returns the first &quot;paragraph&quot; of the docstring of the given object.</span>
+
+<span class="sd">    Note that ugly things like multiple whitespaces and newline characters</span>
+<span class="sd">    are removed:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import description, augment_excmessage</span>
+<span class="sd">    &gt;&gt;&gt; description(augment_excmessage)</span>
+<span class="sd">    &#39;Augment an exception message with additional information while keeping \</span>
+<span class="sd">the original traceback.&#39;</span>
+
+<span class="sd">    In case the given object does not define a docstring, the following</span>
+<span class="sd">    is returned:</span>
+<span class="sd">    &gt;&gt;&gt; description(type(&quot;Test&quot;, (), {}))</span>
+<span class="sd">    &#39;no description available&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__doc__</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">doc</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;no description available&quot;</span>
+    <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="get_printtarget"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.get_printtarget">[docs]</a><span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+<span class="k">def</span> <span class="nf">get_printtarget</span><span class="p">(</span><span class="n">file_</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">TextIO</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">TextIO</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Get a suitable file object reading for writing text useable as the `file`</span>
+<span class="sd">    argument of the standard |print| function.</span>
+
+<span class="sd">    Function |get_printtarget| supports three types of arguments.  For |None|,</span>
+<span class="sd">    it returns |sys.stdout|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import get_printtarget</span>
+<span class="sd">    &gt;&gt;&gt; import sys</span>
+<span class="sd">    &gt;&gt;&gt; with get_printtarget(None) as printtarget:</span>
+<span class="sd">    ...     print(&quot;printtarget = stdout&quot;, file=printtarget)</span>
+<span class="sd">    printtarget = stdout</span>
+
+<span class="sd">    If passes already opened file objects, flushing but not closing them:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import TestIO</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with open(&quot;testfile1.txt&quot;, &quot;w&quot;) as testfile1:</span>
+<span class="sd">    ...         with get_printtarget(testfile1) as printtarget:</span>
+<span class="sd">    ...             print(&quot;printtarget = testfile1&quot;, file=printtarget, end=&quot;&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with open(&quot;testfile1.txt&quot;, &quot;r&quot;) as testfile1:</span>
+<span class="sd">    ...         print(testfile1.read())</span>
+<span class="sd">    printtarget = testfile1</span>
+
+<span class="sd">    When receiving a file name, it creates a new file and closes it after leaving</span>
+<span class="sd">    the `with` block:</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with get_printtarget(&quot;testfile2.txt&quot;) as printtarget:</span>
+<span class="sd">    ...         print(&quot;printtarget = testfile2&quot;, file=printtarget, end=&quot;&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with open(&quot;testfile2.txt&quot;, &quot;r&quot;) as testfile2:</span>
+<span class="sd">    ...         print(testfile2.read())</span>
+<span class="sd">    printtarget = testfile2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">file_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file_</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">printobject</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">printobject</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">file_</span>
+        <span class="n">file_</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+
+<span class="n">_black_filemode</span> <span class="o">=</span> <span class="n">black</span><span class="o">.</span><span class="n">FileMode</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="apply_black"><a class="viewcode-back" href="../../../objecttools.html#hydpy.core.objecttools.apply_black">[docs]</a><span class="k">def</span> <span class="nf">apply_black</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a string representation of an instance of a class based on the given</span>
+<span class="sd">     name, positional arguments and keyword arguments.</span>
+
+<span class="sd">    .. _`black`: https://black.readthedocs.io/en/stable/</span>
+<span class="sd">    .. _`PEP 8`: https://www.python.org/dev/peps/pep-0008/</span>
+
+<span class="sd">    |apply_black| helps to define `__repr__` methods that agree with `PEP 8` by</span>
+<span class="sd">    using the code formatter `black`_:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.objecttools import apply_black</span>
+<span class="sd">    &gt;&gt;&gt; print(apply_black(&quot;Tester&quot;))</span>
+<span class="sd">    Tester()</span>
+<span class="sd">    &gt;&gt;&gt; print(apply_black(&quot;Tester&quot;, 1, &quot;test&quot;))</span>
+<span class="sd">    Tester(1, &quot;test&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; print(apply_black(&quot;Tester&quot;, number=1, string=&quot;test&quot;))</span>
+<span class="sd">    Tester(number=1, string=&quot;test&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; print(apply_black(&quot;Tester&quot;, 1, &quot;test&quot;, number=2, \</span>
+<span class="sd">string=f&quot;a {10*&#39;very &#39;}long test&quot;))</span>
+<span class="sd">    Tester(</span>
+<span class="sd">        1,</span>
+<span class="sd">        &quot;test&quot;,</span>
+<span class="sd">        number=2,</span>
+<span class="sd">        string=&quot;a very very very very very very very very very very long test&quot;,</span>
+<span class="sd">    )</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">arguments</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
+            <span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">),</span>
+            <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">black</span><span class="o">.</span><span class="n">format_str</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">arguments</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="n">mode</span><span class="o">=</span><span class="n">_black_filemode</span><span class="p">,</span>
+    <span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.objecttools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

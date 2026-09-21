@@ -1,0 +1,68 @@
+.. |AC| replace:: :class:`~hydpy.models.wland.wland_control.AC`
+.. |ALR| replace:: :class:`~hydpy.models.wland.wland_derived.ALR`
+.. |ASR| replace:: :class:`~hydpy.models.wland.wland_derived.ASR`
+.. |AT| replace:: :class:`~hydpy.models.wland.wland_control.AT`
+.. |B| replace:: :class:`~hydpy.models.wland.wland_control.B`
+.. |CDG| replace:: :class:`~hydpy.models.wland.wland_fluxes.CDG`
+.. |CD| replace:: :class:`~hydpy.models.wland.wland_derived.CD`
+.. |CGE| replace:: :class:`~hydpy.models.wland.wland_control.CGE`
+.. |CONIFER| replace:: :const:`~hydpy.models.wland.wland_constants.CONIFER`
+.. |CWE| replace:: :class:`~hydpy.models.wland.wland_control.CWE`
+.. |Calc_CDG_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_CDG_V1`
+.. |Calc_DVEq_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_DVEq_V1`
+.. |Calc_FGS_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_FGS_V1`
+.. |Calc_RH_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_RH_V1`
+.. |DGC| replace:: :class:`~hydpy.models.wland.wland_control.DGC`
+.. |DG| replace:: :class:`~hydpy.models.wland.wland_states.DG`
+.. |DHS| replace:: :class:`~hydpy.models.wland.wland_factors.DHS`
+.. |DV| replace:: :class:`~hydpy.models.wland.wland_states.DV`
+.. |DischargeModel_V2| replace:: :class:`~hydpy.interfaces.dischargeinterfaces.DischargeModel_V2`
+.. |ELSModel| replace:: :class:`~hydpy.core.modeltools.ELSModel`
+.. |ER| replace:: :class:`~hydpy.models.wland.wland_control.ER`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |FGS| replace:: :class:`~hydpy.models.wland.wland_fluxes.FGS`
+.. |FIELD| replace:: :const:`~hydpy.models.wland.wland_constants.FIELD`
+.. |HS| replace:: :class:`~hydpy.models.wland.wland_states.HS`
+.. |IC| replace:: :class:`~hydpy.models.wland.wland_states.IC`
+.. |LAI| replace:: :class:`~hydpy.models.wland.wland_control.LAI`
+.. |NU| replace:: :class:`~hydpy.models.wland.wland_control.NU`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PETModel_V2| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V2`
+.. |PsiAE| replace:: :class:`~hydpy.models.wland.wland_control.PsiAE`
+.. |RG| replace:: :class:`~hydpy.models.wland.wland_control.RG`
+.. |RH| replace:: :class:`~hydpy.models.wland.wland_fluxes.RH`
+.. |SEALED| replace:: :const:`~hydpy.models.wland.wland_constants.SEALED`
+.. |SH| replace:: :class:`~hydpy.models.wland.wland_control.SH`
+.. |SP| replace:: :class:`~hydpy.models.wland.wland_states.SP`
+.. |ST| replace:: :class:`~hydpy.models.wland.wland_control.ST`
+.. |ThetaS| replace:: :class:`~hydpy.models.wland.wland_control.ThetaS`
+.. |True| replace:: :const:`True`
+.. |WATER| replace:: :const:`~hydpy.models.wland.wland_constants.WATER`
+.. |WaterLevelModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.WaterLevelModel_V1`
+.. |dam_pump| replace:: :mod:`~hydpy.models.dam_pump`
+.. |evap_pet_mlc| replace:: :mod:`~hydpy.models.evap_pet_mlc`
+.. |evap_ret_io| replace:: :mod:`~hydpy.models.evap_ret_io`
+.. |exch_waterlevel| replace:: :mod:`~hydpy.models.exch_waterlevel`
+.. |lland_dd| replace:: :mod:`~hydpy.models.lland_dd`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |smoothtools| replace:: :mod:`~hydpy.auxs.smoothtools`
+.. |smoothutils| replace:: :mod:`~hydpy.cythons.autogen.smoothutils`
+.. |sw1d_storage| replace:: :mod:`~hydpy.models.sw1d_storage`
+.. |wland_wag.DOCNAME.complete| replace:: HydPy-W-Wag (extended version of the original Wageningen WALRUS model)
+.. |wland_wag| replace:: :mod:`~hydpy.models.wland_wag`
+.. |wq_walrus| replace:: :mod:`~hydpy.models.wq_walrus`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |wland_inputs.FXG| replace:: :class:`~hydpy.models.wland.wland_inputs.FXG`
+.. |wland_inputs.FXS| replace:: :class:`~hydpy.models.wland.wland_inputs.FXS`
+.. |wland_model.BaseModel.check_waterbalance| replace:: :func:`~hydpy.models.wland.wland_model.BaseModel.check_waterbalance`
+
+.. _wland_wag:
+
+wland_wag
+=========
+
+.. automodule:: hydpy.models.wland_wag
+    :members:
+    :show-inheritance:
+    :exclude-members: AbstractSet, SupportsRound, Never, TypeAliasType, Dict, dataclass_transform, SupportsFloat, DefaultDict, get_overloads, NewType, SOLVERSEQUENCES, KeysView, subpars, CapsuleType, cast, SenderSequences, ItemsView, AsyncIterator, OBSERVER_METHODS, Generator, override, INTERFACE_METHODS, TypeVarTuple, get_origin, Mapping, Callable, Generic, AsyncContextManager, Annotated, ParamSpecArgs, InletSequences, IntVar, ADD_METHODS, Sized, PART_ODE_METHODS, Reversible, TypeVar, Match, NamedTuple, Coroutine, CONTROLPARAMETERS, TypeIs, FIXEDPARAMETERS, no_type_check, TypedDict, REQUIREDSEQUENCES, Type, TYPE_CHECKING, MutableSet, MutableMapping, Union, Hashable, SupportsComplex, TypeAlias, Set, get_protocol_members, disjoint_base, get_original_bases, fastaccess_old, UPDATEDSEQUENCES, ReadOnly, get_type_hints, SupportsBytes, TypeForm, RESULTSEQUENCES, Iterator, SENDER_METHODS, ReceiverSequences, Required, List, FrozenSet, subseqs, Final, ObserverSequences, deprecated, SupportsInt, SUBMODELINTERFACES, Buffer, SUBMODELS, BinaryIO, is_protocol, IO, ParamSpec, ClassVar, TextIO, subvars, no_type_check_decorator, clear_overloads, runtime, Awaitable, type_repr, LogSequences, ContextManager, Counter, ChainMap, AsyncIterable, TypeGuard, overload, INLET_METHODS, OUTLET_METHODS, SOLVERPARAMETERS, Doc, SUBMETHODS, ByteString, Optional, Sequence, NoExtraItems, Pattern, NoDefault, Reader, RUN_METHODS, final, AnyStr, LiteralString, ParamSpecKwargs, Deque, ForwardRef, Text, pars, fastaccess_new, SupportsIndex, MappingView, sentinel, Protocol, NoReturn, evaluate_forward_ref, seqs, assert_never, get_args, Collection, CLASSES, Iterable, MutableSequence, Any, ValuesView, DERIVEDPARAMETERS, assert_type, AsyncGenerator, fastaccess, get_annotations, Self, NotRequired, RECEIVER_METHODS, Literal, Container, Tuple, OrderedDict, Writer, Sentinel, Concatenate, is_typeddict, runtime_checkable, SupportsAbs, reveal_type, FULL_ODE_METHODS, Format, Unpack

@@ -1,0 +1,14 @@
+.. |ReferenceEvapotranspiration| replace:: :class:`~hydpy.models.evap.evap_fluxes.ReferenceEvapotranspiration`
+.. |SaturationVapourPressure| replace:: :class:`~hydpy.models.evap.evap_fluxes.SaturationVapourPressure`
+.. |evap_v001| replace:: :mod:`~hydpy.models.evap_v001`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+
+.. _evap_v001:
+
+evap_v001
+=========
+
+.. automodule:: hydpy.models.evap_v001
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, InletSequences, ReceiverSequences, StateSequences, AideSequences, OutletSequences, SenderSequences

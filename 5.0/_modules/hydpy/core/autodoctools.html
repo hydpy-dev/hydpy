@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.autodoctools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.autodoctools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.autodoctools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module implements tools for increasing the level of automation and</span>
+<span class="sd">standardisation of the online documentation generated with Sphinx.&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span> <span class="nn">builtins</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">doctest</span>
+<span class="kn">import</span> <span class="nn">enum</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">mimetypes</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+<span class="kn">import</span> <span class="nn">pkgutil</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">typing</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="c1"># import matplotlib    actual import below</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">typing_extensions</span>
+
+<span class="c1"># import pandas    actual import below</span>
+<span class="c1"># import scipy    actual import below</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">auxs</span>
+<span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">core</span>
+<span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">cythons</span>
+<span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">exe</span>
+<span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">models</span>
+<span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">examples</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">sequencetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">typingtools</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="kn">import</span> <span class="n">annutils</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="kn">import</span> <span class="n">interputils</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="kn">import</span> <span class="n">ppolyutils</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="kn">import</span> <span class="n">pointerutils</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="kn">import</span> <span class="n">quadutils</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="kn">import</span> <span class="n">rootutils</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="kn">import</span> <span class="n">smoothutils</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons.autogen</span> <span class="kn">import</span> <span class="n">annutils</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons.autogen</span> <span class="kn">import</span> <span class="n">interputils</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons.autogen</span> <span class="kn">import</span> <span class="n">ppolyutils</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons.autogen</span> <span class="kn">import</span> <span class="n">pointerutils</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons.autogen</span> <span class="kn">import</span> <span class="n">quadutils</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons.autogen</span> <span class="kn">import</span> <span class="n">rootutils</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons.autogen</span> <span class="kn">import</span> <span class="n">smoothutils</span>
+
+
+<div class="viewcode-block" id="Priority">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.Priority">[docs]</a>
+<span class="k">class</span> <span class="nc">Priority</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Priority level for members defined in different sources.&quot;&quot;&quot;</span>
+
+    <span class="n">BUILTINS</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Priority level for members defined in |builtins|.&quot;&quot;&quot;</span>
+    <span class="n">CORE</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Priority level for members defined in the `core` subpackage.&quot;&quot;&quot;</span>
+    <span class="n">EXE</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Priority level for members defined in the `exe` subpackage.&quot;&quot;&quot;</span>
+    <span class="n">AUXS</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Priority level for members defined in the `auxs` subpackage.&quot;&quot;&quot;</span>
+    <span class="n">CYTHONS</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Priority level for members defined in the `cythons` subpackage.&quot;&quot;&quot;</span>
+    <span class="n">MODELS</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Priority level for members defined in the `models` subpackage.&quot;&quot;&quot;</span>
+    <span class="n">HYDPY</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Priority level for *HydPy* members not falling in the other categories.&quot;&quot;&quot;</span>
+    <span class="n">ELSE</span> <span class="o">=</span> <span class="mi">7</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Priority level for non-*HydPy* and non |builtins| members.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Priority.get_priority">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.Priority.get_priority">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_priority</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">modulename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Priority</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the priority for the given module name.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.autodoctools import Priority</span>
+<span class="sd">        &gt;&gt;&gt; assert Priority.get_priority(&quot;builtins&quot;) == Priority.BUILTINS</span>
+<span class="sd">        &gt;&gt;&gt; assert Priority.get_priority(&quot;hydpy.core.test&quot;) == Priority.CORE</span>
+<span class="sd">        &gt;&gt;&gt; assert Priority.get_priority(&quot;hydpy.exe.test&quot;) == Priority.EXE</span>
+<span class="sd">        &gt;&gt;&gt; assert Priority.get_priority(&quot;hydpy.auxs.test&quot;) == Priority.AUXS</span>
+<span class="sd">        &gt;&gt;&gt; assert Priority.get_priority(&quot;hydpy.cythons.test&quot;) == Priority.CYTHONS</span>
+<span class="sd">        &gt;&gt;&gt; assert Priority.get_priority(&quot;hydpy.models.test&quot;) == Priority.MODELS</span>
+<span class="sd">        &gt;&gt;&gt; assert Priority.get_priority(&quot;hydpy.test&quot;) == Priority.HYDPY</span>
+<span class="sd">        &gt;&gt;&gt; assert Priority.get_priority(&quot;numpy.test&quot;) == Priority.ELSE</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;builtin&quot;</span> <span class="ow">in</span> <span class="n">modulename</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">BUILTINS</span>
+        <span class="k">if</span> <span class="n">modulename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;hydpy.core&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">CORE</span>
+        <span class="k">if</span> <span class="n">modulename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;hydpy.exe&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">EXE</span>
+        <span class="k">if</span> <span class="n">modulename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;hydpy.auxs&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">AUXS</span>
+        <span class="k">if</span> <span class="n">modulename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;hydpy.cythons&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">CYTHONS</span>
+        <span class="k">if</span> <span class="n">modulename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;hydpy.models&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">MODELS</span>
+        <span class="k">if</span> <span class="n">modulename</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;hydpy&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">HYDPY</span>
+        <span class="k">return</span> <span class="n">ELSE</span></div>
+</div>
+
+
+
+<span class="n">BUILTINS</span> <span class="o">=</span> <span class="n">Priority</span><span class="o">.</span><span class="n">BUILTINS</span>
+<span class="n">CORE</span> <span class="o">=</span> <span class="n">Priority</span><span class="o">.</span><span class="n">CORE</span>
+<span class="n">EXE</span> <span class="o">=</span> <span class="n">Priority</span><span class="o">.</span><span class="n">EXE</span>
+<span class="n">AUXS</span> <span class="o">=</span> <span class="n">Priority</span><span class="o">.</span><span class="n">AUXS</span>
+<span class="n">CYTHONS</span> <span class="o">=</span> <span class="n">Priority</span><span class="o">.</span><span class="n">CYTHONS</span>
+<span class="n">MODELS</span> <span class="o">=</span> <span class="n">Priority</span><span class="o">.</span><span class="n">MODELS</span>
+<span class="n">HYDPY</span> <span class="o">=</span> <span class="n">Priority</span><span class="o">.</span><span class="n">HYDPY</span>
+<span class="n">ELSE</span> <span class="o">=</span> <span class="n">Priority</span><span class="o">.</span><span class="n">ELSE</span>
+
+
+<span class="n">excluded_members</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;CLASSES&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RUN_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ADD_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;INLET_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;OUTLET_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RECEIVER_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SENDER_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PART_ODE_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;FULL_ODE_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CONTROLPARAMETERS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DERIVEDPARAMETERS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;FIXEDPARAMETERS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;REQUIREDSEQUENCES&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;UPDATEDSEQUENCES&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RESULTSEQUENCES&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SOLVERPARAMETERS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SOLVERSEQUENCES&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SUBMETHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SUBMODELS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fastaccess&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fastaccess_new&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;fastaccess_old&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;pars&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;seqs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;subvars&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;subpars&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;subseqs&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">excluded_members</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">typing</span><span class="o">.</span><span class="n">__all__</span><span class="p">)</span>
+<span class="n">excluded_members</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">typing_extensions</span><span class="o">.</span><span class="n">__all__</span><span class="p">)</span>
+
+<span class="n">_PAR_SPEC2CAPT</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">(</span>
+    <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;parameters&quot;</span><span class="p">,</span> <span class="s2">&quot;Parameter tools&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;constants&quot;</span><span class="p">,</span> <span class="s2">&quot;Constants&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;control&quot;</span><span class="p">,</span> <span class="s2">&quot;Control parameters&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;derived&quot;</span><span class="p">,</span> <span class="s2">&quot;Derived parameters&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;fixed&quot;</span><span class="p">,</span> <span class="s2">&quot;Fixed parameters&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;solver&quot;</span><span class="p">,</span> <span class="s2">&quot;Solver parameters&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">_SEQ_SPEC2CAPT</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">(</span>
+    <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;sequences&quot;</span><span class="p">,</span> <span class="s2">&quot;Sequence tools&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;inputs&quot;</span><span class="p">,</span> <span class="s2">&quot;Input sequences&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;factors&quot;</span><span class="p">,</span> <span class="s2">&quot;Factor sequences&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;fluxes&quot;</span><span class="p">,</span> <span class="s2">&quot;Flux sequences&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;states&quot;</span><span class="p">,</span> <span class="s2">&quot;State sequences&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;logs&quot;</span><span class="p">,</span> <span class="s2">&quot;Log sequences&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;inlets&quot;</span><span class="p">,</span> <span class="s2">&quot;Inlet sequences&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;outlets&quot;</span><span class="p">,</span> <span class="s2">&quot;Outlet sequences&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;receivers&quot;</span><span class="p">,</span> <span class="s2">&quot;Receiver sequences&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;senders&quot;</span><span class="p">,</span> <span class="s2">&quot;Sender sequences&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;aides&quot;</span><span class="p">,</span> <span class="s2">&quot;Aide sequences&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">_AUX_SPEC2CAPT</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">(((</span><span class="s2">&quot;masks&quot;</span><span class="p">,</span> <span class="s2">&quot;Masks&quot;</span><span class="p">),))</span>
+
+<span class="n">_all_spec2capt</span> <span class="o">=</span> <span class="n">_PAR_SPEC2CAPT</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">_all_spec2capt</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">_SEQ_SPEC2CAPT</span><span class="p">)</span>
+<span class="n">_all_spec2capt</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">_AUX_SPEC2CAPT</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_add_title</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">marker</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a title for a basemodels docstring.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">marker</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">title</span><span class="p">)]</span>
+
+
+<span class="k">def</span> <span class="nf">_add_lines</span><span class="p">(</span><span class="n">specification</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">module</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return autodoc commands for a basemodels docstring.</span>
+
+<span class="sd">    Note that `collection classes` (e.g. `Model`, `ControlParameters`, `InputSequences`</span>
+<span class="sd">    are placed on top of the respective section and the `contained classes` (e.g. model</span>
+<span class="sd">    methods, `ControlParameter` instances, `InputSequence` instances at the bottom.</span>
+<span class="sd">    This differs from the order of their definition in the respective modules, but</span>
+<span class="sd">    results in a better documentation structure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">caption</span> <span class="o">=</span> <span class="n">_all_spec2capt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">specification</span><span class="p">,</span> <span class="s2">&quot;dummy&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">caption</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;parameters&quot;</span><span class="p">,</span> <span class="s2">&quot;sequences&quot;</span><span class="p">,</span> <span class="s2">&quot;Masks&quot;</span><span class="p">):</span>
+        <span class="n">exists_collectionclass</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">name_collectionclass</span> <span class="o">=</span> <span class="n">caption</span><span class="o">.</span><span class="n">title</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">exists_collectionclass</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">exc_mem</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">excluded_members</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">specification</span> <span class="o">==</span> <span class="s2">&quot;model&quot;</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;.. autoclass:: </span><span class="si">{</span><span class="n">module</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.Model&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;    :members:&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;    :show-inheritance:&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;    :exclude-members: </span><span class="si">{</span><span class="n">exc_mem</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="k">elif</span> <span class="n">exists_collectionclass</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s1">&#39;.. autoclass:: </span><span class="si">{</span><span class="n">module</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">name_collectionclass</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;    :members:&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;    :noindex:&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;    :show-inheritance:&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;    :exclude-members: </span><span class="si">{</span><span class="n">exc_mem</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span>
+        <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.. automodule:: &quot;</span> <span class="o">+</span> <span class="n">module</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+        <span class="s2">&quot;    :members:&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;    :show-inheritance:&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">specification</span> <span class="o">==</span> <span class="s2">&quot;model&quot;</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;    :exclude-members: Model, </span><span class="si">{</span><span class="n">exc_mem</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">exists_collectionclass</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;    :exclude-members:  </span><span class="si">{</span><span class="n">name_collectionclass</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">exc_mem</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;    :exclude-members: </span><span class="si">{</span><span class="n">exc_mem</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">lines</span>
+
+
+<div class="viewcode-block" id="autodoc_basemodel">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.autodoc_basemodel">[docs]</a>
+<span class="k">def</span> <span class="nf">autodoc_basemodel</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add an exhaustive docstring to the given module of a basemodel.</span>
+
+<span class="sd">    Works onlye when all modules of the basemodel are named in the standard way, e.g.</span>
+<span class="sd">    `lland_model`, `lland_control`, `lland_inputs`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">autodoc_tuple2doc</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+    <span class="n">namespace</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="vm">__dict__</span>
+    <span class="n">moduledoc</span> <span class="o">=</span> <span class="n">namespace</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;__doc__&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">moduledoc</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+    <span class="n">basemodulename</span> <span class="o">=</span> <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;__name__&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">modules</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="n">value</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">namespace</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">)</span> <span class="ow">and</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">basemodulename</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">substituter</span> <span class="o">=</span> <span class="n">Substituter</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">substituter</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">specification</span> <span class="o">=</span> <span class="s2">&quot;model&quot;</span>
+    <span class="n">modulename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">basemodulename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">specification</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">if</span> <span class="n">modulename</span> <span class="ow">in</span> <span class="n">modules</span><span class="p">:</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">modules</span><span class="p">[</span><span class="n">modulename</span><span class="p">]</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="n">_add_title</span><span class="p">(</span><span class="s2">&quot;Method Features&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="n">_add_lines</span><span class="p">(</span><span class="n">specification</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
+        <span class="n">substituter</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">Model</span>
+        <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span>
+        <span class="n">methods</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">get_methods</span><span class="p">())</span>
+    <span class="n">_extend_methoddocstrings</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+    <span class="n">_gain_and_insert_additional_information_into_docstrings</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">methods</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">spec2capt</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;Parameter Features&quot;</span><span class="p">,</span> <span class="n">_PAR_SPEC2CAPT</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Sequence Features&quot;</span><span class="p">,</span> <span class="n">_SEQ_SPEC2CAPT</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Auxiliary Features&quot;</span><span class="p">,</span> <span class="n">_AUX_SPEC2CAPT</span><span class="p">),</span>
+    <span class="p">):</span>
+        <span class="n">found_module</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">new_lines</span> <span class="o">=</span> <span class="n">_add_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">specification</span><span class="p">,</span> <span class="n">caption</span> <span class="ow">in</span> <span class="n">spec2capt</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">modulename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">basemodulename</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">specification</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">if</span> <span class="n">modulename</span> <span class="ow">in</span> <span class="n">modules</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">modules</span><span class="p">[</span><span class="n">modulename</span><span class="p">]</span>
+                <span class="n">found_module</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">new_lines</span> <span class="o">+=</span> <span class="n">_add_title</span><span class="p">(</span><span class="n">caption</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+                <span class="n">new_lines</span> <span class="o">+=</span> <span class="n">_add_lines</span><span class="p">(</span><span class="n">specification</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
+                <span class="n">substituter</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+                <span class="n">_gain_and_insert_additional_information_into_docstrings</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">methods</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">found_module</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">+=</span> <span class="n">new_lines</span>
+    <span class="n">moduledoc</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+    <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;__doc__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">moduledoc</span>
+    <span class="n">basemodule</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;__name__&quot;</span><span class="p">])</span>
+    <span class="n">substituter</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">basemodule</span><span class="p">)</span>
+    <span class="n">substituter</span><span class="o">.</span><span class="n">update_masters</span><span class="p">()</span>
+    <span class="n">namespace</span><span class="p">[</span><span class="s2">&quot;substituter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">substituter</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_insert_links_into_docstring</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">insertion</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">target</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># type: ignore[operator]</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s2">&quot;__doc__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">position</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">target</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">doc</span><span class="p">,</span> <span class="n">insertion</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">position</span> <span class="o">+=</span> <span class="mi">2</span>
+            <span class="n">target</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">doc</span><span class="p">[:</span><span class="n">position</span><span class="p">],</span> <span class="n">insertion</span><span class="p">,</span> <span class="n">doc</span><span class="p">[</span><span class="n">position</span><span class="p">:]])</span>
+    <span class="k">return</span>
+
+
+<span class="k">def</span> <span class="nf">_extend_methoddocstrings</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">Model</span>
+    <span class="k">assert</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">get_methods</span><span class="p">():</span>
+        <span class="n">_insert_links_into_docstring</span><span class="p">(</span>
+            <span class="n">method</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_get_methoddocstringinsertions</span><span class="p">(</span><span class="n">method</span><span class="p">))</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_get_ending</span><span class="p">(</span><span class="n">container</span><span class="p">:</span> <span class="n">Sized</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="s2">&quot;s&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">container</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">_get_methoddocstringinsertions</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="n">insertions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">submethods</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="s2">&quot;SUBMETHODS&quot;</span><span class="p">,</span> <span class="p">())</span>
+    <span class="k">if</span> <span class="n">submethods</span><span class="p">:</span>
+        <span class="n">insertions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Required submethod</span><span class="si">{</span><span class="n">_get_ending</span><span class="p">(</span><span class="n">submethods</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">submethod</span> <span class="ow">in</span> <span class="n">submethods</span><span class="p">:</span>
+            <span class="n">insertions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;      :class:`~</span><span class="si">{</span><span class="n">submethod</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.&quot;</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">submethod</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`&quot;</span>
+            <span class="p">)</span>
+        <span class="n">insertions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">pargroup</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;control&quot;</span><span class="p">,</span> <span class="s2">&quot;derived&quot;</span><span class="p">,</span> <span class="s2">&quot;fixed&quot;</span><span class="p">,</span> <span class="s2">&quot;solver&quot;</span><span class="p">):</span>
+        <span class="n">pars</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pargroup</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">PARAMETERS&quot;</span><span class="p">,</span> <span class="p">())</span>
+        <span class="k">if</span> <span class="n">pars</span><span class="p">:</span>
+            <span class="n">insertions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;    Requires the </span><span class="si">{</span><span class="n">pargroup</span><span class="si">}</span><span class="s2"> parameter</span><span class="si">{</span><span class="n">_get_ending</span><span class="p">(</span><span class="n">pars</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">pars</span><span class="p">:</span>
+                <span class="n">insertions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;      :class:`~</span><span class="si">{</span><span class="n">par</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">par</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+            <span class="n">insertions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">statement</span><span class="p">,</span> <span class="n">tuplename</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;Requires the&quot;</span><span class="p">,</span> <span class="s2">&quot;REQUIREDSEQUENCES&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Updates the&quot;</span><span class="p">,</span> <span class="s2">&quot;UPDATEDSEQUENCES&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Calculates the&quot;</span><span class="p">,</span> <span class="s2">&quot;RESULTSEQUENCES&quot;</span><span class="p">),</span>
+    <span class="p">):</span>
+        <span class="k">for</span> <span class="n">seqtype</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="n">sequencetools</span><span class="o">.</span><span class="n">InletSequence</span><span class="p">,</span>
+            <span class="n">sequencetools</span><span class="o">.</span><span class="n">ReceiverSequence</span><span class="p">,</span>
+            <span class="n">sequencetools</span><span class="o">.</span><span class="n">InputSequence</span><span class="p">,</span>
+            <span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">,</span>
+            <span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">,</span>
+            <span class="n">sequencetools</span><span class="o">.</span><span class="n">StateSequence</span><span class="p">,</span>
+            <span class="n">sequencetools</span><span class="o">.</span><span class="n">LogSequence</span><span class="p">,</span>
+            <span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">,</span>
+            <span class="n">sequencetools</span><span class="o">.</span><span class="n">OutletSequence</span><span class="p">,</span>
+            <span class="n">sequencetools</span><span class="o">.</span><span class="n">SenderSequence</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">seqs</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">seq</span>
+                <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">tuplename</span><span class="p">,</span> <span class="p">())</span>
+                <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">seqtype</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="n">seqs</span><span class="p">:</span>
+                <span class="n">insertions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="n">statement</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">seqtype</span><span class="o">.</span><span class="vm">__name__</span><span class="p">[:</span><span class="o">-</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;sequence</span><span class="si">{</span><span class="n">_get_ending</span><span class="p">(</span><span class="n">seqs</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">seqs</span><span class="p">:</span>
+                    <span class="n">insertions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;      :class:`~</span><span class="si">{</span><span class="n">seq</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">seq</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`&quot;</span>
+                    <span class="p">)</span>
+                <span class="n">insertions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">insertions</span><span class="p">:</span>
+        <span class="n">insertions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">insertions</span>
+
+
+<span class="k">def</span> <span class="nf">_gain_and_insert_additional_information_into_docstrings</span><span class="p">(</span>
+    <span class="n">module</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">allmethods</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">module</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">insertions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">role</span><span class="p">,</span> <span class="n">description</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s2">&quot;SUBMETHODS&quot;</span><span class="p">,</span> <span class="s2">&quot;Required&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;CONTROLPARAMETERS&quot;</span><span class="p">,</span> <span class="s2">&quot;Required&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;DERIVEDPARAMETERS&quot;</span><span class="p">,</span> <span class="s2">&quot;Required&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;FIXEDPARAMETERS&quot;</span><span class="p">,</span> <span class="s2">&quot;Required&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;SOLVERPARAMETERS&quot;</span><span class="p">,</span> <span class="s2">&quot;Required&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;RESULTSEQUENCES&quot;</span><span class="p">,</span> <span class="s2">&quot;Calculated&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;UPDATEDSEQUENCES&quot;</span><span class="p">,</span> <span class="s2">&quot;Updated&quot;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;REQUIREDSEQUENCES&quot;</span><span class="p">,</span> <span class="s2">&quot;Required&quot;</span><span class="p">),</span>
+        <span class="p">):</span>
+            <span class="n">relevantmethods</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">allmethods</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">role</span><span class="p">,</span> <span class="p">()):</span>
+                    <span class="n">relevantmethods</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">relevantmethods</span><span class="p">:</span>
+                <span class="n">subinsertions</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">relevantmethods</span><span class="p">:</span>
+                    <span class="n">subinsertions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;      :class:`~</span><span class="si">{</span><span class="n">method</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.&quot;</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`&quot;</span>
+                    <span class="p">)</span>
+                <span class="n">insertions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="n">description</span><span class="si">}</span><span class="s2"> by the &quot;</span> <span class="sa">f</span><span class="s2">&quot;method</span><span class="si">{</span><span class="n">_get_ending</span><span class="p">(</span><span class="n">subinsertions</span><span class="p">)</span><span class="si">}</span><span class="s2">:&quot;</span>
+                <span class="p">)</span>
+                <span class="n">insertions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">subinsertions</span><span class="p">))</span>
+                <span class="n">insertions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">_insert_links_into_docstring</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">insertions</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="autodoc_applicationmodel">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.autodoc_applicationmodel">[docs]</a>
+<span class="k">def</span> <span class="nf">autodoc_applicationmodel</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Improves the docstrings of application models.</span>
+
+<span class="sd">    |autodoc_applicationmodel| requires, similar to |autodoc_basemodel|, that both the</span>
+<span class="sd">    application model and its base model are defined in the conventional way.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">autodoc_tuple2doc</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+    <span class="n">name_applicationmodel</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="n">name_basemodel</span> <span class="o">=</span> <span class="n">name_applicationmodel</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">module_basemodel</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">name_basemodel</span><span class="p">)</span>
+    <span class="n">substituter</span> <span class="o">=</span> <span class="n">Substituter</span><span class="p">(</span><span class="n">module_basemodel</span><span class="o">.</span><span class="n">substituter</span><span class="p">)</span>
+    <span class="n">substituter</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+    <span class="n">substituter</span><span class="o">.</span><span class="n">update_masters</span><span class="p">()</span>
+    <span class="n">module</span><span class="o">.</span><span class="n">substituter</span> <span class="o">=</span> <span class="n">substituter</span>  <span class="c1"># type: ignore[attr-defined]</span></div>
+
+
+
+<div class="viewcode-block" id="Substituter">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.Substituter">[docs]</a>
+<span class="k">class</span> <span class="nc">Substituter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a HydPy specific docstring substitution mechanism.&quot;&quot;&quot;</span>
+
+    <span class="n">master</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Substituter</span><span class="p">]</span>
+    <span class="n">slaves</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Substituter</span><span class="p">]</span>
+    <span class="n">short2long</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">short2priority</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Priority</span><span class="p">]</span>
+    <span class="n">medium2long</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Substituter</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">master</span> <span class="o">=</span> <span class="n">master</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slaves</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">master</span><span class="p">:</span>
+            <span class="n">master</span><span class="o">.</span><span class="n">slaves</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">short2long</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">master</span><span class="o">.</span><span class="n">short2long</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">short2priority</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">master</span><span class="o">.</span><span class="n">short2priority</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">medium2long</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">master</span><span class="o">.</span><span class="n">medium2long</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">short2long</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">short2priority</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">medium2long</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="Substituter.consider_member">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.Substituter.consider_member">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">consider_member</span><span class="p">(</span>
+        <span class="n">name_member</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">member</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">module</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">,</span>
+        <span class="n">class_</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">ignore</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return |True| if the given member should be added to the substitutions.  If</span>
+<span class="sd">        not, return |False|.</span>
+
+<span class="sd">        Some examples based on the site-package |numpy|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.autodoctools import Substituter</span>
+<span class="sd">        &gt;&gt;&gt; import numpy</span>
+
+<span class="sd">        A constant like |numpy.nan| should be added:</span>
+
+<span class="sd">        &gt;&gt;&gt; Substituter.consider_member(&quot;nan&quot;, numpy.nan, numpy)</span>
+<span class="sd">        True</span>
+
+<span class="sd">        Members with a prefixed underscore should not be added:</span>
+
+<span class="sd">        &gt;&gt;&gt; Substituter.consider_member(&quot;_NoValue&quot;, numpy._NoValue, numpy)</span>
+<span class="sd">        False</span>
+
+<span class="sd">        Members that are actually imported modules should not be added:</span>
+
+<span class="sd">        &gt;&gt;&gt; Substituter.consider_member(&quot;warnings&quot;, numpy.random, numpy)</span>
+<span class="sd">        False</span>
+
+<span class="sd">        Members that are actually defined in other modules should not be added:</span>
+
+<span class="sd">        &gt;&gt;&gt; numpy.Substituter = Substituter</span>
+<span class="sd">        &gt;&gt;&gt; Substituter.consider_member(&quot;Substituter&quot;, numpy.Substituter, numpy)</span>
+<span class="sd">        False</span>
+<span class="sd">        &gt;&gt;&gt; del numpy.Substituter</span>
+
+<span class="sd">        Members that are defined in submodules of a given package (either from the</span>
+<span class="sd">        standard library or from site-packages) should be added...</span>
+
+<span class="sd">        &gt;&gt;&gt; Substituter.consider_member(&quot;clip&quot;, numpy.clip, numpy)</span>
+<span class="sd">        True</span>
+
+<span class="sd">        ...but not members defined in *HydPy* submodules:</span>
+
+<span class="sd">        &gt;&gt;&gt; import hydpy</span>
+<span class="sd">        &gt;&gt;&gt; Substituter.consider_member(&quot;Node&quot;, hydpy.Node, hydpy)</span>
+<span class="sd">        False</span>
+
+<span class="sd">        Module |typingtools| is unique, as it is the only one for which</span>
+<span class="sd">        |Substituter.consider_member| returns |True| all explicitly exported type</span>
+<span class="sd">        aliases:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core import sequencetools, typingtools</span>
+<span class="sd">        &gt;&gt;&gt; Substituter.consider_member(</span>
+<span class="sd">        ...     &quot;NDArrayFloat&quot;, typingtools.NDArrayFloat, typingtools)</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &gt;&gt;&gt; Substituter.consider_member(</span>
+<span class="sd">        ...     &quot;NDArrayFloat&quot;, typingtools.NDArrayFloat, sequencetools)</span>
+<span class="sd">        False</span>
+
+<span class="sd">        For descriptor instances (with method `__get__`) being members of classes</span>
+<span class="sd">        should be added:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.auxs import anntools</span>
+<span class="sd">        &gt;&gt;&gt; Substituter.consider_member(</span>
+<span class="sd">        ...     &quot;shape_neurons&quot;, anntools.ANN.shape_neurons, anntools, anntools.ANN)</span>
+<span class="sd">        True</span>
+
+<span class="sd">        You can decide to ignore certain members:</span>
+
+<span class="sd">        &gt;&gt;&gt; Substituter.consider_member(</span>
+<span class="sd">        ...     &quot;shape_neurons&quot;, anntools.ANN.shape_neurons, anntools, anntools.ANN,</span>
+<span class="sd">        ...     {&quot;test&quot;: 1.0})</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; Substituter.consider_member(</span>
+<span class="sd">        ...     &quot;shape_neurons&quot;, anntools.ANN.shape_neurons, anntools, anntools.ANN,</span>
+<span class="sd">        ...     {&quot;shape_neurons&quot;: anntools.ANN.shape_neurons})</span>
+<span class="sd">        False</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ignore</span> <span class="ow">and</span> <span class="p">(</span><span class="n">name_member</span> <span class="ow">in</span> <span class="n">ignore</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">name_member</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">ismodule</span><span class="p">(</span><span class="n">member</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">real_module</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="s2">&quot;__module__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">module</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">typing</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">name_member</span> <span class="ow">in</span> <span class="n">typing</span><span class="o">.</span><span class="n">__all__</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">module</span> <span class="ow">is</span> <span class="n">typingtools</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">name_member</span> <span class="ow">in</span> <span class="n">typingtools</span><span class="o">.</span><span class="n">__all__</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">real_module</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">real_module</span> <span class="o">!=</span> <span class="n">module</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">class_</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="s2">&quot;__get__&quot;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="s2">&quot;hydpy&quot;</span> <span class="ow">in</span> <span class="n">real_module</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">module</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">real_module</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="Substituter.get_role">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.Substituter.get_role">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_role</span><span class="p">(</span><span class="n">member</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">cython</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the reStructuredText role `func`, `class`, or `const` best describing</span>
+<span class="sd">        the given member.</span>
+
+<span class="sd">        Some examples based on the site-package |numpy|.  |numpy.clip| is a function:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.autodoctools import Substituter</span>
+<span class="sd">        &gt;&gt;&gt; import numpy</span>
+<span class="sd">        &gt;&gt;&gt; Substituter.get_role(numpy.clip)</span>
+<span class="sd">        &#39;func&#39;</span>
+
+<span class="sd">        |numpy.ndarray| is a class:</span>
+
+<span class="sd">        &gt;&gt;&gt; Substituter.get_role(numpy.ndarray)</span>
+<span class="sd">        &#39;class&#39;</span>
+
+<span class="sd">        |numpy.ndarray.clip| is a method, for which also the `function` role is</span>
+<span class="sd">        returned:</span>
+
+<span class="sd">        &gt;&gt;&gt; Substituter.get_role(numpy.ndarray.clip)</span>
+<span class="sd">        &#39;func&#39;</span>
+
+<span class="sd">        For everything else the `constant` role is returned:</span>
+
+<span class="sd">        &gt;&gt;&gt; Substituter.get_role(numpy.nan)</span>
+<span class="sd">        &#39;const&#39;</span>
+
+<span class="sd">        When analysing cython extension modules, set the option `cython` flag to |True|.</span>
+<span class="sd">        |Double| is correctly identified as a class:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.cythons import pointerutils</span>
+<span class="sd">        &gt;&gt;&gt; Substituter.get_role(pointerutils.Double, cython=True)</span>
+<span class="sd">        &#39;class&#39;</span>
+
+<span class="sd">        Only with the `cython` flag beeing |True|, for everything else the `function`</span>
+<span class="sd">        text role is returned (doesn&#39;t make sense here, but the |numpy| module is not</span>
+<span class="sd">        something defined in module |pointerutils| anyway):</span>
+
+<span class="sd">        &gt;&gt;&gt; Substituter.get_role(pointerutils.numpy, cython=True)</span>
+<span class="sd">        &#39;func&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isroutine</span><span class="p">(</span><span class="n">member</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ufunc</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;func&quot;</span>
+        <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="n">member</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;class&quot;</span>
+        <span class="k">if</span> <span class="n">cython</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;func&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;const&quot;</span></div>
+
+
+<div class="viewcode-block" id="Substituter.add_substitution">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.Substituter.add_substitution">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_substitution</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">short</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">medium</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">long</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">module</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the given substitutions both as a `short2long` and a `medium2long`</span>
+<span class="sd">        mapping.</span>
+
+<span class="sd">        Assume `variable1`, `variable2`, and  `variable3` are defined in the *HydPy*</span>
+<span class="sd">        module `module1` of subpackage `exe` and the short and medium descriptions are</span>
+<span class="sd">        `var1` and `mod1.var1` and so on:</span>
+
+<span class="sd">        &gt;&gt;&gt; import types</span>
+<span class="sd">        &gt;&gt;&gt; module1 = types.ModuleType(&quot;hydpy.exe.module1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.autodoctools import Substituter</span>
+<span class="sd">        &gt;&gt;&gt; substituter = Substituter()</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_substitution(</span>
+<span class="sd">        ...     &quot;var1&quot;, &quot;mod1.var1&quot;, &quot;hydpy.exe.module1.variable1&quot;, module1)</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_substitution(</span>
+<span class="sd">        ...     &quot;var2&quot;, &quot;mod1.var2&quot;, &quot;hydpy.exe.module1.variable2&quot;, module1)</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_substitution(</span>
+<span class="sd">        ...     &quot;var3&quot;, &quot;mod1.var3&quot;, &quot;hydpy.exe.module1.variable3&quot;, module1)</span>
+<span class="sd">        &gt;&gt;&gt; print(substituter.get_commands())</span>
+<span class="sd">        .. var1 replace:: hydpy.exe.module1.variable1</span>
+<span class="sd">        .. var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. var3 replace:: hydpy.exe.module1.variable3</span>
+<span class="sd">        .. mod1.var1 replace:: hydpy.exe.module1.variable1</span>
+<span class="sd">        .. mod1.var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. mod1.var3 replace:: hydpy.exe.module1.variable3</span>
+
+<span class="sd">        If we add an object with the same, the updating of |Substituter.short2long|</span>
+<span class="sd">        depends on its priority.  Builtins have the highest priority.  Objects defined</span>
+<span class="sd">        in the `core`, `exe`, `auxs`, `cythons`, and `models` subpackages have the</span>
+<span class="sd">        priorities two to six.  All other objects (incuding those of other</span>
+<span class="sd">        site-packages) have the lowest priority.  If we add `variable1`, said to be</span>
+<span class="sd">        defined in the `core` subpackage (higher priority than the `exe` subpackage),</span>
+<span class="sd">        the new short substitution replaces the old one:</span>
+
+<span class="sd">        &gt;&gt;&gt; module2 = types.ModuleType(&quot;hydpy.core.module2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_substitution(</span>
+<span class="sd">        ...     &quot;var1&quot;, &quot;mod2.var1&quot;, &quot;hydpy.core.module2.variable1&quot;, module2)</span>
+<span class="sd">        &gt;&gt;&gt; print(substituter.get_commands())</span>
+<span class="sd">        .. var1 replace:: hydpy.core.module2.variable1</span>
+<span class="sd">        .. var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. var3 replace:: hydpy.exe.module1.variable3</span>
+<span class="sd">        .. mod1.var1 replace:: hydpy.exe.module1.variable1</span>
+<span class="sd">        .. mod1.var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. mod1.var3 replace:: hydpy.exe.module1.variable3</span>
+<span class="sd">        .. mod2.var1 replace:: hydpy.core.module2.variable1</span>
+
+<span class="sd">        If we add `variable2`, said to be defined in the `auxs` subpackage (lower</span>
+<span class="sd">        priority than the `exe` subpackage), the old short substitution does not change:</span>
+
+<span class="sd">        &gt;&gt;&gt; module3 = types.ModuleType(&quot;hydpy.auxs.module3&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_substitution(</span>
+<span class="sd">        ...     &quot;var2&quot;, &quot;mod3.var2&quot;, &quot;hydpy.auxs.module3.variable2&quot;, module3)</span>
+<span class="sd">        &gt;&gt;&gt; print(substituter.get_commands())</span>
+<span class="sd">        .. var1 replace:: hydpy.core.module2.variable1</span>
+<span class="sd">        .. var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. var3 replace:: hydpy.exe.module1.variable3</span>
+<span class="sd">        .. mod1.var1 replace:: hydpy.exe.module1.variable1</span>
+<span class="sd">        .. mod1.var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. mod1.var3 replace:: hydpy.exe.module1.variable3</span>
+<span class="sd">        .. mod2.var1 replace:: hydpy.core.module2.variable1</span>
+<span class="sd">        .. mod3.var2 replace:: hydpy.auxs.module3.variable2</span>
+
+<span class="sd">        If we add `variable3`, said to be also defined in the `exe` subpackage, the</span>
+<span class="sd">        short substitution is removed to avoid ambiguity:</span>
+
+<span class="sd">        &gt;&gt;&gt; module4 = types.ModuleType(&quot;hydpy.exe.module4&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_substitution(</span>
+<span class="sd">        ...     &quot;var3&quot;, &quot;mod4.var3&quot;, &quot;hydpy.exe.module4.variable3&quot;, module4)</span>
+<span class="sd">        &gt;&gt;&gt; print(substituter.get_commands())</span>
+<span class="sd">        .. var1 replace:: hydpy.core.module2.variable1</span>
+<span class="sd">        .. var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. mod1.var1 replace:: hydpy.exe.module1.variable1</span>
+<span class="sd">        .. mod1.var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. mod1.var3 replace:: hydpy.exe.module1.variable3</span>
+<span class="sd">        .. mod2.var1 replace:: hydpy.core.module2.variable1</span>
+<span class="sd">        .. mod3.var2 replace:: hydpy.auxs.module3.variable2</span>
+<span class="sd">        .. mod4.var3 replace:: hydpy.exe.module4.variable3</span>
+
+<span class="sd">        Adding `variable3` of `module1` accidentally again does not result in any</span>
+<span class="sd">        undesired side-effects:</span>
+
+<span class="sd">        &gt;&gt;&gt; substituter.add_substitution(</span>
+<span class="sd">        ...     &quot;var3&quot;, &quot;mod1.var3&quot;, &quot;hydpy.exe.module1.variable3&quot;, module1)</span>
+<span class="sd">        &gt;&gt;&gt; print(substituter.get_commands())</span>
+<span class="sd">        .. var1 replace:: hydpy.core.module2.variable1</span>
+<span class="sd">        .. var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. mod1.var1 replace:: hydpy.exe.module1.variable1</span>
+<span class="sd">        .. mod1.var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. mod1.var3 replace:: hydpy.exe.module1.variable3</span>
+<span class="sd">        .. mod2.var1 replace:: hydpy.core.module2.variable1</span>
+<span class="sd">        .. mod3.var2 replace:: hydpy.auxs.module3.variable2</span>
+<span class="sd">        .. mod4.var3 replace:: hydpy.exe.module4.variable3</span>
+
+<span class="sd">        In order to reduce the risk of name conflicts, only the `medium2long` mapping</span>
+<span class="sd">        is supported for modules not part of the *HydPy* package:</span>
+
+<span class="sd">        &gt;&gt;&gt; module5 = types.ModuleType(&quot;external&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_substitution(</span>
+<span class="sd">        ...     &quot;var4&quot;, &quot;mod5.var4&quot;, &quot;external.variable4&quot;, module5)</span>
+<span class="sd">        &gt;&gt;&gt; print(substituter.get_commands())</span>
+<span class="sd">        .. var1 replace:: hydpy.core.module2.variable1</span>
+<span class="sd">        .. var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. mod1.var1 replace:: hydpy.exe.module1.variable1</span>
+<span class="sd">        .. mod1.var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. mod1.var3 replace:: hydpy.exe.module1.variable3</span>
+<span class="sd">        .. mod2.var1 replace:: hydpy.core.module2.variable1</span>
+<span class="sd">        .. mod3.var2 replace:: hydpy.auxs.module3.variable2</span>
+<span class="sd">        .. mod4.var3 replace:: hydpy.exe.module4.variable3</span>
+<span class="sd">        .. mod5.var4 replace:: external.variable4</span>
+
+<span class="sd">        The only exception to this rule is |builtins|, for which only the</span>
+<span class="sd">        |Substituter.short2long| mapping is supported (note also, that the module name</span>
+<span class="sd">        `builtins` is removed from string `long`):</span>
+
+<span class="sd">        &gt;&gt;&gt; import builtins</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_substitution(</span>
+<span class="sd">        ...     &quot;str&quot;, &quot;blt.str&quot;, &quot;:func:`~builtins.str`&quot;, builtins)</span>
+<span class="sd">        &gt;&gt;&gt; print(substituter.get_commands())</span>
+<span class="sd">        .. str replace:: :func:`str`</span>
+<span class="sd">        .. var1 replace:: hydpy.core.module2.variable1</span>
+<span class="sd">        .. var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. mod1.var1 replace:: hydpy.exe.module1.variable1</span>
+<span class="sd">        .. mod1.var2 replace:: hydpy.exe.module1.variable2</span>
+<span class="sd">        .. mod1.var3 replace:: hydpy.exe.module1.variable3</span>
+<span class="sd">        .. mod2.var1 replace:: hydpy.core.module2.variable1</span>
+<span class="sd">        .. mod3.var2 replace:: hydpy.auxs.module3.variable2</span>
+<span class="sd">        .. mod4.var3 replace:: hydpy.exe.module4.variable3</span>
+<span class="sd">        .. mod5.var4 replace:: external.variable4</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="n">priority</span> <span class="o">=</span> <span class="n">Priority</span><span class="o">.</span><span class="n">get_priority</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">priority</span> <span class="o">==</span> <span class="n">BUILTINS</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">short2long</span><span class="p">[</span><span class="n">short</span><span class="p">]</span> <span class="o">=</span> <span class="n">long</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">long</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">short2priority</span><span class="p">[</span><span class="n">short</span><span class="p">]</span> <span class="o">=</span> <span class="n">priority</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">medium2long</span><span class="p">[</span><span class="n">medium</span><span class="p">]</span> <span class="o">=</span> <span class="n">long</span>
+            <span class="k">if</span> <span class="n">priority</span> <span class="o">!=</span> <span class="n">ELSE</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">priority</span><span class="o">.</span><span class="n">value</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">short2priority</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">short</span><span class="p">,</span> <span class="n">ELSE</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">short2long</span><span class="p">[</span><span class="n">short</span><span class="p">]</span> <span class="o">=</span> <span class="n">long</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">short2priority</span><span class="p">[</span><span class="n">short</span><span class="p">]</span> <span class="o">=</span> <span class="n">priority</span>
+                <span class="k">elif</span> <span class="n">priority</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">short2priority</span><span class="p">[</span><span class="n">short</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">short2long</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">short</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Substituter.add_module">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.Substituter.add_module">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_module</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">,</span> <span class="n">cython</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the given module, its members, and their submembers.</span>
+
+<span class="sd">        The first examples are based on the site-package |numpy|: which is passed to</span>
+<span class="sd">        method |Substituter.add_module|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.autodoctools import Substituter</span>
+<span class="sd">        &gt;&gt;&gt; substituter = Substituter()</span>
+<span class="sd">        &gt;&gt;&gt; import numpy</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_module(numpy)</span>
+
+<span class="sd">        First, the module itself is added:</span>
+
+<span class="sd">        &gt;&gt;&gt; substituter.find(&quot;|numpy|&quot;)</span>
+<span class="sd">        |numpy| :mod:`~numpy`</span>
+
+<span class="sd">        Second, constants like |numpy.nan| are added:</span>
+
+<span class="sd">        &gt;&gt;&gt; substituter.find(&quot;|numpy.nan|&quot;)</span>
+<span class="sd">        |numpy.nan| :const:`~numpy.nan`</span>
+
+<span class="sd">        Third, functions like |numpy.clip| are added:</span>
+
+<span class="sd">        &gt;&gt;&gt; substituter.find(&quot;|numpy.clip|&quot;)</span>
+<span class="sd">        |numpy.clip| :func:`~numpy.clip`</span>
+
+<span class="sd">        Fourth, clases line |numpy.ndarray| are added:</span>
+
+<span class="sd">        &gt;&gt;&gt; substituter.find(&quot;|numpy.ndarray|&quot;)</span>
+<span class="sd">        |numpy.ndarray| :class:`~numpy.ndarray`</span>
+
+<span class="sd">        Method |Substituter.add_module| also searches for available annotations:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core import timetools</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_module(timetools)</span>
+<span class="sd">        &gt;&gt;&gt; substituter.find(&quot;Timegrids.init&quot;)</span>
+<span class="sd">        |Timegrids.initindices| :const:`~hydpy.core.timetools.Timegrids.initindices`</span>
+<span class="sd">        |Timegrids.init| :attr:`~hydpy.core.timetools.Timegrids.init`</span>
+<span class="sd">        |timetools.Timegrids.initindices| \</span>
+<span class="sd">:const:`~hydpy.core.timetools.Timegrids.initindices`</span>
+<span class="sd">        |timetools.Timegrids.init| :attr:`~hydpy.core.timetools.Timegrids.init`</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.auxs import calibtools</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_module(calibtools)</span>
+<span class="sd">        &gt;&gt;&gt; substituter.find(&quot;RuleIUH.update_parameters&quot;)</span>
+<span class="sd">        |RuleIUH.update_parameters| \</span>
+<span class="sd">:attr:`~hydpy.auxs.calibtools.RuleIUH.update_parameters`</span>
+<span class="sd">        |calibtools.RuleIUH.update_parameters| \</span>
+<span class="sd">:attr:`~hydpy.auxs.calibtools.RuleIUH.update_parameters`</span>
+
+<span class="sd">        Module |typingtools| is unique, as it is the only one for which</span>
+<span class="sd">        |Substituter.add_module| considers all explicitly exported type aliases:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core import typingtools</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_module(typingtools)</span>
+<span class="sd">        &gt;&gt;&gt; substituter.find(&quot;|NDArrayFloat|&quot;)  # doctest: +ELLIPSIS</span>
+<span class="sd">        |NDArrayFloat| :...:`~hydpy.core.typingtools.NDArrayFloat`</span>
+
+<span class="sd">        When adding Cython modules, the `cython` flag should be set |True|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.cythons import pointerutils</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_module(pointerutils, cython=True)</span>
+<span class="sd">        &gt;&gt;&gt; substituter.find(&quot;set_pointer&quot;)</span>
+<span class="sd">        |PPDouble.set_pointer| \</span>
+<span class="sd">:func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`</span>
+<span class="sd">        |pointerutils.PPDouble.set_pointer| \</span>
+<span class="sd">:func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name_module</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">short</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;|</span><span class="si">{</span><span class="n">name_module</span><span class="si">}</span><span class="s2">|&quot;</span>
+        <span class="n">long</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;:mod:`~</span><span class="si">{</span><span class="n">module</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">short2long</span><span class="p">[</span><span class="n">short</span><span class="p">]</span> <span class="o">=</span> <span class="n">long</span>
+        <span class="k">for</span> <span class="n">name_member</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">module</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">consider_member</span><span class="p">(</span><span class="n">name_member</span><span class="p">,</span> <span class="n">member</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
+                <span class="n">role</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_role</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">cython</span><span class="p">)</span>
+                <span class="n">short</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;|</span><span class="si">{</span><span class="n">name_member</span><span class="si">}</span><span class="s2">|&quot;</span>
+                <span class="n">medium</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;|</span><span class="si">{</span><span class="n">name_module</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">name_member</span><span class="si">}</span><span class="s2">|&quot;</span>
+                <span class="n">long</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;:</span><span class="si">{</span><span class="n">role</span><span class="si">}</span><span class="s2">:`~</span><span class="si">{</span><span class="n">module</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">name_member</span><span class="si">}</span><span class="s2">`&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_substitution</span><span class="p">(</span><span class="n">short</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">long</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="n">member</span><span class="p">):</span>
+                    <span class="n">annotations</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="s2">&quot;__annotations__&quot;</span><span class="p">,</span> <span class="p">{})</span>
+                    <span class="k">for</span> <span class="n">name_submember</span><span class="p">,</span> <span class="n">submember</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">member</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">consider_member</span><span class="p">(</span>
+                            <span class="n">name_member</span><span class="o">=</span><span class="n">name_submember</span><span class="p">,</span>
+                            <span class="n">member</span><span class="o">=</span><span class="n">submember</span><span class="p">,</span>
+                            <span class="n">module</span><span class="o">=</span><span class="n">module</span><span class="p">,</span>
+                            <span class="n">class_</span><span class="o">=</span><span class="n">member</span><span class="p">,</span>
+                            <span class="n">ignore</span><span class="o">=</span><span class="n">annotations</span><span class="p">,</span>
+                        <span class="p">):</span>
+                            <span class="n">role</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_role</span><span class="p">(</span><span class="n">submember</span><span class="p">,</span> <span class="n">cython</span><span class="p">)</span>
+                            <span class="n">short</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;|</span><span class="si">{</span><span class="n">name_member</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">name_submember</span><span class="si">}</span><span class="s2">|&quot;</span>
+                            <span class="n">medium</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;|</span><span class="si">{</span><span class="n">name_module</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">name_member</span><span class="si">}</span><span class="s2">.&quot;</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name_submember</span><span class="si">}</span><span class="s2">|&quot;</span>
+                            <span class="p">)</span>
+                            <span class="n">long</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;:</span><span class="si">{</span><span class="n">role</span><span class="si">}</span><span class="s2">:`~</span><span class="si">{</span><span class="n">module</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.&quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name_member</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">name_submember</span><span class="si">}</span><span class="s2">`&quot;</span>
+                            <span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">add_substitution</span><span class="p">(</span><span class="n">short</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">long</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">name_submember</span><span class="p">,</span> <span class="n">submember</span> <span class="ow">in</span> <span class="n">annotations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">short</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;|</span><span class="si">{</span><span class="n">name_member</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">name_submember</span><span class="si">}</span><span class="s2">|&quot;</span>
+                        <span class="n">medium</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;|</span><span class="si">{</span><span class="n">name_module</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">name_member</span><span class="si">}</span><span class="s2">.&quot;</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name_submember</span><span class="si">}</span><span class="s2">|&quot;</span>
+                        <span class="n">long</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;:attr:`~</span><span class="si">{</span><span class="n">module</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.&quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name_member</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">name_submember</span><span class="si">}</span><span class="s2">`&quot;</span>
+                        <span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">add_substitution</span><span class="p">(</span><span class="n">short</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">long</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Substituter.add_modules">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.Substituter.add_modules">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_modules</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">package</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the modules of the given package without their members.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">package</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">short</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;|</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">|&quot;</span>
+            <span class="n">long</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;:mod:`~</span><span class="si">{</span><span class="n">package</span><span class="o">.</span><span class="n">__package__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">`&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">short2long</span><span class="p">[</span><span class="n">short</span><span class="p">]</span> <span class="o">=</span> <span class="n">long</span></div>
+
+
+<div class="viewcode-block" id="Substituter.update_masters">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.Substituter.update_masters">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_masters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update all `master` |Substituter| objects.</span>
+
+<span class="sd">        If a |Substituter| object is passed to the constructor of another |Substituter|</span>
+<span class="sd">        object, they become `master` and `slave`:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.autodoctools import Substituter</span>
+<span class="sd">        &gt;&gt;&gt; sub1 = Substituter()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.core import devicetools</span>
+<span class="sd">        &gt;&gt;&gt; sub1.add_module(devicetools)</span>
+<span class="sd">        &gt;&gt;&gt; sub2 = Substituter(sub1)</span>
+<span class="sd">        &gt;&gt;&gt; sub3 = Substituter(sub2)</span>
+<span class="sd">        &gt;&gt;&gt; sub3.master.master is sub1</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; sub2 in sub1.slaves</span>
+<span class="sd">        True</span>
+
+<span class="sd">        During initialisation, all mappings handled by the master object are passed to</span>
+<span class="sd">        its new slave:</span>
+
+<span class="sd">        &gt;&gt;&gt; sub3.find(&quot;Node|&quot;)</span>
+<span class="sd">        |Node| :class:`~hydpy.core.devicetools.Node`</span>
+<span class="sd">        |devicetools.Node| :class:`~hydpy.core.devicetools.Node`</span>
+
+<span class="sd">        Updating a slave, does not affect its master directly:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core import hydpytools</span>
+<span class="sd">        &gt;&gt;&gt; sub3.add_module(hydpytools)</span>
+<span class="sd">        &gt;&gt;&gt; sub3.find(&quot;HydPy|&quot;)</span>
+<span class="sd">        |HydPy| :class:`~hydpy.core.hydpytools.HydPy`</span>
+<span class="sd">        |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`</span>
+<span class="sd">        &gt;&gt;&gt; sub2.find(&quot;HydPy|&quot;)</span>
+
+<span class="sd">        Through calling |Substituter.update_masters|, the `medium2long` mappings are</span>
+<span class="sd">        passed from the slave to its master:</span>
+
+<span class="sd">        &gt;&gt;&gt; sub3.update_masters()</span>
+<span class="sd">        &gt;&gt;&gt; sub2.find(&quot;HydPy|&quot;)</span>
+<span class="sd">        |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`</span>
+
+<span class="sd">        Then each master object updates its own master object also:</span>
+
+<span class="sd">        &gt;&gt;&gt; sub1.find(&quot;HydPy|&quot;)</span>
+<span class="sd">        |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`</span>
+
+<span class="sd">        In reverse, subsequent updates of master objects to not affect their slaves</span>
+<span class="sd">        directly:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core import masktools</span>
+<span class="sd">        &gt;&gt;&gt; sub1.add_module(masktools)</span>
+<span class="sd">        &gt;&gt;&gt; sub1.find(&quot;Masks|&quot;)</span>
+<span class="sd">        |Masks| :class:`~hydpy.core.masktools.Masks`</span>
+<span class="sd">        |NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`</span>
+<span class="sd">        |masktools.Masks| :class:`~hydpy.core.masktools.Masks`</span>
+<span class="sd">        |masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`</span>
+<span class="sd">        &gt;&gt;&gt; sub2.find(&quot;Masks|&quot;)</span>
+
+<span class="sd">        Through calling |Substituter.update_slaves|, the `medium2long` mappings are</span>
+<span class="sd">        passed the master to all of its slaves:</span>
+
+<span class="sd">        &gt;&gt;&gt; sub1.update_slaves()</span>
+<span class="sd">        &gt;&gt;&gt; sub2.find(&quot;Masks|&quot;)</span>
+<span class="sd">        |masktools.Masks| :class:`~hydpy.core.masktools.Masks`</span>
+<span class="sd">        |masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`</span>
+<span class="sd">        &gt;&gt;&gt; sub3.find(&quot;Masks|&quot;)</span>
+<span class="sd">        |masktools.Masks| :class:`~hydpy.core.masktools.Masks`</span>
+<span class="sd">        |masktools.NodeMasks| :class:`~hydpy.core.masktools.NodeMasks`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">medium2long</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">medium2long</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">update_masters</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Substituter.update_slaves">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.Substituter.update_slaves">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_slaves</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update all `slave` |Substituter| objects.</span>
+
+<span class="sd">        See method |Substituter.update_masters| for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">slave</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">slaves</span><span class="p">:</span>
+            <span class="n">slave</span><span class="o">.</span><span class="n">medium2long</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">medium2long</span><span class="p">)</span>
+            <span class="n">slave</span><span class="o">.</span><span class="n">update_slaves</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Substituter.get_commands">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.Substituter.get_commands">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a string containing multiple `reStructuredText` replacements with the</span>
+<span class="sd">        substitutions currently defined.</span>
+
+<span class="sd">        Some examples based on the subpackage |optiontools|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.autodoctools import Substituter</span>
+<span class="sd">        &gt;&gt;&gt; substituter = Substituter()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.core import optiontools</span>
+<span class="sd">        &gt;&gt;&gt; substituter.add_module(optiontools)</span>
+
+<span class="sd">        When calling |Substituter.get_commands| with the `source` argument, the</span>
+<span class="sd">        complete `short2long` and `medium2long` mappings are translated into</span>
+<span class="sd">        replacement commands (only a few of them are shown):</span>
+
+<span class="sd">        &gt;&gt;&gt; print(substituter.get_commands())   # doctest: +ELLIPSIS</span>
+<span class="sd">        .. |OptionContextBase._new_value| replace:: \</span>
+<span class="sd">:attr:`~hydpy.core.optiontools.OptionContextBase._new_value`</span>
+<span class="sd">        .. |OptionContextBase._old_value| replace:: \</span>
+<span class="sd">:attr:`~hydpy.core.optiontools.OptionContextBase._old_value`</span>
+<span class="sd">        ...</span>
+<span class="sd">        .. |optiontools.TypeOptionPropertyBase| replace:: \</span>
+<span class="sd">:const:`~hydpy.core.optiontools.TypeOptionPropertyBase`</span>
+<span class="sd">        .. |optiontools.TypeOption| replace:: \</span>
+<span class="sd">:const:`~hydpy.core.optiontools.TypeOption`</span>
+
+<span class="sd">        Through passing a string (usually the source code of a file to be documented),</span>
+<span class="sd">        only the replacement commands relevant for this string are translated:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core import objecttools</span>
+<span class="sd">        &gt;&gt;&gt; import inspect</span>
+<span class="sd">        &gt;&gt;&gt; source = inspect.getsource(objecttools)</span>
+<span class="sd">        &gt;&gt;&gt; print(substituter.get_commands(source))</span>
+<span class="sd">        .. |Options.ellipsis| replace:: \</span>
+<span class="sd">:const:`~hydpy.core.optiontools.Options.ellipsis`</span>
+<span class="sd">        .. |Options.reprdigits| replace:: \</span>
+<span class="sd">:const:`~hydpy.core.optiontools.Options.reprdigits`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">commands</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="n">source</span><span class="p">):</span>
+                <span class="n">commands</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.. </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> replace:: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">commands</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Substituter.find">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.Substituter.find">[docs]</a>
+    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print all substitutions that include the given text string.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">text</span> <span class="ow">in</span> <span class="n">key</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">text</span> <span class="ow">in</span> <span class="n">value</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">short2long</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">yield</span> <span class="n">item</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">medium2long</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">yield</span> <span class="n">item</span></div>
+
+
+
+<div class="viewcode-block" id="prepare_mainsubstituter">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.prepare_mainsubstituter">[docs]</a>
+<span class="k">def</span> <span class="nf">prepare_mainsubstituter</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Substituter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prepare and return a |Substituter| object for the main `__init__` file of</span>
+<span class="sd">    *HydPy*.&quot;&quot;&quot;</span>
+    <span class="c1"># pylint: disable=import-outside-toplevel</span>
+    <span class="kn">import</span> <span class="nn">matplotlib</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">figure</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span>
+    <span class="kn">import</span> <span class="nn">pandas</span>
+    <span class="kn">import</span> <span class="nn">scipy</span>
+
+    <span class="n">substituter</span> <span class="o">=</span> <span class="n">Substituter</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="n">builtins</span><span class="p">,</span>
+        <span class="n">numpy</span><span class="p">,</span>
+        <span class="n">datetime</span><span class="p">,</span>
+        <span class="n">unittest</span><span class="p">,</span>
+        <span class="n">doctest</span><span class="p">,</span>
+        <span class="n">inspect</span><span class="p">,</span>
+        <span class="n">io</span><span class="p">,</span>
+        <span class="n">os</span><span class="p">,</span>
+        <span class="n">sys</span><span class="p">,</span>
+        <span class="n">time</span><span class="p">,</span>
+        <span class="n">collections</span><span class="p">,</span>
+        <span class="n">itertools</span><span class="p">,</span>
+        <span class="n">subprocess</span><span class="p">,</span>
+        <span class="n">scipy</span><span class="p">,</span>
+        <span class="n">typing</span><span class="p">,</span>
+        <span class="n">platform</span><span class="p">,</span>
+        <span class="n">math</span><span class="p">,</span>
+        <span class="n">mimetypes</span><span class="p">,</span>
+        <span class="n">pandas</span><span class="p">,</span>
+        <span class="n">matplotlib</span><span class="p">,</span>
+        <span class="n">figure</span><span class="p">,</span>
+        <span class="n">pyplot</span><span class="p">,</span>
+        <span class="n">warnings</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">substituter</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">subpackage</span> <span class="ow">in</span> <span class="p">(</span><span class="n">auxs</span><span class="p">,</span> <span class="n">core</span><span class="p">,</span> <span class="n">cythons</span><span class="p">,</span> <span class="n">exe</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">pkgutil</span><span class="o">.</span><span class="n">iter_modules</span><span class="p">(</span><span class="n">subpackage</span><span class="o">.</span><span class="n">__path__</span><span class="p">):</span>
+            <span class="n">full_name</span> <span class="o">=</span> <span class="n">subpackage</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">name</span>
+            <span class="n">substituter</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">full_name</span><span class="p">))</span>
+    <span class="n">substituter</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">examples</span><span class="p">)</span>
+    <span class="n">substituter</span><span class="o">.</span><span class="n">add_modules</span><span class="p">(</span><span class="n">models</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cymodule</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="n">annutils</span><span class="p">,</span>  <span class="c1"># pylint: disable=used-before-assignment</span>
+        <span class="n">interputils</span><span class="p">,</span>  <span class="c1"># pylint: disable=used-before-assignment</span>
+        <span class="n">ppolyutils</span><span class="p">,</span>  <span class="c1"># pylint: disable=used-before-assignment</span>
+        <span class="n">pointerutils</span><span class="p">,</span>  <span class="c1"># pylint: disable=used-before-assignment</span>
+        <span class="n">quadutils</span><span class="p">,</span>  <span class="c1"># pylint: disable=used-before-assignment</span>
+        <span class="n">rootutils</span><span class="p">,</span>  <span class="c1"># pylint: disable=used-before-assignment</span>
+        <span class="n">smoothutils</span><span class="p">,</span>  <span class="c1"># pylint: disable=used-before-assignment</span>
+    <span class="p">):</span>
+        <span class="n">substituter</span><span class="o">.</span><span class="n">add_module</span><span class="p">(</span><span class="n">cymodule</span><span class="p">,</span> <span class="n">cython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">substituter</span><span class="o">.</span><span class="n">short2long</span><span class="p">[</span><span class="s2">&quot;|pub|&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;:mod:`~hydpy.pub`&quot;</span>
+    <span class="n">substituter</span><span class="o">.</span><span class="n">short2priority</span><span class="p">[</span><span class="s2">&quot;|pub|&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">BUILTINS</span>
+    <span class="n">substituter</span><span class="o">.</span><span class="n">short2long</span><span class="p">[</span><span class="s2">&quot;|config|&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;:mod:`~hydpy.config`&quot;</span>
+    <span class="n">substituter</span><span class="o">.</span><span class="n">short2priority</span><span class="p">[</span><span class="s2">&quot;|config|&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">BUILTINS</span>
+    <span class="k">return</span> <span class="n">substituter</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_number_of_line</span><span class="p">(</span><span class="n">member_tuple</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Try to return the number of the first line of the definition of a member of a</span>
+<span class="sd">    module.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_query_index_first_line</span><span class="p">(</span><span class="n">member_</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">member_</span><span class="o">.</span><span class="vm">__code__</span><span class="o">.</span><span class="n">co_firstlineno</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="n">member</span> <span class="o">=</span> <span class="n">member_tuple</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_query_index_first_line</span><span class="p">(</span><span class="n">member</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">inspect</span><span class="o">.</span><span class="n">findsource</span><span class="p">(</span><span class="n">member</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">member</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_query_index_first_line</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="mi">0</span>
+
+
+<div class="viewcode-block" id="autodoc_module">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.autodoc_module">[docs]</a>
+<span class="k">def</span> <span class="nf">autodoc_module</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add a short summary of all implemented members to a module&#39;s docstring.&quot;&quot;&quot;</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__doc__&quot;</span><span class="p">)</span>
+    <span class="n">members</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getmodule</span><span class="p">(</span><span class="n">member</span><span class="p">)</span> <span class="ow">is</span> <span class="n">module</span><span class="p">):</span>
+            <span class="n">members</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">member</span><span class="p">))</span>
+    <span class="n">members</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">members</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">_number_of_line</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">members</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Module :mod:`~</span><span class="si">{</span><span class="n">module</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` implements the following members:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">members</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isfunction</span><span class="p">(</span><span class="n">member</span><span class="p">):</span>
+                <span class="n">type_</span> <span class="o">=</span> <span class="s2">&quot;func&quot;</span>
+            <span class="k">elif</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="n">member</span><span class="p">):</span>
+                <span class="n">type_</span> <span class="o">=</span> <span class="s2">&quot;class&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">type_</span> <span class="o">=</span> <span class="s2">&quot;obj&quot;</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;      * :</span><span class="si">{</span><span class="n">type_</span><span class="si">}</span><span class="s2">:`~</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">description</span><span class="p">(</span><span class="n">member</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">doc</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="mi">80</span> <span class="o">*</span> <span class="s2">&quot;_&quot;</span>
+        <span class="n">module</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">doc</span></div>
+
+
+
+<span class="n">_name2descr</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;CLASSES&quot;</span><span class="p">:</span> <span class="s2">&quot;The following classes are selected&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RECEIVER_METHODS&quot;</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s1">&#39;The following &quot;receiver update methods&quot; are called in &#39;</span>
+        <span class="s2">&quot;the given sequence before performing a simulation step&quot;</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;INLET_METHODS&quot;</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s1">&#39;The following &quot;inlet update methods&quot; are called in the &#39;</span>
+        <span class="s2">&quot;given sequence at the beginning of each simulation step&quot;</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;RUN_METHODS&quot;</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s1">&#39;The following &quot;run methods&quot; are called in the given &#39;</span>
+        <span class="s2">&quot;sequence during each simulation step&quot;</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;PART_ODE_METHODS&quot;</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot;The following methods define the relevant components &quot;</span>
+        <span class="s2">&quot;of a system of ODE equations (e.g. direct runoff)&quot;</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;FULL_ODE_METHODS&quot;</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot;The following methods define the complete equations of &quot;</span>
+        <span class="s2">&quot;an ODE system (e.g. change in storage of `fast water` &quot;</span>
+        <span class="s2">&quot;due to effective precipitation and direct runoff)&quot;</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;OUTLET_METHODS&quot;</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s1">&#39;The following &quot;outlet update methods&quot; are called in the &#39;</span>
+        <span class="s2">&quot;given sequence at the end of each simulation step&quot;</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;SENDER_METHODS&quot;</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s1">&#39;The following &quot;sender update methods&quot; are called in &#39;</span>
+        <span class="s2">&quot;the given sequence after performing a simulation step&quot;</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;ADD_METHODS&quot;</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s1">&#39;The following &quot;additional methods&quot; might be called &#39;</span>
+        <span class="s2">&quot;by one or more of the other methods or are meant to &quot;</span>
+        <span class="s2">&quot;be directly called by the user&quot;</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;SUBMODELS&quot;</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s1">&#39;The following &quot;submodels&quot; might be called by one or more &#39;</span>
+        <span class="s2">&quot;of the implemented methods or are meant to be directly &quot;</span>
+        <span class="s2">&quot;called by the user&quot;</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+
+<span class="n">_loggedtuples</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="autodoc_tuple2doc">
+<a class="viewcode-back" href="../../../autodoctools.html#hydpy.core.autodoctools.autodoc_tuple2doc">[docs]</a>
+<span class="k">def</span> <span class="nf">autodoc_tuple2doc</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Include tuples as `CLASSES` of `ControlParameters` and `RUN_METHODS`</span>
+<span class="sd">    of `Models` into the respective docstring.&quot;&quot;&quot;</span>
+    <span class="n">modulename</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="k">for</span> <span class="n">membername</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">tuplename</span><span class="p">,</span> <span class="n">descr</span> <span class="ow">in</span> <span class="n">_name2descr</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">tuple_</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">tuplename</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tuple_</span><span class="p">:</span>
+                <span class="n">logstring</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">modulename</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">membername</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">tuplename</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">if</span> <span class="n">logstring</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_loggedtuples</span><span class="p">:</span>
+                    <span class="n">_loggedtuples</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">logstring</span><span class="p">)</span>
+                    <span class="n">lst</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\n\n</span><span class="s2">    </span><span class="si">{</span><span class="n">descr</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">tuplename</span> <span class="o">==</span> <span class="s2">&quot;CLASSES&quot;</span><span class="p">:</span>
+                        <span class="n">type_</span> <span class="o">=</span> <span class="s2">&quot;func&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">type_</span> <span class="o">=</span> <span class="s2">&quot;class&quot;</span>
+                    <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">tuple_</span><span class="p">:</span>
+                        <span class="n">lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;      * &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;:</span><span class="si">{</span><span class="n">type_</span><span class="si">}</span><span class="s2">:`~</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__module__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`&quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">description</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+                    <span class="n">doc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="s2">&quot;__doc__&quot;</span><span class="p">)</span>
+                    <span class="n">member</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">doc</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.autodoctools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

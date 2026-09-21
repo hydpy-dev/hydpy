@@ -1,0 +1,76 @@
+.. |AdHocModel.run| replace:: :func:`~hydpy.core.modeltools.AdHocModel.run`
+.. |AdHocModel| replace:: :class:`~hydpy.core.modeltools.AdHocModel`
+.. |ELSModel.calculate_error| replace:: :func:`~hydpy.core.modeltools.ELSModel.calculate_error`
+.. |ELSModel.extrapolate_error| replace:: :func:`~hydpy.core.modeltools.ELSModel.extrapolate_error`
+.. |ELSModel.solve| replace:: :func:`~hydpy.core.modeltools.ELSModel.solve`
+.. |ELSModel| replace:: :class:`~hydpy.core.modeltools.ELSModel`
+.. |Element.model| replace:: :const:`~hydpy.core.devicetools.Element.model`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |FusedVariable| replace:: :class:`~hydpy.core.devicetools.FusedVariable`
+.. |HydPy.simulate| replace:: :func:`~hydpy.core.hydpytools.HydPy.simulate`
+.. |HydPy| replace:: :class:`~hydpy.core.hydpytools.HydPy`
+.. |Idx_Sim| replace:: :class:`~hydpy.core.modeltools.Idx_Sim`
+.. |IndexProperty| replace:: :class:`~hydpy.core.modeltools.IndexProperty`
+.. |InputSequence| replace:: :class:`~hydpy.core.sequencetools.InputSequence`
+.. |LinkSequence| replace:: :class:`~hydpy.core.sequencetools.LinkSequence`
+.. |Masks| replace:: :class:`~hydpy.core.masktools.Masks`
+.. |Method| replace:: :class:`~hydpy.core.modeltools.Method`
+.. |Model.connect| replace:: :func:`~hydpy.core.modeltools.Model.connect`
+.. |Model.get_methods| replace:: :func:`~hydpy.core.modeltools.Model.get_methods`
+.. |Model.name| replace:: :const:`~hydpy.core.modeltools.Model.name`
+.. |Model.save_data| replace:: :func:`~hydpy.core.modeltools.Model.save_data`
+.. |Model.sequences| replace:: :attr:`~hydpy.core.modeltools.Model.sequences`
+.. |Model.simulate| replace:: :func:`~hydpy.core.modeltools.Model.simulate`
+.. |Model.update_receivers| replace:: :func:`~hydpy.core.modeltools.Model.update_receivers`
+.. |Model.update_senders| replace:: :func:`~hydpy.core.modeltools.Model.update_senders`
+.. |Model| replace:: :class:`~hydpy.core.modeltools.Model`
+.. |NodeSequence| replace:: :class:`~hydpy.core.sequencetools.NodeSequence`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |NumVarsELS| replace:: :class:`~hydpy.core.modeltools.NumVarsELS`
+.. |OutputSequence| replace:: :class:`~hydpy.core.sequencetools.OutputSequence`
+.. |RunModel.RUN_METHODS| replace:: :attr:`~hydpy.core.modeltools.RunModel.RUN_METHODS`
+.. |SegmentModel.idx_segment| replace:: :const:`~hydpy.core.modeltools.SegmentModel.idx_segment`
+.. |SegmentModel.run_segments| replace:: :func:`~hydpy.core.modeltools.SegmentModel.run_segments`
+.. |SegmentModel| replace:: :class:`~hydpy.core.modeltools.SegmentModel`
+.. |Sequences.load_data| replace:: :func:`~hydpy.core.sequencetools.Sequences.load_data`
+.. |Sequences.save_data| replace:: :func:`~hydpy.core.sequencetools.Sequences.save_data`
+.. |Sequences.update_outputs| replace:: :func:`~hydpy.core.sequencetools.Sequences.update_outputs`
+.. |StateSequences.new2old| replace:: :func:`~hydpy.core.sequencetools.StateSequences.new2old`
+.. |Submodel| replace:: :class:`~hydpy.core.modeltools.Submodel`
+.. |True| replace:: :const:`True`
+.. |Variable.average_values| replace:: :func:`~hydpy.core.variabletools.Variable.average_values`
+.. |hland_v1| replace:: :mod:`~hydpy.models.hland_v1`
+.. |musk_classic| replace:: :mod:`~hydpy.models.musk_classic`
+.. |musk_mct| replace:: :mod:`~hydpy.models.musk_mct`
+.. |parameterstep| replace:: :func:`~hydpy.core.importtools.parameterstep`
+.. |prepare_model| replace:: :func:`~hydpy.core.importtools.prepare_model`
+.. |roottools| replace:: :mod:`~hydpy.auxs.roottools`
+.. |smoothtools| replace:: :mod:`~hydpy.auxs.smoothtools`
+.. |test_v1| replace:: :mod:`~hydpy.models.test_v1`
+.. |test_v2| replace:: :mod:`~hydpy.models.test_v2`
+.. |hland_constants.ILAKE| replace:: :const:`~hydpy.models.hland.hland_constants.ILAKE`
+.. |hland_fluxes.PC| replace:: :class:`~hydpy.models.hland.hland_fluxes.PC`
+.. |hland_fluxes.Q0| replace:: :class:`~hydpy.models.hland.hland_fluxes.Q0`
+.. |hland_inputs.P| replace:: :class:`~hydpy.models.hland.hland_inputs.P`
+.. |hland_inputs.T| replace:: :class:`~hydpy.models.hland.hland_inputs.T`
+.. |hland_states.UZ| replace:: :class:`~hydpy.models.hland.hland_states.UZ`
+.. |modeltools.Idx_Sim| replace:: :class:`~hydpy.core.modeltools.Idx_Sim`
+.. |musk_model.Calc_Discharge_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Discharge_V1`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |test_control.K| replace:: :class:`~hydpy.models.test.test_control.K`
+.. |test_fluxes.Q| replace:: :class:`~hydpy.models.test.test_fluxes.Q`
+.. |test_solver.AbsErrorMax| replace:: :class:`~hydpy.models.test.test_solver.AbsErrorMax`
+.. |test_solver.RelDTMax| replace:: :class:`~hydpy.models.test.test_solver.RelDTMax`
+.. |test_solver.RelDTMin| replace:: :class:`~hydpy.models.test.test_solver.RelDTMin`
+.. |test_solver.RelErrorMax| replace:: :class:`~hydpy.models.test.test_solver.RelErrorMax`
+.. |test_states.S| replace:: :class:`~hydpy.models.test.test_states.S`
+
+.. _modeltools:
+
+modeltools
+==========
+
+.. automodule:: hydpy.core.modeltools
+    :members:
+    :show-inheritance:
+    :exclude-members: Self, Reversible, Generic, Sized, Awaitable, IntVar, clear_overloads, TypeAlias, Sequence, Hashable, SUBMETHODS, SupportsAbs, AnyStr, assert_never, reveal_type, CLASSES, REQUIREDSEQUENCES, ItemsView, Union, SupportsFloat, get_overloads, get_origin, OUTLET_METHODS, NoReturn, no_type_check, Type, Final, PART_ODE_METHODS, RECEIVER_METHODS, Tuple, AbstractSet, ByteString, MappingView, subpars, MutableSequence, MutableSet, SupportsRound, CONTROLPARAMETERS, INLET_METHODS, get_protocol_members, SOLVERSEQUENCES, FrozenSet, no_type_check_decorator, fastaccess_old, Mapping, FIXEDPARAMETERS, seqs, KeysView, SUBMODELS, Protocol, SupportsComplex, SENDER_METHODS, ContextManager, deprecated, SupportsBytes, get_original_bases, Iterator, is_protocol, TypeGuard, DefaultDict, LiteralString, Required, TextIO, TYPE_CHECKING, AsyncContextManager, fastaccess_new, FULL_ODE_METHODS, SOLVERPARAMETERS, BinaryIO, fastaccess, runtime, IO, Text, TypeVarTuple, ValuesView, AsyncIterable, Generator, Optional, assert_type, Literal, dataclass_transform, subvars, pars, get_args, ParamSpec, Annotated, cast, final, subseqs, ClassVar, Any, Unpack, Coroutine, is_typeddict, Counter, UPDATEDSEQUENCES, Callable, Dict, NamedTuple, overload, OrderedDict, Set, ADD_METHODS, Collection, Pattern, List, get_type_hints, Concatenate, ParamSpecKwargs, DERIVEDPARAMETERS, AsyncGenerator, override, Container, RUN_METHODS, NotRequired, NewType, RESULTSEQUENCES, SupportsInt, Buffer, Iterable, TypeVar, SupportsIndex, MutableMapping, ChainMap, ForwardRef, TypeAliasType, AsyncIterator, Never, ParamSpecArgs, Match, Deque, TypedDict, runtime_checkable

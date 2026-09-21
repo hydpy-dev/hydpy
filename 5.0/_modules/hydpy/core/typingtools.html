@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.typingtools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.typingtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.typingtools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module implements some &quot;types&quot; to be used for static (and</span>
+<span class="sd">eventually dynamical) typing.&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">numpy.typing</span>
+
+<span class="c1"># ...from hydpy</span>
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">devicetools</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">hydpytools</span>
+    <span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="kn">import</span> <span class="n">pointerutils</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+<span class="n">T1</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T1&quot;</span><span class="p">)</span>
+<span class="n">T2</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T2&quot;</span><span class="p">)</span>
+<span class="n">T3</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T3&quot;</span><span class="p">)</span>
+
+<span class="n">Name</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+<span class="n">Name</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Type for strings that represent names.&quot;&quot;&quot;</span>
+
+
+<span class="n">Mayberable1</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T</span><span class="p">]]</span>
+<span class="n">Mayberable2</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">]]]</span>
+<span class="n">Mayberable3</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">]]]</span>
+<span class="n">MayNonerable1</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+<span class="n">MayNonerable2</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">]],</span> <span class="kc">None</span><span class="p">]</span>
+<span class="n">MayNonerable3</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">]],</span> <span class="kc">None</span><span class="p">]</span>
+
+<span class="n">Collection1</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Collection</span><span class="p">[</span><span class="n">T</span><span class="p">]]</span>
+<span class="n">Collection2</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">Collection</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">]]]</span>
+<span class="n">Collection3</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">,</span> <span class="n">Collection</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">]]]</span>
+
+<span class="n">Sequence1</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">T</span><span class="p">]]</span>
+<span class="n">Sequence2</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">]]]</span>
+<span class="n">Sequence3</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">]]]</span>
+
+<span class="n">Float_co</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Float_co&quot;</span><span class="p">,</span> <span class="n">covariant</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">Float1</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Float1&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">Float2</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Float2&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+<span class="n">NDArrayFloat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">typing</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">float_</span><span class="p">]</span>
+<span class="n">NDMatrixBytes</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">typing</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span>  <span class="c1"># type: ignore[type-var]</span>
+
+<span class="n">DeployMode</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;newsim&quot;</span><span class="p">,</span> <span class="s2">&quot;oldsim&quot;</span><span class="p">,</span> <span class="s2">&quot;obs&quot;</span><span class="p">,</span> <span class="s2">&quot;obs_newsim&quot;</span><span class="p">,</span> <span class="s2">&quot;obs_oldsim&quot;</span><span class="p">]</span>
+<span class="n">LineStyle</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="s2">&quot;-.&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;solid&quot;</span><span class="p">,</span> <span class="s2">&quot;dashed&quot;</span><span class="p">,</span> <span class="s2">&quot;dashdot&quot;</span><span class="p">,</span> <span class="s2">&quot;dotted&quot;</span><span class="p">]</span>
+<span class="n">StepSize</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;daily&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="s2">&quot;monthly&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="VectorInput">
+<a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.VectorInput">[docs]</a>
+<span class="k">class</span> <span class="nc">VectorInput</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">Float_co</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol class for providing input to &quot;mathematical&quot;, 1-dimensional arrays.&quot;&quot;&quot;</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float_co</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="nb">slice</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;VectorInput[Float_co]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">slice</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float_co</span><span class="p">,</span> <span class="s2">&quot;VectorInput[Float_co]&quot;</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Float_co</span><span class="p">]:</span>
+        <span class="o">...</span></div>
+
+
+
+<span class="n">MatrixInput</span> <span class="o">=</span> <span class="n">VectorInput</span><span class="p">[</span><span class="n">VectorInput</span><span class="p">[</span><span class="n">Float_co</span><span class="p">]]</span>
+
+<span class="n">VectorSlice</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">slice</span><span class="p">,</span> <span class="n">VectorInput</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span>
+
+
+<div class="viewcode-block" id="Vector">
+<a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.Vector">[docs]</a>
+<span class="k">class</span> <span class="nc">Vector</span><span class="p">(</span><span class="n">VectorInput</span><span class="p">[</span><span class="n">Float1</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol class for defining &quot;mathematical&quot;, 1-dimensional sequences.&quot;&quot;&quot;</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float1</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="n">VectorSlice</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[Float1]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">slice</span><span class="p">,</span> <span class="n">VectorInput</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float1</span><span class="p">,</span> <span class="s2">&quot;Vector[Float1]&quot;</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="n">VectorSlice</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">VectorInput</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">VectorSlice</span><span class="p">],</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">VectorInput</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__invert__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[Float1]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Vector[Float1]&quot;</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[Union[Float1, Float2]]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__radd__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Vector[Float1]&quot;</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[Union[Float1, Float2]]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Vector[Float1]&quot;</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[Union[Float1, Float2]]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__rsub__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Vector[Float1]&quot;</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[Union[Float1, Float2]]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Vector[Float1]&quot;</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[Union[Float1, Float2]]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__rmul__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Vector[Float1]&quot;</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[Union[Float1, Float2]]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__truediv__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Vector[Float1]&quot;</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[Union[Float1, Float2]]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__rtruediv__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Vector[Float1]&quot;</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[Union[Float1, Float2]]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__pow__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Vector[Float1]&quot;</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[Union[Float1, Float2]]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__rpow__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;Vector[Float1]&quot;</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[Union[Float1, Float2]]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[bool]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__le__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[bool]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span>  <span class="c1"># type: ignore[override]</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[bool]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span>  <span class="c1"># type: ignore[override]</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[bool]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__ge__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[bool]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__gt__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="s2">&quot;Vector[Float2]&quot;</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Vector[bool]&quot;</span><span class="p">:</span>
+        <span class="o">...</span>
+
+<div class="viewcode-block" id="Vector.shape">
+<a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.Vector.shape">[docs]</a>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Length of the vector.&quot;&quot;&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Matrix">
+<a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.Matrix">[docs]</a>
+<span class="k">class</span> <span class="nc">Matrix</span><span class="p">(</span><span class="n">MatrixInput</span><span class="p">[</span><span class="n">Float1</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol class for providing input to &quot;mathematical&quot;, 2-dimensional arrays.&quot;&quot;&quot;</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Float1</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+            <span class="nb">int</span><span class="p">,</span>
+            <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">VectorSlice</span><span class="p">],</span>
+            <span class="n">Tuple</span><span class="p">[</span><span class="n">VectorSlice</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float1</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">slice</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">VectorSlice</span><span class="p">,</span> <span class="n">VectorSlice</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float1</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+            <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+            <span class="nb">int</span><span class="p">,</span>
+            <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">VectorSlice</span><span class="p">],</span>
+            <span class="n">Tuple</span><span class="p">[</span><span class="n">VectorSlice</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+            <span class="nb">slice</span><span class="p">,</span>
+            <span class="n">Tuple</span><span class="p">[</span><span class="n">VectorSlice</span><span class="p">,</span> <span class="n">VectorSlice</span><span class="p">],</span>
+        <span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float1</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float1</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float1</span><span class="p">]]:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">VectorSlice</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">VectorSlice</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">VectorInput</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">slice</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">VectorSlice</span><span class="p">,</span> <span class="n">VectorSlice</span><span class="p">]],</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">MatrixInput</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">item</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span>
+            <span class="nb">int</span><span class="p">,</span>
+            <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+            <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">VectorSlice</span><span class="p">],</span>
+            <span class="n">Tuple</span><span class="p">[</span><span class="n">VectorSlice</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+            <span class="nb">slice</span><span class="p">,</span>
+            <span class="n">Tuple</span><span class="p">[</span><span class="n">VectorSlice</span><span class="p">,</span> <span class="n">VectorSlice</span><span class="p">],</span>
+        <span class="p">],</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">VectorInput</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">MatrixInput</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Vector</span><span class="p">[</span><span class="n">Float1</span><span class="p">]]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__invert__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float1</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float1</span><span class="p">],</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Float1</span><span class="p">,</span> <span class="n">Float2</span><span class="p">]]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__radd__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float1</span><span class="p">],</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Float1</span><span class="p">,</span> <span class="n">Float2</span><span class="p">]]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float1</span><span class="p">],</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Float1</span><span class="p">,</span> <span class="n">Float2</span><span class="p">]]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__rsub__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float1</span><span class="p">],</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Float1</span><span class="p">,</span> <span class="n">Float2</span><span class="p">]]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float1</span><span class="p">],</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Float1</span><span class="p">,</span> <span class="n">Float2</span><span class="p">]]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__rmul__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float1</span><span class="p">],</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Float1</span><span class="p">,</span> <span class="n">Float2</span><span class="p">]]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__truediv__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float1</span><span class="p">],</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Float1</span><span class="p">,</span> <span class="n">Float2</span><span class="p">]]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__rtruediv__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float1</span><span class="p">],</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Float1</span><span class="p">,</span> <span class="n">Float2</span><span class="p">]]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__pow__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float1</span><span class="p">],</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Float1</span><span class="p">,</span> <span class="n">Float2</span><span class="p">]]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__rpow__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float1</span><span class="p">],</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Float1</span><span class="p">,</span> <span class="n">Float2</span><span class="p">]]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__le__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span>  <span class="c1"># type: ignore[override]</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span>  <span class="c1"># type: ignore[override]</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__ge__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__gt__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Float2</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="n">Float2</span><span class="p">],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">Float2</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Length of both matrix axes.&quot;&quot;&quot;</span></div>
+
+
+
+<span class="n">ArrayFloat</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span>
+    <span class="s2">&quot;ArrayFloat&quot;</span><span class="p">,</span>
+    <span class="nb">float</span><span class="p">,</span>
+    <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">Matrix</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="VariableProtocol">
+<a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.VariableProtocol">[docs]</a>
+<span class="k">class</span> <span class="nc">VariableProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Protocol to identify objects as &quot;variables&quot;.&quot;&quot;&quot;</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="k">def</span> <span class="nf">__hydpy__connect_variable2subgroup__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;To be called by the |SubVariables| object when preparing a</span>
+<span class="sd">        new |Variable| object.&quot;&quot;&quot;</span></div>
+
+
+
+<span class="k">class</span> <span class="nc">CyParametersProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The protocol for the `parameters` attribute of Cython extension classes.</span>
+
+<span class="sd">    Class |Cythonizer| generates the actual, model specific</span>
+<span class="sd">    implementations automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">CySequencesProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The protocol for the `sequences` attribute of Cython extension classes.</span>
+
+<span class="sd">    Class |Cythonizer| generates the actual, model specific</span>
+<span class="sd">    implementations automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="CyModelProtocol">
+<a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.CyModelProtocol">[docs]</a>
+<span class="k">class</span> <span class="nc">CyModelProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The protocol of Cython extension classes for defining</span>
+<span class="sd">    efficient model implementations.</span>
+
+<span class="sd">    Class |Cythonizer| generates the actual, model specific</span>
+<span class="sd">    implementations automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">idx_sim</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="n">CyParametersProtocol</span>
+    <span class="n">sequences</span><span class="p">:</span> <span class="n">CySequencesProtocol</span></div>
+
+
+
+<div class="viewcode-block" id="ScriptFunction">
+<a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.ScriptFunction">[docs]</a>
+<span class="k">class</span> <span class="nc">ScriptFunction</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Callback protocol for functions to be executed from the command line</span>
+<span class="sd">    (see the documentation on function |execute_scriptfunction| and module</span>
+<span class="sd">    |hyd| for further information).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="o">...</span></div>
+
+
+
+<span class="n">SeriesFileType</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;npy&quot;</span><span class="p">,</span> <span class="s2">&quot;asc&quot;</span><span class="p">,</span> <span class="s2">&quot;nc&quot;</span><span class="p">]</span>
+<span class="n">SeriesAggregationType</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">]</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;ArrayFloat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CyModelProtocol&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Collection1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Collection2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Collection3&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DeployMode&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LineStyle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MatrixInput&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Matrix&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Mayberable1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Mayberable2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Mayberable3&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MayNonerable1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MayNonerable2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MayNonerable3&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Name&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NDArrayFloat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NDMatrixBytes&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ScriptFunction&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SeriesAggregationType&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SeriesFileType&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Sequence1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Sequence2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Sequence3&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;StepSize&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;T&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;T1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;T2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;T3&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VariableProtocol&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VectorInput&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Vector&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.typingtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

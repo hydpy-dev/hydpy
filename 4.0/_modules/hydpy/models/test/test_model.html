@@ -1,0 +1,308 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.test.test_model &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.test.test_model</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.test.test_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+
+<span class="c1"># imports...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.test</span> <span class="kn">import</span> <span class="n">test_control</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.test</span> <span class="kn">import</span> <span class="n">test_solver</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.test</span> <span class="kn">import</span> <span class="n">test_fluxes</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.test</span> <span class="kn">import</span> <span class="n">test_states</span>
+
+
+<div class="viewcode-block" id="Calc_Q_V1"><a class="viewcode-back" href="../../../../test.html#hydpy.models.test.test_model.Calc_Q_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_Q_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the actual storage loss.</span>
+
+<span class="sd">    This simple equation is continuous but potentially stiff.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`Q = K \\cdot S`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">       &gt;&gt;&gt; from hydpy.models.test import *</span>
+<span class="sd">       &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">       &gt;&gt;&gt; k(0.5)</span>
+<span class="sd">       &gt;&gt;&gt; states.s = 2.0</span>
+<span class="sd">       &gt;&gt;&gt; model.calc_q_v1()</span>
+<span class="sd">       &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">       q(1.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_control</span><span class="o">.</span><span class="n">K</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_states</span><span class="o">.</span><span class="n">S</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_fluxes</span><span class="o">.</span><span class="n">Q</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">sta</span><span class="o">.</span><span class="n">s</span></div>
+
+
+<div class="viewcode-block" id="Calc_Q_V2"><a class="viewcode-back" href="../../../../test.html#hydpy.models.test.test_model.Calc_Q_V2">[docs]</a><span class="k">class</span> <span class="nc">Calc_Q_V2</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the actual storage loss.</span>
+
+<span class="sd">    This simple equation is discontinuous.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`Q = \\Bigl \\lbrace</span>
+<span class="sd">      {</span>
+<span class="sd">      {K \\ | \\ S &gt; 0}</span>
+<span class="sd">      \\atop</span>
+<span class="sd">      {0 \\ | \\ S \\leq 0}</span>
+<span class="sd">      }`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">       &gt;&gt;&gt; from hydpy.models.test import *</span>
+<span class="sd">       &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">       &gt;&gt;&gt; k(0.5)</span>
+<span class="sd">       &gt;&gt;&gt; states.s = 2.0</span>
+<span class="sd">       &gt;&gt;&gt; model.calc_q_v2()</span>
+<span class="sd">       &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">       q(0.5)</span>
+<span class="sd">       &gt;&gt;&gt; states.s = -1.0</span>
+<span class="sd">       &gt;&gt;&gt; model.calc_q_v2()</span>
+<span class="sd">       &gt;&gt;&gt; fluxes.q</span>
+<span class="sd">       q(0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_control</span><span class="o">.</span><span class="n">K</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_states</span><span class="o">.</span><span class="n">S</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_fluxes</span><span class="o">.</span><span class="n">Q</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">if</span> <span class="n">sta</span><span class="o">.</span><span class="n">s</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">k</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+<div class="viewcode-block" id="Calc_QV_V1"><a class="viewcode-back" href="../../../../test.html#hydpy.models.test.test_model.Calc_QV_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_QV_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the actual storage losses.</span>
+
+<span class="sd">    Identical with |Calc_Q_V1|, but working on a vector of states.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`Q = K \\cdot S`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">       &gt;&gt;&gt; from hydpy.models.test import *</span>
+<span class="sd">       &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">       &gt;&gt;&gt; n(2)</span>
+<span class="sd">       &gt;&gt;&gt; k(0.5)</span>
+<span class="sd">       &gt;&gt;&gt; states.sv = 2.0, 3.0</span>
+<span class="sd">       &gt;&gt;&gt; model.calc_qv_v1()</span>
+<span class="sd">       &gt;&gt;&gt; fluxes.qv</span>
+<span class="sd">       qv(1.0, 1.5)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">test_control</span><span class="o">.</span><span class="n">N</span><span class="p">,</span>
+        <span class="n">test_control</span><span class="o">.</span><span class="n">K</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_states</span><span class="o">.</span><span class="n">SV</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_fluxes</span><span class="o">.</span><span class="n">QV</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">sta</span><span class="o">.</span><span class="n">sv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Calc_S_V1"><a class="viewcode-back" href="../../../../test.html#hydpy.models.test.test_model.Calc_S_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_S_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the actual storage content.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`\\frac{dS}{dt} = Q`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">       &gt;&gt;&gt; from hydpy.models.test import *</span>
+<span class="sd">       &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">       &gt;&gt;&gt; states.s.old = 1.0</span>
+<span class="sd">       &gt;&gt;&gt; fluxes.q = 0.8</span>
+<span class="sd">       &gt;&gt;&gt; model.calc_s_v1()</span>
+<span class="sd">       &gt;&gt;&gt; states.s</span>
+<span class="sd">       s(0.2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_fluxes</span><span class="o">.</span><span class="n">Q</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_states</span><span class="o">.</span><span class="n">S</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_old</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">old</span><span class="o">.</span><span class="n">s</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">q</span></div>
+
+
+<div class="viewcode-block" id="Calc_SV_V1"><a class="viewcode-back" href="../../../../test.html#hydpy.models.test.test_model.Calc_SV_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_SV_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the actual storage contenst.</span>
+
+<span class="sd">    Identical with |Calc_S_V1|, but working on a vector of fluxes.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`\\frac{dS}{dt} = Q`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">       &gt;&gt;&gt; from hydpy.models.test import *</span>
+<span class="sd">       &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">       &gt;&gt;&gt; n(2)</span>
+<span class="sd">       &gt;&gt;&gt; states.sv.old = 1.0, 2.0</span>
+<span class="sd">       &gt;&gt;&gt; fluxes.qv = 0.8</span>
+<span class="sd">       &gt;&gt;&gt; model.calc_sv_v1()</span>
+<span class="sd">       &gt;&gt;&gt; states.sv</span>
+<span class="sd">       sv(0.2, 1.2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_control</span><span class="o">.</span><span class="n">N</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_fluxes</span><span class="o">.</span><span class="n">QV</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">test_states</span><span class="o">.</span><span class="n">SV</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_old</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">sv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">old</span><span class="o">.</span><span class="n">sv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">qv</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../../test.html#hydpy.models.test.test_model.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">ELSModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Test model.&quot;&quot;&quot;</span>
+
+    <span class="n">SOLVERPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">test_solver</span><span class="o">.</span><span class="n">AbsErrorMax</span><span class="p">,</span>
+        <span class="n">test_solver</span><span class="o">.</span><span class="n">RelErrorMax</span><span class="p">,</span>
+        <span class="n">test_solver</span><span class="o">.</span><span class="n">RelDTMin</span><span class="p">,</span>
+        <span class="n">test_solver</span><span class="o">.</span><span class="n">RelDTMax</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">SOLVERSEQUENCES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">PART_ODE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Calc_Q_V1</span><span class="p">,</span>
+        <span class="n">Calc_Q_V2</span><span class="p">,</span>
+        <span class="n">Calc_QV_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">FULL_ODE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Calc_S_V1</span><span class="p">,</span>
+        <span class="n">Calc_SV_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.test.test_model</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

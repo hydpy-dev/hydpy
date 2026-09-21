@@ -1,0 +1,41 @@
+.. |RuntimeError| replace:: :class:`RuntimeError`
+.. |SeasonalParameter| replace:: :class:`~hydpy.core.parametertools.SeasonalParameter`
+.. |SubParameters| replace:: :class:`~hydpy.core.parametertools.SubParameters`
+.. |TOY| replace:: :class:`~hydpy.core.timetools.TOY`
+.. |annutils| replace:: :mod:`~hydpy.cythons.autogen.annutils`
+.. |dam_v001| replace:: :mod:`~hydpy.models.dam_v001`
+.. |dam_v006| replace:: :mod:`~hydpy.models.dam_v006`
+.. |tuple| replace:: :class:`tuple`
+.. |anntools.ANN.activation| replace:: :const:`~hydpy.auxs.anntools.ANN.activation`
+.. |anntools.ANN.calculate_derivatives| replace:: :func:`~hydpy.auxs.anntools.ANN.calculate_derivatives`
+.. |anntools.ANN.calculate_values| replace:: :func:`~hydpy.auxs.anntools.ANN.calculate_values`
+.. |anntools.ANN.nmb_intercepts| replace:: :const:`~hydpy.auxs.anntools.ANN.nmb_intercepts`
+.. |anntools.ANN.nmb_weights| replace:: :const:`~hydpy.auxs.anntools.ANN.nmb_weights`
+.. |anntools.ANN.plot| replace:: :func:`~hydpy.auxs.anntools.ANN.plot`
+.. |anntools.ANN.shape_inputs| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_inputs`
+.. |anntools.ANN.shape_intercepts_hidden| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_intercepts_hidden`
+.. |anntools.ANN.shape_intercepts_output| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_intercepts_output`
+.. |anntools.ANN.shape_neuron_derivatives| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_neuron_derivatives`
+.. |anntools.ANN.shape_neurons| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_neurons`
+.. |anntools.ANN.shape_output_derivatives| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_output_derivatives`
+.. |anntools.ANN.shape_outputs| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_outputs`
+.. |anntools.ANN.shape_weights_hidden| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_weights_hidden`
+.. |anntools.ANN.shape_weights_input| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_weights_input`
+.. |anntools.ANN.shape_weights_output| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_weights_output`
+.. |anntools.ANN.weights_input| replace:: :const:`~hydpy.auxs.anntools.ANN.weights_input`
+.. |anntools.ANN| replace:: :class:`~hydpy.auxs.anntools.ANN`
+.. |anntools.SeasonalANN.ratios| replace:: :const:`~hydpy.auxs.anntools.SeasonalANN.ratios`
+.. |anntools.SeasonalANN.refresh| replace:: :func:`~hydpy.auxs.anntools.SeasonalANN.refresh`
+.. |anntools.SeasonalANN.shape| replace:: :const:`~hydpy.auxs.anntools.SeasonalANN.shape`
+.. |anntools.SeasonalANN.verify| replace:: :func:`~hydpy.auxs.anntools.SeasonalANN.verify`
+.. |anntools.SeasonalANN| replace:: :class:`~hydpy.auxs.anntools.SeasonalANN`
+
+.. _anntools:
+
+anntools
+========
+
+.. automodule:: hydpy.auxs.anntools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

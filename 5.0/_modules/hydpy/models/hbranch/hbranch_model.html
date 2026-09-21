@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.hbranch.hbranch_model &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hbranch.hbranch_model</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.hbranch.hbranch_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hbranch</span> <span class="kn">import</span> <span class="n">hbranch_control</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hbranch</span> <span class="kn">import</span> <span class="n">hbranch_derived</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hbranch</span> <span class="kn">import</span> <span class="n">hbranch_fluxes</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hbranch</span> <span class="kn">import</span> <span class="n">hbranch_inlets</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.hbranch</span> <span class="kn">import</span> <span class="n">hbranch_outlets</span>
+
+
+<div class="viewcode-block" id="Pick_OriginalInput_V1">
+<a class="viewcode-back" href="../../../../hbranch.html#hydpy.models.hbranch.hbranch_model.Pick_OriginalInput_V1">[docs]</a>
+<span class="k">class</span> <span class="nc">Pick_OriginalInput_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Update |OriginalInput| based on |Total|.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`OriginalInput = \sum Total`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">hbranch_inlets</span><span class="o">.</span><span class="n">Total</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">hbranch_fluxes</span><span class="o">.</span><span class="n">OriginalInput</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">inl</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">originalinput</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inl</span><span class="o">.</span><span class="n">len_total</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">originalinput</span> <span class="o">+=</span> <span class="n">inl</span><span class="o">.</span><span class="n">total</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_AdjustedInput_V1">
+<a class="viewcode-back" href="../../../../hbranch.html#hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1">[docs]</a>
+<span class="k">class</span> <span class="nc">Calc_AdjustedInput_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adjust the original input data.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">        :math:`AdjustedInput = max(OriginalInput + Delta, Minimum)`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        The degree of the input adjustment may vary monthly.  Hence, we need to define</span>
+<span class="sd">        a concrete initialisation period for the following examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-03-30&quot;, &quot;2000-04-03&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hbranch import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; derived.moy.update()</span>
+
+<span class="sd">        Negative |Delta| values correspond to decreasing input:</span>
+
+<span class="sd">        &gt;&gt;&gt; delta.mar = -1.0</span>
+<span class="sd">        &gt;&gt;&gt; minimum(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = pub.timegrids.init[&quot;2000-03-31&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.originalinput = 1.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_adjustedinput_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.adjustedinput</span>
+<span class="sd">        adjustedinput(0.5)</span>
+
+<span class="sd">        The adjusted input values are never smaller than the threshold value defined</span>
+<span class="sd">        by parameter |Minimum|:</span>
+
+<span class="sd">        &gt;&gt;&gt; minimum(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_adjustedinput_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.adjustedinput</span>
+<span class="sd">        adjustedinput(1.0)</span>
+
+<span class="sd">        Positive |Delta| values correspond to increasing input:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = pub.timegrids.init[&quot;2000-04-01&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; delta.apr = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.originalinput = 0.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_adjustedinput_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.adjustedinput</span>
+<span class="sd">        adjustedinput(1.5)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">hbranch_control</span><span class="o">.</span><span class="n">Delta</span><span class="p">,</span>
+        <span class="n">hbranch_control</span><span class="o">.</span><span class="n">Minimum</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hbranch_derived</span><span class="o">.</span><span class="n">MOY</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">hbranch_fluxes</span><span class="o">.</span><span class="n">OriginalInput</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">hbranch_fluxes</span><span class="o">.</span><span class="n">AdjustedInput</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">adjustedinput</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">originalinput</span> <span class="o">+</span> <span class="n">con</span><span class="o">.</span><span class="n">delta</span><span class="p">[</span><span class="n">der</span><span class="o">.</span><span class="n">moy</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">idx_sim</span><span class="p">]]</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">adjustedinput</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">adjustedinput</span><span class="p">,</span> <span class="n">con</span><span class="o">.</span><span class="n">minimum</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_Outputs_V1">
+<a class="viewcode-back" href="../../../../hbranch.html#hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1">[docs]</a>
+<span class="k">class</span> <span class="nc">Calc_Outputs_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Perform the actual interpolation or extrapolation.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        As a simple example, assume a weir directing all discharge into `branch1` until</span>
+<span class="sd">        reaching the capacity limit of 2 m³/s.  |hbranch_v1| redirects the discharge</span>
+<span class="sd">        exceeding this threshold to `branch2`:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hbranch import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; xpoints(0.0, 2.0, 4.0)</span>
+<span class="sd">        &gt;&gt;&gt; ypoints(branch1=[0.0, 2.0, 2.0],</span>
+<span class="sd">        ...         branch2=[0.0, 0.0, 2.0])</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbbranches.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbpoints.update()</span>
+
+<span class="sd">        Low discharge example (linear interpolation between the first two supporting</span>
+<span class="sd">        point pairs):</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.adjustedinput = 1.</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outputs_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs</span>
+<span class="sd">        outputs(branch1=1.0,</span>
+<span class="sd">                branch2=0.0)</span>
+
+<span class="sd">        Medium discharge example (linear interpolation between the second two</span>
+<span class="sd">        supporting point pairs):</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.adjustedinput = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outputs_v1()</span>
+<span class="sd">        &gt;&gt;&gt; print(fluxes.outputs)</span>
+<span class="sd">        outputs(branch1=2.0,</span>
+<span class="sd">                branch2=1.0)</span>
+
+<span class="sd">        High discharge example (linear extrapolation beyond the second two supporting</span>
+<span class="sd">        point pairs):</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.adjustedinput = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outputs_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs</span>
+<span class="sd">        outputs(branch1=2.0,</span>
+<span class="sd">                branch2=3.0)</span>
+
+<span class="sd">        Non-monotonous relationships and balance violations are allowed:</span>
+
+<span class="sd">        &gt;&gt;&gt; xpoints(0.0, 2.0, 4.0, 6.0)</span>
+<span class="sd">        &gt;&gt;&gt; ypoints(branch1=[0.0, 2.0, 0.0, 0.0],</span>
+<span class="sd">        ...         branch2=[0.0, 0.0, 2.0, 4.0])</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbbranches.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbpoints.update()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.adjustedinput = 7.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outputs_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs</span>
+<span class="sd">        outputs(branch1=0.0,</span>
+<span class="sd">                branch2=5.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">hbranch_control</span><span class="o">.</span><span class="n">XPoints</span><span class="p">,</span>
+        <span class="n">hbranch_control</span><span class="o">.</span><span class="n">YPoints</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">hbranch_derived</span><span class="o">.</span><span class="n">NmbPoints</span><span class="p">,</span>
+        <span class="n">hbranch_derived</span><span class="o">.</span><span class="n">NmbBranches</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">hbranch_fluxes</span><span class="o">.</span><span class="n">AdjustedInput</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">hbranch_fluxes</span><span class="o">.</span><span class="n">Outputs</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="c1"># Search for the index of the two relevant x points...</span>
+        <span class="k">for</span> <span class="n">pdx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">der</span><span class="o">.</span><span class="n">nmbpoints</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">con</span><span class="o">.</span><span class="n">xpoints</span><span class="p">[</span><span class="n">pdx</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">flu</span><span class="o">.</span><span class="n">adjustedinput</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="c1"># ...and use it for linear interpolation (or extrapolation).</span>
+        <span class="n">d_x</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">adjustedinput</span>
+        <span class="k">for</span> <span class="n">bdx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmbbranches</span><span class="p">):</span>
+            <span class="n">d_x0</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">xpoints</span><span class="p">[</span><span class="n">pdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">d_dx</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">xpoints</span><span class="p">[</span><span class="n">pdx</span><span class="p">]</span> <span class="o">-</span> <span class="n">d_x0</span>
+            <span class="n">d_y0</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">ypoints</span><span class="p">[</span><span class="n">bdx</span><span class="p">,</span> <span class="n">pdx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">d_dy</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">ypoints</span><span class="p">[</span><span class="n">bdx</span><span class="p">,</span> <span class="n">pdx</span><span class="p">]</span> <span class="o">-</span> <span class="n">d_y0</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="n">bdx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">d_x</span> <span class="o">-</span> <span class="n">d_x0</span><span class="p">)</span> <span class="o">*</span> <span class="n">d_dy</span> <span class="o">/</span> <span class="n">d_dx</span> <span class="o">+</span> <span class="n">d_y0</span></div>
+
+
+
+<div class="viewcode-block" id="Pass_Outputs_V1">
+<a class="viewcode-back" href="../../../../hbranch.html#hydpy.models.hbranch.hbranch_model.Pass_Outputs_V1">[docs]</a>
+<span class="k">class</span> <span class="nc">Pass_Outputs_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update |Branched| based on |Outputs|.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`Branched_i = Outputs_i`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hbranch_derived</span><span class="o">.</span><span class="n">NmbBranches</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">hbranch_fluxes</span><span class="o">.</span><span class="n">Outputs</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">hbranch_outlets</span><span class="o">.</span><span class="n">Branched</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">bdx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmbbranches</span><span class="p">):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">branched</span><span class="p">[</span><span class="n">bdx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">flu</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="n">bdx</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../../hbranch.html#hydpy.models.hbranch.hbranch_model.Model">[docs]</a>
+<span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The HydPy-H-Branch model.&quot;&quot;&quot;</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Pick_OriginalInput_V1</span><span class="p">,)</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Calc_AdjustedInput_V1</span><span class="p">,</span>
+        <span class="n">Calc_Outputs_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Pass_Outputs_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="n">nodenames</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Names of the output nodes.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodenames</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Model.connect">
+<a class="viewcode-back" href="../../../../hbranch.html#hydpy.models.hbranch.hbranch_model.Model.connect">[docs]</a>
+    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connect the |LinkSequence| instances handled by the actual model to the</span>
+<span class="sd">        |NodeSequence| instances handled by one inlet node and multiple oulet nodes.</span>
+
+<span class="sd">        The HydPy-H-Branch model passes multiple output values to different outlet</span>
+<span class="sd">        nodes.  This requires additional information regarding the `direction` of each</span>
+<span class="sd">        output value.  Therefore, node names are used as keywords.  Assume the</span>
+<span class="sd">        discharge values of both nodes `inflow1` and `inflow2`  shall be  branched to</span>
+<span class="sd">        nodes `outflow1` and `outflow2` via element `branch`:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Element, pub</span>
+<span class="sd">        &gt;&gt;&gt; branch = Element(&quot;branch&quot;,</span>
+<span class="sd">        ...                  inlets=[&quot;inflow1&quot;, &quot;inflow2&quot;],</span>
+<span class="sd">        ...                  outlets=[&quot;outflow1&quot;, &quot;outflow2&quot;])</span>
+
+<span class="sd">        Then parameter |YPoints| relates different supporting points via its keyword</span>
+<span class="sd">        arguments to the respective nodes:</span>
+
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2000-01-02&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hbranch import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; delta(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; xpoints(0.0, 3.0)</span>
+<span class="sd">        &gt;&gt;&gt; ypoints(outflow1=[0.0, 1.0], outflow2=[0.0, 2.0])</span>
+<span class="sd">        &gt;&gt;&gt; parameters.update()</span>
+
+<span class="sd">        After connecting the model with its element the total discharge value of nodes</span>
+<span class="sd">        `inflow1` and `inflow2` can be properly divided:</span>
+
+<span class="sd">        &gt;&gt;&gt; branch.model = model</span>
+<span class="sd">        &gt;&gt;&gt; branch.inlets.inflow1.sequences.sim = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; branch.inlets.inflow2.sequences.sim = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.simulate(0)</span>
+<span class="sd">        &gt;&gt;&gt; branch.outlets.outflow1.sequences.sim</span>
+<span class="sd">        sim(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; branch.outlets.outflow2.sequences.sim</span>
+<span class="sd">        sim(4.0)</span>
+
+<span class="sd">        In case of missing (or misspelled) outlet nodes, the following error is raised:</span>
+
+<span class="sd">        &gt;&gt;&gt; branch.outlets.mutable = True</span>
+<span class="sd">        &gt;&gt;&gt; del branch.outlets.outflow1</span>
+<span class="sd">        &gt;&gt;&gt; parameters.update()</span>
+<span class="sd">        &gt;&gt;&gt; model.connect()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: Model `hbranch` of element `branch` tried to connect to an \</span>
+<span class="sd">outlet node named `outflow1`, which is not an available outlet node of element `branch`.</span>
+
+<span class="sd">        A missing reference to the corresponding element results in the following error</span>
+<span class="sd">        message:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.element = None</span>
+<span class="sd">        &gt;&gt;&gt; model.connect()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: Model  hbranch does not know the element it shall connect with \</span>
+<span class="sd">so far.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span>
+        <span class="k">if</span> <span class="n">element</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Model  </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> does not know the element it shall connect with &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;so far.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">inlets</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">total</span>
+        <span class="k">if</span> <span class="n">total</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">),):</span>
+            <span class="n">total</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nodes</span><span class="p">):</span>
+            <span class="n">double</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_double</span><span class="p">(</span><span class="s2">&quot;inlets&quot;</span><span class="p">)</span>
+            <span class="n">total</span><span class="o">.</span><span class="n">set_pointer</span><span class="p">(</span><span class="n">double</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodenames</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">outlet</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">outlets</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> tried to connect to an &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;outlet node named `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">`, which is not an available outlet &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;node of element `</span><span class="si">{</span><span class="n">element</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">`.&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span> <span class="kc">None</span>
+            <span class="n">double</span> <span class="o">=</span> <span class="n">outlet</span><span class="o">.</span><span class="n">get_double</span><span class="p">(</span><span class="s2">&quot;outlets&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">branched</span><span class="o">.</span><span class="n">set_pointer</span><span class="p">(</span><span class="n">double</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hbranch.hbranch_model</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

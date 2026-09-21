@@ -1,0 +1,287 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>typingtools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="variabletools" href="variabletools.html" />
+    <link rel="prev" title="timetools" href="timetools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="variabletools.html" title="variabletools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="timetools.html" title="timetools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">typingtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="typingtools">
+<span id="id1"></span><h1>typingtools<a class="headerlink" href="#typingtools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.typingtools"></span><p>This module implements some “types” to be used for static (and
+eventually dynamical) typing.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.typingtools" title="hydpy.core.typingtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">typingtools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ArrayFloat</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Float1</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Float2</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Float_co</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">MatrixInput</span></code> The central part of internal API.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">T</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">T1</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">T2</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">T3</span></code> Type variable.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.typingtools.VectorInput" title="hydpy.core.typingtools.VectorInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">VectorInput</span></code></a> Protocol class for providing input to “mathematical”, 1-dimensional arrays.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.typingtools.Vector" title="hydpy.core.typingtools.Vector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code></a> Protocol class for defining “mathematical”, 1-dimensional sequences.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.typingtools.Matrix" title="hydpy.core.typingtools.Matrix"><code class="xref py py-class docutils literal notranslate"><span class="pre">Matrix</span></code></a> Protocol class for providing input to “mathematical”, 2-dimensional arrays.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.typingtools.IterableNonString" title="hydpy.core.typingtools.IterableNonString"><code class="xref py py-class docutils literal notranslate"><span class="pre">IterableNonString</span></code></a> Abstract base class for checking if an object is iterable but not a string.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.typingtools.VariableProtocol" title="hydpy.core.typingtools.VariableProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">VariableProtocol</span></code></a> Protocol to identify objects as “variables”.</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">CyParametersProtocol</span></code> The protocol for the <cite>parameters</cite> attribute of Cython extension classes.</p></li>
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">CySequencesProtocol</span></code> The protocol for the <cite>sequences</cite> attribute of Cython extension classes.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">CyModelProtocol</span></code></a> The protocol of Cython extension classes for defining efficient model implementations.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.typingtools.ScriptFunction" title="hydpy.core.typingtools.ScriptFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">ScriptFunction</span></code></a> Callback protocol for functions to be executed from the command line (see the documentation on function <a class="reference internal" href="commandtools.html#hydpy.exe.commandtools.execute_scriptfunction" title="hydpy.exe.commandtools.execute_scriptfunction"><code class="xref py py-func docutils literal notranslate"><span class="pre">execute_scriptfunction()</span></code></a> and module <a class="reference internal" href="hyd.html#module-hydpy.exe.hyd" title="hydpy.exe.hyd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hyd</span></code></a> for further information).</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt id="hydpy.core.typingtools.CyModelProtocol">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.typingtools.</span></code><code class="sig-name descname"><span class="pre">CyModelProtocol</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#CyModelProtocol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.typingtools.CyModelProtocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing_extensions.Protocol</span></code></p>
+<p>The protocol of Cython extension classes for defining
+efficient model implementations.</p>
+<p>Class <a class="reference internal" href="modelutils.html#hydpy.cythons.modelutils.Cythonizer" title="hydpy.cythons.modelutils.Cythonizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cythonizer</span></code></a> generates the actual, model specific
+implementations automatically.</p>
+<dl class="py attribute">
+<dt id="hydpy.core.typingtools.CyModelProtocol.idx_sim">
+<code class="sig-name descname"><span class="pre">idx_sim</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><a class="headerlink" href="#hydpy.core.typingtools.CyModelProtocol.idx_sim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.typingtools.CyModelProtocol.parameters">
+<code class="sig-name descname"><span class="pre">parameters</span></code><em class="property"><span class="pre">:</span> <span class="pre">hydpy.core.typingtools.CyParametersProtocol</span></em><a class="headerlink" href="#hydpy.core.typingtools.CyModelProtocol.parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.typingtools.CyModelProtocol.sequences">
+<code class="sig-name descname"><span class="pre">sequences</span></code><em class="property"><span class="pre">:</span> <span class="pre">hydpy.core.typingtools.CySequencesProtocol</span></em><a class="headerlink" href="#hydpy.core.typingtools.CyModelProtocol.sequences" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.typingtools.IterableNonString">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.typingtools.</span></code><code class="sig-name descname"><span class="pre">IterableNonString</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#IterableNonString"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.typingtools.IterableNonString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></a></p>
+<p>Abstract base class for checking if an object is iterable but not a string.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.typingtools</span> <span class="kn">import</span> <span class="n">IterableNonString</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="s2">&quot;asdf&quot;</span><span class="p">,</span> <span class="n">IterableNonString</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">([</span><span class="s2">&quot;asdf&quot;</span><span class="p">],</span> <span class="n">IterableNonString</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">issubclass</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">IterableNonString</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">issubclass</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">IterableNonString</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.typingtools.Matrix">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.typingtools.</span></code><code class="sig-name descname"><span class="pre">Matrix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#Matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.typingtools.Matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.typingtools.VectorInput" title="hydpy.core.typingtools.VectorInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.typingtools.VectorInput</span></code></a>[<a class="reference internal" href="#hydpy.core.typingtools.VectorInput" title="hydpy.core.typingtools.VectorInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.typingtools.VectorInput</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">hydpy.core.typingtools.Float1</span></code>]]</p>
+<p>Protocol class for providing input to “mathematical”, 2-dimensional arrays.</p>
+<dl class="py method">
+<dt id="hydpy.core.typingtools.Matrix.shape">
+<code class="sig-name descname"><span class="pre">shape</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#Matrix.shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.typingtools.Matrix.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Length of both matrix axes.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.typingtools.ScriptFunction">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.typingtools.</span></code><code class="sig-name descname"><span class="pre">ScriptFunction</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#ScriptFunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.typingtools.ScriptFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing_extensions.Protocol</span></code></p>
+<p>Callback protocol for functions to be executed from the command line
+(see the documentation on function <a class="reference internal" href="commandtools.html#hydpy.exe.commandtools.execute_scriptfunction" title="hydpy.exe.commandtools.execute_scriptfunction"><code class="xref py py-func docutils literal notranslate"><span class="pre">execute_scriptfunction()</span></code></a> and module
+<a class="reference internal" href="hyd.html#module-hydpy.exe.hyd" title="hydpy.exe.hyd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hyd</span></code></a> for further information).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.typingtools.VariableProtocol">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.typingtools.</span></code><code class="sig-name descname"><span class="pre">VariableProtocol</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#VariableProtocol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.typingtools.VariableProtocol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing_extensions.Protocol</span></code></p>
+<p>Protocol to identify objects as “variables”.</p>
+<dl class="py attribute">
+<dt id="hydpy.core.typingtools.VariableProtocol.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.core.typingtools.VariableProtocol.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.typingtools.VectorInput">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.typingtools.</span></code><code class="sig-name descname"><span class="pre">VectorInput</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#VectorInput"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.typingtools.VectorInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">typing_extensions.Protocol</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">hydpy.core.typingtools.Float_co</span></code>]</p>
+<p>Protocol class for providing input to “mathematical”, 1-dimensional arrays.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.typingtools.Vector">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.typingtools.</span></code><code class="sig-name descname"><span class="pre">Vector</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#Vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.typingtools.Vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.typingtools.VectorInput" title="hydpy.core.typingtools.VectorInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.typingtools.VectorInput</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">hydpy.core.typingtools.Float1</span></code>]</p>
+<p>Protocol class for defining “mathematical”, 1-dimensional sequences.</p>
+<dl class="py method">
+<dt id="hydpy.core.typingtools.Vector.shape">
+<code class="sig-name descname"><span class="pre">shape</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/hydpy/core/typingtools.html#Vector.shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.typingtools.Vector.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Length of the vector.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="timetools.html"
+                        title="previous chapter">timetools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="variabletools.html"
+                        title="next chapter">variabletools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/typingtools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="variabletools.html" title="variabletools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="timetools.html" title="timetools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">typingtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

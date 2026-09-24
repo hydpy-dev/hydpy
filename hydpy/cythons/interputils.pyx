@@ -14,12 +14,13 @@ from hydpy.cythons.autogen cimport ppolyutils
 
 cdef int _ANN = 0
 cdef int _PPOLY = 1
-
+cdef int _PPOLYS = 2
 
 def _type2number():
     from hydpy.auxs.anntools import ANN
     from hydpy.auxs.ppolytools import PPoly
-    return {ANN: _ANN, PPoly: _PPOLY}
+    from hydpy.auxs.ppolytools import PPolys
+    return {ANN: _ANN, PPoly: _PPOLY, PPolys: _PPOLYS}
 
 
 @cython.final
@@ -49,6 +50,12 @@ cdef class SimpleInterpolator:
             (<ppolyutils.PPoly>self.algorithm).calculate_values()
             for idx in range(self.nmb_outputs):
                 self.outputs[idx] = (<ppolyutils.PPoly>self.algorithm).outputs[idx]
+        elif self.algorithm_type == _PPOLYS:
+            for idx in range(self.nmb_inputs):
+                 (<ppolyutils.PPolys>self.algorithm).inputs[idx] = self.inputs[idx]
+            (<ppolyutils.PPolys>self.algorithm).calculate_values()
+            for idx in range(self.nmb_outputs):
+                self.outputs[idx] = (<ppolyutils.PPolys>self.algorithm).outputs[idx]
 
     cpdef inline void calculate_derivatives(self, int idx_input) noexcept nogil:
         cdef int idx_output
@@ -60,6 +67,11 @@ cdef class SimpleInterpolator:
             (<ppolyutils.PPoly>self.algorithm).calculate_derivatives(idx_input)
             for idx_output in range(self.nmb_outputs):
                 self.output_derivatives[idx_output] = (<ppolyutils.PPoly>self.algorithm).output_derivatives[idx_output]
+        elif self.algorithm_type == _PPOLYS:
+            (<ppolyutils.PPolys>self.algorithm).calculate_derivatives(idx_input)
+            for idx_output in range(self.nmb_outputs):
+                self.output_derivatives[idx_output] = (<ppolyutils.PPolys>self.algorithm).output_derivatives[idx_output]
+
 
 
 @cython.final
@@ -100,10 +112,17 @@ cdef class SeasonalInterpolator:
                     for idx_output in range(self.nmb_outputs):
                         frac = ratio*(<annutils.ANN>self.algorithms[idx_algorithm]).outputs[idx_output]
                         self.outputs[idx_output] += frac
-                if self.algorithm_types[idx_algorithm] == _PPOLY:
+                elif self.algorithm_types[idx_algorithm] == _PPOLY:
                     for idx_input in range(self.nmb_inputs):
                          (<ppolyutils.PPoly>self.algorithms[idx_algorithm]).inputs[idx_input] = self.inputs[idx_input]
                     (<ppolyutils.PPoly>self.algorithms[idx_algorithm]).calculate_values()
                     for idx_output in range(self.nmb_outputs):
                         frac = ratio * (<ppolyutils.PPoly>self.algorithms[idx_algorithm]).outputs[idx_output]
+                        self.outputs[idx_output] += frac
+                elif self.algorithm_types[idx_algorithm] == _PPOLYS:
+                    for idx_input in range(self.nmb_inputs):
+                         (<ppolyutils.PPolys>self.algorithms[idx_algorithm]).inputs[idx_input] = self.inputs[idx_input]
+                    (<ppolyutils.PPolys>self.algorithms[idx_algorithm]).calculate_values()
+                    for idx_output in range(self.nmb_outputs):
+                        frac = ratio * (<ppolyutils.PPolys>self.algorithms[idx_algorithm]).outputs[idx_output]
                         self.outputs[idx_output] += frac

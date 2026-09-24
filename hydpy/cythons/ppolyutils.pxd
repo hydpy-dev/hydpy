@@ -1,7 +1,7 @@
 """This module defines the Cython declarations related to module |ppolytools|."""
 
+from cpython cimport PyObject
 cimport numpy
-
 
 cdef class PPoly:
 
@@ -24,3 +24,16 @@ cdef class PPoly:
     cdef public double[:, :] cs
 
     cpdef inline int find_index(self) noexcept nogil
+
+
+cdef class PPolys:
+
+    cdef public int nmb_ppolys
+    cdef PyObject **ppolys
+
+    cdef public double[:] inputs
+    cdef public double[:] outputs
+    cdef public double[:] output_derivatives
+
+    cpdef inline void calculate_values(self) noexcept nogil
+    cpdef inline void calculate_derivatives(self, int idx_input) noexcept nogil

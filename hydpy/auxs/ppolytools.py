@@ -85,9 +85,11 @@ class PPoly(interptools.InterpAlgorithm):
     constructor:
 
     >>> from hydpy import Poly, PPoly
-    >>> ppoly = PPoly(Poly(x0=1.0, cs=(1.0,)),
-    ...         Poly(x0=2.0, cs=(1.0, 1.0)),
-    ...         Poly(x0=3.0, cs=(2.0, 3.0)))
+    >>> ppoly = PPoly(
+    ...     Poly(x0=1.0, cs=(1.0,)),
+    ...     Poly(x0=2.0, cs=(1.0, 1.0)),
+    ...     Poly(x0=3.0, cs=(2.0, 3.0)),
+    ... )
 
     Note that each power series constant (|Poly.x0|) also serves as a breakpoint.  Each
     |Poly.x0| value defines the lower bound of the interval for which the polynomial is
@@ -159,7 +161,6 @@ class PPoly(interptools.InterpAlgorithm):
     | 1.0, 1.0 |
     | 2.0, 3.0 |
 
-
     Property |PPoly.nmb_ps| reflects the total number of polynomials:
 
     >>> ppoly.nmb_ps
@@ -221,14 +222,12 @@ agree with the actual number of constants held by vector `x0s` (3).
     Traceback (most recent call last):
     ...
     ValueError: When calling an `PPoly` object, you need to define at least one \
-polynomial function by passing at leas one `Poly` object.
+polynomial function by passing at least one `Poly` object.
     """
 
     _calgorithm: ppolyutils.PPoly
-    _cready: bool
 
     def __init__(self, *polynomials: Poly) -> None:
-        self._cready = False
         ca = ppolyutils.PPoly()
         self._calgorithm = ca
         ca.inputs = numpy.zeros((1,), dtype=config.NP_FLOAT)
@@ -241,7 +240,7 @@ polynomial function by passing at leas one `Poly` object.
         if not polynomials:
             raise ValueError(
                 "When calling an `PPoly` object, you need to define at least one "
-                "polynomial function by passing at leas one `Poly` object."
+                "polynomial function by passing at least one `Poly` object."
             )
         nmb_ps = len(polynomials)
         nmb_cs = numpy.asarray([len(p.cs) for p in polynomials], dtype=config.NP_INT)
@@ -653,6 +652,7 @@ has not been prepared so far.
         >>> ppoly.polynomials
         (Poly(x0=1.0, cs=(1.0,)), Poly(x0=2.0, cs=(1.0, 1.0)))
         """
+        return self._calgorithm.polynomials
         return tuple(
             Poly(x0=x0, cs=tuple(cs[:n]))
             for x0, cs, n in zip(self.x0s, self.cs, self.nmb_cs)
@@ -789,15 +789,343 @@ agree with the actual number of constants held by vector `x0s` (1).
             Poly(x0=1.0, cs=(1.0,)),
             Poly(x0=2.0, cs=(1.0, 1.0)),
         )
-        >>> print(ppoly.assignrepr(prefix="    ppoly = ", indent=4))
+        >>> print(ppoly.assignrepr(prefix="ppoly = ", indent=4))
             ppoly = PPoly(
                 Poly(x0=1.0, cs=(1.0,)),
                 Poly(x0=2.0, cs=(1.0, 1.0)),
             )
         """
-        blanks = (indent + 4) * " "
-        lines = [f"{prefix}{type(self).__name__}("]
-        lines.extend(f"{blanks}{poly}," for poly in self.polynomials)
+        blanks = indent * " "
+        lines = [f"{blanks}{prefix}{type(self).__name__}("]
+        lines.extend(f"    {blanks}{poly}," for poly in self.polynomials)
+        lines.append(f'{blanks})')
+        return "\n".join(lines)
+
+    def __repr__(self) -> str:
+        return self.assignrepr(prefix="", indent=0)
+
+
+class PPolys(interptools.InterpAlgorithm):
+    """
+
+    >>> from scipy.interpolate import PchipInterpolator
+    >>> from hydpy import Poly, PPoly, PPolys
+    >>> ppolys = PPolys()
+    >>> ppolys(
+    ...     main=PPoly.from_data(
+    ...         xs=[0.0, 10.0, 22.0, 28.0], ys=[0.0, 10.0, 10.0, 15.0]
+    ...     ),
+    ...     branch1=PPoly.from_data(xs=[0.0, 10.0, 16.0], ys=[0.0, 0.0, 1.0]),
+    ...     branch2=PPoly.from_data(
+    ...         xs=[0.0, 10.0, 16.0, 22.0, 28.0], ys=[0.0, 0.0, 2.0, 0.0, 0.0]
+    ...     ),
+    ...     branch3=PPoly.from_data(
+    ...         xs=[0.0, 10.0, 16.0, 22.0, 28.0], ys=[0.0, 0.0, 3.0, 10.0, 10.0]
+    ...     ),
+    ... )
+
+    >>> from hydpy import print_vector
+    >>> def check(print_derivatives=False):
+    ...     for i in [
+    ...         0.0, 2.5, 5.0, 7.5, 10.0, 13.0, 16.0, 19.0, 22.0, 25.0, 28.0, 31.0, 34.0
+    ...     ]:
+    ...         ppolys.inputs[0] = i
+    ...         ppolys.calculate_values()
+    ...         assert i == sum(ppolys.outputs), f"{i} vs {sum(ppolys.outputs)}"
+    ...         print(i, end=": ")
+    ...         if print_derivatives:
+    ...             ppolys.calculate_derivatives()
+    ...             print_vector(ppolys.output_derivatives)
+    ...         else:
+    ...             print_vector(ppolys.outputs)
+
+    >>> check()
+    0.0: 0.0, 0.0, 0.0, 0.0
+    2.5: 2.5, 0.0, 0.0, 0.0
+    5.0: 5.0, 0.0, 0.0, 0.0
+    7.5: 7.5, 0.0, 0.0, 0.0
+    10.0: 10.0, 0.0, 0.0, 0.0
+    13.0: 10.0, 0.5, 1.0, 1.5
+    16.0: 10.0, 1.0, 2.0, 3.0
+    19.0: 10.0, 1.5, 1.0, 6.5
+    22.0: 10.0, 2.0, 0.0, 10.0
+    25.0: 12.5, 2.5, 0.0, 10.0
+    28.0: 15.0, 3.0, 0.0, 10.0
+    31.0: 17.5, 3.5, 0.0, 10.0
+    34.0: 20.0, 4.0, 0.0, 10.0
+
+    >>> check(print_derivatives=True)
+    0.0: 1.0, 0.0, 0.0, 0.0
+    2.5: 1.0, 0.0, 0.0, 0.0
+    5.0: 1.0, 0.0, 0.0, 0.0
+    7.5: 1.0, 0.0, 0.0, 0.0
+    10.0: 0.0, 0.166667, 0.333333, 0.5
+    13.0: 0.0, 0.166667, 0.333333, 0.5
+    16.0: 0.0, 0.166667, -0.333333, 1.166667
+    19.0: 0.0, 0.166667, -0.333333, 1.166667
+    22.0: 0.833333, 0.166667, 0.0, 0.0
+    25.0: 0.833333, 0.166667, 0.0, 0.0
+    28.0: 0.833333, 0.166667, 0.0, 0.0
+    31.0: 0.833333, 0.166667, 0.0, 0.0
+    34.0: 0.833333, 0.166667, 0.0, 0.0
+
+    >>> ppolys(
+    ...     main=1,
+    ...     branch1=PPoly.from_data(xs=[0.0, 10.0, 16.0], ys=[0.0, 0.0, 1.0]),
+    ...     branch2=PPoly.from_data(
+    ...         xs=[0.0, 10.0, 16.0, 22.0, 28.0], ys=[0.0, 0.0, 2.0, 0.0, 0.0]
+    ...     ),
+    ...     branch3=PPoly.from_data(
+    ...         xs=[0.0, 10.0, 16.0, 22.0, 28.0], ys=[0.0, 0.0, 3.0, 10.0, 10.0]
+    ...     ),
+    ...     supplier=PPoly.from_data(
+    ...         xs=[0.0, 8.0, 10.0], ys=[-2.0, 0.0, 0.0], method=PchipInterpolator
+    ...     ),
+    ... )
+
+    >>> check()
+    0.0: 2.0, 0.0, 0.0, 0.0, -2.0
+    2.5: 3.504395, 0.0, 0.0, 0.0, -1.004395
+    5.0: 5.316406, 0.0, 0.0, 0.0, -0.316406
+    7.5: 7.509277, 0.0, 0.0, 0.0, -0.009277
+    10.0: 10.0, 0.0, 0.0, 0.0, 0.0
+    13.0: 10.0, 0.5, 1.0, 1.5, 0.0
+    16.0: 10.0, 1.0, 2.0, 3.0, 0.0
+    19.0: 10.0, 1.5, 1.0, 6.5, 0.0
+    22.0: 10.0, 2.0, 0.0, 10.0, 0.0
+    25.0: 12.5, 2.5, 0.0, 10.0, 0.0
+    28.0: 15.0, 3.0, 0.0, 10.0, 0.0
+    31.0: 17.5, 3.5, 0.0, 10.0, 0.0
+    34.0: 20.0, 4.0, 0.0, 10.0, 0.0
+
+
+    >>> check(print_derivatives=True)
+    0.0: 0.55, 0.0, 0.0, 0.0, 0.45
+    2.5: 0.658398, 0.0, 0.0, 0.0, 0.341602
+    5.0: 0.796094, 0.0, 0.0, 0.0, 0.203906
+    7.5: 0.963086, 0.0, 0.0, 0.0, 0.036914
+    10.0: 0.0, 0.166667, 0.333333, 0.5, 0.0
+    13.0: 0.0, 0.166667, 0.333333, 0.5, 0.0
+    16.0: 0.0, 0.166667, -0.333333, 1.166667, 0.0
+    19.0: 0.0, 0.166667, -0.333333, 1.166667, 0.0
+    22.0: 0.833333, 0.166667, 0.0, 0.0, 0.0
+    25.0: 0.833333, 0.166667, 0.0, 0.0, 0.0
+    28.0: 0.833333, 0.166667, 0.0, 0.0, 0.0
+    31.0: 0.833333, 0.166667, 0.0, 0.0, 0.0
+    34.0: 0.833333, 0.166667, 0.0, 0.0, 0.0
+    """
+    _calgorithm: ppolyutils.PPolys
+    _cready: bool
+
+    def __init__(self, **ppolys: PPoly) -> None:
+        self._cready = False
+        if ppolys:
+            self(**ppolys)
+
+    def __call__(self, **ppolys: PPoly) -> None:
+        if not ppolys:
+            raise ValueError(
+                "When calling an `PPolys` object, you need to define at least one "
+                "piecewise polynomial function by passing at least one `PPoly` object."
+            )
+        self._ppolys = ppolys
+        ca = ppolyutils.PPolys(ppolys.values())
+        self._calgorithm = ca
+        n = len(ppolys)
+        ca.options = numpy.asarray([0 if isinstance(p, PPoly) else p for p in ppolys.values()])
+        ca.inputs = numpy.zeros((1,), dtype=config.NP_FLOAT)
+        ca.inputs = numpy.zeros((1,), dtype=config.NP_FLOAT)
+        ca.outputs = numpy.zeros((n,), dtype=config.NP_FLOAT)
+        ca.output_derivatives = numpy.zeros((n,), dtype=config.NP_FLOAT)
+        self._cready = True
+
+    def _check_cready(self) -> None:
+        if not self._cready:
+            raise exceptiontools.AttributeNotReady("ToDo")
+
+
+    @property
+    def nmb_inputs(self) -> int:
+        """The number of input values.
+
+        ToDo: |PPolys| is a univariate interpolator.  Hence, |PPolys.nmb_inputs| is always one:
+
+        >>> from hydpy import PPolys
+        >>> PPolys().nmb_inputs
+        1
+        """
+        return 1
+
+    @property
+    def inputs(self) -> VectorFloat:
+        """The current input value.
+
+        ToDo |PPoly| is a univariate interpolator.  Hence, |PPoly.inputs| always returns a
+        vector with a single entry:
+
+        >>> from hydpy import PPolys, PPoly, print_vector
+        >>> ppolys = PPolys()
+        >>> ppolys.inputs
+        >>> ppolys(
+        ...     PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ...     PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> print_vector(ppolys.inputs)
+        0.0
+        """
+        self._check_cready()
+        return numpy.asarray(self._calgorithm.inputs)
+
+    @property
+    def nmb_outputs(self) -> Literal[1]:
+        """The number of output values.
+
+        ToDo |PPoly| is a univariate interpolator.  Hence, |PPoly.nmb_outputs| is always
+        one:
+
+        >>> from hydpy import PPolys, PPoly, print_vector
+        >>> ppolys = PPolys()
+        >>> ppolys.nmb_outputs
+        >>> ppolys(
+        ...     PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ...     PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> ppolys.nmb_outputs
+        2
+        """
+        self._check_cready()
+        return self._calgorithm.nmb_ppolys
+
+
+
+    @property
+    def outputs(self) -> VectorFloat:
+        """The lastly calculated output value.
+
+        ToDo |PPoly| is a univariate interpolator.  Hence, |PPoly.outputs| always returns a
+        vector with a single entry:
+
+        >>> from hydpy import PPolys, PPoly, print_vector
+        >>> ppolys = PPolys()
+        >>> ppolys.outputs
+        >>> ppolys(
+        ...     PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ...     PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> print_vector(ppolys.outputs)
+        0.0, 0.0
+        """
+        self._check_cready()
+        return numpy.asarray(self._calgorithm.outputs)
+
+
+    @property
+    def output_derivatives(self) -> VectorFloat:
+        """The lastly calculated first-order derivative.
+
+        ToDo |PPoly| is a univariate interpolator.  Hence, |PPoly.output_derivatives|
+        always returns a vector with a single entry:
+
+        >>> from hydpy import PPolys, PPoly, print_vector
+        >>> ppolys = PPolys()
+        >>> ppolys.output_derivatives
+        >>> ppolys(
+        ...     PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ...     PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> print_vector(ppolys.output_derivatives)
+        0.0, 0.0
+        """
+        self._check_cready()
+        return numpy.asarray(self._calgorithm.output_derivatives)
+
+    def calculate_values(self) -> None:
+        """Calculate the output value based on the input values defined previously.
+
+        For more information, see the documentation on class |ppolytools.PPoly|.
+        """
+        self._calgorithm.calculate_values()
+
+    def calculate_derivatives(self, idx: int = 0, /) -> None:
+        """Calculate the derivative of the output value with respect to the input value.
+
+        For more information, see the documentation on class |ppolytools.PPoly|.
+        """
+        self._calgorithm.calculate_derivatives(idx)
+
+    @property
+    def piecewisepolynomials(self) -> tuple[PPoly]:
+        """ToDo
+
+        >>> from hydpy import PPolys, PPoly
+        >>> ppolys = PPolys()
+        >>> ppolys.piecewisepolynomials
+        >>> ppolys(
+        ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
+        ...     target1=PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> for name, ppoly in ppolys.piecewisepolynomials:
+        ...     print(name)
+        ...     print(ppoly)
+        target1
+        PPoly(
+            Poly(x0=0.0, cs=(0.0, 1.0)),
+        )
+        target2
+        PPoly(
+            Poly(x0=0.0, cs=(0.0, 2.0)),
+            Poly(x0=1.1, cs=(2.2, 4.0)),
+        )
+        """
+        self._check_cready()
+        return tuple(
+            (name, PPoly(*ppoly.polynomials) if isinstance(ppoly, PPoly) else ppoly) for name, ppoly in sorted(self._ppolys.items())
+        )
+        # return self._calgorithm.piecewisepolynomials  # ToDo: crashes! why?
+
+    def verify(self) -> None:  # ToDo: parameter ppoly -> ppolys
+        for _, ppoly in self.piecewisepolynomials:
+            if isinstance(ppoly, PPoly):
+                ppoly.verify()
+
+
+    def assignrepr(self, prefix: str, indent: int = 0) -> str:
+        """Return a string representation of the actual |ppolytools.PPolys| object
+        prefixed with the given string.
+
+        >>> from hydpy import PPolys, PPoly
+        >>> ppolys = PPolys()
+        >>> ppolys(
+        ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
+        ...     target1=PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> ppolys
+        PPolys(
+            target1=PPoly(
+                Poly(x0=0.0, cs=(0.0, 1.0)),
+            ),
+            target2=PPoly(
+                Poly(x0=0.0, cs=(0.0, 2.0)),
+                Poly(x0=1.1, cs=(2.2, 4.0)),
+            ),
+        )
+        >>> print(ppolys.assignrepr(prefix="ppolys = ", indent=4))
+            ppolys = PPolys(
+                target1=PPoly(
+                    Poly(x0=0.0, cs=(0.0, 1.0)),
+                ),
+                target2=PPoly(
+                    Poly(x0=0.0, cs=(0.0, 2.0)),
+                    Poly(x0=1.1, cs=(2.2, 4.0)),
+                ),
+            )
+        """
+        blanks = indent * " "
+        lines = [f"{blanks}{prefix}{type(self).__name__}("]
+        lines.extend(
+            f"{ppoly.assignrepr(prefix=f"{name}=", indent=indent+4)}," if isinstance(ppoly, PPoly) else f"{name}={ppoly}"
+            for (name, ppoly) in self.piecewisepolynomials
+        )
         lines.append(f'{indent*" "})')
         return "\n".join(lines)
 

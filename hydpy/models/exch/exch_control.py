@@ -10,6 +10,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.auxs import interptools
+from hydpy.auxs import ppolytools
 
 
 class CrestHeight(parametertools.Parameter):
@@ -273,6 +274,71 @@ sequence and connect it to the respective outlet nodes properly.
             return "\n".join(lines)
         except BaseException:
             return "ypoints(?)"
+
+
+class Targets(parametertools.Parameter):
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (2, 2)
+
+    def __call__(self, main: str, branch: str) -> None:
+        super().__call__(2)
+        self.subpars.pars.model.nodenames = [main, branch]
+
+    def __repr__(self):
+        ns = self.subpars.pars.model.nodenames
+        if ns != 2:
+            return f"{self.name}(?)"
+        return f"{self.name}(main={ns[0]}, branch={ns[1]})"
+
+class FixWaterBalance(parametertools.Parameter):
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (0, 2)
+
+class FallbackRules(interptools.SeasonalInterpolator):
+    """ToDo An interpolation function that describes the relationship between flood
+    discharge and water volume [-]."""
+
+    XLABEL = "input [e.g. m³/s]"
+    YLABEL = "output [e.g. m³/s]"
+
+    def __call__(self, *args, **kwargs) -> None:
+
+        def _ppoly2ppolys(p: object) -> object:
+            if isinstance(p, ppolytools.PPoly):
+                return ppolytools.PPolys(**{nodenames[0]: 1, nodenames[1]: p})
+            return p
+
+        nodenames = self.subpars.pars.model.nodenames
+        args = tuple(_ppoly2ppolys(a) for a in args)
+        kwargs = {k: _ppoly2ppolys(a) for k, a in kwargs.items()}
+        super().__call__(*args, **kwargs)
+        alg = self.algorithms[0]
+        assert isinstance(alg, ppolytools.PPolys)
+        assert len(alg.piecewisepolynomials) == 2  # ToDo: better checks
+        self.subpars.pars.model.sequences.outlets.branched.shape = 2
+
+
+class Rules(interptools.SeasonalInterpolator):
+    """ToDo An interpolation function that describes the relationship between flood
+    discharge and water volume [-]."""
+
+    XLABEL = "input [e.g. m³/s]"
+    YLABEL = "outputs [e.g. m³/s]"
+
+    def __call__(self, *args, **kwargs) -> None:
+        super().__call__(*args, **kwargs)
+        ppolys = self.algorithms[0]
+        assert isinstance(ppolys, ppolytools.PPolys)
+        nodenames = []
+        for name, ppoly in ppolys.piecewisepolynomials:
+            nodenames.append(name)
+        self.subpars.pars.model.nodenames = sorted(nodenames)
+        self.subpars.pars.model.sequences.outlets.branched.shape = len(nodenames)
+
 
 
 class ObserverNodes(parametertools.Parameter):

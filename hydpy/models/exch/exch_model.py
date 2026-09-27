@@ -1,8 +1,10 @@
 # pylint: disable=missing-module-docstring
 
 from hydpy.core import modeltools
+from hydpy.cythons import modelutils
 from hydpy.models.exch import exch_control
 from hydpy.models.exch import exch_derived
+from hydpy.models.exch import exch_inputs
 from hydpy.models.exch import exch_inlets
 from hydpy.models.exch import exch_observers
 from hydpy.models.exch import exch_factors
@@ -483,6 +485,219 @@ class Calc_Outputs_V1(modeltools.Method):
             y0: float = con.ypoints[bdx, pdx - 1]
             dy: float = con.ypoints[bdx, pdx] - y0
             flu.outputs[bdx] = (x - x0) * dy / dx + y0
+
+
+class Calc_Outputs_V2(modeltools.Method):
+    """Calculate the discharge during and after a flood event based on seasonally
+    varying interpolation approaches approximating the relationship(s) between
+    discharge and water stage.
+
+    Example:
+
+        The control parameter |WaterLevel2FloodDischarge| is derived from
+        |SeasonalInterpolator|.  This allows to simulate different seasonal dam control
+        schemes.  To show that the seasonal selection mechanism is implemented properly,
+        we define a short simulation period of three days:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2001.01.01", "2001.01.04", "1d"
+
+        Now we prepare a dam model and define two different relationships between water
+        level and flood discharge using artificial neural networks as interpolators.
+        The first relatively simple relationship (for January 2) is based on two
+        neurons contained in a single hidden layer and is used in the following example.
+        The second neural network (for January 3) is not applied at all, which is why
+        we do not need to assign any parameter values to it:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> waterlevel2flooddischarge(
+        ...     _01_02_12 = ANN(nmb_inputs=1,
+        ...                     nmb_neurons=(2,),
+        ...                     nmb_outputs=1,
+        ...                     weights_input=[[50.0, 4]],
+        ...                     weights_output=[[2.0], [30]],
+        ...                     intercepts_hidden=[[-13000, -1046]],
+        ...                     intercepts_output=[0.0]),
+        ...     _01_03_12 = ANN(nmb_inputs=1,
+        ...                     nmb_neurons=(2,),
+        ...                     nmb_outputs=1))
+        >>> derived.toy.update()
+        >>> model.idx_sim = pub.timegrids.sim["2001.01.02"]
+
+        The following example shows two distinct effects of both neurons in the first
+        network.  One neuron describes a relatively sharp increase between 259.8 and
+        260.2 meters from about 0 to 2 m³/s.  This could describe a release of water
+        through a bottom outlet controlled by a valve.  The add something like an
+        exponential increase between 260 and 261 meters, which could describe the
+        uncontrolled flow over a spillway:
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.calc_flooddischarge_v1,
+        ...                 last_example=21,
+        ...                 parseqs=(factors.waterlevel,
+        ...                          fluxes.flooddischarge))
+        >>> test.nexts.waterlevel = numpy.arange(257, 261.1, 0.2)
+        >>> test()
+        | ex. | waterlevel | flooddischarge |
+        -------------------------------------
+        |   1 |      257.0 |            0.0 |
+        |   2 |      257.2 |       0.000001 |
+        |   3 |      257.4 |       0.000002 |
+        |   4 |      257.6 |       0.000005 |
+        |   5 |      257.8 |       0.000011 |
+        |   6 |      258.0 |       0.000025 |
+        |   7 |      258.2 |       0.000056 |
+        |   8 |      258.4 |       0.000124 |
+        |   9 |      258.6 |       0.000275 |
+        |  10 |      258.8 |       0.000612 |
+        |  11 |      259.0 |       0.001362 |
+        |  12 |      259.2 |       0.003031 |
+        |  13 |      259.4 |       0.006745 |
+        |  14 |      259.6 |       0.015006 |
+        |  15 |      259.8 |       0.033467 |
+        |  16 |      260.0 |       1.074179 |
+        |  17 |      260.2 |       2.164498 |
+        |  18 |      260.4 |       2.363853 |
+        |  19 |      260.6 |        2.79791 |
+        |  20 |      260.8 |       3.719725 |
+        |  21 |      261.0 |       5.576088 |
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (exch_control.FixWaterBalance, exch_control.FallbackRules,)
+    DERIVEDPARAMETERS = (exch_derived.TOY,)
+    REQUIREDSEQUENCES = (exch_inputs.Exchange, exch_fluxes.OriginalInput,)  # ToDo: just input?
+    RESULTSEQUENCES = (exch_fluxes.Outputs,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        if modelutils.isnan(inp.exchange) or modelutils.isinf(inp.exchange):
+            con.fallbackrules.inputs[0] = flu.originalinput
+            con.fallbackrules.calculate_values(der.toy[model.idx_sim])
+            for i in range(der.nmbbranches):
+                flu.outputs[i] = con.fallbackrules.outputs[i]
+        elif (inp.exchange > 0.0) and (con.fixwaterbalance != 0):
+            if con.fixwaterbalance == 1:  # diversion
+                flu.outputs[1] = min(inp.exchange, max(flu.originalinput, 0.0))
+                flu.outputs[0] = flu.originalinput - flu.outputs[1]
+            elif con.fixwaterbalance == 2:  # river
+                flu.outputs[1] = inp.exchange
+                if inp.exchange > flu.originalinput:
+                    flu.outputs[0] = min(flu.originalinput, 0.0)
+                else:
+                    flu.outputs[0] = flu.originalinput - inp.exchange
+        else:
+            flu.outputs[1] = inp.exchange
+            flu.outputs[0] = flu.originalinput - inp.exchange
+
+
+class Calc_Outputs_V3(modeltools.Method):
+    """Calculate the discharge during and after a flood event based on seasonally
+    varying interpolation approaches approximating the relationship(s) between
+    discharge and water stage.
+
+    Example:
+
+        The control parameter |WaterLevel2FloodDischarge| is derived from
+        |SeasonalInterpolator|.  This allows to simulate different seasonal dam control
+        schemes.  To show that the seasonal selection mechanism is implemented properly,
+        we define a short simulation period of three days:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2001.01.01", "2001.01.04", "1d"
+
+        Now we prepare a dam model and define two different relationships between water
+        level and flood discharge using artificial neural networks as interpolators.
+        The first relatively simple relationship (for January 2) is based on two
+        neurons contained in a single hidden layer and is used in the following example.
+        The second neural network (for January 3) is not applied at all, which is why
+        we do not need to assign any parameter values to it:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> waterlevel2flooddischarge(
+        ...     _01_02_12 = ANN(nmb_inputs=1,
+        ...                     nmb_neurons=(2,),
+        ...                     nmb_outputs=1,
+        ...                     weights_input=[[50.0, 4]],
+        ...                     weights_output=[[2.0], [30]],
+        ...                     intercepts_hidden=[[-13000, -1046]],
+        ...                     intercepts_output=[0.0]),
+        ...     _01_03_12 = ANN(nmb_inputs=1,
+        ...                     nmb_neurons=(2,),
+        ...                     nmb_outputs=1))
+        >>> derived.toy.update()
+        >>> model.idx_sim = pub.timegrids.sim["2001.01.02"]
+
+        The following example shows two distinct effects of both neurons in the first
+        network.  One neuron describes a relatively sharp increase between 259.8 and
+        260.2 meters from about 0 to 2 m³/s.  This could describe a release of water
+        through a bottom outlet controlled by a valve.  The add something like an
+        exponential increase between 260 and 261 meters, which could describe the
+        uncontrolled flow over a spillway:
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.calc_flooddischarge_v1,
+        ...                 last_example=21,
+        ...                 parseqs=(factors.waterlevel,
+        ...                          fluxes.flooddischarge))
+        >>> test.nexts.waterlevel = numpy.arange(257, 261.1, 0.2)
+        >>> test()
+        | ex. | waterlevel | flooddischarge |
+        -------------------------------------
+        |   1 |      257.0 |            0.0 |
+        |   2 |      257.2 |       0.000001 |
+        |   3 |      257.4 |       0.000002 |
+        |   4 |      257.6 |       0.000005 |
+        |   5 |      257.8 |       0.000011 |
+        |   6 |      258.0 |       0.000025 |
+        |   7 |      258.2 |       0.000056 |
+        |   8 |      258.4 |       0.000124 |
+        |   9 |      258.6 |       0.000275 |
+        |  10 |      258.8 |       0.000612 |
+        |  11 |      259.0 |       0.001362 |
+        |  12 |      259.2 |       0.003031 |
+        |  13 |      259.4 |       0.006745 |
+        |  14 |      259.6 |       0.015006 |
+        |  15 |      259.8 |       0.033467 |
+        |  16 |      260.0 |       1.074179 |
+        |  17 |      260.2 |       2.164498 |
+        |  18 |      260.4 |       2.363853 |
+        |  19 |      260.6 |        2.79791 |
+        |  20 |      260.8 |       3.719725 |
+        |  21 |      261.0 |       5.576088 |
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (exch_control.Rules,)
+    DERIVEDPARAMETERS = (exch_derived.TOY,)
+    REQUIREDSEQUENCES = (exch_fluxes.OriginalInput,)  # ToDo: just input?
+    RESULTSEQUENCES = (exch_fluxes.Outputs,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        con.rules.inputs[0] = flu.originalinput
+        con.rules.calculate_values(der.toy[model.idx_sim])
+        for i in range(der.nmbbranches):
+            flu.outputs[i] = con.rules.outputs[i]
 
 
 class Calc_Y_V1(modeltools.Method):

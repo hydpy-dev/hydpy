@@ -77,7 +77,7 @@ from hydpy.auxs.networktools import (
     RiverBasinNumbers,
     RiverBasinNumbers2Selection,
 )
-from hydpy.auxs.ppolytools import Poly, PPoly
+from hydpy.auxs.ppolytools import Poly, PPoly, PPolys
 from hydpy.auxs.statstools import (
     bias_abs,
     bias_rel,
@@ -208,6 +208,7 @@ __all__ = [
     "RiverBasinNumbers2Selection",
     "Poly",
     "PPoly",
+    "PPolys",
     "nan",
     "bias_abs",
     "bias_rel",

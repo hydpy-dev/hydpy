@@ -344,7 +344,6 @@ agree with the actual number of constants held by vector `x0s` (3).
     @classmethod
     def _make_self(cls) -> Self:
         self = super().__new__(cls)
-        self._cready = False
         self._original_data = None
         ca = ppolyutils.PPoly()
         self._calgorithm = ca
@@ -534,7 +533,7 @@ agree with the actual number of constants held by vector `x0s` (3).
         >>> figure = ppoly.plot(0.0, 4.0, label="Akima")
 
         The PCHIP (Piecewise Cubic Hermite Interpolating Polynomial) algorithm
-        generally tends to less smooth interpolations:
+        generally tends to produce less smooth interpolations:
 
         >>> ppoly = PPoly.from_data(xs=xs, ys=ys, method="pchip")
         >>> for poly in ppoly.polynomials:
@@ -549,8 +548,7 @@ agree with the actual number of constants held by vector `x0s` (3).
         >>> figure = ppoly.plot(0.0, 4.0, label="Pchip")
 
         The following figure compares the linear and all spline interpolation results.
-        As to be expected, the most sensible differences show in the interpolation
-        ranges:
+        As expected, the most sensible differences show in the interpolation ranges:
 
         >>> _ = figure.gca().legend()
         >>> from hydpy.core.testtools import save_autofig
@@ -558,7 +556,7 @@ agree with the actual number of constants held by vector `x0s` (3).
 
         .. image:: PPoly_data_smooth.png
 
-        Next, we apply all four interpolation approaches on a non-smooth data set.
+        Next, we apply all four interpolation approaches to a non-smooth data set.
         Cubic interpolation is again the smoothest one but tends to overshoot, which
         can be problematic when violating physical constraints.  Besides the linear
         approach, only the PCHIP interpolation always preserves monotonicity in the
@@ -767,7 +765,7 @@ vectors `x` (2) and `y` (3) must be identical.
     nmb_outputs = propertytools.Property[Never, Literal[1]](fget=_get_nmb_outputs)
 
     def _get_outputs(self) -> VectorFloat:
-        """The lastly calculated output value.
+        """The last calculated output value.
 
         |PPoly| is a univariate interpolator.  Hence, |PPoly.outputs| always returns a
         vector with a single entry:
@@ -781,7 +779,7 @@ vectors `x` (2) and `y` (3) must be identical.
     outputs = propertytools.Property[Never, VectorFloat](fget=_get_outputs)
 
     def _get_output_derivatives(self) -> VectorFloat:
-        """The lastly calculated first-order derivative.
+        """The last calculated first-order derivative.
 
         |PPoly| is a univariate interpolator.  Hence, |PPoly.output_derivatives|
         always returns a vector with a single entry:

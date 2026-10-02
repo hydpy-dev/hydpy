@@ -17,7 +17,7 @@ class X(sequencetools.ObserverSequence):
 
     @property
     def observernodes(self) -> tuple[str, ...]:
-        """The relevant observer node's names.
+        """The relevant observer node names.
 
         If necessary, the following error message tries to clarify the usual way of \
         specifying the relevant observer nodes:
@@ -67,7 +67,7 @@ information via the control parameter `observernodes`.
         >>> from hydpy.models.dam_detention import *
         >>> parameterstep()
 
-        We start with defining an element not connected to any observer nodes and a
+        We start by defining an element not connected to any observer nodes and a
         |dam_detention| model not handling any submodels and so not any observation
         series:
 

@@ -73,7 +73,7 @@ class Minimum(parametertools.Parameter):
 class XPoints(parametertools.Parameter):
     """Supporting points for the independent input variable [e.g. m³/s].
 
-    There must be at least two supporting points, and they must be strictly monotonous.
+    There must be at least two supporting points, and they must be strictly monotonic.
     If not, |XPoints| raises the following errors:
 
     >>> from hydpy.models.exch_branch_hbv96 import *

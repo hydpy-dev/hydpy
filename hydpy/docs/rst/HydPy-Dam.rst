@@ -49,7 +49,7 @@ These five application models are independent implementations developed for the
 forecasting system of the German federal state of Saxony and run by the
 `Landeshochwasserzentrum (LHWZ)`_.  Later, we added the application models |dam_llake|,
 |dam_lretention|, and |dam_lreservoir| on behalf of the `German Federal Institute of
-Hydrology (BfG)`_.  Conceptionally, these *HydPy* models correspond to the `LARSIM`_
+Hydrology (BfG)`_.  Conceptually, these *HydPy* models correspond to the `LARSIM`_
 models "SEEG" (controlled lake), "RUEC" (retention basin) and "TALS" (reservoir).  More
 recently, we developed |dam_pump|, |dam_sluice|, and |dam_pump_sluice| for improving
 simulations in low-land areas, where the draining of land areas via pumps and sluices

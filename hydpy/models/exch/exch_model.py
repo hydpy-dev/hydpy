@@ -41,7 +41,7 @@ class Pick_LoggedWaterLevel_V1(modeltools.Method):
 
 
 class Pick_LoggedWaterLevels_V1(modeltools.Method):
-    """Pic the logged water levels from two receiver nodes.
+    """Pick the logged water levels from two receiver nodes.
 
     Basic equation:
       :math:`LoggedWaterLevels = WaterLevels`
@@ -128,7 +128,7 @@ class Update_WaterLevels_V1(modeltools.Method):
 
 
 class Calc_DeltaWaterLevel_V1(modeltools.Method):
-    r"""Calculate the effective difference of both water levels.
+    r"""Calculate the effective difference between both water levels.
 
     Basic equation:
       :math:`DeltaWaterLevel =

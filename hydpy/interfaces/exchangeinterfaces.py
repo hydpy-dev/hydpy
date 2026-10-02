@@ -8,7 +8,7 @@ from hydpy.core.typingtools import *
 
 
 class ExchangeModel_V1(modeltools.SubmodelInterface):
-    """Interface for exchanging modified, scalar data of arbitrary type."""
+    """Interface for exchanging modified scalar data of arbitrary type."""
 
     typeid: ClassVar[Literal[1]] = 1
     """Type identifier for |ExchangeModel_V1| submodels."""

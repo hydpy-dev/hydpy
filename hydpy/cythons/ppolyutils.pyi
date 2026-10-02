@@ -1,6 +1,7 @@
 # pylint: disable=missing-docstring
 
 from hydpy.core.typingtools import *
+from hydpy.auxs import ppolytools
 
 class PPoly:
     # required for usage as an "algorithm" by interputils:
@@ -19,3 +20,19 @@ class PPoly:
     nmb_cs: VectorInt
     x0s: VectorFloat
     cs: MatrixFloat
+
+class PPolys:
+    # required for usage as an "algorithm" by interputils:
+    inputs: VectorFloat
+    outputs: VectorFloat
+    output_derivatives: VectorFloat
+    def calculate_values(self) -> None: ...
+    def calculate_derivatives(  # pylint: disable=unused-argument
+        self, idx: int, /
+    ) -> None: ...
+    # algorithm-specific requirements:
+    nmb_ppolys: int
+    options: VectorInt
+    def __init__(  # pylint: disable=unused-argument
+        self, ppolys: Iterable[ppolytools.PPoly | ppolytools.PPolysOptions]
+    ) -> None: ...

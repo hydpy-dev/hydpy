@@ -6,6 +6,7 @@ implement the related methods in the Cython extension module |ppolyutils|.
 """
 
 from __future__ import annotations
+import enum
 import inspect
 
 import numpy
@@ -989,7 +990,7 @@ has not been prepared so far.
         self.nmb_cs = self.nmb_cs[idxs]
         self.cs = self.cs[idxs, :]
 
-    def verify(self) -> None:
+    def verify(self, add_prefix: bool = True) -> None:
         """Raise a |RuntimeError| if the current |ppolytools.PPoly| object shows
         inconsistencies.
 
@@ -1063,10 +1064,13 @@ agree with the actual number of constants held by vector `x0s` (1).
                     "which is necessary as they also serve as breakpoints for "
                     "selecting the relevant polynomials."
                 )
-        except BaseException:
-            objecttools.augment_excmessage(
-                f"While trying to verify the selected `{type(self).__name__}` instance"
-            )
+        except BaseException as exc:
+            if add_prefix:
+                objecttools.augment_excmessage(
+                    f"While trying to verify the selected `{type(self).__name__}` "
+                    f"instance"
+                )
+            raise exc
 
     def _data_agrees(self, data: _OriginalData, /) -> bool:
         """Tell whether the polynomials estimated from the given original x-y data
@@ -1200,6 +1204,7 @@ agree with the actual number of constants held by vector `x0s` (1).
             Poly(x0=1.0, cs=(1.0, 1.0)),
         )
         """
+        assignrepr_list = objecttools.assignrepr_list
         blanks = (indent + 4) * " "
         lines = [f"{prefix}{type(self).__name__}("]
         data = self._original_data
@@ -1207,10 +1212,7 @@ agree with the actual number of constants held by vector `x0s` (1).
             with hydpy.pub.options.ellipsis(0):
                 for name, values in (("xs", data.xs), ("ys", data.ys)):
                     lines.append(
-                        objecttools.assignrepr_list(
-                            values, f"{blanks}{name}=", width=79
-                        )
-                        + ","
+                        assignrepr_list(values, f"{blanks}{name}=", width=79) + ","
                     )
             if data.method != "linear":
                 lines.append(f'{blanks}method="{data.method}",')
@@ -1221,3 +1223,548 @@ agree with the actual number of constants held by vector `x0s` (1).
 
     def __repr__(self) -> str:
         return self.assignrepr(prefix="", indent=0)
+
+
+class PPolysOptions(enum.IntEnum):
+    """Options for the simplified handling of |PPolys|."""
+
+    REST = 1
+    r"""Replace one interpolation function with calculating "the rest" 
+    (:math:`y_1 = x - \sum_{i=2}^n y_i`)."""
+
+
+class PPolys(interptools.InterpAlgorithm):
+    """Handler for multiple |PPoly| instances.
+
+    |PPolys| allows combining multiple |PPoly| instances into one multi-target
+    piecewise polynomial interpolator.  It allows, for example, to configure
+    |exch_branch_rules| so that it branches river flow in an arbitrary number of
+    directions based on different rules that all depend on the amount of current flow.
+
+    The assignment of the different |PPoly| instances relies on keyword arguments.  For
+    |exch_branch_rules|, each keyword argument corresponds to the name of a different
+    outlet node.  The corresponding |PPoly| instances can be configured independently.
+    You can create them with different linear or spline interpolation methods, and the
+    x points (in this case, representing inflow) can differ (the y values, which
+    represent the branched outflow, usually differ too, of course).  The following
+    examples demonstrate this by assuming the water arriving at a cross section is
+    partly diverted to three nodes named `branch1`, `branch2`, and `branch3`, and the
+    rest stays in the river and so reaches node `main`:
+
+    >>> from hydpy import PPoly, PPolys
+    >>> ppolys = PPolys(
+    ...     main=PPoly.from_data(
+    ...         xs=[0.0, 10.0, 22.0, 28.0], ys=[0.0, 10.0, 10.0, 15.0]
+    ...     ),
+    ...     branch1=PPoly.from_data(xs=[0.0, 10.0, 16.0], ys=[0.0, 0.0, 1.0]),
+    ...     branch2=PPoly.from_data(
+    ...         xs=[0.0, 10.0, 16.0, 22.0, 28.0], ys=[0.0, 0.0, 2.0, 0.0, 0.0]
+    ...     ),
+    ...     branch3=PPoly.from_data(
+    ...         xs=[0.0, 10.0, 16.0, 22.0, 28.0], ys=[0.0, 0.0, 3.0, 10.0, 10.0]
+    ...     ),
+    ... )
+
+    |PPolys| sorts the given |PPoly| instances alphabetically by their names,
+    regardless of the order of the keyword arguments.  This ensures that each output
+    value always belongs to the same name, even when different |PPolys| instances are
+    defined with differently ordered keyword arguments.  Hence, the outputs of the
+    current example are sorted as follows:
+
+    >>> tuple(ppolys.piecewisepolynomials)
+    ('branch1', 'branch2', 'branch3', 'main')
+
+    The following test function performs the interpolation for multiple x values
+    (inflows), checks that the water balance is maintained, and prints either the y
+    values (branched outflow) or their derivatives (dy/dx):
+
+    >>> from hydpy import print_vector
+    >>> def check(print_derivatives=False):
+    ...     for i in [
+    ...         0.0, 2.5, 5.0, 7.5, 10.0, 13.0, 16.0, 19.0, 22.0, 25.0, 28.0, 31.0, 34.0
+    ...     ]:
+    ...         ppolys.inputs[0] = i
+    ...         ppolys.calculate_values()
+    ...         assert i == sum(ppolys.outputs), f"{i} vs {sum(ppolys.outputs)}"
+    ...         print(i, end=": ")
+    ...         if print_derivatives:
+    ...             ppolys.calculate_derivatives()
+    ...             print_vector(ppolys.output_derivatives)
+    ...         else:
+    ...             print_vector(ppolys.outputs)
+
+    Both the y and dy/dx values agree with the given interpolation rules and, because
+    they are consistently defined, the water balance is maintained in both the
+    interpolation and extrapolation ranges:
+
+    >>> check()
+    0.0: 0.0, 0.0, 0.0, 0.0
+    2.5: 0.0, 0.0, 0.0, 2.5
+    5.0: 0.0, 0.0, 0.0, 5.0
+    7.5: 0.0, 0.0, 0.0, 7.5
+    10.0: 0.0, 0.0, 0.0, 10.0
+    13.0: 0.5, 1.0, 1.5, 10.0
+    16.0: 1.0, 2.0, 3.0, 10.0
+    19.0: 1.5, 1.0, 6.5, 10.0
+    22.0: 2.0, 0.0, 10.0, 10.0
+    25.0: 2.5, 0.0, 10.0, 12.5
+    28.0: 3.0, 0.0, 10.0, 15.0
+    31.0: 3.5, 0.0, 10.0, 17.5
+    34.0: 4.0, 0.0, 10.0, 20.0
+
+    >>> check(print_derivatives=True)
+    0.0: 0.0, 0.0, 0.0, 1.0
+    2.5: 0.0, 0.0, 0.0, 1.0
+    5.0: 0.0, 0.0, 0.0, 1.0
+    7.5: 0.0, 0.0, 0.0, 1.0
+    10.0: 0.166667, 0.333333, 0.5, 0.0
+    13.0: 0.166667, 0.333333, 0.5, 0.0
+    16.0: 0.166667, -0.333333, 1.166667, 0.0
+    19.0: 0.166667, -0.333333, 1.166667, 0.0
+    22.0: 0.166667, 0.0, 0.0, 0.833333
+    25.0: 0.166667, 0.0, 0.0, 0.833333
+    28.0: 0.166667, 0.0, 0.0, 0.833333
+    31.0: 0.166667, 0.0, 0.0, 0.833333
+    34.0: 0.166667, 0.0, 0.0, 0.833333
+
+    Configuring individual |PPoly| instances with spline techniques requires special
+    care in the extrapolation range and, when using methods prone to overshooting, even
+    in the interpolation range.  Synchronising multiple |PPoly| instances to maintain
+    the water balance can be even more demanding.  Therefore, |PPolys| offers the
+    |PPolys.REST| option.  If you use this constant instead of one |PPoly| instance,
+    |PPolys| applies all defined |PPoly| instances to interpolate their y values for a
+    given x and calculates the remaining y so that the water balance closes
+    (:math:`y_1 = x - \\sum_{i=2}^n y_i`).  The remaining derivative is calculated
+    accordingly (:math:`\\frac{dy_1}{dx} = 1 - \\sum_{i=2}^n \\frac{dy_i}{dx}`, because
+    :math:`\\frac{dx}{dx} = 1`).  The following example demonstrates this for the
+    |PchipInterpolator| spline method (which is not prone to overshooting and is
+    therefore a relatively safe spline method):
+
+    >>> from scipy.interpolate import PchipInterpolator
+    >>> ppolys(
+    ...     main=PPolys.REST,
+    ...     branch1=PPoly.from_data(xs=[0.0, 10.0, 16.0], ys=[0.0, 0.0, 1.0]),
+    ...     branch2=PPoly.from_data(
+    ...         xs=[0.0, 10.0, 16.0, 22.0, 28.0], ys=[0.0, 0.0, 2.0, 0.0, 0.0]
+    ...     ),
+    ...     branch3=PPoly.from_data(
+    ...         xs=[0.0, 10.0, 16.0, 22.0, 28.0], ys=[0.0, 0.0, 3.0, 10.0, 10.0]
+    ...     ),
+    ...     supplier=PPoly.from_data(
+    ...         xs=[0.0, 8.0, 10.0], ys=[-2.0, 0.0, 0.0], method=PchipInterpolator
+    ...     ),
+    ... )
+
+    >>> check()
+    0.0: 0.0, 0.0, 0.0, 2.0, -2.0
+    2.5: 0.0, 0.0, 0.0, 3.504395, -1.004395
+    5.0: 0.0, 0.0, 0.0, 5.316406, -0.316406
+    7.5: 0.0, 0.0, 0.0, 7.509277, -0.009277
+    10.0: 0.0, 0.0, 0.0, 10.0, 0.0
+    13.0: 0.5, 1.0, 1.5, 10.0, 0.0
+    16.0: 1.0, 2.0, 3.0, 10.0, 0.0
+    19.0: 1.5, 1.0, 6.5, 10.0, 0.0
+    22.0: 2.0, 0.0, 10.0, 10.0, 0.0
+    25.0: 2.5, 0.0, 10.0, 12.5, 0.0
+    28.0: 3.0, 0.0, 10.0, 15.0, 0.0
+    31.0: 3.5, 0.0, 10.0, 17.5, 0.0
+    34.0: 4.0, 0.0, 10.0, 20.0, 0.0
+
+    >>> check(print_derivatives=True)
+    0.0: 0.0, 0.0, 0.0, 0.55, 0.45
+    2.5: 0.0, 0.0, 0.0, 0.658398, 0.341602
+    5.0: 0.0, 0.0, 0.0, 0.796094, 0.203906
+    7.5: 0.0, 0.0, 0.0, 0.963086, 0.036914
+    10.0: 0.166667, 0.333333, 0.5, 0.0, 0.0
+    13.0: 0.166667, 0.333333, 0.5, 0.0, 0.0
+    16.0: 0.166667, -0.333333, 1.166667, 0.0, 0.0
+    19.0: 0.166667, -0.333333, 1.166667, 0.0, 0.0
+    22.0: 0.166667, 0.0, 0.0, 0.833333, 0.0
+    25.0: 0.166667, 0.0, 0.0, 0.833333, 0.0
+    28.0: 0.166667, 0.0, 0.0, 0.833333, 0.0
+    31.0: 0.166667, 0.0, 0.0, 0.833333, 0.0
+    34.0: 0.166667, 0.0, 0.0, 0.833333, 0.0
+
+    The individual |PPoly| instances are accessible via item access:
+
+    >>> ppolys["branch3"]
+    PPoly(
+        xs=[0.0, 10.0, 16.0, 22.0, 28.0],
+        ys=[0.0, 0.0, 3.0, 10.0, 10.0],
+    )
+    >>> ppolys["branch4"]
+    Traceback (most recent call last):
+    ...
+    KeyError: 'The selected `PPolys` instance does not handle an interpolator named \
+`branch4`.'
+    """
+
+    REST = PPolysOptions.REST
+
+    _ppolys: dict[str, PPoly | PPolysOptions]
+    _cready: bool
+    _calgorithm: ppolyutils.PPolys
+
+    def __init__(self, **ppolys: PPoly | PPolysOptions) -> None:
+        self._cready = False
+        if ppolys:
+            self(**ppolys)
+
+    def __call__(self, **ppolys: PPoly | PPolysOptions) -> None:
+        if not ppolys:
+            raise ValueError(
+                "When calling an `PPolys` object, you need to define at least one "
+                "piecewise polynomial function by passing at least one `PPoly` object."
+            )
+        self._ppolys = dict(sorted(ppolys.items()))
+        ca = ppolyutils.PPolys(self._ppolys.values())
+        self._calgorithm = ca
+        n = len(ppolys)
+        ca.options = numpy.array(
+            [0 if isinstance(p, PPoly) else p.value for p in self._ppolys.values()],
+            dtype=config.NP_INT,
+        )
+        ca.inputs = numpy.zeros((1,), dtype=config.NP_FLOAT)
+        ca.inputs = numpy.zeros((1,), dtype=config.NP_FLOAT)
+        ca.outputs = numpy.zeros((n,), dtype=config.NP_FLOAT)
+        ca.output_derivatives = numpy.zeros((n,), dtype=config.NP_FLOAT)
+        self._cready = True
+
+    def _check_cready(self, what: str, /) -> None:
+        if not self._cready:
+            raise exceptiontools.AttributeNotReady(
+                f"For the selected `{type(self).__name__}` instance, no interpolation "
+                f"rules have been defined so far, which is necessary before {what}."
+            )
+
+    def _get_nmb_inputs(self) -> Literal[1]:
+        """The number of input values.
+
+        |PPolys| is univariate with respect to its inputs.  Hence, |PPolys.nmb_inputs|
+        is always one:
+
+        >>> from hydpy import PPolys
+        >>> PPolys().nmb_inputs
+        1
+        """
+        return 1
+
+    nmb_inputs = propertytools.Property[Never, Literal[1]](fget=_get_nmb_inputs)
+
+    def _get_inputs(self) -> VectorFloat:
+        """The current input value.
+
+        Before accessing |PPolys.inputs|, you need to assign the required |PPoly|
+        instances:
+
+        >>> from hydpy import PPolys, PPoly, print_vector
+        >>> ppolys = PPolys()
+        >>> ppolys.inputs
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
+instance, no interpolation rules have been defined so far, which is necessary before \
+accessing property `inputs`.
+
+        |PPolys| is univariate with respect to its inputs.  Hence, |PPolys.inputs|
+        always returns a vector with a single entry:
+
+        >>> ppolys(
+        ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
+        ...     target1=PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> print_vector(ppolys.inputs)
+        0.0
+        """
+        self._check_cready("accessing property `inputs`")
+        return numpy.asarray(self._calgorithm.inputs)
+
+    inputs = propertytools.Property[Never, VectorFloat](fget=_get_inputs)
+
+    def _get_nmb_outputs(self) -> int:
+        """The number of output values.
+
+        Before accessing |PPolys.nmb_outputs|, you need to assign the required |PPoly|
+        instances:
+
+        >>> from hydpy import PPolys, PPoly, print_vector
+        >>> ppolys = PPolys()
+        >>> ppolys.nmb_outputs
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
+instance, no interpolation rules have been defined so far, which is necessary before \
+accessing property `nmb_outputs`.
+
+        There is one output value for each |PPoly| instance:
+
+        >>> ppolys(
+        ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
+        ...     target1=PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> ppolys.nmb_outputs
+        2
+        """
+        self._check_cready("accessing property `nmb_outputs`")
+        return self._calgorithm.nmb_ppolys
+
+    nmb_outputs = propertytools.Property[Never, int](fget=_get_nmb_outputs)
+
+    def _get_outputs(self) -> VectorFloat:
+        """The last calculated output value.
+
+        Before accessing |PPolys.outputs|, you need to assign the required |PPoly|
+        instances:
+
+        >>> from hydpy import PPolys, PPoly, print_vector
+        >>> ppolys = PPolys()
+        >>> ppolys.outputs
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
+instance, no interpolation rules have been defined so far, which is necessary before \
+accessing property `outputs`.
+
+        There is one output value for each |PPoly| instance:
+
+        >>> ppolys(
+        ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
+        ...     target1=PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> print_vector(ppolys.outputs)
+        0.0, 0.0
+        """
+        self._check_cready("accessing property `outputs`")
+        return numpy.asarray(self._calgorithm.outputs)
+
+    outputs = propertytools.Property[Never, VectorFloat](fget=_get_outputs)
+
+    def _get_output_derivatives(self) -> VectorFloat:
+        """The last calculated first-order derivative.
+
+        Before accessing |PPolys.output_derivatives|, you need to assign the required
+        |PPoly| instances:
+
+        >>> from hydpy import PPolys, PPoly, print_vector
+        >>> ppolys = PPolys()
+        >>> ppolys.output_derivatives
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
+instance, no interpolation rules have been defined so far, which is necessary before \
+accessing property `output_derivatives`.
+
+        There is one output derivative for each |PPoly| instance:
+
+        >>> ppolys(
+        ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
+        ...     target1=PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> print_vector(ppolys.output_derivatives)
+        0.0, 0.0
+        """
+        self._check_cready("accessing property `output_derivatives`")
+        return numpy.asarray(self._calgorithm.output_derivatives)
+
+    output_derivatives = propertytools.Property[Never, VectorFloat](
+        fget=_get_output_derivatives
+    )
+
+    def calculate_values(self) -> None:
+        """Calculate the output values based on the input value defined previously.
+
+        Before using |PPolys.calculate_values|, you need to assign the required |PPoly|
+        instances:
+
+        >>> from hydpy import PPolys, PPoly, print_vector
+        >>> ppolys = PPolys()
+        >>> ppolys.calculate_values()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
+instance, no interpolation rules have been defined so far, which is necessary before \
+using method `calculate_values`.
+
+        Usually, method |PPolys.calculate_values| just uses the respective
+        interpolators:
+
+        >>> ppolys(
+        ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
+        ...     target1=PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> ppolys.inputs[0] = 2.2
+        >>> ppolys.calculate_values()
+        >>> print_vector(ppolys.outputs)
+        2.2, 6.6
+
+        For more information, see the documentation on class |ppolytools.PPolys|.
+        """
+        self._check_cready("using method `calculate_values`")
+        self._calgorithm.calculate_values()
+
+    def calculate_derivatives(self, idx: int = 0, /) -> None:
+        """Calculate the derivative of the output values with respect to the input
+        value.
+
+        Before using |PPolys.calculate_derivatives|, you need to assign the required
+        |PPoly| instances:
+
+        >>> from hydpy import PPolys, PPoly, print_vector
+        >>> ppolys = PPolys()
+        >>> ppolys.calculate_derivatives()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
+instance, no interpolation rules have been defined so far, which is necessary before \
+using method `calculate_derivatives`.
+
+        Usually, method |PPolys.calculate_derivatives| just uses the respective
+        interpolators:
+
+        >>> ppolys(
+        ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
+        ...     target1=PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> ppolys.inputs[0] = 2.2
+        >>> ppolys.calculate_values()
+        >>> ppolys.calculate_derivatives()
+        >>> print_vector(ppolys.output_derivatives)
+        1.0, 4.0
+
+        For more information, see the documentation on class |ppolytools.PPolys|.
+        """
+        self._check_cready("using method `calculate_derivatives`")
+        self._calgorithm.calculate_derivatives(idx)
+
+    @property
+    def piecewisepolynomials(self) -> Mapping[str, PPoly | PPolysOptions]:
+        """Mapping containing the names and |PPoly| instances of the respective
+        interpolation rules.
+
+        Before accessing |PPolys.piecewisepolynomials|, you need to assign the required
+        |PPoly| instances:
+
+        >>> from hydpy import PPolys, PPoly
+        >>> ppolys = PPolys()
+        >>> ppolys.piecewisepolynomials
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
+instance, no interpolation rules have been defined so far, which is necessary before \
+accessing property `piecewisepolynomials`.
+
+        >>> ppolys(
+        ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
+        ...     target1=PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> ppolys.piecewisepolynomials["target1"]
+        PPoly(
+            xs=[0.0, 1.1],
+            ys=[0.0, 1.1],
+        )
+        >>> ppolys.piecewisepolynomials["target2"]
+        PPoly(
+            xs=[0.0, 1.1, 2.2],
+            ys=[0.0, 2.2, 6.6],
+        )
+
+        >>> ppolys(
+        ...     target2=PPolys.REST,
+        ...     target1=PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> ppolys.piecewisepolynomials["target2"]
+        <PPolysOptions.REST: 1>
+        """
+        self._check_cready("accessing property `piecewisepolynomials`")
+        return self._ppolys.copy()
+
+    def verify(self) -> None:
+        """Raise a |RuntimeError| if at least one of the handled |ppolytools.PPoly|
+        objects shows inconsistencies.
+
+        Note that |ppolytools.PPolys| never calls |ppolytools.PPolys.verify|
+        automatically.  Hence, we strongly advise applying it manually before using a
+        new |ppolytools.PPolys| configuration the first time.
+
+        >>> from hydpy import PPolys, PPoly
+        >>> ppolys = PPolys(
+        ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
+        ...     target1=PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ... )
+        >>> ppolys.verify()
+
+        >>> ppolys["target2"].x0s[0] = 2.2
+        >>> ppolys.verify()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to verify the `target2` interpolator of the \
+selected `PPolys` instance, the following error occurred: The constants held in \
+vector `x0s` are not strictly increasing, which is necessary as they also serve as \
+breakpoints for selecting the relevant polynomials.
+        """
+        for name, ppoly in self.piecewisepolynomials.items():
+            try:
+                if isinstance(ppoly, PPoly):
+                    ppoly.verify(add_prefix=False)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f"While trying to verify the `{name}` interpolator of the "
+                    f"selected `{type(self).__name__}` instance"
+                )
+
+    def assignrepr(self, prefix: str, indent: int = 0) -> str:
+        """Return a string representation of the actual |ppolytools.PPolys| object
+        prefixed with the given string.
+
+        >>> from hydpy import PPolys, PPoly
+        >>> ppolys = PPolys(
+        ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
+        ...     target1=PPoly.from_data(xs=[0.0, 1.1], ys=[0.0, 1.1]),
+        ...     target3=PPolys.REST,
+        ... )
+        >>> ppolys
+        PPolys(
+            target1=PPoly(
+                xs=[0.0, 1.1],
+                ys=[0.0, 1.1],
+            ),
+            target2=PPoly(
+                xs=[0.0, 1.1, 2.2],
+                ys=[0.0, 2.2, 6.6],
+            ),
+            target3=PPolys.REST,
+        )
+        >>> print(ppolys.assignrepr(prefix="    ppolys = ", indent=4))
+            ppolys = PPolys(
+                target1=PPoly(
+                    xs=[0.0, 1.1],
+                    ys=[0.0, 1.1],
+                ),
+                target2=PPoly(
+                    xs=[0.0, 1.1, 2.2],
+                    ys=[0.0, 2.2, 6.6],
+                ),
+                target3=PPolys.REST,
+            )
+        """
+        blanks = (indent + 4) * " "
+        lines = [f"{prefix}{type(self).__name__}("]
+        for name, ppoly in self.piecewisepolynomials.items():
+            if isinstance(ppoly, PPoly):
+                line = ppoly.assignrepr(prefix=f"{blanks}{name}=", indent=indent + 4)
+            else:
+                line = f"{blanks}{name}={type(self).__name__}.{ppoly.name}"
+            lines.append(f"{line},")
+        lines.append(f'{indent*" "})')
+        return "\n".join(lines)
+
+    def __repr__(self) -> str:
+        return self.assignrepr(prefix="", indent=0)
+
+    def __getitem__(self, key: str, /) -> PPoly | PPolysOptions:
+        if key in self._ppolys:
+            return self._ppolys[key]
+        raise KeyError(
+            f"The selected `{type(self).__name__}` instance does not handle an "
+            f"interpolator named `{key}`."
+        )

@@ -239,9 +239,9 @@ class PPoly(interptools.InterpAlgorithm):
     >>> ppoly.verify()
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to verify parameter `ppoly` of element `?`, the \
-following error occurred: The number of constants indicated by `nmb_ps` (1) does not \
-agree with the actual number of constants held by vector `x0s` (3).
+    RuntimeError: While trying to verify the selected `PPoly` instance, the following \
+error occurred: The number of constants indicated by `nmb_ps` (1) does not agree with \
+the actual number of constants held by vector `x0s` (3).
 
     To change an existing |PPoly| object more safely, you can "call" it with different
     |Poly| objects, which overwrites all current information, as shown by the following
@@ -1004,7 +1004,7 @@ has not been prepared so far.
         >>> ppoly.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to verify parameter `ppoly` of element `?`, the \
+        RuntimeError: While trying to verify the selected `PPoly` instance, the \
 following error occurred: The constants held in vector `x0s` are not strictly \
 increasing, which is necessary as they also serve as breakpoints for selecting the \
 relevant polynomials.
@@ -1016,7 +1016,7 @@ relevant polynomials.
         >>> ppoly.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to verify parameter `ppoly` of element `?`, the \
+        RuntimeError: While trying to verify the selected `PPoly` instance, the \
 following error occurred: The highest number of coefficients indicated by `nmb_cs` \
 (3) is larger than the possible number of coefficients storable in the coefficient \
 matrix `cs` (2).
@@ -1025,7 +1025,7 @@ matrix `cs` (2).
         >>> ppoly.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to verify parameter `ppoly` of element `?`, the \
+        RuntimeError: While trying to verify the selected `PPoly` instance, the \
 following error occurred: The number of polynomials indicated by `nmb_ps` (2) does \
 not agree with the actual number of coefficient arrays held by matrix `cs` (1).
 
@@ -1033,7 +1033,7 @@ not agree with the actual number of coefficient arrays held by matrix `cs` (1).
         >>> ppoly.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to verify parameter `ppoly` of element `?`, the \
+        RuntimeError: While trying to verify the selected `PPoly` instance, the \
 following error occurred: The number of constants indicated by `nmb_ps` (2) does not \
 agree with the actual number of constants held by vector `x0s` (1).
         """
@@ -1065,7 +1065,7 @@ agree with the actual number of constants held by vector `x0s` (1).
                 )
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to verify parameter {objecttools.elementphrase(self)}"
+                f"While trying to verify the selected `{type(self).__name__}` instance"
             )
 
     def _data_agrees(self, data: _OriginalData, /) -> bool:

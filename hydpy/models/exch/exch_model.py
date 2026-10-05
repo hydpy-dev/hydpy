@@ -1,8 +1,10 @@
 # pylint: disable=missing-module-docstring
 
 from hydpy.core import modeltools
+from hydpy.cythons import modelutils
 from hydpy.models.exch import exch_control
 from hydpy.models.exch import exch_derived
+from hydpy.models.exch import exch_inputs
 from hydpy.models.exch import exch_inlets
 from hydpy.models.exch import exch_observers
 from hydpy.models.exch import exch_factors
@@ -344,6 +346,36 @@ class Pick_OriginalInput_V1(modeltools.Method):
             flu.originalinput += inl.total[idx]
 
 
+class Pick_Inflow_V1(modeltools.Method):
+    r"""Sum all individual inflow values.
+
+    Basic equation:
+      .. math::
+        Inflow_{fluxes} = \sum Inflow_{inputs}
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> inlets.inflow.shape = 2
+        >>> inlets.inflow = 2.0, 4.0
+        >>> model.pick_inflow_v1()
+        >>> fluxes.inflow
+        inflow(6.0)
+    """
+
+    REQUIREDSEQUENCES = (exch_inlets.Inflow,)
+    RESULTSEQUENCES = (exch_fluxes.Inflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        inl = model.sequences.inlets.fastaccess
+        flu.inflow = 0.0
+        for idx in range(inl.len_inflow):
+            flu.inflow += inl.inflow[idx]
+
+
 class Calc_AdjustedInput_V1(modeltools.Method):
     r"""Adjust the original input data.
 
@@ -514,6 +546,317 @@ class Calc_Y_V1(modeltools.Method):
         fac.y = con.x2y.outputs[0]
 
 
+class Pass_ActualTransfer_StreamOutflow_V1(modeltools.Method):
+    """Calculate the actual water transfer and remaining stream outflow based on
+    external transfer requests (if available) or based on internal transfer
+    calculations (as a fallback).
+
+    Basic equations:
+      .. math::
+        ActualTransfer = RequestedTransfer \\
+        StreamOutflow = Inflow - ActualTransfer
+
+    Examples:
+
+        We prepare a 15-day simulation period and set up a |UnitTest| instance to
+        automatically use method |Pass_ActualTransfer_StreamOutflow_V1| with the
+        corresponding input values (each example refers to the next day, starting
+        with January 1):
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-16", "1d"
+        >>> from hydpy.models.exch_branch_io import *
+        >>> parameterstep()
+        >>> derived.toy.update()
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(
+        ...     model,
+        ...     model.pass_actualtransfer_streamoutflow_v1,
+        ...     last_example=14,
+        ...     parseqs=(
+        ...         fluxes.inflow,
+        ...         inputs.requestedtransfer,
+        ...         outlets.actualtransfer,
+        ...         outlets.streamoutflow,
+        ...     ),
+        ...     first_idx_sim=0,
+        ... )
+
+        In all of the following examples, the inflow increases linearly from -4 to
+        9 m³/s:
+
+        >>> test.nexts.inflow = range(-4, 10)
+
+        For the first example, we set all requested transfer values to |numpy.nan| or
+        |numpy.inf| (the latter, positive and negative):
+
+        >>> test.nexts.requestedtransfer = 12 * [nan] + [inf, -inf]
+
+        All of the given values have similar meaning. They either indicate that
+        information about the requested transfer is missing (typical meaning
+        |numpy.nan|) or that it is intentionally not passed (we use this interpretation
+        for |numpy.inf| here).  The choice between them might matter in applications,
+        for example when loading affected time series with the |Options.checkseries|
+        option enabled.  However, |Pass_ActualTransfer_StreamOutflow_V1| reacts the
+        same way by falling back to its internal transfer calculations.
+
+        We now configure these calculations by defining the target nodes and their
+        season-dependent interpolation rules, which determine which target node gets
+        which proportion of the available inflow (see the documentation on the
+        parameters |Targets| and |FlowTransferRules| for more explanations and
+        configuration options):
+
+        >>> targets(stream="river", transfer="diversion")
+        >>> flowtransferrules(
+        ...     toy_01_01_12=PPoly(xs=[-1.0, 0.0, 1.0], ys=[0.0, 0.0, 0.5]),
+        ...     toy_01_04_12=PPoly(xs=[-1.0, 0.0, 1.0], ys=[0.0, 0.0, 0.5]),
+        ...     toy_01_14_12=PPoly(xs=[0.0], ys=[0.0]),
+        ... )
+        >>> derived.streamindex.update()
+
+        Note that the first interpolation rule, which solely applies for the first four
+        days (due to its double definition) lets "negative inflow" (reverse flow) pass
+        unhindered through the main stream and transfers half of the "positive inflow"
+        (normal flow).  Between the fourth and fourteenth day, the second rule, which
+        does not order any water transfer, becomes gradually more important.  Because
+        of the "normal" way to configure |FlowTransferRules| via |PPoly| instances
+        instead of |PPolys| instances, the water balance (:math:`Inflow =
+        ActualTransfer + StreamOutflow`) is automatically kept:
+
+        >>> test()
+        | ex. | inflow | requestedtransfer | actualtransfer | streamoutflow |
+        ---------------------------------------------------------------------
+        |   1 |   -4.0 |               nan |            0.0 |          -4.0 |
+        |   2 |   -3.0 |               nan |            0.0 |          -3.0 |
+        |   3 |   -2.0 |               nan |            0.0 |          -2.0 |
+        |   4 |   -1.0 |               nan |            0.0 |          -1.0 |
+        |   5 |    0.0 |               nan |            0.0 |           0.0 |
+        |   6 |    1.0 |               nan |            0.4 |           0.6 |
+        |   7 |    2.0 |               nan |            0.7 |           1.3 |
+        |   8 |    3.0 |               nan |            0.9 |           2.1 |
+        |   9 |    4.0 |               nan |            1.0 |           3.0 |
+        |  10 |    5.0 |               nan |            1.0 |           4.0 |
+        |  11 |    6.0 |               nan |            0.9 |           5.1 |
+        |  12 |    7.0 |               nan |            0.7 |           6.3 |
+        |  13 |    8.0 |               inf |            0.4 |           7.6 |
+        |  14 |    9.0 |              -inf |            0.0 |           9.0 |
+
+        As soon as we provide external transfer requests, parameter |FlowTransferRules|
+        becomes obsolete (positive transfers correspond to withdrawals from the stream
+        and negative transfers correspond to supplies to the stream):
+
+        >>> test.nexts.requestedtransfer = 7 * [4.0, -4.0]
+
+        Instead, parameters |MinStream| and |MaxStream| come into play, restricting
+        withdrawals and supplies, respectively (note that they do not affect the
+        fallback calculations based on |FlowTransferRules|).  We first set them to
+        minus infinity and infinity, so the transfer is completely unrestricted:
+
+        >>> minstream(-numpy.inf)
+        >>> maxstream(numpy.inf)
+
+        Without restrictions, the basic equation applies without modification:
+
+        >>> test()
+        | ex. | inflow | requestedtransfer | actualtransfer | streamoutflow |
+        ---------------------------------------------------------------------
+        |   1 |   -4.0 |               4.0 |            4.0 |          -8.0 |
+        |   2 |   -3.0 |              -4.0 |           -4.0 |           1.0 |
+        |   3 |   -2.0 |               4.0 |            4.0 |          -6.0 |
+        |   4 |   -1.0 |              -4.0 |           -4.0 |           3.0 |
+        |   5 |    0.0 |               4.0 |            4.0 |          -4.0 |
+        |   6 |    1.0 |              -4.0 |           -4.0 |           5.0 |
+        |   7 |    2.0 |               4.0 |            4.0 |          -2.0 |
+        |   8 |    3.0 |              -4.0 |           -4.0 |           7.0 |
+        |   9 |    4.0 |               4.0 |            4.0 |           0.0 |
+        |  10 |    5.0 |              -4.0 |           -4.0 |           9.0 |
+        |  11 |    6.0 |               4.0 |            4.0 |           2.0 |
+        |  12 |    7.0 |              -4.0 |           -4.0 |          11.0 |
+        |  13 |    8.0 |               4.0 |            4.0 |           4.0 |
+        |  14 |    9.0 |              -4.0 |           -4.0 |          13.0 |
+
+        For the remaining examples, we want the water transfer not to cause stream
+        outflow values below 3 and above 6 m³/s:
+
+        >>> minstream(3.0)
+        >>> maxstream(6.0)
+
+        First, we focus on positive transfers (withdrawals), so that only parameter
+        |MinStream| is used:
+
+        >>> test.nexts.requestedtransfer = 14 * [2.0]
+
+        The exact behaviour of preventing excessive withdrawals depends on parameter
+        |KeepWaterBalance|.  If it is |True|, the actual transfer is limited to the
+        inflow exceeding |MinStream|.  However, inflow values already below |MinStream|
+        are not automatically increased by supplies, meaning |ActualTransfer| is at
+        most decreased to zero and not to negative values:
+
+        >>> keepwaterbalance(True)
+        >>> test()
+        | ex. | inflow | requestedtransfer | actualtransfer | streamoutflow |
+        ---------------------------------------------------------------------
+        |   1 |   -4.0 |               2.0 |            0.0 |          -4.0 |
+        |   2 |   -3.0 |               2.0 |            0.0 |          -3.0 |
+        |   3 |   -2.0 |               2.0 |            0.0 |          -2.0 |
+        |   4 |   -1.0 |               2.0 |            0.0 |          -1.0 |
+        |   5 |    0.0 |               2.0 |            0.0 |           0.0 |
+        |   6 |    1.0 |               2.0 |            0.0 |           1.0 |
+        |   7 |    2.0 |               2.0 |            0.0 |           2.0 |
+        |   8 |    3.0 |               2.0 |            0.0 |           3.0 |
+        |   9 |    4.0 |               2.0 |            1.0 |           3.0 |
+        |  10 |    5.0 |               2.0 |            2.0 |           3.0 |
+        |  11 |    6.0 |               2.0 |            2.0 |           4.0 |
+        |  12 |    7.0 |               2.0 |            2.0 |           5.0 |
+        |  13 |    8.0 |               2.0 |            2.0 |           6.0 |
+        |  14 |    9.0 |               2.0 |            2.0 |           7.0 |
+
+        If |KeepWaterBalance| is |False|, |StreamOutflow| is reduced when necessary,
+        but |ActualTransfer| is always identical to |RequestedTransfer| (see the
+        explanation in the documentation of parameter |KeepWaterBalance|):
+
+        >>> keepwaterbalance(False)
+        >>> test()
+        | ex. | inflow | requestedtransfer | actualtransfer | streamoutflow |
+        ---------------------------------------------------------------------
+        |   1 |   -4.0 |               2.0 |            2.0 |          -4.0 |
+        |   2 |   -3.0 |               2.0 |            2.0 |          -3.0 |
+        |   3 |   -2.0 |               2.0 |            2.0 |          -2.0 |
+        |   4 |   -1.0 |               2.0 |            2.0 |          -1.0 |
+        |   5 |    0.0 |               2.0 |            2.0 |           0.0 |
+        |   6 |    1.0 |               2.0 |            2.0 |           1.0 |
+        |   7 |    2.0 |               2.0 |            2.0 |           2.0 |
+        |   8 |    3.0 |               2.0 |            2.0 |           3.0 |
+        |   9 |    4.0 |               2.0 |            2.0 |           3.0 |
+        |  10 |    5.0 |               2.0 |            2.0 |           3.0 |
+        |  11 |    6.0 |               2.0 |            2.0 |           4.0 |
+        |  12 |    7.0 |               2.0 |            2.0 |           5.0 |
+        |  13 |    8.0 |               2.0 |            2.0 |           6.0 |
+        |  14 |    9.0 |               2.0 |            2.0 |           7.0 |
+
+        The restriction of |StreamOutflow| to |MaxStream| for negative transfer
+        requests (supplies) is exactly the opposite:
+
+        >>> test.nexts.requestedtransfer = 14 * [-2.0]
+
+        >>> keepwaterbalance(True)
+        >>> test()
+        | ex. | inflow | requestedtransfer | actualtransfer | streamoutflow |
+        ---------------------------------------------------------------------
+        |   1 |   -4.0 |              -2.0 |           -2.0 |          -2.0 |
+        |   2 |   -3.0 |              -2.0 |           -2.0 |          -1.0 |
+        |   3 |   -2.0 |              -2.0 |           -2.0 |           0.0 |
+        |   4 |   -1.0 |              -2.0 |           -2.0 |           1.0 |
+        |   5 |    0.0 |              -2.0 |           -2.0 |           2.0 |
+        |   6 |    1.0 |              -2.0 |           -2.0 |           3.0 |
+        |   7 |    2.0 |              -2.0 |           -2.0 |           4.0 |
+        |   8 |    3.0 |              -2.0 |           -2.0 |           5.0 |
+        |   9 |    4.0 |              -2.0 |           -2.0 |           6.0 |
+        |  10 |    5.0 |              -2.0 |           -1.0 |           6.0 |
+        |  11 |    6.0 |              -2.0 |            0.0 |           6.0 |
+        |  12 |    7.0 |              -2.0 |            0.0 |           7.0 |
+        |  13 |    8.0 |              -2.0 |            0.0 |           8.0 |
+        |  14 |    9.0 |              -2.0 |            0.0 |           9.0 |
+
+        >>> keepwaterbalance(False)
+        >>> test()
+        | ex. | inflow | requestedtransfer | actualtransfer | streamoutflow |
+        ---------------------------------------------------------------------
+        |   1 |   -4.0 |              -2.0 |           -2.0 |          -2.0 |
+        |   2 |   -3.0 |              -2.0 |           -2.0 |          -1.0 |
+        |   3 |   -2.0 |              -2.0 |           -2.0 |           0.0 |
+        |   4 |   -1.0 |              -2.0 |           -2.0 |           1.0 |
+        |   5 |    0.0 |              -2.0 |           -2.0 |           2.0 |
+        |   6 |    1.0 |              -2.0 |           -2.0 |           3.0 |
+        |   7 |    2.0 |              -2.0 |           -2.0 |           4.0 |
+        |   8 |    3.0 |              -2.0 |           -2.0 |           5.0 |
+        |   9 |    4.0 |              -2.0 |           -2.0 |           6.0 |
+        |  10 |    5.0 |              -2.0 |           -2.0 |           6.0 |
+        |  11 |    6.0 |              -2.0 |           -2.0 |           6.0 |
+        |  12 |    7.0 |              -2.0 |           -2.0 |           7.0 |
+        |  13 |    8.0 |              -2.0 |           -2.0 |           8.0 |
+        |  14 |    9.0 |              -2.0 |           -2.0 |           9.0 |
+
+        |MinStream| and |MaxStream| can be identical:
+
+        >>> minstream(4.0)
+        >>> maxstream(4.0)
+        >>> keepwaterbalance(True)
+        >>> test.nexts.requestedtransfer = 7 * [2.0, -2.0]
+        >>> test()
+        | ex. | inflow | requestedtransfer | actualtransfer | streamoutflow |
+        ---------------------------------------------------------------------
+        |   1 |   -4.0 |               2.0 |            0.0 |          -4.0 |
+        |   2 |   -3.0 |              -2.0 |           -2.0 |          -1.0 |
+        |   3 |   -2.0 |               2.0 |            0.0 |          -2.0 |
+        |   4 |   -1.0 |              -2.0 |           -2.0 |           1.0 |
+        |   5 |    0.0 |               2.0 |            0.0 |           0.0 |
+        |   6 |    1.0 |              -2.0 |           -2.0 |           3.0 |
+        |   7 |    2.0 |               2.0 |            0.0 |           2.0 |
+        |   8 |    3.0 |              -2.0 |           -1.0 |           4.0 |
+        |   9 |    4.0 |               2.0 |            0.0 |           4.0 |
+        |  10 |    5.0 |              -2.0 |            0.0 |           5.0 |
+        |  11 |    6.0 |               2.0 |            2.0 |           4.0 |
+        |  12 |    7.0 |              -2.0 |            0.0 |           7.0 |
+        |  13 |    8.0 |               2.0 |            2.0 |           6.0 |
+        |  14 |    9.0 |              -2.0 |            0.0 |           9.0 |
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (
+        exch_control.MinStream,
+        exch_control.MaxStream,
+        exch_control.KeepWaterBalance,
+        exch_control.FlowTransferRules,
+    )
+    DERIVEDPARAMETERS = (exch_derived.TOY, exch_derived.StreamIndex)
+    REQUIREDSEQUENCES = (exch_fluxes.Inflow, exch_inputs.RequestedTransfer)
+    RESULTSEQUENCES = (exch_outlets.ActualTransfer, exch_outlets.StreamOutflow)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        out = model.sequences.outlets.fastaccess
+
+        excess: float
+        lack: float
+        if modelutils.isnan(inp.requestedtransfer) or modelutils.isinf(
+            inp.requestedtransfer
+        ):
+            con.flowtransferrules.inputs[0] = flu.inflow
+            con.flowtransferrules.calculate_values(der.toy[model.idx_sim])
+            out.streamoutflow = con.flowtransferrules.outputs[der.streamindex]
+            out.actualtransfer = con.flowtransferrules.outputs[1 - der.streamindex]
+        elif inp.requestedtransfer > 0.0 and inp.requestedtransfer > (
+            excess := flu.inflow - con.minstream
+        ):
+            if con.keepwaterbalance:
+                out.actualtransfer = max(excess, 0.0)
+                out.streamoutflow = flu.inflow - out.actualtransfer
+            else:
+                out.actualtransfer = inp.requestedtransfer
+                out.streamoutflow = min(flu.inflow, con.minstream)
+        elif inp.requestedtransfer < 0.0 and -inp.requestedtransfer > (
+            lack := con.maxstream - flu.inflow
+        ):
+            if con.keepwaterbalance:
+                out.actualtransfer = -max(lack, 0.0)
+                out.streamoutflow = flu.inflow - out.actualtransfer
+            else:
+                out.actualtransfer = inp.requestedtransfer
+                out.streamoutflow = max(flu.inflow, con.maxstream)
+        else:
+            out.actualtransfer = inp.requestedtransfer
+            out.streamoutflow = flu.inflow - inp.requestedtransfer
+
+
 class Pass_Outputs_V1(modeltools.Method):
     """Update |Branched| based on |Outputs|.
 
@@ -629,9 +972,9 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     DOCNAME = modeltools.DocName(short="Exch")
     __HYDPY_ROOTMODEL__ = None
 
-    nodenames: list[str]
+    nodenames: list[str] = []
 
-    INLET_METHODS = (Pick_OriginalInput_V1,)
+    INLET_METHODS = (Pick_OriginalInput_V1, Pick_Inflow_V1)
     OBSERVER_METHODS = (Pick_X_V1,)
     RECEIVER_METHODS = (Pick_LoggedWaterLevel_V1, Pick_LoggedWaterLevels_V1)
     RUN_METHODS = (
@@ -645,7 +988,12 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     )
     INTERFACE_METHODS = (Get_WaterLevel_V1, Determine_Y_V1, Get_Y_V1)
     ADD_METHODS = ()
-    OUTLET_METHODS = (Pass_ActualExchange_V1, Pass_Outputs_V1, Pass_Y_V1)
+    OUTLET_METHODS = (
+        Pass_ActualExchange_V1,
+        Pass_Outputs_V1,
+        Pass_ActualTransfer_StreamOutflow_V1,
+        Pass_Y_V1,
+    )
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()

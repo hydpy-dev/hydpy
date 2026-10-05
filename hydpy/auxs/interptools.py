@@ -36,6 +36,11 @@ else:
     pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
 
 
+SimplifyInterpAlgorithm: TypeAlias = (
+    "Callable[[InterpAlgorithm], InterpAlgorithm] | None"
+)
+
+
 class _Labeled:
     def _update_labels(self) -> None:
         xlabel = getattr(self, "XLABEL", None)
@@ -240,6 +245,9 @@ class BaseInterpolator(_Labeled):
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
         pass
 
+    @abc.abstractmethod
+    def __repr__(self, simplify: SimplifyInterpAlgorithm = None, /) -> str: ...
+
 
 class SimpleInterpolator(BaseInterpolator):
     """Parameter base class for handling interpolation problems.
@@ -434,11 +442,13 @@ interpolator has been defined so far.
         self._update_labels()
         return figure
 
-    def __repr__(self) -> str:
-        if self._algorithm is None:
+    def __repr__(self, simplify: SimplifyInterpAlgorithm = None, /) -> str:
+        if (algorithm := self._algorithm) is None:
             return f"{self.name}(?)"
+        if simplify is not None:
+            algorithm = simplify(algorithm)
         return "\n".join(
-            (f"{self.name}(", self._algorithm.assignrepr(prefix="    ", indent=4), ")")
+            (f"{self.name}(", algorithm.assignrepr(prefix="    ", indent=4), ")")
         )
 
 
@@ -1081,15 +1091,20 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
     def __iter__(self) -> Iterator[tuple[timetools.TOY, InterpAlgorithm]]:
         return iter(self._toy2algorithm)
 
-    def __repr__(self) -> str:
+    def __repr__(self, simplify: SimplifyInterpAlgorithm = None, /) -> str:
         if not self:
             return f"{self.name}()"
         lines = [f"{self.name}("]
-        if (len(self) == 1) and (self.toys[0] == timetools.TOY0):
-            lines.append(self.algorithms[0].assignrepr("    ", 4))
+        if simplify is None:
+            toy2algorithms = tuple((t, a) for t, a in self)
         else:
-            for toy, seasonalinterpolator in self:
-                line = seasonalinterpolator.assignrepr(f"    {toy}=", 4)
+            toy2algorithms = tuple((t, simplify(a)) for t, a in self)
+        if (len(toy2algorithms) == 1) and (toy2algorithms[0][0] == timetools.TOY0):
+            algorithm = toy2algorithms[0][1]
+            lines.append(algorithm.assignrepr("    ", 4))
+        else:
+            for toy, algorithm in toy2algorithms:
+                line = algorithm.assignrepr(f"    {toy}=", 4)
                 lines.append(f"{line},")
         lines.append(")")
         return "\n".join(lines)

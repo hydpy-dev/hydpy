@@ -318,7 +318,7 @@ class VG2FG(interptools.SimpleInterpolator):
     def _convert_velocity_timedelay(self, value: float) -> float:
         return (self.subpars.laen * 1000.0) / (value * 60.0 * 60.0)
 
-    def __repr__(self) -> str:
+    def __repr__(self, simplify: interptools.SimplifyInterpAlgorithm = None) -> str:
         algorithm = self.algorithm
         if (self.nmb_outputs == 1) and isinstance(algorithm, anntools.ANN):
             self._simple_ann.intercepts_output = algorithm.intercepts_output

@@ -14,3 +14,15 @@ class Branched(sequencetools.OutletSequence):
     """Branched outputs [e.g. m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
+
+
+class ActualTransfer(sequencetools.OutletSequence):
+    """Actual water transfer [m³/s]."""
+
+    NDIM: Final[Literal[0]] = 0
+
+
+class StreamOutflow(sequencetools.OutletSequence):
+    """Mainstream outflow [m³/s]."""
+
+    NDIM: Final[Literal[0]] = 0

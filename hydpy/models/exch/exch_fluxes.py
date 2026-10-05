@@ -45,3 +45,9 @@ class Outputs(sequencetools.FluxSequence):
                 lines.append(f"        {line}")
         lines[-1] = f"{lines[-1][:-1]})"
         return "\n".join(lines)
+
+
+class Inflow(sequencetools.FluxSequence):
+    """Inflow [m³/s]."""
+
+    NDIM: Final[Literal[0]] = 0

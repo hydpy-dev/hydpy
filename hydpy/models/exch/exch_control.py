@@ -10,6 +10,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.auxs import interptools
+from hydpy.auxs import ppolytools
 
 
 class CrestHeight(parametertools.Parameter):
@@ -273,6 +274,353 @@ sequence and connect it to the respective outlet nodes properly.
             return "\n".join(lines)
         except BaseException:
             return "ypoints(?)"
+
+
+class Targets(parametertools.NmbParameter):
+    """Target nodes.
+
+    |Targets| is an integer parameter with the only allowed value of two.  It serves to
+    define the names of both target nodes, which is necessary for creating the required
+    connections.  "stream" refers to the node reflecting the main riverbed; "transfer"
+    refers to the node to which some of the water is branched (or supplied from):
+
+    >>> from hydpy.models.exch_branch_io import *
+    >>> parameterstep()
+    >>> targets
+    targets(?)
+    >>> targets(stream="river", transfer="diversion")
+    >>> targets
+    targets(stream="river", transfer="diversion")
+    >>> targets.value
+    2
+
+    Both target nodes must have different names:
+
+    >>> targets(stream="river", transfer="river")
+    Traceback (most recent call last):
+    ...
+    ValueError: You must not assign the same target node name (`river`) to both the \
+keyword arguments `stream` and `transfer` of parameter `targets` of element `?` \
+(remember that node names serve as unique identifiers).
+
+    >>> targets
+    targets(stream="river", transfer="diversion")
+    """
+
+    SPAN = (2, 2)
+
+    def __call__(self, stream: str, transfer: str) -> None:
+        if stream == transfer:
+            raise ValueError(
+                f"You must not assign the same target node name (`{stream}`) to both "
+                f"the keyword arguments `stream` and `transfer` of parameter "
+                f"{objecttools.elementphrase(self)} (remember that node names serve "
+                f"as unique identifiers)."
+            )
+        super().__call__(2)
+        self.subpars.pars.model.__hydpy__targetnames__ = (stream, transfer)
+
+    def __repr__(self) -> str:
+        try:
+            ns = self.subpars.pars.model.targetnames
+        except RuntimeError:
+            return f"{self.name}(?)"
+        return f'{self.name}(stream="{ns[0]}", transfer="{ns[1]}")'
+
+
+class MinStream(parametertools.Parameter):
+    """Minimum stream outflow that externally requested withdrawals must not undercut
+    [m³/s].
+
+    |MinStream| only restricts positive values of |RequestedTransfer| (withdrawals).
+    It neither affects the transfers calculated by the fallback parameter
+    |FlowTransferRules| nor triggers supplies when the inflow is already below
+    |MinStream|.  Set it to minus |numpy.inf| to allow arbitrary withdrawals.  See the
+    documentation on method |Pass_ActualTransfer_StreamOutflow_V1| and parameter
+    |KeepWaterBalance| for further information.
+    """
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (-numpy.inf, numpy.inf)
+    INIT = 0.0
+
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
+        r"""Trim upper values in accordance with :math:`MinStream \leq MaxStream`.
+
+        >>> from hydpy.models.exch_branch_io import *
+        >>> parameterstep()
+        >>> maxstream.value = 2.0
+        >>> minstream(1.0)
+        >>> minstream
+        minstream(1.0)
+        >>> minstream(2.0)
+        >>> minstream
+        minstream(2.0)
+        >>> minstream(3.0)
+        >>> minstream
+        minstream(2.0)
+        """
+        if upper is None:
+            upper = exceptiontools.getattr_(self.subpars.maxstream, "value", None)
+        return super().trim(lower, upper)
+
+
+class MaxStream(parametertools.Parameter):
+    """Maximum stream outflow that externally requested supplies must not exceed
+    [m³/s].
+
+    |MaxStream| only restricts negative values of |RequestedTransfer| (supplies).  It
+    neither affects the transfers calculated by the fallback parameter
+    |FlowTransferRules| nor triggers withdrawals when the inflow is already above
+    |MaxStream|.  Set it to |numpy.inf| to allow arbitrary supplies.  See the
+    documentation on method |Pass_ActualTransfer_StreamOutflow_V1| and parameter
+    |KeepWaterBalance| for further information.
+    """
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (-numpy.inf, numpy.inf)
+    INIT = numpy.inf
+
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
+        r"""Trim lower values in accordance with :math:`MinStream \leq MaxStream`.
+
+        >>> from hydpy.models.exch_branch_io import *
+        >>> parameterstep()
+        >>> minstream.value = 2.0
+        >>> maxstream(3.0)
+        >>> maxstream
+        maxstream(3.0)
+        >>> maxstream(2.0)
+        >>> maxstream
+        maxstream(2.0)
+        >>> maxstream(1.0)
+        >>> maxstream
+        maxstream(2.0)
+        """
+        if lower is None:
+            lower = exceptiontools.getattr_(self.subpars.minstream, "value", None)
+        return super().trim(lower, upper)
+
+
+class KeepWaterBalance(parametertools.Parameter):
+    """Flag to indicate if too-high requested transfers should be reduced [-].
+
+    There are two lines of reasoning:
+
+     * If the requested water transfer is 2 m³/s (withdrawal) but only 1 m³/s is
+       available, one must reduce the transfer to 1 m³/s: set |KeepWaterBalance| to
+       |True|.
+     * The requested water transfer is measured and thus very certain and should always
+       be maintained: set |KeepWaterBalance| to |False| (at the cost of violating the
+       water balance).
+
+    The same thoughts apply to negative water transfers (supplies) that exceed a given
+    threshold.
+    """
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = bool
+    SPAN = (False, True)
+    INIT = True
+
+
+class FlowTransferRules(interptools.SeasonalInterpolator):
+    """Seasonally varying interpolation rules for branching the (adjusted) inflow [-].
+
+    |FlowTransferRules| is a fallback parameter that is only relevant for periods
+    without available |RequestedTransfer| time series data.
+
+    Please prepare parameter |Targets| before configuring parameter
+    |FlowTransferRules|:
+
+    >>> from hydpy import ANN, PPoly, PPolys, pub
+    >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
+    >>> from hydpy.models.exch_branch_io import *
+    >>> parameterstep()
+    >>> flowtransferrules(PPoly(xs=[0.0, 1.0], ys=[0.0, 2.0]))
+    Traceback (most recent call last):
+    ...
+    RuntimeError: While trying to set the interpolation rules of parameter \
+`flowtransferrules` of element `?`, the following error occurred: The names of the \
+target nodes are still unknown.  Please define them via parameter `targets` first.
+
+    If there is no seasonality, assign a single |PPoly| instance that interpolates
+    water transfer based on the (adjusted) inflow:
+
+    >>> targets(stream="river", transfer="diversion")
+    >>> flowtransferrules(PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]))
+    >>> flowtransferrules
+    flowtransferrules(
+        PPoly(
+            xs=[0.0, 2.0],
+            ys=[0.0, 1.0],
+        )
+    )
+
+    Behind the scenes, parameter |FlowTransferRules| converts this |PPoly| instance to
+    a |PPolys| instance that applies the given interpolation rule to calculate the
+    water transfer and leaves the rest for the main stream (note that |PPolys| sorts
+    the target nodes alphabetically, which is why derived parameter |StreamIndex| is
+    required to identify the main stream's outflow):
+
+    >>> flowtransferrules.toy_01_01_00_00
+    PPolys(
+        diversion=PPoly(
+            xs=[0.0, 2.0],
+            ys=[0.0, 1.0],
+        ),
+        river=PPolys.REST,
+    )
+
+    The same mechanism applies when passing multiple |PPoly| instances to introduce
+    seasonal patterns:
+
+    >>> flowtransferrules(
+    ...     toy_01_01_12=PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]),
+    ...     toy_01_03_12=PPoly(xs=[0.0], ys=[0.0]),
+    ... )
+    >>> flowtransferrules
+    flowtransferrules(
+        toy_1_1_12_0_0=PPoly(
+            xs=[0.0, 2.0],
+            ys=[0.0, 1.0],
+        ),
+        toy_1_3_12_0_0=PPoly(
+            xs=[0.0],
+            ys=[0.0],
+        ),
+    )
+    >>> flowtransferrules.toy_01_01_12_00
+    PPolys(
+        diversion=PPoly(
+            xs=[0.0, 2.0],
+            ys=[0.0, 1.0],
+        ),
+        river=PPolys.REST,
+    )
+
+    You are allowed to interpolate the water transfer and rest flow independently by
+    directly assigning one or multiple |PPolys| instances, which requires explicit
+    mentioning of the respective target nodes' names (note that this changes the water
+    balance, and so is only useful if you are aware of certain water losses or gains
+    bound to specific flow regimes):
+
+    >>> flowtransferrules(
+    ...     PPolys(
+    ...         river=PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]),
+    ...         diversion=PPoly(xs=[0.0, 2.0], ys=[0.0, 2.0]),
+    ...     )
+    ... )
+    >>> flowtransferrules
+    flowtransferrules(
+        PPolys(
+            diversion=PPoly(
+                xs=[0.0, 2.0],
+                ys=[0.0, 2.0],
+            ),
+            river=PPoly(
+                xs=[0.0, 2.0],
+                ys=[0.0, 1.0],
+            ),
+        )
+    )
+
+    Using wrong target names results in the following error:
+
+    >>> flowtransferrules(
+    ...     PPolys(
+    ...         stream=PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]),
+    ...         diversion=PPoly(xs=[0.0, 2.0], ys=[0.0, 2.0]),
+    ...     )
+    ... )
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the interpolation rules of parameter \
+`flowtransferrules` of element `?`, the following error occurred: When defining the \
+node-specific interpolation rules of parameter `PPolys` manually, you must use the \
+target nodes' names defined by parameter `Targets`, which are `river and diversion` \
+instead of `diversion and stream`.
+
+    Configuring parameter |FlowTransferRules| based on other interpolation methods is
+    currently not supported:
+
+    >>> flowtransferrules(ANN(nmb_inputs=1, nmb_outputs=2, nmb_neurons=(10,)))
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to set the interpolation rules of parameter \
+`flowtransferrules` of element `?`, the following error occurred: Parameter \
+`flowtransferrules` currently only supports interpolation via `PPolys` instances.  \
+Best practice is to configure them indirectly via `PPoly` instances (see the \
+documentation).
+    """
+
+    XLABEL = "inflow [m³/s]"
+    YLABEL = "outflow [m³/s]"
+
+    def __call__(self, *args, **kwargs) -> None:
+
+        def _ppoly2ppolys(p: interptools.InterpAlgorithm) -> object:
+            if isinstance(p, ppolytools.PPoly):
+                ppolys: dict[str, ppolytools.PPoly | ppolytools.PPolysOptions] = {
+                    targetnames[0]: ppolytools.PPolysOptions.REST,
+                    targetnames[1]: p,
+                }
+                return ppolytools.PPolys(**ppolys)
+            return p
+
+        try:
+            targetnames = self.subpars.pars.model.targetnames
+            args = tuple(_ppoly2ppolys(a) for a in args)
+            kwargs = {k: _ppoly2ppolys(a) for k, a in kwargs.items()}
+            super().__call__(*args, **kwargs)
+            for algorithm in self.algorithms:
+                if not isinstance(algorithm, ppolytools.PPolys):
+                    raise TypeError(
+                        f"Parameter `{self.name}` currently only supports "
+                        f"interpolation via `{ppolytools.PPolys.__name__}` "
+                        f"instances.  Best practice is to configure them indirectly "
+                        f"via `{ppolytools.PPoly.__name__}` instances (see the "
+                        f"documentation)."
+                    )
+                if sorted(algorithm.piecewisepolynomials) != sorted(targetnames):
+                    enum_ = objecttools.enumeration
+                    raise ValueError(
+                        f"When defining the node-specific interpolation rules of "
+                        f"parameter `{ppolytools.PPolys.__name__}` manually, you must "
+                        f"use the target nodes' names defined by parameter "
+                        f"`{Targets.__name__}`, which are `{enum_(targetnames)}` "
+                        f"instead of `{enum_(algorithm.piecewisepolynomials)}`."
+                    )
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to set the interpolation rules of parameter "
+                f"{objecttools.elementphrase(self)}"
+            )
+
+    def __repr__(self, simplify: interptools.SimplifyInterpAlgorithm = None) -> str:
+
+        class _Simplify:
+            _names: list[str]
+
+            def __init__(self, names: list[str], /) -> None:
+                self._names = names
+
+            def __call__(
+                self, algorithm: interptools.InterpAlgorithm, /
+            ) -> interptools.InterpAlgorithm:
+                if (
+                    isinstance(algorithm, ppolytools.PPolys)
+                    and (len(names := self._names) == 2)
+                    and (len(ps := algorithm.piecewisepolynomials) == 2)
+                    and (ps.get(names[0]) == algorithm.REST)
+                    and (isinstance(transfer := ps.get(names[1]), ppolytools.PPoly))
+                ):
+                    return transfer
+                return algorithm
+
+        return super().__repr__(_Simplify(self.subpars.pars.model.targetnames))
 
 
 class ObserverNodes(parametertools.Parameter):

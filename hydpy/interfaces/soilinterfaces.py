@@ -4,11 +4,13 @@
 
 """
 
+import abc
+
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 
-class SoilModel_V1(modeltools.SubmodelInterface):
+class SoilModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Soil submodel interface for calculating infiltration and percolation in multiple
     soil compartments.
 

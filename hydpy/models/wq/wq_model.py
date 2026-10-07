@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import abc
+
 from matplotlib import figure
 from matplotlib import pyplot
 
@@ -3894,7 +3896,7 @@ class WidthsModel(modeltools.AdHocModel):
         return tuple(heights[1:] - heights[0])
 
 
-class Base_DischargeModel_V2(dischargeinterfaces.DischargeModel_V2):
+class Base_DischargeModel_V2(dischargeinterfaces.DischargeModel_V2, abc.ABC):
     """Base class for |wq.DOCNAME.long| models that comply with the |DischargeModel_V2|
     submodel interface."""
 

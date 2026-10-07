@@ -1,10 +1,12 @@
 """This module defines submodel interfaces for providing radiation-related data."""
 
+import abc
+
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 
-class RadiationModel_V1(modeltools.SharableSubmodelInterface):
+class RadiationModel_V1(modeltools.SharableSubmodelInterface, abc.ABC):
     """Simple interface for determining all data in one step."""
 
     typeid: ClassVar[Literal[1]] = 1
@@ -31,7 +33,7 @@ class RadiationModel_V1(modeltools.SharableSubmodelInterface):
         """Get the global radiation in W/m²."""
 
 
-class RadiationModel_V2(modeltools.SharableSubmodelInterface):
+class RadiationModel_V2(modeltools.SharableSubmodelInterface, abc.ABC):
     """Pure getter interface for global radiation."""
 
     typeid: ClassVar[Literal[2]] = 2
@@ -42,7 +44,7 @@ class RadiationModel_V2(modeltools.SharableSubmodelInterface):
         """Get the global radiation in W/m²."""
 
 
-class RadiationModel_V3(modeltools.SharableSubmodelInterface):
+class RadiationModel_V3(modeltools.SharableSubmodelInterface, abc.ABC):
     """Pure getter interface for clear-sky solar radiation and global radiation."""
 
     typeid: ClassVar[Literal[3]] = 3
@@ -57,7 +59,7 @@ class RadiationModel_V3(modeltools.SharableSubmodelInterface):
         """Get the global radiation in W/m²."""
 
 
-class RadiationModel_V4(modeltools.SharableSubmodelInterface):
+class RadiationModel_V4(modeltools.SharableSubmodelInterface, abc.ABC):
     """Pure getter interface for possible sunshine duration, actual sunshine duration,
     and global radiation."""
 

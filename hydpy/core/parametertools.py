@@ -2,6 +2,7 @@
 of hydrological models."""
 
 from __future__ import annotations
+import abc
 import builtins
 import contextlib
 import copy
@@ -1017,7 +1018,7 @@ raise_exception=False)
         return objecttools.apply_black(type(self).__name__, **self._name2value)
 
 
-class Parameter(variabletools.Variable):
+class Parameter(variabletools.Variable, abc.ABC):
     """Base class for model parameters.
 
     In *HydPy*, each kind of model parameter is represented by a unique
@@ -1888,7 +1889,7 @@ class NmbParameter(Parameter):
                     var.__hydpy__let_par_set_shape__(self)
 
 
-class _MixinModifiableParameter(Parameter):
+class _MixinModifiableParameter(Parameter, abc.ABC):
     @classmethod
     def _reset_after_modification(cls, name: str, value: object | None) -> None:
         if value is None:
@@ -2091,7 +2092,7 @@ valid.
         return f"{string})"
 
 
-class ZipParameter(_MixinModifiableParameter, Parameter):
+class ZipParameter(_MixinModifiableParameter, Parameter, abc.ABC):
     """Base class for 1-dimensional model parameters that offers an additional
     keyword-based zipping functionality.
 
@@ -2543,7 +2544,7 @@ index parameter.
         return list(names)
 
 
-class SeasonalParameter(Parameter):
+class SeasonalParameter(Parameter, abc.ABC):
     """Base class for parameters handling values showing a seasonal variation.
 
     Quite a lot of model parameter values change on an annual basis.  One example is
@@ -3205,7 +3206,7 @@ Using the latter without modification might result in inconsistencies.
         return cast(list[str], super().__dir__()) + [str(toy) for (toy, dummy) in self]
 
 
-class KeywordParameter1D(_MixinModifiableParameter, Parameter):
+class KeywordParameter1D(_MixinModifiableParameter, Parameter, abc.ABC):
     """Base class for 1-dimensional model parameters with values depending on one
     factor.
 
@@ -3475,7 +3476,7 @@ for axis 0 with size 1
         return cast(list[str], super().__dir__()) + list(self.entrynames)
 
 
-class MonthParameter(KeywordParameter1D):
+class MonthParameter(KeywordParameter1D, abc.ABC):
     """Base class for parameters whose values depend on the actual month.
 
     Please see the documentation on class |KeywordParameter1D| on how to use
@@ -3517,7 +3518,7 @@ class MonthParameter(KeywordParameter1D):
     )
 
 
-class KeywordParameter2D(_MixinModifiableParameter, Parameter):
+class KeywordParameter2D(_MixinModifiableParameter, Parameter, abc.ABC):
     """Base class for 2-dimensional model parameters with values depending on two
     factors.
 
@@ -3949,7 +3950,7 @@ attribute nor a row or column related attribute named `wrong`.
         )
 
 
-class LeftRightParameter(variabletools.MixinFixedShape, Parameter):
+class LeftRightParameter(variabletools.MixinFixedShape, Parameter, abc.ABC):
     """Base class for handling two values, a left one and a right one.
 
     The original purpose of class |LeftRightParameter| is to make the handling of river
@@ -4105,7 +4106,7 @@ sorted in increasing order (0.333333, 0.0, and 0.666667).
             )
 
 
-class FixedParameter(Parameter):
+class FixedParameter(Parameter, abc.ABC):
     """Base class for defining parameters with fixed values.
 
     Model model-users usually do not modify the values of |FixedParameter|
@@ -4175,7 +4176,7 @@ class FixedParameter(Parameter):
             self(self.INIT)
 
 
-class SolverParameter(Parameter):
+class SolverParameter(Parameter, abc.ABC):
     """Base class for defining parameters controlling numerical algorithms
     for solving model equations.
 
@@ -4492,7 +4493,7 @@ properly alligned on the indexed timegrid `Timegrid("2000-01-01 00:00:00", \
             )
 
 
-class IndexParameter(Parameter):
+class IndexParameter(Parameter, abc.ABC):
     """Base class for parameters that do not allocate RAM for handling their data but
     reference an index array provided by the instance of class |Indexer| available in
     module |pub|."""
@@ -4701,7 +4702,7 @@ def do_nothing(model: modeltools.Model) -> None:  # pylint: disable=unused-argum
     |CallbackParameter.callback| function, which does nothing."""
 
 
-class CallbackParameter(Parameter):
+class CallbackParameter(Parameter, abc.ABC):
     """Base class for parameters that support calculating their values via user-defined
     callback functions alternatively of sticking to the same values during a simulation
     run.

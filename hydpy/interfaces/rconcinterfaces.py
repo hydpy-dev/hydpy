@@ -1,11 +1,13 @@
 """This module defines submodel interfaces for calculating runoff concentration
 processes."""
 
+import abc
+
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 
-class RConcModel_V1(modeltools.SubmodelInterface):
+class RConcModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Simple interface for calculating runoff concentration processes."""
 
     typeid: ClassVar[Literal[1]] = 1

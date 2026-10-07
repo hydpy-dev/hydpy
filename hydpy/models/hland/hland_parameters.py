@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import abc
+
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.hland.hland_constants import CONSTANTS
@@ -13,7 +15,7 @@ if TYPE_CHECKING:
     from hydpy.models.hland import hland_derived
 
 
-class ParameterBase(parametertools.ZipParameter):
+class ParameterBase(parametertools.ZipParameter, abc.ABC):
     """Base class for 1-dimensional parameters."""
 
     constants = CONSTANTS
@@ -29,7 +31,7 @@ class ParameterBase(parametertools.ZipParameter):
         return model.parameters.derived.relzoneareas
 
 
-class ParameterComplete(ParameterBase):
+class ParameterComplete(ParameterBase, abc.ABC):
     """Base class for 1-dimensional parameters relevant for all types of zones.
 
     |ParameterComplete| applies the features of class |ZipParameter| on the land use
@@ -80,7 +82,7 @@ class ParameterComplete(ParameterBase):
     mask = hland_masks.Complete()
 
 
-class ParameterLand(ParameterBase):
+class ParameterLand(ParameterBase, abc.ABC):
     """Base class for 1-dimensional parameters relevant for |FIELD|, |FOREST|,
     |GLACIER|, and |SEALED| zones.
 
@@ -106,7 +108,7 @@ class ParameterLand(ParameterBase):
     mask = hland_masks.Land()
 
 
-class ParameterInterception(ParameterBase):
+class ParameterInterception(ParameterBase, abc.ABC):
     """Base class for 1-dimensional parameters relevant for |FIELD|, |FOREST|, and
     |SEALED| zones.
 
@@ -132,7 +134,7 @@ class ParameterInterception(ParameterBase):
     mask = hland_masks.Interception()
 
 
-class ParameterSoil(ParameterBase):
+class ParameterSoil(ParameterBase, abc.ABC):
     """Base class for 1-dimensional parameters relevant for |FIELD| and |FOREST| zones.
 
     |ParameterSoil| works similarly to |ParameterComplete|. Some examples based on the
@@ -157,7 +159,7 @@ class ParameterSoil(ParameterBase):
     mask = hland_masks.Soil()
 
 
-class ParameterUpperZone(ParameterBase):
+class ParameterUpperZone(ParameterBase, abc.ABC):
     """Base class for 1-dimensional parameters relevant for |FIELD|, |FOREST|, and
     |GLACIER| zones.
 
@@ -183,7 +185,7 @@ class ParameterUpperZone(ParameterBase):
     mask = hland_masks.UpperZone()
 
 
-class ParameterGlacier(ParameterBase):
+class ParameterGlacier(ParameterBase, abc.ABC):
     """Base class for 1-dimensional parameters relevant for |GLACIER| zones.
 
     |ParameterGlacier| works similarly to |ParameterComplete|.  Some examples based on
@@ -209,7 +211,7 @@ class ParameterGlacier(ParameterBase):
     mask = hland_masks.Glacier()
 
 
-class ParameterNoGlacier(ParameterBase):
+class ParameterNoGlacier(ParameterBase, abc.ABC):
     """Base class for 1-dimensional parameters relevant for |FIELD|, |FOREST|, and
     |ILAKE| zones.
 

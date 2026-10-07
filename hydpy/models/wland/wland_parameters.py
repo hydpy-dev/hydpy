@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import abc
+
 from hydpy.core import objecttools
 from hydpy.core import modeltools
 from hydpy.core import parametertools
@@ -16,7 +18,7 @@ if TYPE_CHECKING:
     from hydpy.models.wland import wland_control
 
 
-class SoilParameter(parametertools.Parameter):
+class SoilParameter(parametertools.Parameter, abc.ABC):
     """Base class for parameters related to the soil character.
 
     Some parameters of |wland.DOCNAME.long| are strongly related to the soil character
@@ -140,7 +142,7 @@ not be set based on the given keyword arguments.
         return f"{self.name}({objecttools.repr_(value)})"
 
 
-class LanduseParameterLand(parametertools.ZipParameter):
+class LanduseParameterLand(parametertools.ZipParameter, abc.ABC):
     """Base class for 1-dimensional parameters relevant for all land-related units.
 
     We take the parameter |DDT| as an example.  You can define its values by using the
@@ -198,7 +200,7 @@ class LanduseParameterLand(parametertools.ZipParameter):
         return model.parameters.control.aur
 
 
-class LanduseMonthParameter(parametertools.KeywordParameter2D):
+class LanduseMonthParameter(parametertools.KeywordParameter2D, abc.ABC):
     """Base class for parameters which values depend on the actual month and land-use
     type."""
 

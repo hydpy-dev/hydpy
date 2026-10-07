@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import abc
+
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
@@ -13,7 +15,7 @@ if TYPE_CHECKING:
     from hydpy.models.lland import lland_derived
 
 
-class ParameterComplete(parametertools.ZipParameter):
+class ParameterComplete(parametertools.ZipParameter, abc.ABC):
     """Base class for 1-dimensional parameters relevant for all types
     of landuse.
 
@@ -52,7 +54,7 @@ class ParameterComplete(parametertools.ZipParameter):
         return model.parameters.derived.absfhru
 
 
-class ParameterLand(ParameterComplete):
+class ParameterLand(ParameterComplete, abc.ABC):
     """Base class for 1-dimensional parameters relevant for all hydrological
     response units except those of type |WASSER|, |FLUSS|, and |SEE|.
 
@@ -78,7 +80,7 @@ class ParameterLand(ParameterComplete):
     mask = lland_masks.Land()
 
 
-class ParameterSoil(ParameterComplete):
+class ParameterSoil(ParameterComplete, abc.ABC):
     """Base class for 1-dimensional parameters relevant for all hydrological
     response units except those of type |WASSER|, |FLUSS|, |SEE|, and |VERS|.
 
@@ -104,7 +106,7 @@ class ParameterSoil(ParameterComplete):
     mask = lland_masks.Soil()
 
 
-class ParameterSoilThreshold(ParameterSoil):
+class ParameterSoilThreshold(ParameterSoil, abc.ABC):
     """Base class for defining threshold parameters related to |WMax|.
 
     Base class |ParameterSoilThreshold| provides the convenience to define
@@ -175,7 +177,7 @@ occurred: Keyword `feld` is not among the available model constants.
                 raise exc
 
 
-class ParameterGlacier(ParameterComplete):
+class ParameterGlacier(ParameterComplete, abc.ABC):
     """Base class for 1-dimensional parameters relevant for all |GLETS| zones.
 
     |ParameterLand| works similarly to |lland_parameters.ParameterComplete|.  Some
@@ -204,7 +206,7 @@ class ParameterGlacier(ParameterComplete):
     mask = lland_masks.Glets()
 
 
-class LanduseMonthParameter(parametertools.KeywordParameter2D):
+class LanduseMonthParameter(parametertools.KeywordParameter2D, abc.ABC):
     """Base class for parameters which values depend both an the actual
     land use class and the actual month."""
 

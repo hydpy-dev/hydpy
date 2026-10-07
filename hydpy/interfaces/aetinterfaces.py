@@ -1,10 +1,12 @@
 """This module defines submodel interfaces for calculating actual evapotranspiration."""
 
+import abc
+
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 
-class AETModel_V1(modeltools.SubmodelInterface):
+class AETModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Interface for calculating interception evaporation, evapotranspiration from
     soils, evaporation from water areas in separate steps.
 

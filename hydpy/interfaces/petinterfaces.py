@@ -1,11 +1,13 @@
 """This module defines submodel interfaces for calculating potential
 evapotranspiration."""
 
+import abc
+
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 
-class PETModel_V1(modeltools.SubmodelInterface):
+class PETModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Simple interface for calculating all potential evapotranspiration values in one
     step."""
 
@@ -39,7 +41,7 @@ class PETModel_V1(modeltools.SubmodelInterface):
         mm/T."""
 
 
-class PETModel_V2(modeltools.SubmodelInterface):
+class PETModel_V2(modeltools.SubmodelInterface, abc.ABC):
     """Interface for calculating separate potential interception, soil, and water
     evapotranspiration values.
 

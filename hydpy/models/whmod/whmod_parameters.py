@@ -1,6 +1,8 @@
 # pylint: disable=missing-module-docstring
 from __future__ import annotations
 
+import abc
+
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
@@ -12,7 +14,7 @@ if TYPE_CHECKING:
     from hydpy.models.whmod import whmod_control
 
 
-class LandTypeBaseParameter(parametertools.ZipParameter):
+class LandTypeBaseParameter(parametertools.ZipParameter, abc.ABC):
     """Base class for 1-dimensional land type-specific parameters."""
 
     constants = whmod_constants.LANDTYPE_CONSTANTS
@@ -25,7 +27,7 @@ class LandTypeBaseParameter(parametertools.ZipParameter):
         return model.parameters.control.zonearea
 
 
-class LandTypeCompleteParameter(LandTypeBaseParameter):
+class LandTypeCompleteParameter(LandTypeBaseParameter, abc.ABC):
     """Base class for 1-dimensional land type-specific parameters without restrictions.
 
     We take parameter |ZoneArea| as an example:
@@ -48,7 +50,7 @@ class LandTypeCompleteParameter(LandTypeBaseParameter):
     mask = whmod_masks.LandTypeComplete()
 
 
-class LandTypeNonWaterParameter(LandTypeBaseParameter):
+class LandTypeNonWaterParameter(LandTypeBaseParameter, abc.ABC):
     """Base class for 1-dimensional land type-specific parameters that do not affect
     water areas.
 
@@ -75,7 +77,7 @@ class LandTypeNonWaterParameter(LandTypeBaseParameter):
     mask = whmod_masks.LandTypeNonWater()
 
 
-class LandTypeGroundwaterParameter(LandTypeBaseParameter):
+class LandTypeGroundwaterParameter(LandTypeBaseParameter, abc.ABC):
     """Base class for 1-dimensional land type-specific parameters that affect
     groundwater recharge.
 
@@ -101,7 +103,7 @@ class LandTypeGroundwaterParameter(LandTypeBaseParameter):
     mask = whmod_masks.LandTypeGroundwater()
 
 
-class LandTypeSoilParameter(LandTypeBaseParameter):
+class LandTypeSoilParameter(LandTypeBaseParameter, abc.ABC):
     """Base class for 1-dimensional land type-specific parameters that affect soil
     processes.
 

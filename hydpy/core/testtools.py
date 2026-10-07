@@ -54,7 +54,7 @@ if TYPE_CHECKING:
     import plotly
     from plotly import subplots
 
-    class TestIOSequence(sequencetools.IOSequence):
+    class TestIOSequence(sequencetools.IOSequence, abc.ABC):
         """|IOSequence| subclass for testing purposes."""
 
         testarray: NDArrayFloat

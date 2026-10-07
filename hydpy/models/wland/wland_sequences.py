@@ -1,5 +1,7 @@
 # pylint: disable=missing-module-docstring
 
+import abc
+
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 from hydpy.models.wland import wland_control
@@ -79,7 +81,7 @@ class FluxSequence1DSoil(BaseFluxSequence1D):
     mask = wland_masks.Soil()
 
 
-class StateSequence1DLand(sequencetools.StateSequence):
+class StateSequence1DLand(sequencetools.StateSequence, abc.ABC):
     """Base class for 1-dimensional state sequences that support aggregation with
     respect to |AUR| for all land-related hydrological response units.
 

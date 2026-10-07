@@ -6,9 +6,11 @@ implement the related methods in the Cython extension module |ppolyutils|.
 """
 
 from __future__ import annotations
+import inspect
 
 import numpy
 
+import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
@@ -20,8 +22,13 @@ if TYPE_CHECKING:
     from scipy import interpolate
     from hydpy.cythons import ppolyutils
 else:
-    special = exceptiontools.OptionalImport("special", ["scipy.interpolate"], locals())
+    interpolate = exceptiontools.OptionalImport(
+        "interpolate", ["scipy.interpolate"], locals()
+    )
     from hydpy.cythons.autogen import ppolyutils
+
+
+MethodNames: TypeAlias = Literal["linear", "cubic", "akima", "pchip"]
 
 
 class Poly(NamedTuple):
@@ -66,6 +73,39 @@ class Poly(NamedTuple):
 
     def __repr__(self) -> str:
         return self.assignrepr(prefix="")
+
+
+class _OriginalData(NamedTuple):
+    """The original x-y data and the interpolation method used for estimating the
+    polynomials of a |PPoly| object."""
+
+    xs: VectorFloat
+    ys: VectorFloat
+    method: MethodNames
+
+
+def _get_splineclass(
+    name: MethodNames, /
+) -> type[interpolate.CubicHermiteSpline] | None:
+    if name == "cubic":
+        return interpolate.CubicSpline
+    if name == "akima":
+        return interpolate.Akima1DInterpolator
+    if name == "pchip":
+        return interpolate.PchipInterpolator
+    return None
+
+
+def _get_splinename(
+    class_: type[interpolate.CubicHermiteSpline], /
+) -> Literal["cubic", "akima", "pchip"] | None:
+    if class_ is interpolate.CubicSpline:
+        return "cubic"
+    if class_ is interpolate.Akima1DInterpolator:
+        return "akima"
+    if class_ is interpolate.PchipInterpolator:
+        return "pchip"
+    return None
 
 
 class PPoly(interptools.InterpAlgorithm):
@@ -223,17 +263,21 @@ agree with the actual number of constants held by vector `x0s` (3).
     calling an existing |PPoly| object:
 
     >>> ppoly(xs=[0.0, 1.0, 3.0], ys=[2.0, 5.0, 6.0])
-    >>> ppoly
-    PPoly(
-        Poly(x0=0.0, cs=(2.0, 3.0)),
-        Poly(x0=1.0, cs=(5.0, 0.5)),
-    )
+    >>> ppoly.polynomials
+    (Poly(x0=0.0, cs=(2.0, 3.0)), Poly(x0=1.0, cs=(5.0, 0.5)))
 
     It also works when creating a new one:
 
-    >>> PPoly(xs=[0.0, 1.0], ys=[2.0, 5.0])
+    >>> PPoly(xs=[0.0, 1.0], ys=[2.0, 5.0]).polynomials
+    (Poly(x0=0.0, cs=(2.0, 3.0)),)
+
+    In such cases, the string representation of |PPoly| objects shows the original data
+    instead of the estimated polynomials (see method |PPoly.assignrepr|):
+
+    >>> ppoly
     PPoly(
-        Poly(x0=0.0, cs=(2.0, 3.0)),
+        xs=[0.0, 1.0, 3.0],
+        ys=[2.0, 5.0, 6.0],
     )
 
     Calling |PPoly| objects without any arguments results in the following error:
@@ -271,6 +315,7 @@ agree with the actual number of constants held by vector `x0s` (3).
 
     _calgorithm: ppolyutils.PPoly
     _cready: bool
+    _original_data: _OriginalData | None
 
     @overload
     def __new__(cls, *polynomials: Poly) -> Self: ...
@@ -281,7 +326,7 @@ agree with the actual number of constants held by vector `x0s` (3).
         *,
         xs: VectorInputFloat,
         ys: VectorInputFloat,
-        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
     ) -> Self: ...
 
     def __new__(
@@ -289,7 +334,7 @@ agree with the actual number of constants held by vector `x0s` (3).
         *polynomials: Poly,
         xs: VectorInputFloat | None = None,
         ys: VectorInputFloat | None = None,
-        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
     ) -> Self:
         self = cls._make_self()
         if polynomials or (xs is not None) or (ys is not None):
@@ -300,6 +345,7 @@ agree with the actual number of constants held by vector `x0s` (3).
     def _make_self(cls) -> Self:
         self = super().__new__(cls)
         self._cready = False
+        self._original_data = None
         ca = ppolyutils.PPoly()
         self._calgorithm = ca
         ca.inputs = numpy.zeros((1,), dtype=config.NP_FLOAT)
@@ -316,7 +362,7 @@ agree with the actual number of constants held by vector `x0s` (3).
         *,
         xs: VectorInputFloat,
         ys: VectorInputFloat,
-        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
     ) -> None: ...
 
     def __call__(
@@ -324,7 +370,7 @@ agree with the actual number of constants held by vector `x0s` (3).
         *polynomials: Poly,
         xs: VectorInputFloat | None = None,
         ys: VectorInputFloat | None = None,
-        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
     ) -> None:
         self._call(*polynomials, xs=xs, ys=ys, method=method)
 
@@ -333,7 +379,7 @@ agree with the actual number of constants held by vector `x0s` (3).
         *polynomials: Poly,
         xs: VectorInputFloat | None = None,
         ys: VectorInputFloat | None = None,
-        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
     ) -> None:
         nmb_vectors = (xs is not None) + (ys is not None)
         if polynomials:
@@ -399,13 +445,14 @@ agree with the actual number of constants held by vector `x0s` (3).
         for idx, (nmb, polynomial) in enumerate(zip(nmb_cs, polynomials)):
             cs[idx, :nmb] = polynomial.cs
         self.nmb_ps, self.nmb_cs, self.x0s, self.cs = nmb_ps, nmb_cs, x0s, cs
+        self._original_data = None
 
     @classmethod
     def from_data(
         cls,
         xs: VectorInputFloat,
         ys: VectorInputFloat,
-        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
     ) -> Self:
         """Prepare a |PPoly| object based on x-y data.
 
@@ -426,11 +473,10 @@ agree with the actual number of constants held by vector `x0s` (3).
 
         >>> from hydpy import PPoly
         >>> ppoly = PPoly.from_data(xs=xs, ys=ys)
-        >>> ppoly
-        PPoly(
-            Poly(x0=1.0, cs=(1.0, 1.0)),
-            Poly(x0=2.0, cs=(2.0, 1.5)),
-        )
+        >>> for poly in ppoly.polynomials:
+        ...     print(poly)
+        Poly(x0=1.0, cs=(1.0, 1.0))
+        Poly(x0=2.0, cs=(2.0, 1.5))
         >>> ppoly.print_table(xs=[1.9, 2.0, 2.1])
         x    y     dy/dx
         1.9  1.9   1.0
@@ -438,22 +484,28 @@ agree with the actual number of constants held by vector `x0s` (3).
         2.1  2.15  1.5
         >>> figure = ppoly.plot(0.0, 4.0, label="linear")
 
-        Alternatively, |PPoly| can use the following |scipy| classes for determining
-        higher-order polynomials:
+        The string representation of `ppoly` does not list these polynomials but the
+        original data (see method |PPoly.assignrepr|):
 
-        >>> from scipy.interpolate import \
-CubicSpline, Akima1DInterpolator, PchipInterpolator
+        >>> ppoly
+        PPoly(
+            xs=[1.0, 2.0, 3.0],
+            ys=[1.0, 2.0, 3.5],
+        )
+
+        Alternatively, |PPoly| can use the |scipy| classes `CubicSpline`,
+        `Akima1DInterpolator`, and `PchipInterpolator` for determining higher-order
+        polynomials.  Select them via the strings "cubic", "akima", and "pchip".
 
         For sufficiently smooth data, cubic spline interpolation is often a good choice,
         as it preserves much smoothness around breakpoints (helpful for reaching
         required accuracies when applying numerical integration algorithms):
 
-        >>> ppoly = PPoly.from_data(xs=xs, ys=ys, method=CubicSpline)
-        >>> ppoly
-        PPoly(
-            Poly(x0=1.0, cs=(1.0, 0.75, 0.25)),
-            Poly(x0=2.0, cs=(2.0, 1.25, 0.25)),
-        )
+        >>> ppoly = PPoly.from_data(xs=xs, ys=ys, method="cubic")
+        >>> for poly in ppoly.polynomials:
+        ...     print(poly)
+        Poly(x0=1.0, cs=(1.0, 0.75, 0.25))
+        Poly(x0=2.0, cs=(2.0, 1.25, 0.25))
         >>> ppoly.print_table(xs=[1.9, 2.0, 2.1])
         x    y       dy/dx
         1.9  1.8775  1.2
@@ -461,26 +513,34 @@ CubicSpline, Akima1DInterpolator, PchipInterpolator
         2.1  2.1275  1.3
         >>> figure = ppoly.plot(0.0, 4.0, label="Cubic")
 
+        For non-linear interpolation methods, the string representation also includes
+        the method's name:
+
+        >>> ppoly
+        PPoly(
+            xs=[1.0, 2.0, 3.0],
+            ys=[1.0, 2.0, 3.5],
+            method="cubic",
+        )
+
         For the given data, the Akima spline results in the same coefficients as the
         cubic spline:
 
-        >>> ppoly = PPoly.from_data(xs=xs, ys=ys, method=Akima1DInterpolator)
-        >>> ppoly
-        PPoly(
-            Poly(x0=1.0, cs=(1.0, 0.75, 0.25)),
-            Poly(x0=2.0, cs=(2.0, 1.25, 0.25)),
-        )
+        >>> ppoly = PPoly.from_data(xs=xs, ys=ys, method="akima")
+        >>> for poly in ppoly.polynomials:
+        ...     print(poly)
+        Poly(x0=1.0, cs=(1.0, 0.75, 0.25))
+        Poly(x0=2.0, cs=(2.0, 1.25, 0.25))
         >>> figure = ppoly.plot(0.0, 4.0, label="Akima")
 
         The PCHIP (Piecewise Cubic Hermite Interpolating Polynomial) algorithm
         generally tends to less smooth interpolations:
 
-        >>> ppoly = PPoly.from_data(xs=xs, ys=ys, method=PchipInterpolator)
-        >>> ppoly
-        PPoly(
-            Poly(x0=1.0, cs=(1.0, 0.75, 0.3, -0.05)),
-            Poly(x0=2.0, cs=(2.0, 1.2, 0.35, -0.05)),
-        )
+        >>> ppoly = PPoly.from_data(xs=xs, ys=ys, method="pchip")
+        >>> for poly in ppoly.polynomials:
+        ...     print(poly)
+        Poly(x0=1.0, cs=(1.0, 0.75, 0.3, -0.05))
+        Poly(x0=2.0, cs=(2.0, 1.2, 0.35, -0.05))
         >>> ppoly.print_table(xs=[1.9, 2.0, 2.1])
         x    y        dy/dx
         1.9  1.88155  1.1685
@@ -505,30 +565,69 @@ CubicSpline, Akima1DInterpolator, PchipInterpolator
         original data. The Akima interpolation appears as a good compromise between
         these two approaches:
 
-        >>> for method, label in (("linear", "linear"),
-        ...                       (CubicSpline, "Cubic"),
-        ...                       (Akima1DInterpolator, "Akima"),
-        ...                       (PchipInterpolator, "Pchip")):
+        >>> for method in ("linear", "cubic", "akima", "pchip"):
         ...     figure = PPoly.from_data(
         ...         xs=[1.0, 2.0, 3.0, 4.0], ys=[1.0, 1.0, 2.0, 2.0], method=method
-        ...     ).plot(0.0, 5.0, label=label)
+        ...     ).plot(0.0, 5.0, label=method)
         >>> _ = figure.gca().legend()
         >>> _ = figure.gca().set_ylim((0.5, 2.5))
         >>> save_autofig("PPoly_data_not_smooth.png")
 
         .. image:: PPoly_data_not_smooth.png
 
+        Instead of strings, you can also pass the mentioned |scipy| classes themselves.
+        |PPoly| recognises them and handles them like the corresponding strings:
+
+        >>> from scipy.interpolate import CubicSpline
+        >>> PPoly.from_data(xs=xs, ys=ys, method=CubicSpline)
+        PPoly(
+            xs=[1.0, 2.0, 3.0],
+            ys=[1.0, 2.0, 3.5],
+            method="cubic",
+        )
+
+        You can even pass other subclasses of |scipy|'s `CubicHermiteSpline` class.
+        However, the string representation then falls back to listing the estimated
+        polynomials:
+
+        >>> class MySpline(CubicSpline):
+        ...     pass
+        >>> PPoly.from_data(xs=xs, ys=ys, method=MySpline)
+        PPoly(
+            Poly(x0=1.0, cs=(1.0, 0.75, 0.25)),
+            Poly(x0=2.0, cs=(2.0, 1.25, 0.25)),
+        )
+
+        Unknown method names and wrong classes result in the following error:
+
+        >>> PPoly.from_data(xs=xs, ys=ys, method="spline")
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to derive polynomials from the vectors `x` ([1.0, \
+2.0, and 3.0]) and `y` ([1.0, 2.0, and 3.5]), the following error occurred: `spline` \
+is not a supported interpolation method.  Please select "linear", "cubic", "akima", \
+or "pchip" or pass a subclass of SciPy's `CubicHermiteSpline` class.
+
+        |PPoly| also checks the type of the method argument, even if the given data
+        set contains so few x-y pairs that it does not need a spline at all:
+
+        >>> class MyOtherSpline:
+        ...     pass
+        >>> PPoly.from_data(xs=[0.0, 1.0], ys=[2.0, 5.0], method=MyOtherSpline)
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to derive polynomials from the vectors `x` ([0.0 and \
+1.0]) and `y` ([2.0 and 5.0]), the following error occurred: `MyOtherSpline` is not a \
+supported interpolation method.  Please select "linear", "cubic", "akima", or \
+"pchip" or pass a subclass of SciPy's `CubicHermiteSpline` class.
+
         Passing data sets with one or two x-y pairs works fine:
 
-        >>> PPoly.from_data(xs=[0.0], ys=[1.0])
-        PPoly(
-            Poly(x0=0.0, cs=(1.0,)),
-        )
+        >>> PPoly.from_data(xs=[0.0], ys=[1.0]).polynomials
+        (Poly(x0=0.0, cs=(1.0,)),)
 
-        >>> PPoly.from_data(xs=[0.0, 1.0], ys=[2.0, 5.0])
-        PPoly(
-            Poly(x0=0.0, cs=(2.0, 3.0)),
-        )
+        >>> PPoly.from_data(xs=[0.0, 1.0], ys=[2.0, 5.0]).polynomials
+        (Poly(x0=0.0, cs=(2.0, 3.0)),)
 
         Empty data sets or data sets of different lengths result in the following
         error messages:
@@ -554,38 +653,71 @@ vectors `x` (2) and `y` (3) must be identical.
         self,
         xs: VectorInputFloat,
         ys: VectorInputFloat,
-        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
     ) -> None:
+
+        def _make_error_message(method: object, /) -> str:
+            methodname = method.__name__ if inspect.isclass(method) else method
+            return (
+                f"`{methodname}` is not a supported interpolation method.  Please "
+                f'select "linear", "cubic", "akima", or "pchip" or pass a subclass of '
+                f"SciPy's `CubicHermiteSpline` class."
+            )
+
         try:
+            name: MethodNames | None
+            spline: type[interpolate.CubicHermiteSpline] | None
+            if isinstance(method, str):
+                if method not in ("linear", "cubic", "akima", "pchip"):
+                    raise ValueError(_make_error_message(method))
+                name = method
+                spline = _get_splineclass(name)
+            else:
+                if not (
+                    inspect.isclass(method)
+                    and issubclass(method, interpolate.CubicHermiteSpline)
+                ):
+                    raise TypeError(_make_error_message(method))
+                name = _get_splinename(method)
+                spline = method
+            xs = numpy.asarray(xs, dtype=config.NP_FLOAT)
+            ys = numpy.asarray(ys, dtype=config.NP_FLOAT)
             if len(xs) != len(ys):
                 raise ValueError(
-                    f"The lenghts of vectors `x` ({len(xs)}) and `y` ({len(ys)}) must "
-                    f"be identical."
+                    f"The lenghts of vectors `x` ({len(xs)}) and `y` ({len(ys)}) "
+                    f"must be identical."
                 )
             if len(xs) == 0:
                 raise ValueError("Vectors `x` and `y` must not be empty.")
             if len(xs) == 1:
                 nmb_ps = 1
                 nmb_cs = numpy.full((nmb_ps,), 1, dtype=config.NP_INT)
-                x0s = numpy.asarray(xs, dtype=config.NP_FLOAT)
-                cs = numpy.asarray([ys], dtype=config.NP_FLOAT)
-            elif (len(xs) == 2) or (method == "linear"):
+                x0s = xs.copy()
+                cs = ys.copy().reshape((1, 1))
+            elif (len(xs) == 2) or (spline is None):
                 nmb_ps = len(xs) - 1
                 nmb_cs = numpy.full((nmb_ps,), 2, dtype=config.NP_INT)
-                x0s = numpy.asarray(xs, dtype=config.NP_FLOAT)[:-1]
+                x0s = xs[:-1].copy()
                 cs = numpy.zeros((nmb_ps, numpy.max(nmb_cs)), dtype=config.NP_FLOAT)
-                cs[:, 0] = numpy.asarray(ys, dtype=config.NP_FLOAT)[:-1]
+                cs[:, 0] = ys[:-1]
                 cs[:, 1] = numpy.diff(ys) / numpy.diff(xs)
             else:
-                interpolator = method(x=xs, y=ys)
-                x0s = numpy.asarray(xs, dtype=config.NP_FLOAT)[:-1]
-                cs = interpolator.c[::-1].T
+                # Mypy bug?
+                interpolator = spline(x=xs, y=ys)  # type: ignore[call-arg]
+                x0s = xs[:-1].copy()
+                cs = interpolator.c[::-1].T  # type: ignore[union-attr]
                 nmb_ps = len(x0s)
                 nmb_cs = numpy.asarray(
                     [numpy.max(numpy.nonzero(cs_), initial=0) + 1 for cs_ in cs],
                     dtype=config.NP_INT,
                 )
             self.nmb_ps, self.nmb_cs, self.x0s, self.cs = nmb_ps, nmb_cs, x0s, cs
+            if name is None:
+                self._original_data = None
+            else:
+                self._original_data = _OriginalData(
+                    xs=xs.copy(), ys=ys.copy(), method=name
+                )
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to derive polynomials from the vectors `x` "
@@ -938,9 +1070,27 @@ agree with the actual number of constants held by vector `x0s` (1).
                 f"While trying to verify parameter {objecttools.elementphrase(self)}"
             )
 
+    def _data_agrees(self, data: _OriginalData, /) -> bool:
+        """Tell whether the polynomials estimated from the given original x-y data
+        agree with the current polynomials."""
+        with numpy.errstate(divide="ignore", invalid="ignore"):
+            other = type(self).from_data(*data)
+        try:
+            return (
+                (self.nmb_ps == other.nmb_ps)
+                and numpy.array_equal(self.nmb_cs, other.nmb_cs)
+                and numpy.array_equal(self.x0s, other.x0s, equal_nan=True)
+                and numpy.array_equal(self.cs, other.cs, equal_nan=True)
+            )
+        except exceptiontools.AttributeNotReady:
+            return False
+
     def assignrepr(self, prefix: str, indent: int = 0) -> str:
         """Return a string representation of the actual |ppolytools.PPoly| object
         prefixed with the given string.
+
+        If you define the polynomials directly, the string representation lists the
+        corresponding |Poly| objects:
 
         >>> from hydpy import Poly, PPoly
         >>> ppoly = PPoly(Poly(x0=1.0, cs=(1.0,)), Poly(x0=2.0, cs=(1.0, 1.0)))
@@ -954,10 +1104,120 @@ agree with the actual number of constants held by vector `x0s` (1).
                 Poly(x0=1.0, cs=(1.0,)),
                 Poly(x0=2.0, cs=(1.0, 1.0)),
             )
+
+        If you let |PPoly| estimate the polynomials from x-y data, the string
+        representation shows this data instead, which is usually easier to
+        understand.  It includes the selected interpolation method only if it is not
+        the default one (linear):
+
+        >>> ppoly = PPoly(xs=[1.0, 2.0, 3.0], ys=[1.0, 2.0, 3.5])
+        >>> ppoly
+        PPoly(
+            xs=[1.0, 2.0, 3.0],
+            ys=[1.0, 2.0, 3.5],
+        )
+        >>> ppoly(xs=[1.0, 2.0, 3.0], ys=[1.0, 2.0, 3.5], method="pchip")
+        >>> print(ppoly.assignrepr(prefix="    ppoly = ", indent=4))
+            ppoly = PPoly(
+                xs=[1.0, 2.0, 3.0],
+                ys=[1.0, 2.0, 3.5],
+                method="pchip",
+            )
+
+        Long data vectors are wrapped:
+
+        >>> PPoly(xs=range(30), ys=range(30))
+        PPoly(
+            xs=[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
+                13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0,
+                25.0, 26.0, 27.0, 28.0, 29.0],
+            ys=[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
+                13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0, 24.0,
+                25.0, 26.0, 27.0, 28.0, 29.0],
+        )
+
+        The string representation must allow for recreating |PPoly| objects (for
+        example, when reading control files).  Hence, it ignores the |Options.ellipsis|
+        option:
+
+        >>> from hydpy import pub
+        >>> with pub.options.ellipsis(1):
+        ...     PPoly(xs=[0.0, 1.0, 2.0, 3.0], ys=[0.0, 1.0, 4.0, 9.0])
+        PPoly(
+            xs=[0.0, 1.0, 2.0, 3.0],
+            ys=[0.0, 1.0, 4.0, 9.0],
+        )
+
+        |PPoly| converts the given data to 64-bit floating-point numbers before
+        estimating the polynomials, so other data types produce consistent string
+        representations, too:
+
+        >>> import numpy
+        >>> PPoly(
+        ...     xs=numpy.array([0.0, 0.3, 1.0], dtype=numpy.float32),
+        ...     ys=numpy.array([0.0, 0.7, 0.9], dtype=numpy.float32),
+        ... )
+        PPoly(
+            xs=[0.0, 0.3, 1.0],
+            ys=[0.0, 0.7, 0.9],
+        )
+
+        The same holds for data containing |numpy.nan| values or duplicate x values,
+        which result in useless polynomials but, at least, consistent string
+        representations:
+
+        >>> from numpy import nan
+        >>> PPoly(xs=[1.0, 2.0, 3.0], ys=[1.0, nan, 3.0])
+        PPoly(
+            xs=[1.0, 2.0, 3.0],
+            ys=[1.0, nan, 3.0],
+        )
+        >>> import warnings
+        >>> with warnings.catch_warnings():
+        ...     warnings.simplefilter("ignore")
+        ...     duplicates = PPoly(xs=[1.0, 1.0, 2.0], ys=[1.0, 2.0, 3.0])
+        >>> duplicates
+        PPoly(
+            xs=[1.0, 1.0, 2.0],
+            ys=[1.0, 2.0, 3.0],
+        )
+
+        |PPoly| remembers the original data but cannot reconstruct it from the
+        polynomials.  Hence, if you modify the polynomials after their estimation, the
+        string representation falls back to listing |Poly| objects:
+
+        >>> ppoly.cs[1, 1] = 2.0
+        >>> ppoly
+        PPoly(
+            Poly(x0=1.0, cs=(1.0, 0.75, 0.3, -0.05)),
+            Poly(x0=2.0, cs=(2.0, 2.0, 0.35, -0.05)),
+        )
+
+        The same holds for incompletely configured |PPoly| objects:
+
+        >>> ppoly = PPoly(xs=[1.0, 2.0], ys=[1.0, 2.0])
+        >>> del ppoly.nmb_ps
+        >>> ppoly
+        PPoly(
+            Poly(x0=1.0, cs=(1.0, 1.0)),
+        )
         """
         blanks = (indent + 4) * " "
         lines = [f"{prefix}{type(self).__name__}("]
-        lines.extend(f"{blanks}{poly}," for poly in self.polynomials)
+        data = self._original_data
+        if (data is not None) and self._data_agrees(data):
+            with hydpy.pub.options.ellipsis(0):
+                for name, values in (("xs", data.xs), ("ys", data.ys)):
+                    lines.append(
+                        objecttools.assignrepr_list(
+                            values, f"{blanks}{name}=", width=79
+                        )
+                        + ","
+                    )
+            if data.method != "linear":
+                lines.append(f'{blanks}method="{data.method}",')
+        else:
+            lines.extend(f"{blanks}{poly}," for poly in self.polynomials)
         lines.append(f'{indent*" "})')
         return "\n".join(lines)
 

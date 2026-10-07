@@ -260,7 +260,8 @@ class SimpleInterpolator(BaseInterpolator):
     >>> simpleinterpolator
     simpleinterpolator(
         PPoly(
-            Poly(x0=0.0, cs=(0.0, 2.0)),
+            xs=[0.0, 1.0],
+            ys=[0.0, 2.0],
         )
     )
 

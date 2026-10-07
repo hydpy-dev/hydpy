@@ -542,7 +542,7 @@ created by its property `Selections.complete`.
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, (Selection, Selections, hydpytools.HydPy)):
-            return (self.nodes == self.nodes) and (self.elements == other.elements)
+            return (self.nodes == other.nodes) and (self.elements == other.elements)
         return False
 
     def __copy__(self) -> Selections:

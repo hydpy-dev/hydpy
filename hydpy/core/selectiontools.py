@@ -1512,11 +1512,11 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         return self
 
     @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
-    def __lt__(self, other: Selection) -> bool:  # type: ignore[has-type]
+    def __lt__(self, other: Selection) -> bool:
         return (self.nodes < other.nodes) and (self.elements < other.elements)
 
     @objecttools.excmessage_decorator(f"compare {_ERRORMESSAGE}")
-    def __le__(self, other: Selection) -> bool:  # type: ignore[has-type]
+    def __le__(self, other: Selection) -> bool:
         return (self.nodes <= other.nodes) and (self.elements <= other.elements)
 
     def __eq__(self, other: object) -> bool:

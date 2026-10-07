@@ -2445,7 +2445,7 @@ parameterstep="1d"))
         return cast(list[str], super().__dir__()) + list(self._rules.keys())
 
 
-class RuleIUH(Rule["arma_control.Responses"]):
+class RuleIUH(Rule["arma_control.Responses"], abc.ABC):
     """A |Rule|, class specialised for |IUH| parameters.
 
     |RuleIUH| serves as a base class only.  Please see the concrete implementation

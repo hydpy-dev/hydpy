@@ -1,10 +1,12 @@
 """This module defines submodel interfaces for sharing (model) states."""
 
+import abc
+
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 
-class IntercModel_V1(modeltools.SubmodelInterface):
+class IntercModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Pure getter interface for using main models as sub-submodels or simple dummy
     models as submodels for querying the amount of intercepted water."""
 
@@ -19,7 +21,7 @@ class IntercModel_V1(modeltools.SubmodelInterface):
         """Get the selected zone's amount of intercepted water in mm."""
 
 
-class SoilWaterModel_V1(modeltools.SubmodelInterface):
+class SoilWaterModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Pure getter interface for using main models as sub-submodels or simple dummy
     models as submodels for querying the soil water content."""
 
@@ -34,7 +36,7 @@ class SoilWaterModel_V1(modeltools.SubmodelInterface):
         """Get the selected zone's soil water content in mm."""
 
 
-class SnowCoverModel_V1(modeltools.SubmodelInterface):
+class SnowCoverModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Pure getter interface for using main models as sub-submodels or simple dummy
     models as submodels for querying the snow cover degree."""
 
@@ -54,7 +56,7 @@ class SnowCoverModel_V1(modeltools.SubmodelInterface):
         """Get the selected zone's snow cover degree as a fraction."""
 
 
-class SnowyCanopyModel_V1(modeltools.SubmodelInterface):
+class SnowyCanopyModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Pure getter interface for using main models as sub-submodels or simple dummy
     models as submodels for querying the snow cover degree in the canopies of tree-like
     vegetation."""
@@ -71,7 +73,7 @@ class SnowyCanopyModel_V1(modeltools.SubmodelInterface):
         vegetation (or |numpy.nan| if the zone's vegetation is not tree-like)."""
 
 
-class SnowAlbedoModel_V1(modeltools.SubmodelInterface):
+class SnowAlbedoModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Pure getter interface for using main models as sub-submodels or simple dummy
     models as submodels for querying the current snow albedo."""
 
@@ -90,7 +92,7 @@ class SnowAlbedoModel_V1(modeltools.SubmodelInterface):
         """
 
 
-class WaterLevelModel_V1(modeltools.SubmodelInterface):
+class WaterLevelModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Pure getter interface for querying the current water level."""
 
     typeid: ClassVar[Literal[1]] = 1

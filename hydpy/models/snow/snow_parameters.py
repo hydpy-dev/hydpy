@@ -1,5 +1,7 @@
 # pylint: disable=missing-module-docstring
 
+import abc
+
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
@@ -33,7 +35,7 @@ class Parameter1DLayers(parametertools.Parameter):
         return self.subpars.pars.control.layerarea
 
 
-class Parameter1D366(parametertools.Parameter):
+class Parameter1D366(parametertools.Parameter, abc.ABC):
     """Base class for parameters with 366 values (days of the year)."""
 
     NDIM: Final[Literal[1]] = 1

@@ -3,11 +3,13 @@
 
 from __future__ import annotations
 
+import abc
+
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 
-class CrossSectionModel_V1(modeltools.SubmodelInterface):
+class CrossSectionModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Interface for calculating the discharge and related properties at a channel
     cross-section."""
 
@@ -46,7 +48,7 @@ class CrossSectionModel_V1(modeltools.SubmodelInterface):
         """Get the wave celerity in m/s."""
 
 
-class CrossSectionModel_V2(modeltools.SubmodelInterface):
+class CrossSectionModel_V2(modeltools.SubmodelInterface, abc.ABC):
     """Interface for calculating discharge-related properties at a channel
     cross-section."""
 
@@ -86,7 +88,7 @@ class CrossSectionModel_V2(modeltools.SubmodelInterface):
         """Get the wetted perimeter in m."""
 
 
-class RoutingModelBase(modeltools.SubmodelInterface):
+class RoutingModelBase(modeltools.SubmodelInterface, abc.ABC):
     """Base interface for routing models at inflow, central, and outflow locations.
 
     An essential note for model developers: All main models using submodels that follow
@@ -132,7 +134,7 @@ class RoutingModelBase(modeltools.SubmodelInterface):
         assert False
 
 
-class RoutingModel_V1(RoutingModelBase):
+class RoutingModel_V1(RoutingModelBase, abc.ABC):
     """Interface for calculating the inflow into a channel."""
 
     typeid: ClassVar[Literal[1]] = 1
@@ -156,7 +158,7 @@ class RoutingModel_V1(RoutingModelBase):
         assert False
 
 
-class RoutingModel_V2(RoutingModelBase):
+class RoutingModel_V2(RoutingModelBase, abc.ABC):
     """Interface for calculating the discharge between two channel segments."""
 
     typeid: ClassVar[Literal[2]] = 2
@@ -197,7 +199,7 @@ class RoutingModel_V2(RoutingModelBase):
         assert False
 
 
-class RoutingModel_V3(RoutingModelBase):
+class RoutingModel_V3(RoutingModelBase, abc.ABC):
     """Interface for calculating the outflow of a channel."""
 
     typeid: ClassVar[Literal[3]] = 3
@@ -221,7 +223,7 @@ class RoutingModel_V3(RoutingModelBase):
         assert False
 
 
-class StorageModel_V1(modeltools.SubmodelInterface):
+class StorageModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Interface for calculating the water amount stored in a single channel segment."""
 
     typeid: ClassVar[Literal[1]] = 1
@@ -258,7 +260,7 @@ class StorageModel_V1(modeltools.SubmodelInterface):
         assert False
 
 
-class ChannelModel_V1(modeltools.SubmodelInterface):
+class ChannelModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Interface for handling routing and storage submodels.
 
     The purpose of any model that follows the |ChannelModel_V1| interface is to collect

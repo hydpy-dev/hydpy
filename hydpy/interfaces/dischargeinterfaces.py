@@ -1,11 +1,13 @@
 """This module defines interfaces for calculating discharge based on flow formulas or
 rating curves."""
 
+import abc
+
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 
-class DischargeModel_V1(modeltools.SubmodelInterface):
+class DischargeModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Simple interface for calculating discharge in m³/s based on the current water
     depth."""
 
@@ -24,7 +26,7 @@ class DischargeModel_V1(modeltools.SubmodelInterface):
         m³/s."""
 
 
-class DischargeModel_V2(modeltools.SubmodelInterface):
+class DischargeModel_V2(modeltools.SubmodelInterface, abc.ABC):
     """Simple interface for calculating discharge in mm/T based on the current water
     depth."""
 

@@ -1,10 +1,12 @@
 """This module defines submodel interfaces for providing temperature."""
 
+import abc
+
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 
-class TempModel_V1(modeltools.SubmodelInterface):
+class TempModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Pure getter interface for using main models as sub-submodels."""
 
     typeid: ClassVar[Literal[1]] = 1
@@ -19,7 +21,7 @@ class TempModel_V1(modeltools.SubmodelInterface):
         """Get the basin's mean temperature value in °C."""
 
 
-class TempModel_V2(modeltools.SubmodelInterface):
+class TempModel_V2(modeltools.SubmodelInterface, abc.ABC):
     """Simple interface for determining the temperature in one step."""
 
     typeid: ClassVar[Literal[2]] = 2

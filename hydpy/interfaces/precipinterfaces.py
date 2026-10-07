@@ -1,10 +1,12 @@
 """This module defines submodel interfaces for providing precipitation."""
 
+import abc
+
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 
-class PrecipModel_V1(modeltools.SubmodelInterface):
+class PrecipModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Pure getter interface for using main models as sub-submodels."""
 
     typeid: ClassVar[Literal[1]] = 1
@@ -15,7 +17,7 @@ class PrecipModel_V1(modeltools.SubmodelInterface):
         """Get the selected zone's precipitation value in mm/T."""
 
 
-class PrecipModel_V2(modeltools.SubmodelInterface):
+class PrecipModel_V2(modeltools.SubmodelInterface, abc.ABC):
     """Simple interface for determining precipitation in one step."""
 
     typeid: ClassVar[Literal[2]] = 2

@@ -1,5 +1,7 @@
 # pylint: disable=missing-module-docstring
 
+import abc
+
 import inflect
 import numpy
 
@@ -10,7 +12,7 @@ from hydpy.models.manager import manager_model
 from hydpy.models.manager import manager_control
 
 
-class ParameterSource(parametertools.Parameter):
+class ParameterSource(parametertools.Parameter, abc.ABC):
     """Base class for parameters that handle individual values for all sources.
 
     We take the parameter |Active| as an example, which requires (as all subclasses of

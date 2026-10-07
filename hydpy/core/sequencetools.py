@@ -1184,7 +1184,7 @@ class SenderSequences(LinkSequences[TM_co, "SenderSequence"]):
     """Base class for handling "sender" |LinkSequence| objects."""
 
 
-class Sequence_(variabletools.Variable):
+class Sequence_(variabletools.Variable, abc.ABC):
     """Base class for defining different kinds of sequences.
 
     Note that model developers should not derive their model-specific sequence classes
@@ -2823,7 +2823,7 @@ element `element3`.
         """Description of the |Device| object the |IOSequence| object belongs to."""
 
 
-class ModelSequence(Sequence_):
+class ModelSequence(Sequence_, abc.ABC):
     """Base class for sequences to be handled by |Model| objects."""
 
     subvars: ModelSequences[modeltools.Model, ModelSequence, variabletools.FastAccess]
@@ -2967,7 +2967,7 @@ the following error occurred: 'Model' object has no attribute 'numconsts'
         return tuple(numericshape)
 
 
-class ModelIOSequence(ModelSequence, IOSequence):
+class ModelIOSequence(ModelSequence, IOSequence, abc.ABC):
     """Base class for sequences with time series functionalities to be handled by
     |Model| objects."""
 
@@ -2986,7 +2986,7 @@ class ModelIOSequence(ModelSequence, IOSequence):
         self.node2idx = {}
 
 
-class BaseLinkInputSequence(ModelIOSequence):
+class BaseLinkInputSequence(ModelIOSequence, abc.ABC):
     """Base class for |LinkSequence| and |InputSequence|."""
 
     def connect_to_nodes(
@@ -3042,7 +3042,7 @@ class BaseLinkInputSequence(ModelIOSequence):
                 self.node2idx[node] = idx
 
 
-class InputSequence(BaseLinkInputSequence):
+class InputSequence(BaseLinkInputSequence, abc.ABC):
     """Base class for input sequences of |Model| objects.
 
     |InputSequence| objects provide their master model with input data, which is
@@ -3195,7 +3195,7 @@ class InputSequence(BaseLinkInputSequence):
         return self.__hydpy__get_fastaccessattribute__("inputflag")
 
 
-class OutputSequence(ModelIOSequence):
+class OutputSequence(ModelIOSequence, abc.ABC):
     """Base class for |FactorSequence|, |FluxSequence| and |StateSequence|.
 
     |OutputSequence| subclasses implement an optional output mechanism.  Generally, as
@@ -3339,7 +3339,7 @@ class OutputSequence(ModelIOSequence):
         return self.__hydpy__get_fastaccessattribute__("outputflag")
 
 
-class DependentSequence(OutputSequence):
+class DependentSequence(OutputSequence, abc.ABC):
     """Base class for |FactorSequence| and |FluxSequence|."""
 
     def _finalise_connections(self) -> None:
@@ -3404,7 +3404,7 @@ class DependentSequence(OutputSequence):
             self.__hydpy__set_fastaccessattribute__("sum", numpy.zeros(self.shape))
 
 
-class FactorSequence(DependentSequence):
+class FactorSequence(DependentSequence, abc.ABC):
     """Base class for factor sequences of |Model| objects."""
 
     subvars: FactorSequences[modeltools.Model]
@@ -3417,7 +3417,7 @@ class FactorSequence(DependentSequence):
     #                               `modeltutils`.
 
 
-class FluxSequence(DependentSequence):
+class FluxSequence(DependentSequence, abc.ABC):
     """Base class for flux sequences of |Model| objects."""
 
     subvars: FluxSequences[modeltools.Model]
@@ -3426,7 +3426,7 @@ class FluxSequence(DependentSequence):
     """Alias for |FluxSequence.subvars|."""
 
 
-class ConditionSequence(ModelSequence):
+class ConditionSequence(ModelSequence, abc.ABC):
     """Base class for |StateSequence| and |LogSequence|.
 
     Class |ConditionSequence| should not be subclassed by model developers directly.
@@ -3503,7 +3503,7 @@ class ConditionSequence(ModelSequence):
             self(*self._oldargs)
 
 
-class StateSequence(OutputSequence, ConditionSequence):
+class StateSequence(OutputSequence, ConditionSequence, abc.ABC):
     """Base class for state sequences of |Model| objects.
 
     Each |StateSequence| object can handle states at two different "time points": at
@@ -3727,7 +3727,7 @@ not broadcast input array from shape (3,) into shape (2,)
             self.old = self.new
 
 
-class LogSequence(ConditionSequence):
+class LogSequence(ConditionSequence, abc.ABC):
     """Base class for logging values required for later calculations.
 
     Class |LogSequence| serves similar purposes as |StateSequence|  but is less strict
@@ -3803,7 +3803,7 @@ changed, but this was attempted for element `?`.
         prop.fset(self, shape)  # type: ignore[attr-defined]
 
 
-class AideSequence(ModelSequence):
+class AideSequence(ModelSequence, abc.ABC):
     """Base class for aide sequences of |Model| objects.
 
     Aide sequences store data only relevant for calculating an individual simulation
@@ -3819,7 +3819,7 @@ class AideSequence(ModelSequence):
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
 
 
-class LinkSequence(BaseLinkInputSequence):
+class LinkSequence(BaseLinkInputSequence, abc.ABC):
     """Base class for link sequences of |Model| objects.
 
     |LinkSequence| objects not only handle values themselves but also point to the
@@ -4047,7 +4047,7 @@ requested, but not prepared yet via `set_pointer`.
             )
 
 
-class InletSequence(LinkSequence):
+class InletSequence(LinkSequence, abc.ABC):
     """Base class for inlet link sequences of |Model| objects."""
 
     subvars: InletSequences[modeltools.Model]
@@ -4056,7 +4056,7 @@ class InletSequence(LinkSequence):
     """Alias for |InletSequence.subvars|."""
 
 
-class OutletSequence(LinkSequence):
+class OutletSequence(LinkSequence, abc.ABC):
     """Base class for outlet link sequences of |Model| objects."""
 
     subvars: OutletSequences[modeltools.Model]
@@ -4065,7 +4065,7 @@ class OutletSequence(LinkSequence):
     """Alias for |OutletSequence.subvars|."""
 
 
-class ObserverSequence(LinkSequence):
+class ObserverSequence(LinkSequence, abc.ABC):
     """Base class for observer link sequences of |Model| objects."""
 
     subvars: ObserverSequences[modeltools.Model]
@@ -4074,7 +4074,7 @@ class ObserverSequence(LinkSequence):
     """Alias for |ObserverSequence.subvars|."""
 
 
-class ReceiverSequence(LinkSequence):
+class ReceiverSequence(LinkSequence, abc.ABC):
     """Base class for receiver link sequences of |Model| objects."""
 
     subvars: ReceiverSequences[modeltools.Model]
@@ -4083,7 +4083,7 @@ class ReceiverSequence(LinkSequence):
     """Alias for |ReceiverSequence.subvars|."""
 
 
-class SenderSequence(LinkSequence):
+class SenderSequence(LinkSequence, abc.ABC):
     """Base class for sender link sequences of |Model| objects."""
 
     subvars: SenderSequences[modeltools.Model]

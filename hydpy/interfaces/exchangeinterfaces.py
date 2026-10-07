@@ -3,11 +3,13 @@ data."""
 
 from __future__ import annotations
 
+import abc
+
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
 
-class ExchangeModel_V1(modeltools.SubmodelInterface):
+class ExchangeModel_V1(modeltools.SubmodelInterface, abc.ABC):
     """Interface for exchanging modified, scalar data of arbitrary type."""
 
     typeid: ClassVar[Literal[1]] = 1

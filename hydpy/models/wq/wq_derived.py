@@ -1,5 +1,6 @@
 # pylint: disable=missing-module-docstring
 
+import abc
 import itertools
 
 import math
@@ -246,7 +247,7 @@ class SectorTotalWidths(_SectorWidths):
 
 
 class _SectorAreasFromWidths(
-    wq_variables.MixinSectorsAndWidths, parametertools.Parameter
+    wq_variables.MixinSectorsAndWidths, parametertools.Parameter, abc.ABC
 ):
 
     def _update(self, widths: SectorFlowWidths | SectorTotalWidths) -> None:
@@ -332,7 +333,7 @@ class SectorTotalAreasFromWidths(_SectorAreasFromWidths):
 
 
 class _SectorAreasFromTable(
-    wq_variables.MixinSectorsAndWidths, parametertools.Parameter
+    wq_variables.MixinSectorsAndWidths, parametertools.Parameter, abc.ABC
 ):
 
     def _update(self, *, widths: VectorFloat, areas: VectorFloat) -> None:
@@ -448,7 +449,9 @@ class SectorTotalAreasFromTable(_SectorAreasFromTable):
         self._update(widths=control.totalwidths.values, areas=control.totalareas.values)
 
 
-class _AreaAdjustments(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
+class _AreaAdjustments(
+    wq_variables.MixinSectorsAndWidths, parametertools.Parameter, abc.ABC
+):
 
     def _update(self, *, widths: MatrixFloat, areas: MatrixFloat) -> None:
 

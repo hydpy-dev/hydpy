@@ -1,5 +1,7 @@
 # pylint: disable=missing-module-docstring
 
+import abc
+
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.evap import evap_masks
@@ -48,14 +50,14 @@ class LandMonthParameter(parametertools.KeywordParameter2D):
     rownames: tuple[str, ...] = ("ANY",)
 
 
-class BaseZipParameter1D(parametertools.ZipParameter):
+class BaseZipParameter1D(parametertools.ZipParameter, abc.ABC):
     """Base class for 1-dimensional parameters that provide additional keyword-based
     zipping functionalities."""
 
     constants = {}
 
 
-class CompleteZipParameter1D(BaseZipParameter1D):
+class CompleteZipParameter1D(BaseZipParameter1D, abc.ABC):
     """Base class for unrestricted 1-dimensional parameters.
 
     >>> from hydpy.models.hland_96 import *
@@ -83,7 +85,7 @@ class CompleteZipParameter1D(BaseZipParameter1D):
     mask = evap_masks.Complete()
 
 
-class SoilParameter1D(BaseZipParameter1D):
+class SoilParameter1D(BaseZipParameter1D, abc.ABC):
     """Base class for soil-related 1-dimensional parameters.
 
     >>> from hydpy.models.hland_96 import *
@@ -110,7 +112,7 @@ class SoilParameter1D(BaseZipParameter1D):
     mask = evap_masks.Soil()
 
 
-class PlantParameter1D(BaseZipParameter1D):
+class PlantParameter1D(BaseZipParameter1D, abc.ABC):
     """Base class for plant-related 1-dimensional parameters.
 
     >>> from hydpy.models.lland_dd import *
@@ -143,7 +145,7 @@ class PlantParameter1D(BaseZipParameter1D):
     mask = evap_masks.Plant()
 
 
-class WaterParameter1D(BaseZipParameter1D):
+class WaterParameter1D(BaseZipParameter1D, abc.ABC):
     """Base class for water area-related 1-dimensional parameters.
 
     >>> from hydpy.models.hland_96 import *

@@ -71,8 +71,8 @@ We define the same inflow as for |dam_v003|:
 |dam_v003| and |dam_v004| share the following parameters and we apply the same values
 as for |dam_v003|:
 
->>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
->>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0], ys=[0.0]))
+>>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0], ys=[0.0, 0.25]))
+>>> waterlevel2flooddischarge(PPoly(xs=[0.0], ys=[0.0]))
 >>> catchmentarea(86.4)
 >>> neardischargeminimumthreshold(0.2)
 >>> neardischargeminimumtolerance(0.2)
@@ -94,7 +94,7 @@ which disable any relief discharges:
 >>> remoterelieftolerance(0.0)
 >>> highestremotedischarge(inf)
 >>> highestremotetolerance(0.1)
->>> waterlevel2possibleremoterelief(PPoly.from_data(xs=[0.0], ys=[0.0]))
+>>> waterlevel2possibleremoterelief(PPoly(xs=[0.0], ys=[0.0]))
 >>> figure = waterlevel2possibleremoterelief.plot(-0.1, 1.0)
 >>> from hydpy.core.testtools import save_autofig
 >>> save_autofig("dam_v004_waterlevel2possibleremoterelief_1.png", figure=figure)
@@ -173,7 +173,7 @@ supply to zero:
 
 Also, we set the possible relief discharge to a huge constant value of 100 m³/s:
 
->>> waterlevel2possibleremoterelief(PPoly.from_data(xs=[0.0], ys=[100.0]))
+>>> waterlevel2possibleremoterelief(PPoly(xs=[0.0], ys=[100.0]))
 >>> figure = waterlevel2possibleremoterelief.plot(-0.1, 1.0)
 >>> from hydpy.core.testtools import save_autofig
 >>> save_autofig("dam_v004_waterlevel2possibleremoterelief_2.png", figure=figure)
@@ -317,7 +317,7 @@ we turn off the remote relief discharge again:
 >>> test.inits.loggedrequiredremoterelease = 0.005
 >>> test.inits.loggedallowedremoterelief = 0.0
 >>> waterlevelminimumremotetolerance(0.0)
->>> waterlevel2possibleremoterelief(PPoly.from_data(xs=[0.0], ys=[0.0]))
+>>> waterlevel2possibleremoterelief(PPoly(xs=[0.0], ys=[0.0]))
 >>> remoterelieftolerance(0.0)
 >>> allowed_relief.sequences.sim.series = 0.0
 
@@ -469,7 +469,7 @@ configuration:
 >>> waterlevelminimumtolerance(0.0)
 >>> waterlevelminimumremotethreshold(0.0)
 >>> waterlevelminimumremotetolerance(0.0)
->>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.5]))
+>>> waterlevel2flooddischarge(PPoly(xs=[0.0, 1.0], ys=[0.0, 2.5]))
 >>> neardischargeminimumthreshold(0.0)
 >>> with model.add_precipmodel_v2("meteo_precip_io") as precipmodel:
 ...     precipitationfactor(1.0)
@@ -549,7 +549,7 @@ from 0.0 to 1.5 m³/s:
 
 Also, we set the possible relief discharge to a constant value of 5.0 m³/s:
 
->>> waterlevel2possibleremoterelief(PPoly.from_data(xs=[0.0], ys=[5.0]))
+>>> waterlevel2possibleremoterelief(PPoly(xs=[0.0], ys=[5.0]))
 >>> figure = waterlevel2possibleremoterelief.plot(-0.1, 1.0)
 >>> save_autofig("dam_v004_waterlevel2possibleremoterelief_4.png", figure=figure)
 

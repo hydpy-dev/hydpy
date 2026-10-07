@@ -110,7 +110,7 @@ basin's behaviour as long as |AllowedWaterLevelDrop| is set to infinity but enab
 calculating the water level at the end of the respective simulation steps for
 informational purposes:
 
->>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0, 2.0], ys=[0.0, 1.0, 1.5]))
+>>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0, 2.0], ys=[0.0, 1.0, 1.5]))
 
 Parameter |Commission| allows for the modelling of the commissioning of a detention
 basin during the simulation period.  We first set it to the start of the simulation
@@ -218,7 +218,7 @@ estimate decreases linearly from 3 to 0 m³/s (and remains at 0 m³/s for larger
 >>> nmbsafereleasemodels(1)
 >>> with model.add_safereleasemodel("exch_interp", position=0):
 ...     observernodes("gauge")
-...     x2y(PPoly.from_data(xs=[0.0, 3.0, 6.0], ys=[3.0, 0.0, 0.0]))
+...     x2y(PPoly(xs=[0.0, 3.0, 6.0], ys=[3.0, 0.0, 0.0]))
 
 Due to the change in the network configuration, we need to recreate the test function
 object:

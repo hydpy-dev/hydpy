@@ -4744,7 +4744,7 @@ class Calc_AllowedWaterLevel_V1(modeltools.Method):
         allowedwaterlevel(-inf)
 
         >>> from hydpy import PPoly
-        >>> watervolume2waterlevel(PPoly.from_data([0.0, 1.0, 2.0], [1.0, 2.0, 4.0]))
+        >>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0, 2.0], ys=[1.0, 2.0, 4.0]))
         >>> allowedwaterleveldrop(1.0)
         >>> states.watervolume = 1.5
         >>> model.calc_allowedwaterlevel_v1()
@@ -4814,7 +4814,7 @@ class Calc_AllowedDischarge_V3(modeltools.Method):
         A simplified case without additional fluxes:
 
         >>> from hydpy import PPoly
-        >>> watervolume2waterlevel(PPoly.from_data([0.0, 2.0, 4.0], [1.0, 3.0, 7.0]))
+        >>> watervolume2waterlevel(PPoly(xs=[0.0, 2.0, 4.0], ys=[1.0, 3.0, 7.0]))
         >>> derived.seconds(1e6)
         >>> states.watervolume = 3.0
         >>> aides.allowedwaterlevel = 2.0
@@ -4909,11 +4909,11 @@ class Calc_SafeRelease_V1(modeltools.Method):
         >>> nmbsafereleasemodels(2)
         >>> with model.add_safereleasemodel("exch_interp", position=0):
         ...     observernodes("gauge_1")
-        ...     x2y(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+        ...     x2y(PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]))
         ...     observers.x = 5.0
         >>> with model.add_safereleasemodel("exch_interp", position=1):
         ...     observernodes("gauge_2")
-        ...     x2y(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+        ...     x2y(PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]))
         ...     observers.x = 6.0
         >>> model.calc_saferelease_v1()
         >>> fluxes.saferelease
@@ -6008,7 +6008,7 @@ class Return_WaterLevelError_V1(modeltools.Method):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> from hydpy import PPoly, round_
-        >>> watervolume2waterlevel(PPoly.from_data([0.0, 1.0, 2.0], [1.0, 2.0, 4.0]))
+        >>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0, 2.0], ys=[1.0, 2.0, 4.0]))
         >>> aides.allowedwaterlevel = 3.0
         >>> round_(model.return_waterlevelerror_v1(0.5))
         -1.5

@@ -129,8 +129,8 @@ All source elements get identically configured model instances of |dam_llake|:
 ...     control.dischargetolerance(0.0)
 ...     control.toleranceevaporation(0.0)
 ...     control.allowedwaterleveldrop(inf)
-...     control.watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
-...     control.waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.1]))
+...     control.watervolume2waterlevel(PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+...     control.waterlevel2flooddischarge(PPoly(xs=[0.0, 1.0], ys=[0.0, 0.1]))
 ...     control.commission("2000-01-01")
 ...     control.pars.update()
 

@@ -120,8 +120,8 @@ conditions precisely as in the |dam_v001| examples:
 
 The following control parameters are common to both models.  We apply the same values:
 
->>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
->>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0], ys=[0.0]))
+>>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0], ys=[0.0, 0.25]))
+>>> waterlevel2flooddischarge(PPoly(xs=[0.0], ys=[0.0]))
 >>> catchmentarea(86.4)
 >>> nmblogentries(1)
 >>> remotedischargeminimum(1.4)
@@ -352,7 +352,7 @@ This example repeats the :ref:`dam_v001_flood_retention` example of application 
 >>> remotedischargesafety(0.0)
 >>> waterlevelminimumthreshold(0.0)
 >>> waterlevelminimumtolerance(0.0)
->>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys= [0.0, 2.5]))
+>>> waterlevel2flooddischarge(PPoly(xs=[0.0, 1.0], ys= [0.0, 2.5]))
 >>> neardischargeminimumthreshold(0.0)
 >>> with model.add_precipmodel_v2("meteo_precip_io") as precipmodel:
 ...     precipitationfactor(1.0)

@@ -35,7 +35,7 @@ We take all of the following settings from the documentation on the application 
 
 >>> surfacearea(1.44)
 >>> catchmentarea(86.4)
->>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+>>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 >>> remotewaterlevelmaximumthreshold(2.0)
 >>> remotewaterlevelmaximumtolerance(0.1)
 >>> correctionprecipitation(1.0)
@@ -71,7 +71,7 @@ The remaining parameters are specific to |dam_sluice|.
 We define a one-to-one relationship between the effective water level difference and
 the highest possible free discharge values:
 
->>> waterleveldifference2maxfreedischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+>>> waterleveldifference2maxfreedischarge(PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 
 By setting the crest level to 1 m, only inner and outer water levels higher than one
 meter are "effective" (can cause inflow or outflow through the hydraulic structure):

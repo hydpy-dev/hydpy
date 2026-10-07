@@ -26,7 +26,7 @@ We take all of the following settings from the documentation on the application 
 
 >>> surfacearea(1.44)
 >>> catchmentarea(86.4)
->>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+>>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 >>> waterlevelmaximumthreshold(1.0)
 >>> waterlevelmaximumtolerance(0.1)
 >>> remotewaterlevelmaximumthreshold(2.0)
@@ -70,8 +70,8 @@ First, we demonstrate the proper implementation of the "forced discharge" compon
 enabling them, like in the :ref:`dam_pump_drainage` example of application model
 |dam_pump|, while turning off the "free discharge" component:
 
->>> waterleveldifference2maxforceddischarge(PPoly.from_data(xs=[0.0], ys=[1.0]))
->>> waterleveldifference2maxfreedischarge(PPoly.from_data(xs=[0.0], ys=[0.0]))
+>>> waterleveldifference2maxforceddischarge(PPoly(xs=[0.0], ys=[1.0]))
+>>> waterleveldifference2maxfreedischarge(PPoly(xs=[0.0], ys=[0.0]))
 
 To reproduce the results of |dam_pump| exactly, we must set |DischargeTolerance| to
 zero (see the critical remark at the end of the documentation on method
@@ -120,8 +120,8 @@ ___________
 Next, we switch from pure "forced discharge" to pure "free discharge" according to the
 :ref:`dam_sluice_drainage` example on application model |dam_sluice|:
 
->>> waterleveldifference2maxforceddischarge(PPoly.from_data(xs=[0.0], ys=[0.0]))
->>> waterleveldifference2maxfreedischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+>>> waterleveldifference2maxforceddischarge(PPoly(xs=[0.0], ys=[0.0]))
+>>> waterleveldifference2maxfreedischarge(PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 >>> dischargetolerance(0.1)
 
 The following results are identical to those of the :ref:`dam_sluice_drainage` example:
@@ -165,7 +165,7 @@ simultaneously:
 
 .. integration-test::
 
-    >>> waterleveldifference2maxforceddischarge(PPoly.from_data(xs=[0.0], ys=[1.0]))
+    >>> waterleveldifference2maxforceddischarge(PPoly(xs=[0.0], ys=[1.0]))
     >>> test("dam_pump_sluice_pump_and_sluice")
     |   date | waterlevel | outerwaterlevel | remotewaterlevel | waterleveldifference | effectivewaterleveldifference | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | freedischarge | maxforceddischarge | maxfreedischarge | forceddischarge |  outflow | watervolume | inflow | outer |  outflow |   remote |
     -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -204,7 +204,7 @@ e.g. to simulate irrigation processes):
 
 .. integration-test::
 
-    >>> waterleveldifference2maxforceddischarge(PPoly.from_data(xs=[0.0], ys=[-1.0]))
+    >>> waterleveldifference2maxforceddischarge(PPoly(xs=[0.0], ys=[-1.0]))
     >>> waterlevelmaximumthreshold(1.5)
     >>> remotewaterlevelmaximumthreshold(0.5)
     >>> test("dam_pump_sluice_irrigation_and_sluice")

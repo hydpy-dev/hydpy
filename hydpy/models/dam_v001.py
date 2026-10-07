@@ -130,7 +130,7 @@ For the sake of simplicity, we define a linear relationship between the stored w
 volume and the water level.  One can accomplish this most easily via method
 |PPoly.from_data| of class |PPoly|:
 
->>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
+>>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0], ys=[0.0, 0.25]))
 
 The following figure confirms the linearity of the defined relationship:
 
@@ -145,7 +145,7 @@ To focus on the drought-related algorithms only, we turn off the flood-related
 processes.  Therefore, we let parameter |WaterLevel2FloodDischarge| return zero for all
 possible input values:
 
->>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0], ys=[0.0]))
+>>> waterlevel2flooddischarge(PPoly(xs=[0.0], ys=[0.0]))
 >>> figure = waterlevel2flooddischarge.plot(0.0, 25.0)
 >>> save_autofig("dam_v001_waterlevel2flooddischarge_1.png", figure=figure)
 
@@ -847,7 +847,7 @@ of |dam_v001| with an analytical solution.  The relationship between water volum
 level is already linear, and we adjust the relationship between water level and flood
 discharge accordingly:
 
->>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys= [0.0, 2.5]))
+>>> waterlevel2flooddischarge(PPoly(xs=[0.0, 1.0], ys= [0.0, 2.5]))
 >>> figure = waterlevel2flooddischarge.plot(0.0, 25.0)
 >>> save_autofig("dam_v001_waterlevel2flooddischarge_2.png", figure=figure)
 
@@ -996,7 +996,7 @@ We reset the local error tolerance to a more practical value but configure the
 |WaterLevel2FloodDischarge| parameter in a highly dynamic manner:
 
 >>> solver.abserrormax(0.01)
->>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 250.0]))
+>>> waterlevel2flooddischarge(PPoly(xs=[0.0, 1.0], ys=[0.0, 250.0]))
 >>> figure = waterlevel2flooddischarge.plot(0.0, 25.0)
 >>> save_autofig("dam_v001_waterlevel2flooddischarge_3.png", figure=figure)
 

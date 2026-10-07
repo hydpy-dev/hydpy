@@ -51,7 +51,7 @@ between stage and volume:
 ...     (logs.loggedadjustedevaporation, 0.0)]
 >>> test.reset_inits()
 >>> conditions = model.conditions
->>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+>>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 >>> surfacearea(1.44)
 >>> catchmentarea(86.4)
 >>> correctionprecipitation(1.2)
@@ -80,7 +80,7 @@ First, we again use the linear relation between discharge and stage used
 throughout the integration tests of |dam_llake| and in the :ref:`base example
 <dam_lretention_base_scenario>` of |dam_lretention|:
 
->>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 10.0]))
+>>> waterlevel2flooddischarge(PPoly(xs=[0.0, 1.0], ys=[0.0, 10.0]))
 
 Additionally, we set some of the remaining parameter values extremely high or low to
 ensure the reservoir stores all water except the one activating the spillway, which

@@ -89,7 +89,7 @@ the first simulation run:
 |dam_llake| assumes the relationship between |WaterLevel| and |WaterVolume| to be
 constant over time.  For simplicity, we define a linear relationship by using |PPoly|:
 
->>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+>>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 >>> figure = watervolume2waterlevel.plot(0.0, 1.0)
 >>> from hydpy.core.testtools import save_autofig
 >>> save_autofig("dam_llake_watervolume2waterlevel.png", figure=figure)
@@ -104,7 +104,7 @@ constant over time.  For simplicity, we define a linear relationship by using |P
 simple as possible and define a single linear relationship that applies for the whole
 year:
 
->>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 10.0]))
+>>> waterlevel2flooddischarge(PPoly(xs=[0.0, 1.0], ys=[0.0, 10.0]))
 >>> figure = waterlevel2flooddischarge.plot(0.0, 1.0)
 >>> figure = save_autofig("dam_llake_waterlevel2flooddischarge.png", figure=figure)
 

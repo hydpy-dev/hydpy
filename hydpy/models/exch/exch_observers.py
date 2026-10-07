@@ -83,7 +83,7 @@ information via the control parameter `observernodes`.
         >>> nmbsafereleasemodels(1)
         >>> with model.add_safereleasemodel("exch_interp", position=0):
         ...     observernodes("gauge_1")
-        ...     x2y(PPoly.from_data(xs=[0.0], ys=[0.0]))
+        ...     x2y(PPoly(xs=[0.0], ys=[0.0]))
         >>> basin.model.connect()
         Traceback (most recent call last):
         ...
@@ -124,10 +124,10 @@ following node is unavailable: gauge_1.
         >>> nmbsafereleasemodels(2)
         >>> with model.add_safereleasemodel("exch_interp", position=0):
         ...     observernodes("gauge_1")
-        ...     x2y(PPoly.from_data(xs=[0.0], ys=[0.0]))
+        ...     x2y(PPoly(xs=[0.0], ys=[0.0]))
         >>> with model.add_safereleasemodel("exch_interp", position=1):
         ...     observernodes("gauge_2", "gauge_3", "gauge_4")
-        ...     x2y(PPoly.from_data(xs=[0.0], ys=[0.0]))
+        ...     x2y(PPoly(xs=[0.0], ys=[0.0]))
         >>> basin.model.connect()
         Traceback (most recent call last):
         ...

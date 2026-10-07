@@ -201,15 +201,17 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
     }
 
     @overload
-    def __call__(self, value: VectorInputFloat, /) -> None: ...
+    def __call__(  # pylint: disable=arguments-differ
+        self, value: VectorInputFloat, /
+    ) -> None: ...
 
     @overload
-    def __call__(
+    def __call__(  # pylint: disable=arguments-differ
         self, option: Literal["triangle"], /, *, tb: float, tp: float | None = None
     ) -> None: ...
 
     @overload
-    def __call__(
+    def __call__(  # pylint: disable=arguments-differ
         self, option: Literal["gr_uh1", "gr_uh2"], /, *, x4: float, beta: float = 2.5
     ) -> None: ...
 

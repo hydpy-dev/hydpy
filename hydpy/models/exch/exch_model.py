@@ -493,7 +493,7 @@ class Calc_Y_V1(modeltools.Method):
         >>> from hydpy.models.exch import *
         >>> parameterstep()
         >>> from hydpy import PPoly
-        >>> x2y(PPoly.from_data([0.0, 1.0], [2.0, 4.0]))
+        >>> x2y(PPoly(xs=[0.0, 1.0], ys=[2.0, 4.0]))
         >>> factors.x = 0.5
         >>> model.calc_y_v1()
         >>> factors.y

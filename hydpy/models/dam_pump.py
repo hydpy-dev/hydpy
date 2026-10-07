@@ -50,8 +50,8 @@ help understand the following settings:
 
 >>> surfacearea(1.44)
 >>> catchmentarea(86.4)
->>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
->>> waterleveldifference2maxforceddischarge(PPoly.from_data(xs=[0.0], ys=[1.0]))
+>>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+>>> waterleveldifference2maxforceddischarge(PPoly(xs=[0.0], ys=[1.0]))
 >>> waterlevelmaximumthreshold(1.0)
 >>> waterlevelmaximumtolerance(0.1)
 >>> remotewaterlevelmaximumthreshold(2.0)
@@ -144,7 +144,7 @@ the inner water level is lower than the defined threshold of 1 m and the remote
 water level is above the defined threshold of 2 m. When the water level rises
 above 1 meter, the pumping rate quickly decreases to 0.
 
->>> waterleveldifference2maxforceddischarge(PPoly.from_data(xs=[0.0], ys=[-1.0]))
+>>> waterleveldifference2maxforceddischarge(PPoly(xs=[0.0], ys=[-1.0]))
 >>> remote.sequences.sim.series = numpy.linspace(1.0, 4.0, 20)
 >>> waterlevelmaximumthreshold(2.0)
 

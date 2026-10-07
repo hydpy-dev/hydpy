@@ -3059,7 +3059,7 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
             control_sluice.surfacearea(1.44)
             control_sluice.catchmentarea(86.4)
             control_sluice.watervolume2waterlevel(
-                ppolytools.PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0])
+                ppolytools.PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0])
             )
             control_sluice.remotewaterlevelmaximumthreshold(2.0)
             control_sluice.remotewaterlevelmaximumtolerance(0.0)
@@ -3070,7 +3070,7 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
             control_sluice.toleranceevaporation(0.001)
             control_sluice.crestlevel(1.0)
             control_sluice.waterleveldifference2maxfreedischarge(
-                ppolytools.PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.1])
+                ppolytools.PPoly(xs=[0.0, 1.0], ys=[0.0, 0.1])
             )
             control_sluice.crestleveltolerance(0.1)
             control_sluice.dischargetolerance(0.0)

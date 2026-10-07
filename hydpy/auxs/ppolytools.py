@@ -85,9 +85,11 @@ class PPoly(interptools.InterpAlgorithm):
     constructor:
 
     >>> from hydpy import Poly, PPoly
-    >>> ppoly = PPoly(Poly(x0=1.0, cs=(1.0,)),
-    ...         Poly(x0=2.0, cs=(1.0, 1.0)),
-    ...         Poly(x0=3.0, cs=(2.0, 3.0)))
+    >>> ppoly = PPoly(
+    ...     Poly(x0=1.0, cs=(1.0,)),
+    ...     Poly(x0=2.0, cs=(1.0, 1.0)),
+    ...     Poly(x0=3.0, cs=(2.0, 3.0)),
+    ... )
 
     Note that each power series constant (|Poly.x0|) also serves as a breakpoint.  Each
     |Poly.x0| value defines the lower bound of the interval for which the polynomial is
@@ -159,7 +161,6 @@ class PPoly(interptools.InterpAlgorithm):
     | 1.0, 1.0 |
     | 2.0, 3.0 |
 
-
     Property |PPoly.nmb_ps| reflects the total number of polynomials:
 
     >>> ppoly.nmb_ps
@@ -215,34 +216,182 @@ agree with the actual number of constants held by vector `x0s` (3).
     0.0   1.0  2.0
     1.0   4.0  4.0
 
+    Instead of defining the polynomials directly, you can let |PPoly| estimate them
+    from x-y data.  Therefore, pass the data via the keyword arguments `xs` and `ys`
+    and, optionally, select an interpolation approach via the keyword argument
+    `method` (see method |PPoly.from_data| for more information).  This works when
+    calling an existing |PPoly| object:
+
+    >>> ppoly(xs=[0.0, 1.0, 3.0], ys=[2.0, 5.0, 6.0])
+    >>> ppoly
+    PPoly(
+        Poly(x0=0.0, cs=(2.0, 3.0)),
+        Poly(x0=1.0, cs=(5.0, 0.5)),
+    )
+
+    It also works when creating a new one:
+
+    >>> PPoly(xs=[0.0, 1.0], ys=[2.0, 5.0])
+    PPoly(
+        Poly(x0=0.0, cs=(2.0, 3.0)),
+    )
+
     Calling |PPoly| objects without any arguments results in the following error:
 
     >>> ppoly()
     Traceback (most recent call last):
     ...
-    ValueError: When calling an `PPoly` object, you need to define at least one \
-polynomial function by passing at leas one `Poly` object.
+    TypeError: You must either define the piecewise polynomials directly by passing \
+`Poly` instances, or provide the data required for estimating them.
+
+    You cannot pass |Poly| objects and x-y data at the same time:
+
+    >>> ppoly(Poly(x0=0.0, cs=(1.0,)), xs=[0.0], ys=[1.0])
+    Traceback (most recent call last):
+    ...
+    TypeError: You must either define the piecewise polynomials directly by passing \
+`Poly` instances, or provide the data required for estimating them, but not both.
+
+    Estimating polynomials requires both x and y data:
+
+    >>> ppoly(xs=[0.0, 1.0])
+    Traceback (most recent call last):
+    ...
+    TypeError: Estimating piecewise polynomials requires both x and y data.
+
+    The constructor performs the same checks.  The only exception is that it allows
+    creating |PPoly| objects without any arguments, which you must configure afterwards
+    (for example, by calling them as shown above):
+
+    >>> PPoly(xs=[0.0, 1.0])
+    Traceback (most recent call last):
+    ...
+    TypeError: Estimating piecewise polynomials requires both x and y data.
     """
 
     _calgorithm: ppolyutils.PPoly
     _cready: bool
 
-    def __init__(self, *polynomials: Poly) -> None:
+    @overload
+    def __new__(cls, *polynomials: Poly) -> Self: ...
+
+    @overload
+    def __new__(
+        cls,
+        *,
+        xs: VectorInputFloat,
+        ys: VectorInputFloat,
+        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
+    ) -> Self: ...
+
+    def __new__(
+        cls,
+        *polynomials: Poly,
+        xs: VectorInputFloat | None = None,
+        ys: VectorInputFloat | None = None,
+        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
+    ) -> Self:
+        self = cls._make_self()
+        if polynomials or (xs is not None) or (ys is not None):
+            self._call(*polynomials, xs=xs, ys=ys, method=method)
+        return self
+
+    @classmethod
+    def _make_self(cls) -> Self:
+        self = super().__new__(cls)
         self._cready = False
         ca = ppolyutils.PPoly()
         self._calgorithm = ca
         ca.inputs = numpy.zeros((1,), dtype=config.NP_FLOAT)
         ca.outputs = numpy.zeros((1,), dtype=config.NP_FLOAT)
         ca.output_derivatives = numpy.zeros((1,), dtype=config.NP_FLOAT)
-        if polynomials:
-            self(*polynomials)
+        return self
 
-    def __call__(self, *polynomials: Poly) -> None:
-        if not polynomials:
-            raise ValueError(
-                "When calling an `PPoly` object, you need to define at least one "
-                "polynomial function by passing at leas one `Poly` object."
+    @overload
+    def __call__(self, *polynomials: Poly) -> None: ...
+
+    @overload
+    def __call__(
+        self,
+        *,
+        xs: VectorInputFloat,
+        ys: VectorInputFloat,
+        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
+    ) -> None: ...
+
+    def __call__(
+        self,
+        *polynomials: Poly,
+        xs: VectorInputFloat | None = None,
+        ys: VectorInputFloat | None = None,
+        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
+    ) -> None:
+        self._call(*polynomials, xs=xs, ys=ys, method=method)
+
+    def _call(
+        self,
+        *polynomials: Poly,
+        xs: VectorInputFloat | None = None,
+        ys: VectorInputFloat | None = None,
+        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
+    ) -> None:
+        nmb_vectors = (xs is not None) + (ys is not None)
+        if polynomials:
+            if nmb_vectors > 0:
+                raise TypeError(
+                    f"You must either define the piecewise polynomials directly by "
+                    f"passing `{Poly.__name__}` instances, or provide the data "
+                    f"required for estimating them, but not both."
+                )
+            self._use_polynomials(*polynomials)
+        elif nmb_vectors == 1:
+            raise TypeError(
+                "Estimating piecewise polynomials requires both x and y data."
             )
+        elif nmb_vectors == 2:
+            assert (xs is not None) and (ys is not None)
+            self._use_data(xs=xs, ys=ys, method=method)
+        else:
+            raise TypeError(
+                f"You must either define the piecewise polynomials directly by passing "
+                f"`{Poly.__name__}` instances, or provide the data required for "
+                f"estimating them."
+            )
+
+    @classmethod
+    def from_polynomials(cls, *polynomials: Poly) -> Self:
+        """Prepare a |PPoly| object based on the given |Poly| objects.
+
+        Method |PPoly.from_polynomials| is an alternative to passing |Poly| objects to
+        the constructor of class |PPoly|:
+
+        >>> from hydpy import Poly, PPoly
+        >>> PPoly.from_polynomials(
+        ...     Poly(x0=1.0, cs=(1.0,)), Poly(x0=2.0, cs=(1.0, 1.0))
+        ... )
+        PPoly(
+            Poly(x0=1.0, cs=(1.0,)),
+            Poly(x0=2.0, cs=(1.0, 1.0)),
+        )
+
+        In contrast to the constructor, which also allows for creating not-configured
+        |PPoly| objects, method |PPoly.from_polynomials| requires at least one |Poly|
+        object:
+
+        >>> PPoly.from_polynomials()
+        Traceback (most recent call last):
+        ...
+        TypeError: You must provide at least one `Poly` instance.
+        """
+        if not polynomials:
+            raise TypeError(
+                f"You must provide at least one `{Poly.__name__}` instance."
+            )
+        self = cls._make_self()
+        self._use_polynomials(*polynomials)
+        return self
+
+    def _use_polynomials(self, *polynomials: Poly) -> None:
         nmb_ps = len(polynomials)
         nmb_cs = numpy.asarray([len(p.cs) for p in polynomials], dtype=config.NP_INT)
         x0s = numpy.asarray([p.x0 for p in polynomials], dtype=config.NP_FLOAT)
@@ -257,7 +406,7 @@ polynomial function by passing at leas one `Poly` object.
         xs: VectorInputFloat,
         ys: VectorInputFloat,
         method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
-    ) -> PPoly:
+    ) -> Self:
         """Prepare a |PPoly| object based on x-y data.
 
         As explained in the main documentation on class |PPoly|, you are free to define
@@ -397,6 +546,16 @@ CubicSpline, Akima1DInterpolator, PchipInterpolator
 1.0]) and `y` ([1.0, 2.0, and 3.0]), the following error occurred: The lenghts of \
 vectors `x` (2) and `y` (3) must be identical.
         """
+        self = cls._make_self()
+        self._use_data(xs=xs, ys=ys, method=method)
+        return self
+
+    def _use_data(
+        self,
+        xs: VectorInputFloat,
+        ys: VectorInputFloat,
+        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
+    ) -> None:
         try:
             if len(xs) != len(ys):
                 raise ValueError(
@@ -406,9 +565,11 @@ vectors `x` (2) and `y` (3) must be identical.
             if len(xs) == 0:
                 raise ValueError("Vectors `x` and `y` must not be empty.")
             if len(xs) == 1:
-                return cls(Poly(x0=xs[0], cs=(ys[0],)))
-            ppoly = cls()
-            if (len(xs) == 2) or (method == "linear"):
+                nmb_ps = 1
+                nmb_cs = numpy.full((nmb_ps,), 1, dtype=config.NP_INT)
+                x0s = numpy.asarray(xs, dtype=config.NP_FLOAT)
+                cs = numpy.asarray([ys], dtype=config.NP_FLOAT)
+            elif (len(xs) == 2) or (method == "linear"):
                 nmb_ps = len(xs) - 1
                 nmb_cs = numpy.full((nmb_ps,), 2, dtype=config.NP_INT)
                 x0s = numpy.asarray(xs, dtype=config.NP_FLOAT)[:-1]
@@ -424,8 +585,7 @@ vectors `x` (2) and `y` (3) must be identical.
                     [numpy.max(numpy.nonzero(cs_), initial=0) + 1 for cs_ in cs],
                     dtype=config.NP_INT,
                 )
-            ppoly.nmb_ps, ppoly.nmb_cs, ppoly.x0s, ppoly.cs = nmb_ps, nmb_cs, x0s, cs
-            return ppoly
+            self.nmb_ps, self.nmb_cs, self.x0s, self.cs = nmb_ps, nmb_cs, x0s, cs
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to derive polynomials from the vectors `x` "

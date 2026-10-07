@@ -42,7 +42,7 @@ relationship between stage and volume:
 >>> test.inits = [(states.watervolume, 0.0), (logs.loggedadjustedevaporation, 0.0)]
 >>> test.reset_inits()
 >>> conditions = model.conditions
->>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+>>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 >>> surfacearea(1.44)
 >>> catchmentarea(86.4)
 >>> correctionprecipitation(1.2)
@@ -77,7 +77,7 @@ values of the two water-related control parameters irrelevant).  As expected,
 
 .. integration-test::
 
-    >>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 10.0]))
+    >>> waterlevel2flooddischarge(PPoly(xs=[0.0, 1.0], ys=[0.0, 10.0]))
     >>> allowedrelease(0.0)
     >>> waterlevelminimumtolerance(0.1)
     >>> waterlevelminimumthreshold(0.0)

@@ -72,8 +72,8 @@ the input time series, and the parameter values exactly as for |dam_v002|:
 
 >>> inflow.sequences.sim.series = 1.0
 
->>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
->>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0], ys=[0.0]))
+>>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0], ys=[0.0, 0.25]))
+>>> waterlevel2flooddischarge(PPoly(xs=[0.0], ys=[0.0]))
 >>> catchmentarea(86.4)
 >>> neardischargeminimumthreshold(0.2)
 >>> neardischargeminimumtolerance(0.2)
@@ -311,7 +311,7 @@ This example repeats the :ref:`dam_v001_flood_retention` example of application 
 >>> waterlevelminimumtolerance(0.0)
 >>> waterlevelminimumremotethreshold(0.0)
 >>> waterlevelminimumremotetolerance(0.0)
->>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.5]))
+>>> waterlevel2flooddischarge(PPoly(xs=[0.0, 1.0], ys=[0.0, 2.5]))
 >>> with model.add_precipmodel_v2("meteo_precip_io") as precipmodel:
 ...     precipitationfactor(1.0)
 >>> precipmodel.prepare_inputseries()

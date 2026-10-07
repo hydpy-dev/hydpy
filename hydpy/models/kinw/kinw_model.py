@@ -1889,7 +1889,7 @@ class Calc_QG_V2(modeltools.Method):
         >>> gts(2)
         >>> laen(10.0)
         >>> ek(0.5)
-        >>> vg2fg(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+        >>> vg2fg(PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]))
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model,
         ...                 model.calc_qg_v2,

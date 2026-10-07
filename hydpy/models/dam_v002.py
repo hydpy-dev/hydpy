@@ -61,8 +61,8 @@ For a start, ihe inflow is constant again:
 |dam_v002| implements fewer parameters than |dam_v001|.  Besides that, all parameter
 settings are identical:
 
->>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
->>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0], ys=[0.0]))
+>>> watervolume2waterlevel(PPoly(xs=[0.0, 1.0], ys=[0.0, 0.25]))
+>>> waterlevel2flooddischarge(PPoly(xs=[0.0], ys=[0.0]))
 >>> catchmentarea(86.4)
 >>> neardischargeminimumthreshold(0.2)
 >>> neardischargeminimumtolerance(0.2)
@@ -276,7 +276,7 @@ This example repeats the :ref:`dam_v001_flood_retention` example of application 
 >>> neardischargeminimumtolerance(0.0)
 >>> waterlevelminimumthreshold(0.0)
 >>> waterlevelminimumtolerance(0.0)
->>> waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.5]))
+>>> waterlevel2flooddischarge(PPoly(xs=[0.0, 1.0], ys=[0.0, 2.5]))
 >>> neardischargeminimumthreshold(0.0)
 >>> with model.add_precipmodel_v2("meteo_precip_io") as precipmodel:
 ...     precipitationfactor(1.0)

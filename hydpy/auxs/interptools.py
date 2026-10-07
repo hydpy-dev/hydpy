@@ -256,7 +256,7 @@ class SimpleInterpolator(BaseInterpolator):
     simpleinterpolator(?)
 
     >>> from hydpy import ANN, PPoly, print_vector
-    >>> simpleinterpolator(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.0]))
+    >>> simpleinterpolator(PPoly(xs=[0.0, 1.0], ys=[0.0, 2.0]))
     >>> simpleinterpolator
     simpleinterpolator(
         PPoly(

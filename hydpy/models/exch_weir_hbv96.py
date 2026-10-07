@@ -106,7 +106,7 @@ documentation on |dam_llake|.  We will use them in all examples:
 ...     control.dischargetolerance(0.1)
 ...     control.toleranceevaporation(0.001)
 ...     control.allowedwaterleveldrop(inf)
-...     control.watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+...     control.watervolume2waterlevel(PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]))
 ...     control.commission(0)
 ...     control.pars.update()
 
@@ -162,7 +162,7 @@ We define a linear relationship between the water level and the outflow for both
 
 >>> for model_ in (lake1.model, lake2.model):
 ...     model_.parameters.control.waterlevel2flooddischarge(
-...         PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.0]))
+...         PPoly(xs=[0.0, 1.0], ys=[0.0, 2.0]))
 
 The following results show that the first lake's water level drops fast due to the
 release of water to the second lake and its outlet.  The second lake receives this
@@ -222,7 +222,7 @@ clarification, we disallow both lakes to release any water:
 
 >>> for model_ in (lake1.model, lake2.model):
 ...     model_.parameters.control.waterlevel2flooddischarge(
-...         PPoly.from_data(xs=[0.0], ys=[0.0]))
+...         PPoly(xs=[0.0], ys=[0.0]))
 
 
 Due to the identical parameter values of both models and the symmetrical initial

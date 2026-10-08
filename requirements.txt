@@ -4,6 +4,7 @@ click
 coverage
 Cython
 docutils
+ghp_import
 inflect
 lastversion
 matplotlib

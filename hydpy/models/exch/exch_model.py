@@ -346,6 +346,35 @@ class Pick_OriginalInput_V1(modeltools.Method):
             flu.originalinput += inl.total[idx]
 
 
+class Pick_Input_V1(modeltools.Method):
+    r"""Sum all individual input values.
+
+    Basic equation:
+      :math:`Input = \sum Total`
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> inlets.total.shape = 2
+        >>> inlets.total = 2.0, 4.0
+        >>> model.pick_input_v1()
+        >>> fluxes.input_
+        input_(6.0)
+    """
+
+    REQUIREDSEQUENCES = (exch_inlets.Total,)
+    RESULTSEQUENCES = (exch_fluxes.Input_,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        inl = model.sequences.inlets.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.input_ = 0.0
+        for idx in range(inl.len_total):
+            flu.input_ += inl.total[idx]
+
+
 class Pick_Inflow_V1(modeltools.Method):
     r"""Sum all individual inflow values.
 
@@ -889,6 +918,68 @@ class Pass_Outputs_V1(modeltools.Method):
             out.branched[bdx] = flu.outputs[bdx]
 
 
+class Pass_Branched_V1(modeltools.Method):
+    r"""Branch the current input by applying the (seasonally varying) interpolation
+    rules.
+
+    Basic equation:
+      :math:`Branched_i = Rules_i(Input)`
+
+    Example:
+
+        We define two different branching rules for January 1 and 2 (see the
+        documentation on parameter |Rules| for more information):
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-03", "1d"
+        >>> from hydpy.models.exch_branch_rules import *
+        >>> parameterstep()
+        >>> rules(
+        ...     toy_01_01_12=PPolys(
+        ...         a=PPoly(xs=[0.0, 1.0], ys=[0.0, 1.0]),
+        ...         b=PPolys.REST,
+        ...     ),
+        ...     toy_01_02_12=PPolys(
+        ...         a=PPolys.REST,
+        ...         b=PPoly(xs=[0.0], ys=[1.0]),
+        ...     ),
+        ... )
+        >>> derived.toy.update()
+        >>> outlets.branched.shape = 2
+        >>> fluxes.input_ = 3.0
+
+        >>> model.idx_sim = pub.timegrids.init["2000-01-01"]
+        >>> model.pass_branched_v1()
+        >>> outlets.branched
+        branched(3.0, 0.0)
+
+        >>> model.idx_sim = pub.timegrids.init["2000-01-02"]
+        >>> model.pass_branched_v1()
+        >>> outlets.branched
+        branched(2.0, 1.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (exch_control.Rules,)
+    DERIVEDPARAMETERS = (exch_derived.TOY,)
+    REQUIREDSEQUENCES = (exch_fluxes.Input_,)
+    RESULTSEQUENCES = (exch_outlets.Branched,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        out = model.sequences.outlets.fastaccess
+        con.rules.inputs[0] = flu.input_
+        con.rules.calculate_values(der.toy[model.idx_sim])
+        for i in range(out.len_branched):
+            out.branched[i] = con.rules.outputs[i]
+
+
 class Pass_Y_V1(modeltools.Method):
     """Pass the result data to an arbitrary number of sender nodes.
 
@@ -973,8 +1064,9 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     __HYDPY_ROOTMODEL__ = None
 
     nodenames: list[str] = []
+    targetnames: tuple[str, ...] = ()
 
-    INLET_METHODS = (Pick_OriginalInput_V1, Pick_Inflow_V1)
+    INLET_METHODS = (Pick_OriginalInput_V1, Pick_Input_V1, Pick_Inflow_V1)
     OBSERVER_METHODS = (Pick_X_V1,)
     RECEIVER_METHODS = (Pick_LoggedWaterLevel_V1, Pick_LoggedWaterLevels_V1)
     RUN_METHODS = (
@@ -991,6 +1083,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     OUTLET_METHODS = (
         Pass_ActualExchange_V1,
         Pass_Outputs_V1,
+        Pass_Branched_V1,
         Pass_ActualTransfer_StreamOutflow_V1,
         Pass_Y_V1,
     )

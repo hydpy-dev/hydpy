@@ -623,6 +623,111 @@ documentation).
         return super().__repr__(_Simplify(self.subpars.pars.model.targetnames))
 
 
+class Rules(interptools.SeasonalInterpolator):
+    """Seasonally varying interpolation rules for branching the input [-].
+
+    |Rules| accepts one or multiple |PPolys| instances, which must all address the
+    same target nodes:
+
+    >>> from hydpy import ANN, PPoly, PPolys, pub
+    >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
+    >>> from hydpy.models.exch_branch_rules import *
+    >>> parameterstep()
+    >>> rules(
+    ...     toy_01_01_12=PPolys(
+    ...         river=PPolys.REST,
+    ...         diversion=PPoly(xs=[0.0], ys=[1.0]),
+    ...     ),
+    ...     toy_01_03_12=PPolys(
+    ...         diversion=PPoly(xs=[0.0], ys=[2.0]),
+    ...         river=PPolys.REST,
+    ...     ),
+    ... )
+
+    |PPolys| sorts its interpolation functions by the target nodes' names, so each
+    output always belongs to the same target node, regardless of the order of the
+    keyword arguments:
+
+    >>> model.targetnames
+    ('diversion', 'river')
+    >>> rules
+    rules(
+        toy_1_1_12_0_0=PPolys(
+            diversion=PPoly(
+                xs=[0.0],
+                ys=[1.0],
+            ),
+            river=PPolys.REST,
+        ),
+        toy_1_3_12_0_0=PPolys(
+            diversion=PPoly(
+                xs=[0.0],
+                ys=[2.0],
+            ),
+            river=PPolys.REST,
+        ),
+    )
+
+    Using different target names for different seasons results in the following
+    error:
+
+    >>> rules(
+    ...     toy_01_01_12=PPolys(river=PPolys.REST, diversion=PPoly(xs=[0.0], ys=[1.0])),
+    ...     toy_01_03_12=PPolys(river=PPolys.REST, channel=PPoly(xs=[0.0], ys=[2.0])),
+    ... )
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the interpolation rules of parameter `rules` of \
+element `?`, the following error occurred: All `PPolys` instances must address the \
+same target nodes, but `channel and river` differs from `diversion and river`.
+
+    Configuring parameter |Rules| based on other interpolation methods is currently
+    not supported:
+
+    >>> rules(ANN(nmb_inputs=1, nmb_outputs=2, nmb_neurons=(10,)))
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to set the interpolation rules of parameter `rules` of \
+element `?`, the following error occurred: Parameter `rules` currently only supports \
+interpolation via `PPolys` instances.
+
+    .. testsetup::
+
+        >>> del pub.timegrids
+    """
+
+    XLABEL = "input [e.g. m³/s]"
+    YLABEL = "outputs [e.g. m³/s]"
+
+    def __call__(self, *args, **kwargs) -> None:
+        try:
+            super().__call__(*args, **kwargs)
+            targetnames: list[str] = []
+            for algorithm in self.algorithms:
+                if not isinstance(algorithm, ppolytools.PPolys):
+                    raise TypeError(
+                        f"Parameter `{self.name}` currently only supports "
+                        f"interpolation via `{ppolytools.PPolys.__name__}` "
+                        f"instances."
+                    )
+                names = list(algorithm.piecewisepolynomials)
+                if not targetnames:
+                    targetnames = names
+                elif names != targetnames:
+                    enum_ = objecttools.enumeration
+                    raise ValueError(
+                        f"All `{ppolytools.PPolys.__name__}` instances must address "
+                        f"the same target nodes, but `{enum_(names)}` differs from "
+                        f"`{enum_(targetnames)}`."
+                    )
+            self.subpars.pars.model.__hydpy__targetnames__ = tuple(targetnames)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to set the interpolation rules of parameter "
+                f"{objecttools.elementphrase(self)}"
+            )
+
+
 class ObserverNodes(parametertools.Parameter):
     """The number of the considered observer nodes [-].
 

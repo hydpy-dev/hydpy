@@ -209,7 +209,7 @@ class Tester:
 
         Usually, |Tester.perform_tests| is triggered automatically by a |Cythonizer|
         object assigned to the same base or application model as a |Tester| object.
-        However, you are free to call it any time when in doubt of the functionality
+        However, you are free to call it any time when in doubt about the functionality
         of a particular base or application model.  Doing so might change some of the
         states of your current configuration, but only temporarily (besides
         "projectname") we pick the |Timegrids| object of module |pub| as an example,
@@ -432,7 +432,7 @@ class Test:
 
     @property
     def raw_header_strings(self) -> list[str]:
-        """All raw strings for the tables header."""
+        """All raw strings for the table header."""
         strings = [self.HEADER_OF_FIRST_COL]
         for parseq in self.parseqs:
             for dummy in range(parseq.numberofvalues - 1):
@@ -556,7 +556,7 @@ class IntegrationTest(Test):
     """
 
     HEADER_OF_FIRST_COL = "date"
-    """The header of the first column containing dates."""
+    """The header of the first column, which contains the dates."""
 
     plotting_options = PlottingOptions()
     element: devicetools.Element
@@ -576,7 +576,7 @@ class IntegrationTest(Test):
         ) = None,
     ) -> None:
         """Prepare the element and its nodes, put them into a HydPy object, and make
-        their sequences ready for use for integration testing."""
+        their sequences ready for use in integration testing."""
         del self.inits
         self.elements = devicetools.Element.query_all()
         self.nodes = devicetools.Node.query_all()
@@ -629,7 +629,7 @@ class IntegrationTest(Test):
         get_conditions: timetools.DateConstrArg | None = None,
         use_conditions: ConditionsModel | None = None,
     ) -> ConditionsModel | None:
-        """Prepare and perform an integration test and print and eventually plot its
+        """Prepare and perform an integration test, and print and eventually plot its
         results.
 
         Note that the conditions defined under |IntegrationTest.inits| override the
@@ -722,7 +722,7 @@ standard library for for further information.
         return parseqs.series
 
     def prepare_node_sequences(self) -> None:
-        """Prepare the simulations series of all nodes.
+        """Prepare the simulation series of all nodes.
 
         This preparation might not be suitable for all types of integration tests.
         Prepare those node sequences manually, for which this method does not result in
@@ -997,6 +997,10 @@ class UnitTest(Test):
     """Stores arrays with the resulting values of parameters and/or
     sequences of each new experiment."""
 
+    first_idx_sim: int | None
+    """The simulation step index of the first calculated example (|None| means
+    leaving the model's current index unchanged)."""
+
     def __init__(
         self,
         model: modeltools.Model,
@@ -1005,6 +1009,7 @@ class UnitTest(Test):
         first_example: int = 1,
         last_example: int = 1,
         parseqs: tuple[variabletools.Variable],
+        first_idx_sim: int | None = None,
     ) -> None:
         del self.inits
         del self.nexts
@@ -1016,6 +1021,7 @@ class UnitTest(Test):
         self.first_example_plot = first_example
         self.last_example_plot = last_example
         self.parseqs = parseqs
+        self.first_idx_sim = first_idx_sim
         self.memorise_inits()
         self.prepare_output_arrays()
 
@@ -1046,6 +1052,8 @@ class UnitTest(Test):
         else:
             self.last_example_plot = last_example
         for idx in range(self.nmb_examples):
+            if self.first_idx_sim is not None:
+                self.model.idx_sim = self.first_idx_sim + idx
             self.reset_inits()
             self._update_inputs(idx)
             self.method()
@@ -1174,10 +1182,10 @@ class _Open:
 class Open:
     """Replace |open| in doctests temporarily.
 
-    Class |Open| to intended to make writing to files visible and testable
-    in docstrings.  Therefore, Python's built-in function |open| is
-    temporarily replaced by another object, printing the filename and the
-    file content, as shown in the following example:
+    Class |Open| is intended to make writing to files visible and testable in
+    docstrings.  Therefore, Python's built-in function |open| is temporarily replaced
+    by another object, printing the filename and the file content, as shown in the
+    following example:
 
     >>> import os
     >>> path = os.path.join("folder", "test.py")
@@ -1195,38 +1203,35 @@ class Open:
     <BLANKLINE>
     ~~~~~~~~~~~~~~
 
-    Note that, for simplicity, the UNIX style path separator `/` is used
-    to print the file path on all systems.
+    Note that, for simplicity, the UNIX-style path separator `/` is used to print the
+    file path on all systems.
 
-    Class |Open| is rather restricted at the moment.  Functionalities
-    like reading are not supported so far:
+    Class |Open| is rather restricted at the moment.  Functionalities like reading are
+    not supported so far:
 
     >>> with Open():
     ...     with open(path, "r") as file_:
     ...         file_.read()
     Traceback (most recent call last):
     ...
-    NotImplementedError: Reading is not possible at the moment.  \
-Please see the documentation on class `Open` of module `testtools` \
-for further information.
+    NotImplementedError: Reading is not possible at the moment.  Please see the \
+documentation on class `Open` of module `testtools` for further information.
 
     >>> with Open():
     ...     with open(path, "r") as file_:
     ...         file_.readline()
     Traceback (most recent call last):
     ...
-    NotImplementedError: Reading is not possible at the moment.  \
-Please see the documentation on class `Open` of module `testtools` \
-for further information.
+    NotImplementedError: Reading is not possible at the moment.  Please see the \
+documentation on class `Open` of module `testtools` for further information.
 
     >>> with Open():
     ...     with open(path, "r") as file_:
     ...         file_.readlines()
     Traceback (most recent call last):
     ...
-    NotImplementedError: Reading is not possible at the moment.  \
-Please see the documentation on class `Open` of module `testtools` \
-for further information.
+    NotImplementedError: Reading is not possible at the moment.  Please see the \
+documentation on class `Open` of module `testtools` for further information.
     """
 
     def __init__(self) -> None:
@@ -1248,9 +1253,9 @@ for further information.
 class TestIO:
     """Prepare an environment for testing IO functionalities.
 
-    Primarily, |TestIO| changes the current working during the
-    execution of with| blocks.  Inspecting your current working
-    directory, |os| will likely find no file called `testfile.txt`:
+    Primarily, |TestIO| changes the current working directory during the execution of
+    ´with´ blocks.  Inspecting your current working directory, |os| will likely find no
+    file called `testfile.txt`:
 
     >>> import os
     >>> os.path.exists("testfile.txt")
@@ -1386,8 +1391,7 @@ def make_abc_testable(abstract: type[T_inv]) -> type[T_inv]:
 
     However, it is convenient to do so for testing (partly) abstract base classes in
     doctests.  The derived class returned by function |make_abc_testable| is identical
-    with the original one, except that its protection against initialisation is
-    disabled:
+    to the original one, except that its protection against initialisation is disabled:
 
     >>> from hydpy import make_abc_testable, classname
     >>> var = make_abc_testable(NetCDFVariable)("filepath")
@@ -1475,16 +1479,16 @@ class NumericalDifferentiator:
 
     .. _`here`: https://en.wikipedia.org/wiki/Finite_difference_coefficient
 
-    Class |NumericalDifferentiator| is thought for testing purposes only.  See, for
-    example, the documentation on method |kinw_model.Calc_RHMDH_V1|, which uses a
+    Class |NumericalDifferentiator| is for testing purposes only.  See, for example,
+    the documentation on method |kinw_model.Calc_RHMDH_V1|, which uses a
     |NumericalDifferentiator| object to validate that this method calculates the
     derivative of sequence |kinw_aides.RHM| (`ysequence`) with respect to sequence
     |kinw_states.H| (`xsequence`) correctly. Therefore, it must know the relationship
-    between |kinw_aides.RHM| and |kinw_states.H|, being defined by method
+    between |kinw_aides.RHM| and |kinw_states.H|, which is defined by method
     |kinw_model.Calc_RHM_V1|.
 
     See also the documentation on method |kinw_model.Calc_AMDH_UMDH_V1|, which explains
-    how to apply class |NumericalDifferentiator| on multiple target sequences
+    how to apply class |NumericalDifferentiator| to multiple target sequences
     (`ysequences`).  Note that, in order to calculate the correct derivatives of
     sequences |kinw_aides.AM| and |kinw_aides.UM|, we need not only to pass
     |kinw_model.Calc_AM_UM_V1|, but also methods |kinw_model.Calc_RHM_V1| and
@@ -1493,7 +1497,7 @@ class NumericalDifferentiator:
     |kinw_states.H| themselves.
 
     Numerical approximations of derivatives are of limited precision.
-    |NumericalDifferentiator| achieves the second order of accuracy due to using the
+    |NumericalDifferentiator| achieves the second-order accuracy due to using the
     coefficients given `here`_.  If results are too inaccurate, you might improve them
     by changing the finite difference method (`backward` or `central` instead of
     `forward`) or by changing the default interval width `dx`.
@@ -1580,9 +1584,9 @@ def update_integrationtests(
     *HydPy's* integration test strategy.  For example, if you modify the value of a
     fixed parameter, the results of possibly dozens of integration tests of your
     application model might become wrong.  In such situations, function
-    |update_integrationtests| helps you in replacing all integration tests results at
-    once.  Therefore, it calculates the new results, updates the old module docstring
-    and writes it.  You only need to copy-paste the printed result into the affected
+    |update_integrationtests| helps you replace all integration test results at once.
+    Therefore, it calculates the new results, updates the old module docstring and
+    writes it.  You only need to copy-paste the printed result into the affected
     module.  But be aware that function |update_integrationtests| cannot guarantee the
     correctness of the new results.  Whenever in doubt if the new results are really
     correct under all possible conditions, you should inspect and replace each
@@ -1591,8 +1595,8 @@ def update_integrationtests(
     In the following example, we disable method |hydpytools.HydPy.simulate|
     temporarily.  Accordingly, application model |conv_nn| does not pass any output to
     its outlet nodes, which is why the last four columns of both integration test
-    tables now contain zero value only (we can perform this mocking-based test in
-    Python-mode only):
+    tables now contain zero values only (we can perform this mocking-based test in
+    Python mode only):
 
     >>> from hydpy import pub, TestIO, update_integrationtests
     >>> from unittest import mock
@@ -1680,7 +1684,7 @@ def check_methodorder(model: modeltools.Model, indent: int = 0) -> str:
     beforehand.  *HydPy's* test routines apply |check_methodorder| automatically on
     each available application model. Alternatively, you can also execute it at the end
     of the docstring of an individual application model "manually", which suppresses
-    the automatic execution and allows to check and discuss exceptional cases where
+    the automatic execution and allows you to check and discuss exceptional cases where
     |check_methodorder| generates false alarms.
 
     Function |check_methodorder| relies on the class constants `REQUIREDSEQUENCES`,
@@ -1717,8 +1721,7 @@ def check_methodorder(model: modeltools.Model, indent: int = 0) -> str:
 
     Now, none of the relevant models calculates the value of sequence
     |lland_fluxes.TZ|.  For |lland_fluxes.TKor|, there is still a method
-    (|lland_model.Calc_QA_V1|) calculating its values, but at a too-late stage of the
-    simulation step:
+    (|lland_model.Calc_QA_V1|) calculating its values, but too late:
 
     >>> print(check_methodorder(Model))  # doctest: +ELLIPSIS
     Method Calc_SaturationVapourPressure_V1 requires the following sequences, which \
@@ -1773,16 +1776,16 @@ def check_selectedvariables(method: type[modeltools.Method], indent: int = 0) ->
     tuples `CONTROLPARAMETERS`, `DERIVEDPARAMETERS`, `FIXEDPARAMETERS`,
     `SOLVERPARAMETERS`, `REQUIREDSEQUENCES`, `UPDATEDSEQUENCES`, and `RESULTSEQUENCES`
     contain the correct parameter and sequence subclasses.  *HydPy's* test routines
-    apply |check_selectedvariables| automatically on each method of each available
+    apply |check_selectedvariables| automatically to each method of each available
     application model.  Alternatively, you can also execute it at the end of the
     docstring of an individual |Method| subclass "manually", which suppresses the
-    automatic execution and allows to check and discuss exceptional cases where
+    automatic execution and allows you to check and discuss exceptional cases where
     |check_selectedvariables| generates false alarms.
 
     Do not expect |check_selectedvariables| to catch all possible errors.  Also, false
     positives might occur.  However, in our experience, function
-    |check_selectedvariables| is of great help to prevent the most common mistakes when
-    defining the parameter and sequence classes relevant for a specific method.
+    |check_selectedvariables| is of great help in preventing the most common mistakes
+    when defining the parameter and sequence classes relevant for a specific method.
 
     As an example, we select method |evap_model.Calc_WindSpeed2m_V1| of base model
     |evap|.  |check_selectedvariables| does not reportany problems:
@@ -1796,8 +1799,8 @@ def check_selectedvariables(method: type[modeltools.Method], indent: int = 0) ->
     `RESULTSEQUENCES` tuple of method |evap_model.Calc_WindSpeed10m_V1|.  Now
     |check_selectedvariables| realises the usage of the factor sequence object
     `windspeed10m` within the source code of method |evap_model.Calc_WindSpeed10m_V1|,
-    which is neither available within the `REQUIREDSEQUENCES`, the `UPDATEDSEQUENCES`,
-    nor the`RESULTSEQUENCES` tuple:
+    which is not available within the `REQUIREDSEQUENCES`, the `UPDATEDSEQUENCES`, or
+    the`RESULTSEQUENCES` tuple:
 
     >>> resultseqs = Calc_WindSpeed10m_V1.RESULTSEQUENCES
     >>> Calc_WindSpeed10m_V1.RESULTSEQUENCES = ()
@@ -1890,7 +1893,7 @@ def check_selectedvariables(method: type[modeltools.Method], indent: int = 0) ->
     Some methods, such as |lland_model.Update_ESnow_V1| of base model |lland|, update a
     sequence (meaning, they require its old value and calculate a new one), but their
     submethods (in this case |lland_model.Return_BackwardEulerError_V1|) just require
-    them as input.  Function |check_selectedvariables| does not report false alarms in
+    it as input.  Function |check_selectedvariables| does not report false alarms in
     such cases:
 
     >>> from hydpy.models.lland.lland_model import Update_ESnow_V1
@@ -2075,7 +2078,7 @@ def perform_consistencychecks(
     misleading error reports and discuss any related potential pitfalls in the official
     documentation.
 
-    As an example, we apply |perform_consistencychecks| on the application model
+    As an example, we apply |perform_consistencychecks| to the application model
     |lland_knauf|.  It does not report any potential problems (not already discussed in
     the documentation on the individual model methods):
 
@@ -2110,7 +2113,8 @@ result sequences of any of its predecessors: NKor
     <BLANKLINE>
     """
     blanks = " " * indent
-    model = importtools.prepare_model(applicationmodel)
+    with exceptiontools.ignore_deprecations():
+        model = importtools.prepare_model(applicationmodel)
     results: list[str] = []
     method2errors: dict[str, str] = {}
     for method in model.get_methods():
@@ -2137,7 +2141,7 @@ result sequences of any of its predecessors: NKor
 
 def save_autofig(filename: str, figure: figure.Figure | None = None) -> None:
     """Save a figure automatically generated during testing in the special `autofig`
-    sub-package so that Sphinx can include it into the documentation later.
+    sub-package so that Sphinx can include it in the documentation later.
 
     When passing no figure, function |save_autofig| takes the currently active one.
     """
@@ -2887,11 +2891,11 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     Besides this, all channel segments receive the water released by "laterally"
     connected |dam_sluice| model instances handled by the elements `p1`, `p2`, and
     `p3`.  Each sluice model requires the water level of its connected channel model to
-    determine the current water level gradient and so its current water release, which
-    is made available via the nodes `c1_s1`, `c2_s2`, and `c3_s3`, respectively.
-    Additionally, the sluice model of element `s1` receives the lower boundary
-    water level provided by node `out_c3_s1`, which allows to stop the release of water
-    as soon as a critical outer water level is exceeded:
+    determine the current water level gradient and, therefore, its current water
+    release, which is made available via the nodes `c1_s1`, `c2_s2`, and `c3_s3`,
+    respectively.  Additionally, the sluice model of element `s1` receives the lower
+    boundary water level provided by node `out_c3_s1`, which allows the release of
+    water to stop as soon as a critical outer water level is exceeded:
 
     >>> hp.elements.s1
     Element("s1",
@@ -2909,7 +2913,7 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
             outlets="s3_c3",
             receivers=["c3_s3", "no_s1"])
 
-    The inflow of `s1`, `s2`, and `s3` stems also from the |gland_gr4| models, which
+    The inflow of `s1`, `s2`, and `s3` also stems from the |gland_gr4| models, which
     are handled by the elements `g11`, `g21`, and `g31`:
 
     >>> hp.elements.g11

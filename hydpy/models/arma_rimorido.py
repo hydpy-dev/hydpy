@@ -16,7 +16,7 @@ with few parameters.  Hence, ARMA models (which reflect the rising limb of a res
 function with their MA coefficients and its falling limb with their AR coefficients)
 are often more parameter efficient than pure MA models.
 
-Secondly, RIMO/RIDO separates the flow into the river section into different "portions"
+Secondly, RIMO/RIDO separates the flow in the river section into different "portions"
 based on discharge thresholds.  Each portion is routed by a separate ARMA model,
 allowing RIMO/RIDO to reflect the nonlinearity of rating curves to a certain degree.
 For example, the bank-full discharge can serve as a threshold.  Then, one can apply

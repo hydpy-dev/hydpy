@@ -23,6 +23,12 @@ class OriginalInput(sequencetools.FluxSequence):
     NDIM: Final[Literal[0]] = 0
 
 
+class Input_(sequencetools.FluxSequence):
+    """Total input [e.g. m³/s]."""
+
+    NDIM: Final[Literal[0]] = 0
+
+
 class AdjustedInput(sequencetools.FluxSequence):
     """Adjusted total input [e.g. m³/s]."""
 

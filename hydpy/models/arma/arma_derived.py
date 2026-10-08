@@ -7,11 +7,9 @@ from hydpy.core.typingtools import *
 from hydpy.models.arma import arma_control
 
 
-class Nmb(parametertools.Parameter):
+class Nmb(parametertools.NmbParameter):
     """Number of response functions [-]."""
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (0, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
@@ -21,31 +19,16 @@ class Nmb(parametertools.Parameter):
 
         >>> from hydpy.models.arma import *
         >>> parameterstep("1d")
-        >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+        >>> responses(((1.0, 2.0), (1.0,)), th_3=((1.0,), (1.0, 2.0, 3.0)))
         >>> derived.nmb.update()
         >>> derived.nmb
         nmb(2)
 
-        Note that updating parameter `nmb` sets the shape of the flux
-        sequences |QPIn|, |QPOut|, |QMA|, and |QAR| automatically.
-
-        >>> fluxes.qpin
-        qpin(nan, nan)
-        >>> fluxes.qpout
-        qpout(nan, nan)
-        >>> fluxes.qma
-        qma(nan, nan)
-        >>> fluxes.qar
-        qar(nan, nan)
+        Updating |Nmb| also adjusts the shapes of all sequences that depend on the
+        number of response functions, if necessary (see the mixin class |MixinNmb| and
+        the log sequences |LogIn| and |LogOut|).
         """
-        pars = self.subpars.pars
-        responses = pars.control.responses
-        fluxes = pars.model.sequences.fluxes
-        self.value = len(responses)
-        fluxes.qpin.shape = self.value
-        fluxes.qpout.shape = self.value
-        fluxes.qma.shape = self.value
-        fluxes.qar.shape = self.value
+        self(len(self.subpars.pars.control.responses))
 
 
 class MaxQ(parametertools.Parameter):
@@ -166,19 +149,10 @@ class AR_Coefs(parametertools.Parameter):
         >>> derived.ar_coefs
         ar_coefs([[1.0, 2.0],
                   [1.0, nan]])
-
-        Note that updating parameter `ar_coefs` sets the shape of the log
-        sequence |LogOut| automatically.
-
-        >>> logs.logout
-        logout([[nan, nan],
-                [nan, nan]])
         """
-        pars = self.subpars.pars
-        coefs = pars.control.responses.ar_coefs
+        coefs = self.subpars.pars.control.responses.ar_coefs
         self.shape = coefs.shape
         self.value = coefs
-        pars.model.sequences.logs.logout.shape = self.shape
 
 
 class MA_Coefs(parametertools.Parameter):
@@ -199,16 +173,7 @@ class MA_Coefs(parametertools.Parameter):
         >>> derived.ma_coefs
         ma_coefs([[1.0, nan, nan],
                   [1.0, 2.0, 3.0]])
-
-        Note that updating parameter `ar_coefs` sets the shape of the log
-        sequence |LogIn| automatically.
-
-        >>> logs.login
-        login([[nan, nan, nan],
-               [nan, nan, nan]])
         """
-        pars = self.subpars.pars
-        coefs = pars.control.responses.ma_coefs
+        coefs = self.subpars.pars.control.responses.ma_coefs
         self.shape = coefs.shape
         self.value = coefs
-        pars.model.sequences.logs.login.shape = self.shape

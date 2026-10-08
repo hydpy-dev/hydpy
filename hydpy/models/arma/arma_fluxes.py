@@ -2,6 +2,7 @@
 
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.arma import arma_variables
 
 
 class QIn(sequencetools.FluxSequence):
@@ -11,28 +12,28 @@ class QIn(sequencetools.FluxSequence):
     SPAN = (0.0, None)
 
 
-class QPIn(sequencetools.FluxSequence):
+class QPIn(arma_variables.MixinNmb, sequencetools.FluxSequence):
     """Inflow portions corresponding to the different thresholds [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
     SPAN = (0.0, None)
 
 
-class QMA(sequencetools.FluxSequence):
+class QMA(arma_variables.MixinNmb, sequencetools.FluxSequence):
     """MA result for the different thresholds [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
     SPAN = (0.0, None)
 
 
-class QAR(sequencetools.FluxSequence):
+class QAR(arma_variables.MixinNmb, sequencetools.FluxSequence):
     """AR result for the different thresholds [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
     SPAN = (0.0, None)
 
 
-class QPOut(sequencetools.FluxSequence):
+class QPOut(arma_variables.MixinNmb, sequencetools.FluxSequence):
     """Outflow portions corresponding to the different thresholds [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1

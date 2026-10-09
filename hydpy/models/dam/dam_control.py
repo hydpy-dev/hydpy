@@ -343,14 +343,6 @@ class AllowedWaterLevelDrop(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class AllowedDischargeTolerance(parametertools.Parameter):
-    """Smoothing parameter eventually associated with |AllowedWaterLevelDrop| [m³/s]."""
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = float
-    SPAN = (0.0, None)
-
-
 class AllowedRelease(parametertools.SeasonalParameter):
     """The maximum water release not causing any harm downstream [m³/s]."""
 

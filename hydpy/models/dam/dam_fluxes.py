@@ -50,6 +50,16 @@ class Exchange(sequencetools.FluxSequence):
     NUMERIC = True
 
 
+class EffectiveTransfer(sequencetools.FluxSequence):
+    """Water transfer that affects the water balance [m³/s].
+
+    Positive values indicate withdrawals; negative values indicate supplies.
+    """
+
+    NDIM: Final[Literal[0]] = 0
+    NUMERIC = True
+
+
 class TotalRemoteDischarge(sequencetools.FluxSequence):
     """Total discharge at a cross-section far downstream [m³/s]."""
 

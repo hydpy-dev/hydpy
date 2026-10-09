@@ -10,6 +10,7 @@ from hydpy.cythons import smoothutils
 from hydpy.interfaces import exchangeinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
+from hydpy.interfaces import transferinterfaces
 from hydpy.auxs import roottools
 from hydpy.models.dam import dam_control
 from hydpy.models.dam import dam_derived
@@ -2825,9 +2826,12 @@ class Calc_ActualRelease_V2(modeltools.Method):
 
 
 class Calc_ActualRelease_V3(modeltools.Method):
-    """Calculate an actual water release that tries to change the water
-    storage into the direction of the actual target volume without
-    violating the required minimum and the allowed maximum flow.
+    """Calculate an actual water release that tries to change the water storage in the
+    direction of the actual target volume without violating the required minimum and
+    the allowed maximum flow.
+
+    |Calc_ActualRelease_V3| treats the net inflow (|Inflow| minus
+    |dam_fluxes.EffectiveTransfer|) as the release that keeps the water volume stable.
 
     Used auxiliary methods:
       |smooth_logistic1|
@@ -2837,11 +2841,10 @@ class Calc_ActualRelease_V3(modeltools.Method):
 
     Examples:
 
-        Method |Calc_ActualRelease_V3| is quite complex.  As it is the key component of
-        application model |dam_lreservoir|, we advise to read its documentation
-        including some introductory examples first, and to inspect the following
-        detailled examples afterwards, which hopefully cover all of the mentioned
-        corner cases.
+        Method |Calc_ActualRelease_V3| is quite complex.  As it is a key component of
+        application model |dam_lreservoir|, we advise reading documentation, including
+        introductory examples, first, and then reviewing the detailed examples below,
+        which should cover all the mentioned corner cases.
 
         >>> from hydpy import pub
         >>> pub.timegrids = "2001-03-30", "2001-04-03", "1d"
@@ -2865,6 +2868,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
 
         >>> model.idx_sim = pub.timegrids.init["2001-03-31"]
         >>> aides.alloweddischarge = 6.0
+        >>> fluxes.effectivetransfer = 0.0
 
         >>> def set_tolerances(value):
         ...     volumetolerance(value)
@@ -3041,6 +3045,47 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  29 |         6.3 |      5.999262 |
         |  30 |         6.4 |      5.999864 |
         |  31 |         6.5 |      5.999975 |
+
+        An inflow of 5 m³/s combined with an effective water transfer (withdrawal) of
+        1 m³/s results in the same net inflow and, thus, the same releases:
+
+        >>> fluxes.inflow = 5.0
+        >>> fluxes.effectivetransfer = 1.0
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |      3.000013 |
+        |   2 |         3.6 |      3.000068 |
+        |   3 |         3.7 |      3.000369 |
+        |   4 |         3.8 |      3.001974 |
+        |   5 |         3.9 |          3.01 |
+        |   6 |         4.0 |      3.040983 |
+        |   7 |         4.1 |          3.11 |
+        |   8 |         4.2 |      3.201974 |
+        |   9 |         4.3 |      3.300369 |
+        |  10 |         4.4 |      3.400067 |
+        |  11 |         4.5 |           3.5 |
+        |  12 |         4.6 |      3.599933 |
+        |  13 |         4.7 |      3.699632 |
+        |  14 |         4.8 |      3.798047 |
+        |  15 |         4.9 |        3.8913 |
+        |  16 |         5.0 |           4.0 |
+        |  17 |         5.1 |        4.2177 |
+        |  18 |         5.2 |      4.403907 |
+        |  19 |         5.3 |      4.600737 |
+        |  20 |         5.4 |      4.800134 |
+        |  21 |         5.5 |           5.0 |
+        |  22 |         5.6 |      5.199866 |
+        |  23 |         5.7 |      5.399263 |
+        |  24 |         5.8 |      5.596051 |
+        |  25 |         5.9 |          5.78 |
+        |  26 |         6.0 |      5.918035 |
+        |  27 |         6.1 |          5.98 |
+        |  28 |         6.2 |      5.996051 |
+        |  29 |         6.3 |      5.999262 |
+        |  30 |         6.4 |      5.999864 |
+        |  31 |         6.5 |      5.999975 |
+        >>> fluxes.effectivetransfer = 0.0
 
         Inflow smaller than minimum release, without smoothing, without interpolation:
 
@@ -3532,6 +3577,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         dam_fluxes.Inflow,
+        dam_fluxes.EffectiveTransfer,
         dam_states.WaterVolume,
         dam_aides.AllowedDischarge,
     )
@@ -3549,6 +3595,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
         target: float = con.targetvolume[idx_toy]
         range_: float = max(con.targetrangeabsolute, con.targetrangerelative * target)
         range_ = max(range_, 1e-6)
+        netinflow: float = flu.inflow - flu.effectivetransfer
         qmin: float = con.neardischargeminimumthreshold[idx_toy]
         qmax: float = smoothutils.smooth_max1(
             qmin, aid.alloweddischarge, der.dischargesmoothpar
@@ -3558,7 +3605,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
             (new.watervolume - target + range_) / range_, der.volumesmoothparlog2
         )
         upperbound: float = smoothutils.smooth_min1(
-            qmax, flu.inflow, der.dischargesmoothpar
+            qmax, netinflow, der.dischargesmoothpar
         )
         release1: float = (1.0 - factor) * qmin + factor * smoothutils.smooth_max1(
             qmin, upperbound, der.dischargesmoothpar
@@ -3568,7 +3615,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
             (target + range_ - new.watervolume) / range_, der.volumesmoothparlog2
         )
         neutral: float = smoothutils.smooth_max1(
-            qmin, flu.inflow, der.dischargesmoothpar
+            qmin, netinflow, der.dischargesmoothpar
         )
         release2: float = (1.0 - factor) * qmax + factor * smoothutils.smooth_min1(
             qmax, neutral, der.dischargesmoothpar
@@ -4577,13 +4624,216 @@ class Calc_Outflow_V1(modeltools.Method):
         flu.outflow = max(flu.actualrelease + flu.flooddischarge, 0.0)
 
 
+class Calc_EffectiveTransfer_V1(modeltools.Method):
+    """If available, let a submodel that complies with the |TransferModel_V1|
+    interface determine the effective water transfer while considering the current
+    allowed discharge.
+
+    Examples:
+
+        We use |dam_llake| as an example:
+
+        >>> from hydpy.models.dam_llake import *
+        >>> parameterstep()
+
+        Without a submodel, |Calc_EffectiveTransfer_V1| generally sets the effective
+        transfer to zero:
+
+        >>> model.calc_effectivetransfer_v1()
+        >>> fluxes.effectivetransfer
+        effectivetransfer(0.0)
+
+        Otherwise, it passes the current water volume and the current allowed discharge
+        to the submodel, which, if configured accordingly, restricts transfers (after
+        the commission date):
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> with model.add_transfermodel_v1("exch_water_transfer_io") as transfermodel:
+        ...     minvol(0.0)
+        ...     maxvol(5.0)
+        ...     voltol(0.0)
+        ...     qtol(0.0)
+        >>> commission("2000-01-01")
+        >>> states.watervolume = 6.0
+        >>> aides.alloweddischarge = 3.0
+        >>> model.idx_sim = 0
+
+        >>> transfermodel.sequences.inputs.requestedtransfer = 2.0
+        >>> model.calc_effectivetransfer_v1()
+        >>> fluxes.effectivetransfer
+        effectivetransfer(2.0)
+
+        >>> transfermodel.sequences.inputs.requestedtransfer = 4.0
+        >>> model.calc_effectivetransfer_v1()
+        >>> fluxes.effectivetransfer
+        effectivetransfer(3.0)
+
+        >>> transfermodel.sequences.inputs.requestedtransfer = -1.0
+        >>> model.calc_effectivetransfer_v1()
+        >>> fluxes.effectivetransfer
+        effectivetransfer(0.0)
+
+        Before the commission date, the dam does not exist, so the effective transfer
+        is zero:
+
+        >>> commission("2000-01-02")
+        >>> model.calc_effectivetransfer_v1()
+        >>> fluxes.effectivetransfer
+        effectivetransfer(0.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (dam_control.Commission,)
+    REQUIREDSEQUENCES = (dam_states.WaterVolume, dam_aides.AllowedDischarge)
+    RESULTSEQUENCES = (dam_fluxes.EffectiveTransfer,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        new = model.sequences.states.fastaccess_new
+
+        if (model.transfermodel is None) or (model.idx_sim < con.commission):
+            flu.effectivetransfer = 0.0
+        elif model.transfermodel_typeid == 1:
+            cast(
+                transferinterfaces.TransferModel_V1, model.transfermodel
+            ).determine_transfer(new.watervolume, aid.alloweddischarge)
+            flu.effectivetransfer = cast(
+                transferinterfaces.TransferModel_V1, model.transfermodel
+            ).get_transfer()
+
+
+class Calc_EffectiveTransfer_V2(modeltools.Method):
+    r"""If available, let a submodel that complies with the |TransferModel_V1|
+    interface determine the effective water transfer while considering the current
+    allowed discharge minus the required minimum release.
+
+    Basic equation (for the discharge passed to the submodel):
+      :math:`AllowedDischarge - max(NearDischargeMinimumThreshold, \ 0)`
+
+    Unlike |Calc_EffectiveTransfer_V1|, |Calc_EffectiveTransfer_V2| reserves the
+    required minimum release (|NearDischargeMinimumThreshold|) to maintain its priority
+    over withdrawals regarding the allowed water level drop.
+
+    Examples:
+
+        We use |dam_lreservoir| as an example:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.dam_lreservoir import *
+        >>> parameterstep()
+
+        Without a submodel, |Calc_EffectiveTransfer_V2| generally sets the effective
+        transfer to zero:
+
+        >>> model.calc_effectivetransfer_v2()
+        >>> fluxes.effectivetransfer
+        effectivetransfer(0.0)
+
+        Otherwise, it passes the current water volume and the allowed discharge minus
+        the required minimum release to the submodel, which restricts withdrawals
+        accordingly (after the commission date):
+
+        >>> with model.add_transfermodel_v1("exch_water_transfer_io") as transfermodel:
+        ...     minvol(0.0)
+        ...     maxvol(5.0)
+        ...     voltol(0.0)
+        ...     qtol(0.0)
+        >>> commission("2000-01-01")
+        >>> derived.toy.update()
+        >>> states.watervolume = 6.0
+        >>> aides.alloweddischarge = 3.0
+        >>> neardischargeminimumthreshold(1.0)
+        >>> model.idx_sim = 0
+
+        >>> transfermodel.sequences.inputs.requestedtransfer = 1.0
+        >>> model.calc_effectivetransfer_v2()
+        >>> fluxes.effectivetransfer
+        effectivetransfer(1.0)
+
+        >>> transfermodel.sequences.inputs.requestedtransfer = 4.0
+        >>> model.calc_effectivetransfer_v2()
+        >>> fluxes.effectivetransfer
+        effectivetransfer(2.0)
+
+        >>> transfermodel.sequences.inputs.requestedtransfer = -1.0
+        >>> model.calc_effectivetransfer_v2()
+        >>> fluxes.effectivetransfer
+        effectivetransfer(0.0)
+
+        Negative minimum releases do not increase the allowed withdrawal:
+
+        >>> transfermodel.sequences.inputs.requestedtransfer = 4.0
+        >>> neardischargeminimumthreshold(-1.0)
+        >>> model.calc_effectivetransfer_v2()
+        >>> fluxes.effectivetransfer
+        effectivetransfer(3.0)
+
+        Before the commission date, the dam does not exist, so the effective transfer
+        is zero:
+
+        >>> commission("2000-01-02")
+        >>> model.calc_effectivetransfer_v2()
+        >>> fluxes.effectivetransfer
+        effectivetransfer(0.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (
+        dam_control.Commission,
+        dam_control.NearDischargeMinimumThreshold,
+    )
+    DERIVEDPARAMETERS = (dam_derived.TOY,)
+    REQUIREDSEQUENCES = (dam_states.WaterVolume, dam_aides.AllowedDischarge)
+    RESULTSEQUENCES = (dam_fluxes.EffectiveTransfer,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        new = model.sequences.states.fastaccess_new
+
+        if (model.transfermodel is None) or (model.idx_sim < con.commission):
+            flu.effectivetransfer = 0.0
+        elif model.transfermodel_typeid == 1:
+            qmin: float = max(
+                con.neardischargeminimumthreshold[der.toy[model.idx_sim]], 0.0
+            )
+            cast(
+                transferinterfaces.TransferModel_V1, model.transfermodel
+            ).determine_transfer(new.watervolume, aid.alloweddischarge - qmin)
+            flu.effectivetransfer = cast(
+                transferinterfaces.TransferModel_V1, model.transfermodel
+            ).get_transfer()
+
+
 class Calc_AllowedDischarge_V1(modeltools.Method):
     r"""Calculate the maximum discharge not leading to exceedance of the
     allowed water level drop.
 
     Basic equation:
-      :math:`Outflow = AllowedWaterLevelDrop \cdot SurfaceArea
-      + Inflow + AdjustedPrecipitation - AdjustedEvaporation + Exchange`
+      .. math::
+        A = D \cdot S + I + P - E + X
+        \\ \\
+        A = AllowedDischarge \\
+        D = AllowedWaterLevelDrop \\
+        S = SurfaceArea \\
+        I = Inflow \\
+        P = AdjustedPrecipitation \\
+        E = ActualEvaporation \\
+        X = Exchange
 
     Example:
 
@@ -4628,82 +4878,62 @@ class Calc_AllowedDischarge_V1(modeltools.Method):
         )
 
 
-class Calc_AllowedDischarge_V2(modeltools.Method):
-    r"""Calculate the maximum discharge not leading to exceedance of the
-    allowed water level drop.
+class Update_AllowedDischarge_V1(modeltools.Method):
+    r"""Subtract the effective water transfer from the allowed discharge.
 
-    Used additional methods:
-      |smooth_min1|
-
-    Basic (discontinuous) equation:
-      :math:`Outflow = min(AllowedRelease,
-      AllowedWaterLevelDrop \cdot SurfaceArea + Inflow`
+    Basic equation:
+      :math:`AllowedDischarge_{new} = AllowedDischarge_{old} - EffectiveTransfer`
 
     Example:
 
-        >>> from hydpy import pub
-        >>> pub.timegrids = "2001.03.30", "2001.04.03", "1h"
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> aides.alloweddischarge = 3.0
+        >>> fluxes.effectivetransfer = 1.0
+        >>> model.update_alloweddischarge_v1()
+        >>> aides.alloweddischarge
+        alloweddischarge(2.0)
+    """
+
+    REQUIREDSEQUENCES = (dam_fluxes.EffectiveTransfer,)
+    UPDATEDSEQUENCES = (dam_aides.AllowedDischarge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        aid.alloweddischarge -= flu.effectivetransfer
+
+
+class Calc_AllowedDischarge_V4(modeltools.Method):
+    r"""Calculate the maximum discharge not leading to exceedance of the allowed
+    water level drop (when neglecting precipitation and evaporation).
+
+    Basic equation:
+      .. math::
+        A = D \cdot S + I
+        \\ \\
+        A = AllowedDischarge \\
+        D = AllowedWaterLevelDrop \\
+        S = SurfaceArea \\
+        I = Inflow
+
+    Example:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep("1d")
-
+        >>> simulationstep("1h")
         >>> allowedwaterleveldrop(0.1)
-        >>> allowedrelease(_11_01_12=1.0, _03_31_12=1.0,
-        ...                _04_01_00=3.0, _04_02_00=3.0,
-        ...                _04_02_12=5.0, _10_31_12=5.0)
-
         >>> derived.seconds.update()
-        >>> derived.toy.update()
-
+        >>> fluxes.inflow = 3.0
         >>> aides.surfacearea = 0.864
-        >>> from hydpy import UnitTest
-        >>> test = UnitTest(model,
-        ...                 model.calc_alloweddischarge_v2,
-        ...                 last_example=7,
-        ...                 parseqs=(fluxes.inflow,
-        ...                          aides.alloweddischarge))
-        >>> import numpy
-        >>> test.nexts.inflow = 1.0, 1.5, 1.9, 2.0, 2.1, 2.5, 3.0
-
-        >>> model.idx_sim = pub.timegrids.init["2001-04-01"]
-
-        >>> dischargetolerance(0.0)
-        >>> derived.dischargesmoothpar.update()
-        >>> test()
-        | ex. | inflow | alloweddischarge |
-        -----------------------------------
-        |   1 |    1.0 |              2.0 |
-        |   2 |    1.5 |              2.5 |
-        |   3 |    1.9 |              2.9 |
-        |   4 |    2.0 |              3.0 |
-        |   5 |    2.1 |              3.0 |
-        |   6 |    2.5 |              3.0 |
-        |   7 |    3.0 |              3.0 |
-
-        >>> dischargetolerance(0.1)
-        >>> derived.dischargesmoothpar.update()
-        >>> test()
-        | ex. | inflow | alloweddischarge |
-        -----------------------------------
-        |   1 |    1.0 |              2.0 |
-        |   2 |    1.5 |         2.499987 |
-        |   3 |    1.9 |             2.89 |
-        |   4 |    2.0 |         2.959017 |
-        |   5 |    2.1 |             2.99 |
-        |   6 |    2.5 |         2.999987 |
-        |   7 |    3.0 |              3.0 |
-
-        .. testsetup::
-
-            >>> del pub.timegrids
+        >>> model.calc_alloweddischarge_v4()
+        >>> aides.alloweddischarge
+        alloweddischarge(4.0)
     """
 
-    CONTROLPARAMETERS = (dam_control.AllowedRelease, dam_control.AllowedWaterLevelDrop)
-    DERIVEDPARAMETERS = (
-        dam_derived.TOY,
-        dam_derived.Seconds,
-        dam_derived.DischargeSmoothPar,
-    )
+    CONTROLPARAMETERS = (dam_control.AllowedWaterLevelDrop,)
+    DERIVEDPARAMETERS = (dam_derived.Seconds,)
     REQUIREDSEQUENCES = (dam_fluxes.Inflow, dam_aides.SurfaceArea)
     RESULTSEQUENCES = (dam_aides.AllowedDischarge,)
 
@@ -4713,9 +4943,99 @@ class Calc_AllowedDischarge_V2(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
+        aid.alloweddischarge = (
+            con.allowedwaterleveldrop / der.seconds * aid.surfacearea * 1e6 + flu.inflow
+        )
+
+
+class Update_AllowedDischarge_V2(modeltools.Method):
+    r"""Subtract the effective water transfer from the allowed discharge and restrict
+    the result to the allowed release.
+
+    Used auxiliary method:
+      |smooth_min1|
+
+    Basic (discontinuous) equation:
+      .. math::
+        A_{new} = min(R, \, A_{old} - T)
+        \\ \\
+        A = AllowedDischarge \\
+        R = AllowedRelease \\
+        T = EffectiveTransfer
+
+    Examples:
+
+        |AllowedRelease| is a seasonal parameter, so we must define a simulation
+        period:
+
+        >>> from hydpy import pub, round_
+        >>> pub.timegrids = "2001-03-30", "2001-04-03", "1h"
+        >>> from hydpy.models.dam import *
+        >>> parameterstep("1d")
+        >>> allowedrelease(_11_01_12=1.0, _03_31_12=1.0,
+        ...                _04_01_00=3.0, _04_02_00=3.0,
+        ...                _04_02_12=5.0, _10_31_12=5.0)
+        >>> derived.toy.update()
+        >>> model.idx_sim = pub.timegrids.init["2001-04-01"]
+
+        The following test function confronts an allowed discharge of 5 m³/s with
+        different effective water transfers:
+
+        >>> def test():
+        ...     for transfer in (-1.0, 0.0, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0):
+        ...         aides.alloweddischarge = 5.0
+        ...         fluxes.effectivetransfer = transfer
+        ...         model.update_alloweddischarge_v2()
+        ...         print(transfer, end=": ")
+        ...         round_(aides.alloweddischarge.value)
+
+        Without smoothing, |AllowedRelease| (3 m³/s on April 1) restricts the allowed
+        discharge until the effective transfer exceeds 2 m³/s:
+
+        >>> dischargetolerance(0.0)
+        >>> derived.dischargesmoothpar.update()
+        >>> test()
+        -1.0: 3.0
+        0.0: 3.0
+        1.0: 3.0
+        1.5: 3.0
+        2.0: 3.0
+        2.5: 2.5
+        3.0: 2.0
+        4.0: 1.0
+
+        |DischargeTolerance| smooths the transition:
+
+        >>> dischargetolerance(0.1)
+        >>> derived.dischargesmoothpar.update()
+        >>> test()
+        -1.0: 3.0
+        0.0: 3.0
+        1.0: 3.0
+        1.5: 2.999987
+        2.0: 2.959017
+        2.5: 2.499987
+        3.0: 2.0
+        4.0: 1.0
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (dam_control.AllowedRelease,)
+    DERIVEDPARAMETERS = (dam_derived.TOY, dam_derived.DischargeSmoothPar)
+    REQUIREDSEQUENCES = (dam_fluxes.EffectiveTransfer,)
+    UPDATEDSEQUENCES = (dam_aides.AllowedDischarge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
         aid.alloweddischarge = smoothutils.smooth_min1(
-            con.allowedwaterleveldrop / der.seconds * aid.surfacearea * 1e6
-            + flu.inflow,
+            aid.alloweddischarge - flu.effectivetransfer,
             con.allowedrelease[der.toy[model.idx_sim]],
             der.dischargesmoothpar,
         )
@@ -5717,8 +6037,8 @@ class Update_WaterVolume_V4(modeltools.Method):
     r"""Update the actual water volume.
 
     Basic equation:
-      :math:`\frac{d}{dt}WaterVolume = 1e-6 \cdot
-      (AdjustedPrecipitation - AdjustedEvaporation - Inflow - Outflow + Exchange)`
+      :math:`\frac{d}{dt}WaterVolume = 1e-6 \cdot (AdjustedPrecipitation
+      - ActualEvaporation + Inflow - Outflow + Exchange - EffectiveTransfer)`
 
     Example:
 
@@ -5731,9 +6051,10 @@ class Update_WaterVolume_V4(modeltools.Method):
         >>> fluxes.inflow = 3.0
         >>> fluxes.outflow = 4.0
         >>> fluxes.exchange = 5.0
+        >>> fluxes.effectivetransfer = 0.5
         >>> model.update_watervolume_v4()
         >>> states.watervolume
-        watervolume(11.0)
+        watervolume(10.0)
     """
 
     DERIVEDPARAMETERS = (dam_derived.Seconds,)
@@ -5743,6 +6064,7 @@ class Update_WaterVolume_V4(modeltools.Method):
         dam_fluxes.Inflow,
         dam_fluxes.Outflow,
         dam_fluxes.Exchange,
+        dam_fluxes.EffectiveTransfer,
     )
     UPDATEDSEQUENCES = (dam_states.WaterVolume,)
 
@@ -5758,6 +6080,7 @@ class Update_WaterVolume_V4(modeltools.Method):
             + flu.inflow
             - flu.outflow
             + flu.exchange
+            - flu.effectivetransfer
         )
 
 
@@ -5789,6 +6112,100 @@ class Update_WaterVolume_V5(modeltools.Method):
         if model.idx_sim >= con.commission:
             sta.watervolume += (
                 der.seconds / 1e6 * (flu.inflow + flu.adjustedprecipitation)
+            )
+
+
+class Update_WaterVolume_V6(modeltools.Method):
+    r"""Update the actual water volume.
+
+    Basic equation:
+      :math:`\frac{d}{dt}WaterVolume = 1e-6 \cdot (AdjustedPrecipitation
+      - ActualEvaporation + Inflow - Outflow - EffectiveTransfer)`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> derived.seconds = 2e6
+        >>> states.watervolume.old = 5.0
+        >>> fluxes.adjustedprecipitation = 1.0
+        >>> fluxes.actualevaporation = 2.0
+        >>> fluxes.inflow = 3.0
+        >>> fluxes.outflow = 4.0
+        >>> fluxes.effectivetransfer = 0.5
+        >>> model.update_watervolume_v6()
+        >>> states.watervolume
+        watervolume(0.0)
+    """
+
+    DERIVEDPARAMETERS = (dam_derived.Seconds,)
+    REQUIREDSEQUENCES = (
+        dam_fluxes.AdjustedPrecipitation,
+        dam_fluxes.ActualEvaporation,
+        dam_fluxes.Inflow,
+        dam_fluxes.Outflow,
+        dam_fluxes.EffectiveTransfer,
+    )
+    UPDATEDSEQUENCES = (dam_states.WaterVolume,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        new.watervolume = old.watervolume + der.seconds / 1e6 * (
+            flu.adjustedprecipitation
+            - flu.actualevaporation
+            + flu.inflow
+            - flu.outflow
+            - flu.effectivetransfer
+        )
+
+
+class Send_EffectiveTransfer_V1(modeltools.Method):
+    """If available, pass the final effective water transfer, averaged over the
+    current simulation step, to a submodel that complies with the |TransferModel_V1|
+    interface.
+
+    Examples:
+
+        We use |dam_llake| as an example:
+
+        >>> from hydpy.models.dam_llake import *
+        >>> parameterstep()
+
+        Without a submodel, |Send_EffectiveTransfer_V1| does nothing:
+
+        >>> fluxes.effectivetransfer = 1.0
+        >>> model.send_effectivetransfer_v1()
+
+        Otherwise, it passes the current value of |dam_fluxes.EffectiveTransfer| to
+        the submodel:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> with model.add_transfermodel_v1("exch_water_transfer_io"):
+        ...     voltol(0.0)
+        ...     qtol(0.0)
+        >>> model.send_effectivetransfer_v1()
+        >>> model.transfermodel.sequences.outlets.actualtransfer
+        actualtransfer(1.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    REQUIREDSEQUENCES = (dam_fluxes.EffectiveTransfer,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        flu = model.sequences.fluxes.fastaccess
+
+        if (model.transfermodel is not None) and (model.transfermodel_typeid == 1):
+            cast(transferinterfaces.TransferModel_V1, model.transfermodel).set_transfer(
+                flu.effectivetransfer
             )
 
 
@@ -6103,7 +6520,11 @@ class Model(modeltools.ELSModel):
         Calc_EffectiveWaterLevelDifference_V1,
         Calc_SurfaceArea_V1,
         Calc_AllowedDischarge_V1,
-        Calc_AllowedDischarge_V2,
+        Calc_AllowedDischarge_V4,
+        Calc_EffectiveTransfer_V1,
+        Calc_EffectiveTransfer_V2,
+        Update_AllowedDischarge_V1,
+        Update_AllowedDischarge_V2,
         Calc_ActualRelease_V1,
         Calc_ActualRelease_V2,
         Calc_ActualRelease_V3,
@@ -6129,8 +6550,9 @@ class Model(modeltools.ELSModel):
         Update_WaterVolume_V2,
         Update_WaterVolume_V3,
         Update_WaterVolume_V4,
+        Update_WaterVolume_V6,
     )
-    POST_ODE_METHODS = ()
+    POST_ODE_METHODS = (Send_EffectiveTransfer_V1,)
     OUTLET_METHODS = (
         Pass_Outflow_V1,
         Update_LoggedOutflow_V1,
@@ -6157,6 +6579,12 @@ class Model(modeltools.ELSModel):
     pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1, optional=True)
     pemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     pemodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    transfermodel = modeltools.SubmodelProperty(
+        transferinterfaces.TransferModel_V1, optional=True
+    )
+    transfermodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    transfermodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     safereleasemodels = modeltools.SubmodelsProperty(
         exchangeinterfaces.ExchangeModel_V1
@@ -6245,6 +6673,41 @@ class Main_PEModel_V1(modeltools.Model, abc.ABC):
         pemodel.prepare_subareas(control.surfacearea.value)
 
 
+class Main_TransferModel_V1(modeltools.Model, abc.ABC):
+    """Base class for |dam.DOCNAME.long| models that use submodels that comply with the
+    |TransferModel_V1| interface."""
+
+    transfermodel: modeltools.SubmodelProperty[transferinterfaces.TransferModel_V1]
+    transfermodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    transfermodel_typeid = modeltools.SubmodelTypeIDProperty()
+
+    @importtools.prepare_submodel("transfermodel", transferinterfaces.TransferModel_V1)
+    def add_transfermodel_v1(
+        self, transfermodel: transferinterfaces.TransferModel_V1, /, *, refresh: bool
+    ) -> None:
+        """Initialise the given `transfermodel` that follows the |TransferModel_V1|
+        interface.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.dam_llake import *
+        >>> parameterstep()
+        >>> with model.add_transfermodel_v1("exch_water_transfer_io"):
+        ...     voltransferrules(PPoly(xs=[0.0], ys=[0.0]))
+        ...     minvol(0.0)
+        ...     maxvol(inf)
+        ...     voltol(0.0)
+        ...     qtol(0.0)
+        ...     keepwaterbalance(False)
+        >>> model.transfermodel.parameters.control.keepwaterbalance
+        keepwaterbalance(False)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+        """
+
+
 class MixinSimpleWaterBalance(modeltools.Model, abc.ABC):
     """Mixin class for the HydPy-Dam models with the simplest  water balance
     equation."""
@@ -6256,9 +6719,12 @@ class MixinSimpleWaterBalance(modeltools.Model, abc.ABC):
         Method |MixinSimpleWaterBalance.check_waterbalance| calculates the balance
         error as follows:
 
-        :math:`Seconds \cdot 10^{-6} \cdot \sum_{t=t0}^{t1}
-        \big( AdjustedPrecipitation_t - ActualEvaporation_t + Inflow_t - Outflow_t \big)
-        + \big( WaterVolume_{t0}^k - WaterVolume_{t1}^k \big)`
+          .. math::
+            Error = Seconds \cdot 10^{-6} \cdot (\Sigma In - \Sigma Out) - \Delta Vol
+            \\ \\
+            \Sigma In = \sum_{t=t_0}^{t_1} AdjustedPrecipitation_t + Inflow_t \\
+            \Sigma Out = \sum_{t=t_0}^{t_1} ActualEvaporation_t + Outflow_t \\
+            \Delta Vol = WaterVolume_{t_1} - WaterVolume_{t_0}
 
         The returned error should always be in scale with numerical precision so
         that it does not affect the simulation results in any relevant manner.

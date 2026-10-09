@@ -1337,7 +1337,7 @@ class PPolys(interptools.InterpAlgorithm):
     (:math:`y_1 = x - \\sum_{i=2}^n y_i`).  The remaining derivative is calculated
     accordingly (:math:`\\frac{dy_1}{dx} = 1 - \\sum_{i=2}^n \\frac{dy_i}{dx}`, because
     :math:`\\frac{dx}{dx} = 1`).  The following example demonstrates this for the
-    |PchipInterpolator| spline method (which is not prone to overshooting and is
+    `PchipInterpolator` spline method (which is not prone to overshooting and is
     therefore a relatively safe spline method):
 
     >>> from scipy.interpolate import PchipInterpolator

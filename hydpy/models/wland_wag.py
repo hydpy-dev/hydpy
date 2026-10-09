@@ -1219,6 +1219,7 @@ class Model(
         wland_model.Update_HQ_V1,
         wland_model.Update_HS_V1,
     )
+    POST_ODE_METHODS = ()
     OUTLET_METHODS = (
         wland_model.Calc_ET_V1,
         wland_model.Calc_R_V1,

@@ -31,3 +31,4 @@ available in the :ref:`model_overview` section, which covers all user-relevant m
    soilinterfaces
    stateinterfaces
    tempinterfaces
+   transferinterfaces

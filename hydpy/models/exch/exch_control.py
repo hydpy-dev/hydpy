@@ -57,7 +57,8 @@ class AllowedExchange(parametertools.Parameter):
 
 
 class Delta(parametertools.MonthParameter):
-    """Monthly varying difference for increasing or decreasing the input [e.g. m³/s]."""
+    """Monthly varying difference for increasing or decreasing the input
+    [e.g. m³/s]."""
 
     TYPE: Final = float
     INIT = 0.0
@@ -729,6 +730,137 @@ interpolation via `PPolys` instances.
                         f"`{enum_(targetnames)}`."
                     )
             self.subpars.pars.model.__hydpy__targetnames__ = tuple(targetnames)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to set the interpolation rules of parameter "
+                f"{objecttools.elementphrase(self)}"
+            )
+
+
+class MinVol(parametertools.SeasonalParameter):
+    """Minimum water volume that externally requested withdrawals should not undercut
+    [million m³].
+
+    |MinVol| only affects positive |exch_inputs.RequestedTransfer| values
+    (withdrawals), not the |VolTransferRules| fallback.  Set it to -|numpy.inf| to
+    disable it (see |Determine_Transfer_V1|).
+    """
+
+    NDIM: Final[Literal[1]] = 1
+    INIT = 0.0
+
+
+class MaxVol(parametertools.SeasonalParameter):
+    """Maximum water volume that externally requested supplies should not exceed
+    [million m³].
+
+    |MaxVol| only affects negative |exch_inputs.RequestedTransfer| values
+    (supplies), not the |VolTransferRules| fallback.  Set it to |numpy.inf| to disable
+    it (see |Determine_Transfer_V1|).
+    """
+
+    NDIM: Final[Literal[1]] = 1
+    INIT = numpy.inf
+
+
+class VolTol(parametertools.SeasonalParameter):
+    """Tolerance for smoothing the reduction of externally requested transfers at the
+    water volume thresholds |MinVol| and |MaxVol| [million m³].
+
+    Zero values cause discontinuities that might hamper the main model's numerical
+    integration (see |Determine_Transfer_V1|).
+    """
+
+    NDIM: Final[Literal[1]] = 1
+    SPAN = (0.0, None)
+    INIT = 0.0
+
+
+class QTol(parametertools.Parameter):
+    """Tolerance for smoothing the reduction of withdrawals to the main model's
+    allowed discharge [m³/s].
+
+    Zero values cause discontinuities that might hamper the main model's numerical
+    integration (see |Determine_Transfer_V1|).
+    """
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
+    INIT = 0.0
+
+
+class VolTransferRules(interptools.SeasonalInterpolator):
+    """Seasonally varying interpolation rules for calculating the water transfer based
+    on the current water volume [m³/s].
+
+    |VolTransferRules| is a fallback parameter that is only relevant for periods
+    without available |exch_inputs.RequestedTransfer| time series data.
+
+    You can define a single interpolation rule:
+
+    >>> from hydpy import ANN, PPoly, pub
+    >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
+    >>> from hydpy.models.exch_water_transfer_io import *
+    >>> parameterstep()
+    >>> voltransferrules(PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]))
+    >>> voltransferrules
+    voltransferrules(
+        PPoly(
+            xs=[0.0, 2.0],
+            ys=[0.0, 1.0],
+        )
+    )
+
+    Or multiple interpolation rules for different times of the year:
+
+    >>> voltransferrules(
+    ...     toy_01_01_12=PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]),
+    ...     toy_01_03_12=PPoly(xs=[0.0], ys=[0.0]),
+    ... )
+    >>> voltransferrules
+    voltransferrules(
+        toy_1_1_12_0_0=PPoly(
+            xs=[0.0, 2.0],
+            ys=[0.0, 1.0],
+        ),
+        toy_1_3_12_0_0=PPoly(
+            xs=[0.0],
+            ys=[0.0],
+        ),
+    )
+
+    Note that each interpolator must have exactly one input (the water volume) and one
+    output (the water transfer):
+
+    >>> voltransferrules(ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=2))
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the interpolation rules of parameter \
+`voltransferrules` of element `?`, the following error occurred: Parameter \
+`voltransferrules` requires interpolators with exactly one input and one output, but \
+the given one has one input and two outputs.
+
+    .. testsetup::
+
+        >>> del pub.timegrids
+    """
+
+    XLABEL = "water volume [million m³]"
+    YLABEL = "transfer [m³/s]"
+
+    def __call__(self, *args, **kwargs) -> None:
+        try:
+            super().__call__(*args, **kwargs)
+            if ((ni := self.nmb_inputs) != 1) or ((no := self.nmb_outputs) != 1):
+                e = inflect.engine()
+                ni_words = e.number_to_words(ni)  # type: ignore[arg-type]
+                no_words = e.number_to_words(no)  # type: ignore[arg-type]
+                raise ValueError(
+                    f"Parameter `{self.name}` requires interpolators with exactly one "
+                    f"input and one output, but the given one has {ni_words} "
+                    f"{e.plural('input', ni)} and {no_words} {e.plural('output', no)}."
+                )
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to set the interpolation rules of parameter "

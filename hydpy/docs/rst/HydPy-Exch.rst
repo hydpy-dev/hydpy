@@ -35,5 +35,6 @@ Available models:
    exch_branch_io
    exch_branch_rules
    exch_interp
+   exch_water_transfer_io
    exch_waterlevel
    exch_weir_hbv96

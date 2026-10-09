@@ -1705,6 +1705,7 @@ class SubmodelGraph:
         ...
         TempModel_V1
         TempModel_V2
+        TransferModel_V1
         WaterLevelModel_V1
         """
         dirpath = interfaces.__path__[0]

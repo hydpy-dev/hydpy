@@ -3885,8 +3885,8 @@ class LinkSequence(BaseLinkInputSequence, abc.ABC):
     >>> model.parameters.update()
     >>> branch.model = model
 
-    Each field of the values of a 1-dimensional |LinkSequence| object points to
-    another |NodeSequence| object (here, the outlet method |Pass_Branched_V1|
+    Each field of the values of a 1-dimensional |LinkSequence| object points to another
+    |NodeSequence| object (here, the outlet method |exch_model.Pass_Branched_V1|
     calculates the values passed to the three nodes from the given input):
 
     >>> model.idx_sim = 0

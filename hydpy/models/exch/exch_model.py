@@ -2,6 +2,8 @@
 
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
+from hydpy.cythons import smoothutils
+from hydpy.models.exch import exch_aides
 from hydpy.models.exch import exch_control
 from hydpy.models.exch import exch_derived
 from hydpy.models.exch import exch_inputs
@@ -548,6 +550,422 @@ class Calc_Outputs_V1(modeltools.Method):
             flu.outputs[bdx] = (x - x0) * dy / dx + y0
 
 
+class Return_AllowedTransfer_V1(modeltools.Method):
+    r"""Restrict withdrawals to the allowed discharge without turning them into
+    supplies.
+
+    Used auxiliary methods:
+      |smooth_min1|
+      |smooth_max1|
+
+    Basic (discontinuous) equation:
+      .. math::
+        T_{new} = \begin{cases}
+        T_{old} &|\ T_{old} \leq 0
+        \\
+        max \big(min(T_{old}, \, A), \, 0\big) &|\ T_{old} > 0
+        \end{cases}
+        \\ \\
+        T = transfer \\
+        A = alloweddischarge
+
+    |Return_AllowedTransfer_V1| applies the strategy of method |dam_model.Fix_Min1_V1|
+    of base model |dam| (with an "absolute" smoother) to ensure the result is never
+    negative and never exceeds the given transfer or the allowed discharge.
+
+    Examples:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> from hydpy import round_
+        >>> def test(smoothpar):
+        ...     for transfer, alloweddischarge in ((-1.0, -1.0), (2.0, -1.0),
+        ...                                        (2.0, 0.0), (2.0, 1.0), (2.0, 2.0),
+        ...                                        (2.0, 3.0), (2.0, inf)):
+        ...         result = model.return_allowedtransfer_v1(
+        ...             transfer, alloweddischarge, smoothpar
+        ...         )
+        ...         print(transfer, alloweddischarge, end=": ")
+        ...         round_(result)
+
+        Without smoothing, the restriction is a simple (discontinuous) minimum with a
+        lower bound of zero, which does not affect supplies (negative values):
+
+        >>> test(0.0)
+        -1.0 -1.0: -1.0
+        2.0 -1.0: 0.0
+        2.0 0.0: 0.0
+        2.0 1.0: 1.0
+        2.0 2.0: 2.0
+        2.0 3.0: 2.0
+        2.0 inf: 2.0
+
+        With smoothing, the results stay within the same bounds:
+
+        >>> test(0.5)
+        -1.0 -1.0: -1.0
+        2.0 -1.0: 0.0
+        2.0 0.0: 0.0
+        2.0 1.0: 0.935724
+        2.0 2.0: 1.653426
+        2.0 3.0: 1.936536
+        2.0 inf: 2.0
+    """
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model,
+        transfer: float,
+        alloweddischarge: float,
+        smoothpar: float,
+        /,
+    ) -> float:
+        if transfer <= 0.0:
+            return transfer
+        result: float = smoothutils.smooth_min1(transfer, alloweddischarge, smoothpar)
+        for _ in range(5):
+            smoothpar /= 5.0
+            result = smoothutils.smooth_max1(result, 0.0, smoothpar)
+            smoothpar /= 5.0
+            result = smoothutils.smooth_min1(result, alloweddischarge, smoothpar)
+        return max(min(result, transfer, alloweddischarge), 0.0)
+
+
+class Determine_Transfer_V1(modeltools.Method):
+    r"""Interface method for determining the water transfer based on the current
+    water volume and the main model's allowed discharge.
+
+    Used auxiliary method:
+      |smooth_logistic1|
+
+    Basic equations:
+      .. math::
+        E = f_{AT}(E', \, A, \, S_Q)
+        \\ \\
+        E' = \begin{cases}
+        f_T(V) &|\ R \in \{nan, \, -\infty, \, \infty\}
+        \\
+        R \cdot f_{s1}(V - V_{n}, \, S_V) &|\ 0 \leq R < \infty
+        \\
+        R \cdot f_{s1}(V_{x} - V, \, S_V) &|\ -\infty < R < 0
+        \end{cases}
+        \\ \\
+        E = EffectiveTransfer \\
+        R = RequestedTransfer \\
+        V = watervolume \\
+        A = alloweddischarge \\
+        f_{AT} = Return\_AllowedTransfer\_V1 \\
+        f_T = VolTransferRules \\
+        f_{s1} = smooth\_logistic1 \\
+        V_{n} = MinVol \\
+        V_{x} = MaxVol \\
+        S_V = VolSmoothPar \\
+        S_Q = QSmoothPar
+
+    Examples:
+
+        We prepare |exch_water_transfer_io| for a single day and define a fallback
+        rule returning 0.5 m³/s per million m³ of stored water:
+
+        >>> from hydpy import pub, round_
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> voltransferrules(PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]))
+        >>> minvol(1.0)
+        >>> maxvol(3.0)
+        >>> voltol(0.0)
+        >>> qtol(0.0)
+        >>> derived.toy.update()
+        >>> derived.volsmoothpar.update()
+        >>> derived.qsmoothpar.update()
+        >>> model.idx_sim = 0
+
+        The following test function prints the effective transfer for some water
+        volumes (assuming the main model's allowed discharge is unrestricted):
+
+        >>> def test():
+        ...     for watervolume in (0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0):
+        ...         model.determine_transfer_v1(watervolume, inf)
+        ...         print(watervolume, end=": ")
+        ...         round_(aides.effectivetransfer.value)
+
+        Without an external transfer request (|numpy.nan| or |numpy.inf| values),
+        |Determine_Transfer_V1| applies the fallback rule and does not consider the
+        thresholds |MinVol| and |MaxVol|:
+
+        >>> inputs.requestedtransfer = nan
+        >>> test()
+        0.0: 0.0
+        0.5: 0.25
+        1.0: 0.5
+        1.5: 0.75
+        2.0: 1.0
+        2.5: 1.25
+        3.0: 1.5
+        3.5: 1.75
+        4.0: 2.0
+
+        Otherwise, without smoothing, requested withdrawals (positive values) drop to
+        zero below |MinVol| and are halved exactly at |MinVol|:
+
+        >>> inputs.requestedtransfer = 2.0
+        >>> test()
+        0.0: 0.0
+        0.5: 0.0
+        1.0: 1.0
+        1.5: 2.0
+        2.0: 2.0
+        2.5: 2.0
+        3.0: 2.0
+        3.5: 2.0
+        4.0: 2.0
+
+        Likewise, |Determine_Transfer_V1| reduces supplies (negative values) when the
+        water volume approaches |MaxVol|:
+
+        >>> inputs.requestedtransfer = -2.0
+        >>> test()
+        0.0: -2.0
+        0.5: -2.0
+        1.0: -2.0
+        1.5: -2.0
+        2.0: -2.0
+        2.5: -2.0
+        3.0: -1.0
+        3.5: 0.0
+        4.0: 0.0
+
+        Positive |VolTol| values smooth the transition: the reduction factor is 0.5
+        at the threshold and 0.99 and 0.01 at a distance of |VolTol| on the permitted
+        and the forbidden side, respectively:
+
+        >>> voltol(0.5)
+        >>> derived.volsmoothpar.update()
+        >>> test()
+        0.0: -2.0
+        0.5: -2.0
+        1.0: -2.0
+        1.5: -1.999998
+        2.0: -1.999796
+        2.5: -1.98
+        3.0: -1.0
+        3.5: -0.02
+        4.0: -0.000204
+
+        >>> inputs.requestedtransfer = 2.0
+        >>> test()
+        0.0: 0.000204
+        0.5: 0.02
+        1.0: 1.0
+        1.5: 1.98
+        2.0: 1.999796
+        2.5: 1.999998
+        3.0: 2.0
+        3.5: 2.0
+        4.0: 2.0
+
+        Finally, |Determine_Transfer_V1| restricts all withdrawals (requested or
+        rule-based) to the main model's allowed discharge (for example, the discharge
+        that complies with the allowed water level drop of |dam_llake|), whereby it
+        never turns withdrawals into supplies (see method |Return_AllowedTransfer_V1|
+        for more information).  |QTol| controls the smoothness of this restriction:
+
+        >>> voltol(0.0)
+        >>> derived.volsmoothpar.update()
+        >>> qtol(0.5)
+        >>> derived.qsmoothpar.update()
+        >>> def test(requestedtransfer):
+        ...     inputs.requestedtransfer = requestedtransfer
+        ...     for alloweddischarge in (-1.0, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, inf):
+        ...         model.determine_transfer_v1(2.0, alloweddischarge)
+        ...         print(alloweddischarge, end=": ")
+        ...         round_(aides.effectivetransfer.value)
+
+        >>> test(2.0)
+        -1.0: 0.0
+        0.0: 0.0
+        0.5: 0.495101
+        1.0: 0.994812
+        1.5: 1.488475
+        2.0: 1.877957
+        2.5: 1.99
+        inf: 2.0
+
+        >>> test(nan)
+        -1.0: 0.0
+        0.0: 0.0
+        0.5: 0.488475
+        1.0: 0.877957
+        1.5: 0.99
+        2.0: 0.9994
+        2.5: 0.999965
+        inf: 1.0
+
+        >>> test(-2.0)
+        -1.0: -2.0
+        0.0: -2.0
+        0.5: -2.0
+        1.0: -2.0
+        1.5: -2.0
+        2.0: -2.0
+        2.5: -2.0
+        inf: -2.0
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    SUBMETHODS = (Return_AllowedTransfer_V1,)
+    CONTROLPARAMETERS = (
+        exch_control.MinVol,
+        exch_control.MaxVol,
+        exch_control.VolTransferRules,
+    )
+    DERIVEDPARAMETERS = (
+        exch_derived.TOY,
+        exch_derived.VolSmoothPar,
+        exch_derived.QSmoothPar,
+    )
+    REQUIREDSEQUENCES = (exch_inputs.RequestedTransfer,)
+    RESULTSEQUENCES = (exch_aides.EffectiveTransfer,)
+
+    @staticmethod
+    def __call__(
+        model: modeltools.Model, watervolume: float, alloweddischarge: float, /
+    ) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        idx_toy = der.toy[model.idx_sim]
+        if modelutils.isnan(inp.requestedtransfer) or modelutils.isinf(
+            inp.requestedtransfer
+        ):
+            con.voltransferrules.inputs[0] = watervolume
+            con.voltransferrules.calculate_values(idx_toy)
+            aid.effectivetransfer = con.voltransferrules.outputs[0]
+        elif inp.requestedtransfer >= 0.0:
+            aid.effectivetransfer = (
+                inp.requestedtransfer
+                * smoothutils.smooth_logistic1(
+                    watervolume - con.minvol[idx_toy], der.volsmoothpar[idx_toy]
+                )
+            )
+        else:
+            aid.effectivetransfer = (
+                inp.requestedtransfer
+                * smoothutils.smooth_logistic1(
+                    con.maxvol[idx_toy] - watervolume, der.volsmoothpar[idx_toy]
+                )
+            )
+        aid.effectivetransfer = model.return_allowedtransfer_v1(
+            aid.effectivetransfer, alloweddischarge, der.qsmoothpar
+        )
+
+
+class Get_Transfer_V1(modeltools.Method):
+    """Interface method for querying the effective water transfer in m³/s.
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> aides.effectivetransfer = 2.0
+        >>> from hydpy import round_
+        >>> round_(model.get_transfer_v1())
+        2.0
+    """
+
+    REQUIREDSEQUENCES = (exch_aides.EffectiveTransfer,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> float:
+        aid = model.sequences.aides.fastaccess
+
+        return aid.effectivetransfer
+
+
+class Set_Transfer_V1(modeltools.Method):
+    r"""Interface method to receive the final effective water transfer and pass the
+    actual transfer to the outlet node.
+
+    Basic equation:
+      .. math::
+        A = \begin{cases}
+        T &|\ R \in \{nan, \, -\infty, \, \infty\} \ \lor \ K
+        \\
+        R &|\ R \notin \{nan, \, -\infty, \, \infty\} \ \land \ \overline{K}
+        \end{cases}
+        \\ \\
+        A = ActualTransfer \\
+        T = transfer \\
+        R = RequestedTransfer \\
+        K = KeepWaterBalance
+
+    Examples:
+
+        The main model must pass the effective transfer it calculated for the whole
+        simulation step:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> def test(transfer):
+        ...     model.set_transfer_v1(transfer)
+        ...     print(outlets.actualtransfer)
+
+        Without an external request (that is, for transfers calculated by the fallback
+        rule |VolTransferRules|), the actual transfer always equals the effective
+        transfer, regardless of |KeepWaterBalance|:
+
+        >>> keepwaterbalance(False)
+        >>> inputs.requestedtransfer = nan
+        >>> test(1.0)
+        actualtransfer(1.0)
+
+        With an external request, the actual transfer equals the effective transfer if
+        |KeepWaterBalance| is |True| and the requested one otherwise:
+
+        >>> inputs.requestedtransfer = 2.0
+        >>> keepwaterbalance(True)
+        >>> test(1.0)
+        actualtransfer(1.0)
+
+        >>> keepwaterbalance(False)
+        >>> test(1.0)
+        actualtransfer(2.0)
+
+        Main models like |dam_llake| pass zero effective transfers before their
+        commission date.  If |KeepWaterBalance| is |False|, |Set_Transfer_V1|
+        nevertheless passes externally requested transfers to the outlet node during
+        this period:
+
+        >>> test(0.0)
+        actualtransfer(2.0)
+    """
+
+    CONTROLPARAMETERS = (exch_control.KeepWaterBalance,)
+    REQUIREDSEQUENCES = (exch_inputs.RequestedTransfer,)
+    RESULTSEQUENCES = (exch_outlets.ActualTransfer,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, transfer: float, /) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        out = model.sequences.outlets.fastaccess
+
+        if (
+            modelutils.isnan(inp.requestedtransfer)
+            or modelutils.isinf(inp.requestedtransfer)
+            or con.keepwaterbalance
+        ):
+            out.actualtransfer = transfer
+        else:
+            out.actualtransfer = inp.requestedtransfer
+
+
 class Calc_Y_V1(modeltools.Method):
     """Use an interpolation function to calculate the result.
 
@@ -720,8 +1138,9 @@ class Pass_ActualTransfer_StreamOutflow_V1(modeltools.Method):
         The exact behaviour of preventing excessive withdrawals depends on parameter
         |KeepWaterBalance|.  If it is |True|, the actual transfer is limited to the
         inflow exceeding |MinStream|.  However, inflow values already below |MinStream|
-        are not automatically increased by supplies, meaning |ActualTransfer| is at
-        most decreased to zero and not to negative values:
+        are not automatically increased by supplies, meaning
+        |exch_outlets.ActualTransfer| is at most decreased to zero and not to
+        negative values:
 
         >>> keepwaterbalance(True)
         >>> test()
@@ -743,8 +1162,9 @@ class Pass_ActualTransfer_StreamOutflow_V1(modeltools.Method):
         |  14 |    9.0 |               2.0 |            2.0 |           7.0 |
 
         If |KeepWaterBalance| is |False|, |StreamOutflow| is reduced when necessary,
-        but |ActualTransfer| is always identical to |RequestedTransfer| (see the
-        explanation in the documentation of parameter |KeepWaterBalance|):
+        but |exch_outlets.ActualTransfer| is always identical to
+        |exch_inputs.RequestedTransfer| (see the explanation in the documentation
+        of parameter |KeepWaterBalance|):
 
         >>> keepwaterbalance(False)
         >>> test()
@@ -1080,8 +1500,15 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_Outputs_V1,
         Calc_Y_V1,
     )
-    INTERFACE_METHODS = (Get_WaterLevel_V1, Determine_Y_V1, Get_Y_V1)
-    ADD_METHODS = ()
+    INTERFACE_METHODS = (
+        Get_WaterLevel_V1,
+        Determine_Y_V1,
+        Get_Y_V1,
+        Determine_Transfer_V1,
+        Get_Transfer_V1,
+        Set_Transfer_V1,
+    )
+    ADD_METHODS = (Return_AllowedTransfer_V1,)
     OUTLET_METHODS = (
         Pass_ActualExchange_V1,
         Pass_Outputs_V1,

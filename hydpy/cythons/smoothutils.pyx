@@ -65,7 +65,7 @@ value.
 
 :math:`\frac{d}{dx}f_{log1}(x, c) = \frac{exp(x/c)}{(exp(x/c)+1)^2}`
 
-The following example shows the derivates for four different smoothing parameters:
+The following example shows the derivatives for four different smoothing parameters:
 
 >>> import numpy
 >>> for value in range(-5, 6):
@@ -185,7 +185,7 @@ smoothing parameter.
 
 :math:`\frac{d}{dc}f_{log2}(x, c) = \frac{x}{c \cdot exp(x/c)+c} \cdot ln(exp(-x/c)+1)`
 
-The following example shows the derivates for four different smoothing parameters:
+The following example shows the derivatives for four different smoothing parameters:
 
 >>> for value in range(-5, 6):
 ...     if value == -5:
@@ -255,7 +255,7 @@ value.
 
 :math:`\frac{d}{dx}f_{log2}(x, c) = \frac{exp(x/c)}{exp(x/c)+1}`
 
-The following example shows the derivates for four different smoothing parameters:
+The following example shows the derivatives for four different smoothing parameters:
 
 >>> for value in range(-5, 6):
 ...     if value == -5:
@@ -371,7 +371,7 @@ Smoothing kernel for approximating the maximum function for two values based on 
 
 :math:`f_{max}(x, y, c) = c \cdot ln(exp(x/c)+exp(y/c))`
 
-The following example shows the different degree of approximation of the maximum
+The following example shows the different degrees of approximation of the maximum
 function for four different smoothing parameters:
 
 >>> for value in range(11):
@@ -403,7 +403,7 @@ relatively straight.  With the lowest smoothing parameter (0.0), the result is
 identical to the usual (discontinuous) maximum function.
 
 Function `smooth_max1` protects itself against numerical underflow and overflow.  In
-the following example, extreme values are added to both the `x` and the `y` value of 5
+the following example, extreme values are added to both the `x` and the `y` values 5
 and 6, respectively.  The degree of smoothing is always identical:
 
 >>> for test in ["-1e8", "0.0", "1e8"]:
@@ -413,6 +413,18 @@ and 6, respectively.  The degree of smoothing is always identical:
 -1e8, 6.313262
 0.0, 6.313262
 1e8, 6.313262
+
+Function `smooth_max1` also handles infinite values:
+
+>>> from numpy import inf
+>>> round_(smoothutils.smooth_max1(inf, 5.0, 1.0))
+inf
+>>> round_(smoothutils.smooth_max1(inf, inf, 1.0))
+inf
+>>> round_(smoothutils.smooth_max1(-inf, 5.0, 1.0))
+5.0
+>>> round_(smoothutils.smooth_max1(-inf, -inf, 1.0))
+-inf
 
 smooth_min1
 ___________
@@ -454,7 +466,7 @@ relatively straight.  With the lowest smoothing parameter (0.0), the result is
 identical to the usual (discontinuous) minimum function.
 
 Function `smooth_min1` protects itself against numerical underflow and overflow.  In
-the following example, extreme values are added to both the `x` and the `y` value of 5
+the following example, extreme values are added to both the `x` and the `y` values 5
 and 6, respectively.  The degree of smoothing is always identical:
 
 >>> for test in ["-1e8", " 0.0", " 1e8"]:
@@ -464,6 +476,17 @@ and 6, respectively.  The degree of smoothing is always identical:
 -1e8, 4.686738
  0.0, 4.686738
  1e8, 4.686738
+
+Function `smooth_min1` also handles infinite values:
+
+>>> round_(smoothutils.smooth_min1(-inf, 5.0, 1.0))
+-inf
+>>> round_(smoothutils.smooth_min1(-inf, -inf, 1.0))
+-inf
+>>> round_(smoothutils.smooth_min1(inf, 5.0, 1.0))
+5.0
+>>> round_(smoothutils.smooth_min1(inf, inf, 1.0))
+inf
 
 smooth_max2
 ___________
@@ -516,6 +539,15 @@ of 5, 6, and 7, respectively.  The degree of smoothing is always identical:
 0.0, 7.407606
 1e8, 7.407606
 
+Function `smooth_max2` also handles infinite values:
+
+>>> round_(smoothutils.smooth_max2(inf, 5.0, 6.0, 1.0))
+inf
+>>> round_(smoothutils.smooth_max2(inf, inf, inf, 1.0))
+inf
+>>> round_(smoothutils.smooth_max2(-inf, -inf, -inf, 1.0))
+-inf
+
 smooth_min2
 ___________
 
@@ -567,12 +599,21 @@ of 5, 6, and 7, respectively.  The degree of smoothing is always identical:
  0.0, 4.592394
  1e8, 4.592394
 
+Function `smooth_min2` also handles infinite values:
+
+>>> round_(smoothutils.smooth_min2(-inf, 5.0, 6.0, 1.0))
+-inf
+>>> round_(smoothutils.smooth_min2(-inf, -inf, -inf, 1.0))
+-inf
+>>> round_(smoothutils.smooth_min2(inf, inf, inf, 1.0))
+inf
+
 
 filter_norm
 ___________
 
 Filter kernel based on the normal distribution for smoothly turning additional function
-terms around specific values on or off.
+terms on or off around specific values.
 
 :math:`f_{norm}(x) =
 exp \left( -\frac{1}{2} \cdot \left( \frac{x - \mu}{\sigma} \right)^2 \right)`
@@ -608,7 +649,7 @@ for a sigma value of zero, for which `filter_norm` should never impact any resul
 """
 
 import cython
-from libc.math cimport exp, log
+from libc.math cimport exp, isinf, log
 from libc.math cimport INFINITY as inf
 
 cdef double MAX_LOG_FLOAT = 700.0
@@ -753,7 +794,7 @@ cpdef inline double smooth_logistic2_derivative1(
 
 cpdef inline double smooth_logistic3(double value, double parameter) noexcept nogil:
     """Smoothing kernel which combines `smooth_logistic1` and `smooth_logistic2` for 
-    the regularization of functions containing two second order discontinuities."""
+    the regularisation of functions containing two second order discontinuities."""
     cdef double subtotal_1 = smooth_logistic2(value, parameter)
     cdef double subtotal_2 = 1.0 - smooth_logistic2(1.0 - value, parameter)
     cdef double meta_parameter = max(0.025, 0.54 * parameter**1.17)
@@ -770,7 +811,7 @@ cpdef inline double smooth_max1(
     the LogSumExp function."""
     cdef double m_temp, x_temp, y_temp
     m_temp = _max1(x_value, y_value)
-    if parameter <= 0.:
+    if (parameter <= 0.0) or isinf(m_temp):
         return m_temp
     x_temp = exp((x_value - m_temp) / parameter)
     y_temp = exp((y_value - m_temp) / parameter)
@@ -797,7 +838,7 @@ cpdef inline double smooth_max2(
     on the LogSumExp function."""
     cdef double m_temp, x_temp, y_temp, z_temp
     m_temp = _max2(x_value, y_value, z_value)
-    if parameter <= 0.:
+    if (parameter <= 0.0) or isinf(m_temp):
         return m_temp
     x_temp = exp((x_value - m_temp) / parameter)
     y_temp = exp((y_value - m_temp) / parameter)

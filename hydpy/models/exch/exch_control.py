@@ -77,8 +77,10 @@ class XPoints(parametertools.Parameter):
     There must be at least two supporting points, and they must be strictly monotonic.
     If not, |XPoints| raises the following errors:
 
+    >>> from hydpy.core.exceptiontools import ignore_deprecations
     >>> from hydpy.models.exch_branch_hbv96 import *
-    >>> parameterstep()
+    >>> with ignore_deprecations():
+    ...     parameterstep()
     >>> xpoints(1.0, 2.0)
     >>> xpoints
     xpoints(1.0, 2.0)
@@ -128,8 +130,10 @@ class YPoints(parametertools.Parameter):
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
 
+    >>> from hydpy.core.exceptiontools import ignore_deprecations
     >>> from hydpy.models.exch_branch_hbv96 import *
-    >>> parameterstep("1d")
+    >>> with ignore_deprecations():
+    ...     parameterstep("1d")
     >>> ypoints
     ypoints(?)
 

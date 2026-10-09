@@ -3864,35 +3864,42 @@ class LinkSequence(BaseLinkInputSequence):
     q(1.0)
 
     In the example above, the 1-dimensional inlet sequence |musk_inlets.Q| only points
-    to a single |NodeSequence| value.  We now prepare a |exch_branch_hbv96| application
+    to a single |NodeSequence| value.  We now prepare a |exch_branch_rules| application
     model instance to show what happens when connecting a 1-dimensional |LinkSequence|
     object (|exch_outlets.Branched|) with three |NodeSequence| objects (see the
-    documentation of application model |exch_branch_hbv96| for more details):
+    documentation of application model |exch_branch_rules| for more details):
 
-    >>> from hydpy import Element, Nodes, prepare_model
-    >>> model = prepare_model("exch_branch_hbv96")
+    >>> from hydpy import Element, Nodes, PPoly, PPolys, prepare_model
+    >>> model = prepare_model("exch_branch_rules")
     >>> nodes = Nodes("input1", "input2", "output1", "output2", "output3")
     >>> branch = Element("branch",
     ...                  inlets=["input1", "input2"],
     ...                  outlets=["output1", "output2", "output3"])
-    >>> model.parameters.control.xpoints(0.0, 2.0, 4.0, 6.0)
-    >>> model.parameters.control.ypoints(
-    ...     output1=[0.0, 1.0, 2.0, 3.0],
-    ...     output2=[0.0, 1.0, 0.0, 0.0],
-    ...     output3=[0.0, 0.0, 2.0, 6.0])
+    >>> model.parameters.control.rules(
+    ...     PPolys(
+    ...         output1=PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]),
+    ...         output2=PPoly(xs=[0.0, 2.0, 4.0, 6.0], ys=[0.0, 1.0, 0.0, 0.0]),
+    ...         output3=PPoly(xs=[0.0, 2.0, 4.0, 6.0], ys=[0.0, 0.0, 2.0, 6.0]),
+    ...     )
+    ... )
+    >>> model.parameters.update()
     >>> branch.model = model
 
     Each field of the values of a 1-dimensional |LinkSequence| object points to
-    another |NodeSequence| object:
+    another |NodeSequence| object (here, the outlet method |Pass_Branched_V1|
+    calculates the values passed to the three nodes from the given input):
 
-    >>> model.sequences.outlets.branched = 1.0, 2.0, 3.0
+    >>> model.idx_sim = 0
+    >>> model.sequences.fluxes.input_ = 3.0
     >>> model.update_outlets()
+    >>> model.sequences.outlets.branched
+    branched(1.5, 0.5, 1.0)
     >>> nodes.output1.sequences.sim
-    sim(1.0)
+    sim(1.5)
     >>> nodes.output2.sequences.sim
-    sim(2.0)
+    sim(0.5)
     >>> nodes.output3.sequences.sim
-    sim(3.0)
+    sim(1.0)
 
     .. testsetup::
 

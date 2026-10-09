@@ -1785,8 +1785,8 @@ class SubmodelGraph:
 
         >>> from hydpy.core.autodoctools import SubmodelGraph
         >>> subgraphs = SubmodelGraph().subgraphs
-        >>> from hydpy.models import exch_branch_hbv96, hland_96
-        >>> subgraphs[exch_branch_hbv96.Model]
+        >>> from hydpy.models import exch_branch_rules, hland_96
+        >>> subgraphs[exch_branch_rules.Model]
         {}
         >>> for port, models in subgraphs[hland_96.Model].items():
         ...     print(port.name, *(model.__HYDPY_NAME__ for model in models))
@@ -1812,10 +1812,10 @@ class SubmodelGraph:
         Example for a main model without any submodels:
 
         >>> from hydpy.core.autodoctools import SubmodelGraph
-        >>> graph = SubmodelGraph(modelname="exch_branch_hbv96").graph
+        >>> graph = SubmodelGraph(modelname="exch_branch_rules").graph
         >>> for model, subgraph in graph.items():
         ...     print(model.__HYDPY_NAME__, subgraph)
-        exch_branch_hbv96 {}
+        exch_branch_rules {}
 
         Complex example that covers two important cases: (1) main models used as
         sub-submodels; (2) PET models are not suggested as submodel candidates for

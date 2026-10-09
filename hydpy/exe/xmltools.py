@@ -2552,7 +2552,7 @@ class XSDWriter:
         types_: tuple[Literal["reader", "writer"], ...] = ("reader", "writer")
         for type_ in types_:
             for name in cls.get_applicationmodelnames():
-                model = importtools.prepare_model(name)
+                model = importtools.prepare_model(name, ignore_deprecated=True)
                 modelinsertion = cls.get_modelinsertion(
                     model=model, type_=type_, indent=indent + 2
                 )
@@ -2763,7 +2763,7 @@ class XSDWriter:
             f'{blanks}                 minOccurs="0"/>',
         ]
         for name in cls.get_applicationmodelnames():
-            seqs = importtools.prepare_model(name).sequences
+            seqs = importtools.prepare_model(name, ignore_deprecated=True).sequences
             if seqs.inputs or (
                 (type_ == "writer") and (seqs.factors or seqs.fluxes or seqs.states)
             ):
@@ -2831,7 +2831,7 @@ class XSDWriter:
         blanks = " " * (indent * 4)
         subs = []
         for modelname in cls.get_applicationmodelnames():
-            model = importtools.prepare_model(modelname)
+            model = importtools.prepare_model(modelname, ignore_deprecated=True)
             subs.extend(
                 [
                     f'{blanks}<complexType name="{modelname}_mathitemType">',
@@ -2886,7 +2886,7 @@ class XSDWriter:
         blanks = " " * (indent * 4)
         subs = []
         for modelname in cls.get_basemodelnames():
-            model = importtools.prepare_model(modelname)
+            model = importtools.prepare_model(modelname, ignore_deprecated=True)
             for subvars in cls._get_subvars(model, conditions=False):
                 for var in subvars:
                     if isinstance(var, parametertools.Parameter) and var.KEYWORDS:
@@ -3122,7 +3122,7 @@ class XSDWriter:
         ...
         """
         subs = []
-        model = importtools.prepare_model(modelname)
+        model = importtools.prepare_model(modelname, ignore_deprecated=True)
         conditions = itemgroup in ("getitems", "setitems")
         for subvars in cls._get_subvars(model, conditions=conditions):
             subs.append(

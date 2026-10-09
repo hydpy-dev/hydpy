@@ -148,6 +148,7 @@ excluded_members = {
     "SENDER_METHODS",
     "PART_ODE_METHODS",
     "FULL_ODE_METHODS",
+    "POST_ODE_METHODS",
     "CONTROLPARAMETERS",
     "DERIVEDPARAMETERS",
     "FIXEDPARAMETERS",
@@ -323,6 +324,7 @@ def _get_member2applicationmodels(basemodelname: str) -> dict[Member, list[str]]
                 ("Model", "OBSERVER_METHODS"),
                 ("Model", "OUTLET_METHODS"),
                 ("Model", "PART_ODE_METHODS"),
+                ("Model", "POST_ODE_METHODS"),
                 ("Model", "RECEIVER_METHODS"),
                 ("Model", "RUN_METHODS"),
                 ("Model", "SENDER_METHODS"),
@@ -1338,6 +1340,11 @@ _name2descr = {
         "The following methods define the complete equations of an ODE system (e.g. "
         "change in storage of `fast water` due to effective precipitation and direct "
         "runoff)"
+    ),
+    "POST_ODE_METHODS": (
+        "The following methods are called in the given sequence after solving the ODE "
+        "system of each simulation step (e.g. for passing the final flux values to "
+        "submodels)"
     ),
     "OUTLET_METHODS": (
         'The following "outlet update methods" are called in the given sequence at '

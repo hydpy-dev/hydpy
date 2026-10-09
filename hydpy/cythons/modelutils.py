@@ -13,8 +13,8 @@ might arise.  Please contact the *HydPy* developer team then, preferably by open
 `issue`_ on GitHub.  Potentially, problems could occur when defining parameters or
 sequences with larger dimensionality than anticipated.  The following example shows the
 Cython code lines for the |ELSModel.get_point_states| method of class |ELSModel|, used
-for deriving the |test| model.  By now, we did only implement 0-dimensional and
-1-dimensional sequences requiring this method.  After hackishly changing the
+for deriving the |test| model.  So far, we have only implemented 0-dimensional and
+1-dimensional sequences requiring this method.   After hackishly changing the
 dimensionality of sequences |test_states.S|, we still seem to get plausible results,
 but these are untested in model applications:
 
@@ -366,7 +366,7 @@ TYPE2STR: dict[type[Any] | str | None, str] = {  # pylint: disable=duplicate-key
     "VectorFloat": "double[:]",
     "VectorFloat": "double[:]",
 }
-"""Maps Python types to Cython compatible type declarations.
+"""Maps Python types to Cython-compatible type declarations.
 
 The Cython type belonging to Python's |int| is selected to agree with numpy's default 
 integer type on the current platform/system.
@@ -600,7 +600,7 @@ class Cythonizer:
 
     def cythonize(self) -> None:
         """Translate Python source code of the relevant model first into Cython and
-        then into C, compile it, and move the resulting dll file to the `autogen`
+        then into C, compile it, and move the resulting DLL file to the `autogen`
         subfolder of subpackage `cythons`."""
         print(f"Translate module/package {self.pyname}.")
         self.pyxwriter.write()
@@ -666,7 +666,7 @@ class Cythonizer:
         >>> c_hland_96 is cythonizer.cymodule
         True
 
-        However, if this module is missing for some reasons, it tries to create the
+        However, if this module is missing for some reason, it tries to create the
         module first and returns it afterwards.  For demonstration purposes, we define
         a wrong |Cythonizer.cyname|:
 
@@ -726,7 +726,7 @@ class Cythonizer:
 
     @property
     def buildpath(self) -> str:
-        """The absolute path for temporarily build files.
+        """The absolute path for temporarily built files.
 
         >>> from hydpy.models.hland_96 import cythonizer
         >>> from hydpy import repr_
@@ -1545,6 +1545,7 @@ class PyxWriter:
             self.solve(lines)
             self.calculate_single_terms(lines, self.model)
             self.calculate_full_terms(lines, self.model)
+            self.run_post_ode(lines, self.model)
             self.get_point_states(lines)
             self.set_point_states(lines)
             self.set_result_states(lines)
@@ -1612,6 +1613,8 @@ class PyxWriter:
                 pyx(3, "self.new2old()")
             else:
                 pyx(2, "self.solve()")
+            if self.model.POST_ODE_METHODS:
+                pyx(2, "self.run_post_ode()")
         else:
             pyx(2, "self.run()")
             if seqs.states:
@@ -2051,6 +2054,12 @@ class PyxWriter:
             lines=lines, name="calculate_full_terms", methods=model.FULL_ODE_METHODS
         )
 
+    def run_post_ode(self, lines: PyxPxdLines, model: modeltools.SolverModel) -> None:
+        """Return the lines of the model method with the same name."""
+        self._call_methods(
+            lines=lines, name="run_post_ode", methods=model.POST_ODE_METHODS
+        )
+
     @property
     def name2function_method(self) -> dict[str, types.MethodType]:
         """Functions defined by |Method| subclasses."""
@@ -2241,7 +2250,7 @@ class PyxWriter:
 
     @decorate_method
     def set_result_states(self) -> Iterator[str]:
-        """Get results statements for state sequences."""
+        """Get result statements for state sequences."""
         return self._assign_seqvalues(
             subseqs=self.model.sequences.states,
             subseqs_name="states",
@@ -2507,7 +2516,7 @@ class PyxWriter:
         >>> os.path.exists(filepath)
         True
 
-        However, it's just an experimental prototype, so we better remove it:
+        However, it's just an experimental prototype, so we'd better remove it:
 
         >>> os.remove(filepath)
         >>> os.path.exists(filepath)
@@ -2776,11 +2785,11 @@ class FuncConverter:
         """The leaned code lines of the current function.
 
         The implemented cleanups:
-          * eventually, remove method version
+          * eventually, remove the method version
           * remove all docstrings
           * remove all comments
           * remove all empty lines
-          * remove line bracks within brackets
+          * remove line breacks within brackets
           * remove the phrase `modelutils`
           * remove all lines containing the phrase `fastaccess`
           * replace all shortcuts with complete reference names
@@ -2841,8 +2850,8 @@ class FuncConverter:
 
     @staticmethod
     def remove_imath_operators(lines: list[str]) -> None:
-        """Remove mathematical expressions that require Pythons global interpreter
-        locking mechanism.
+        """Remove mathematical expressions that require Python's global interpreter
+        lock.
 
         The following example is not an exhaustive test but shows how the method works
         in principle:
@@ -3006,7 +3015,7 @@ def get_callbackcymodule(
     callback: Callable[[modeltools.Model], None],
 ) -> types.ModuleType:
     """Return the cython module containing the required callback module after, if
-    necessary, creating or updating."""
+    necessary, creating or updating it."""
 
     basename = f"callback_{model}_{parameter.name}_{callback.__name__}"
     pyfilepath = os.path.join(autogenpath, f"{basename}.pysource")
@@ -3072,7 +3081,7 @@ def get_callbackcymodule(
 
 
 def exp(double: float) -> float:
-    """Cython wrapper for the |numpy.exp| function of module |numpy| applied on a
+    """Cython wrapper for the |numpy.exp| function of module |numpy| applied to a
     single |float| object.
 
     >>> from hydpy.cythons.modelutils import exp
@@ -3086,7 +3095,7 @@ def exp(double: float) -> float:
 
 
 def log(double: float) -> float:
-    """Cython wrapper for the |numpy.log| function of module |numpy| applied on a
+    """Cython wrapper for the |numpy.log| function of module |numpy| applied to a
     single |float| object.
 
     >>> from hydpy.cythons.modelutils import log
@@ -3100,7 +3109,7 @@ def log(double: float) -> float:
 
 
 def fabs(double: float) -> float:
-    """Cython wrapper for the |math.fabs| function of module |math| applied on a single
+    """Cython wrapper for the |math.fabs| function of module |math| applied to a single
     |float| object.
 
     >>> from hydpy.cythons.modelutils import fabs
@@ -3114,7 +3123,7 @@ def fabs(double: float) -> float:
 
 
 def sin(double: float) -> float:
-    """Cython wrapper for the |numpy.sin| function of module |numpy| applied on a
+    """Cython wrapper for the |numpy.sin| function of module |numpy| applied to a
     single |float| object.
 
     >>> from hydpy.cythons.modelutils import sin
@@ -3128,7 +3137,7 @@ def sin(double: float) -> float:
 
 
 def cos(double: float) -> float:
-    """Cython wrapper for the |numpy.cos| function of module |numpy| applied on a
+    """Cython wrapper for the |numpy.cos| function of module |numpy| applied to a
     single |float| object.
 
     >>> from hydpy.cythons.modelutils import cos
@@ -3142,7 +3151,7 @@ def cos(double: float) -> float:
 
 
 def tan(double: float) -> float:
-    """Cython wrapper for the |numpy.tan| function of module |numpy| applied on a
+    """Cython wrapper for the |numpy.tan| function of module |numpy| applied to a
     single |float| object.
 
     >>> from hydpy.cythons.modelutils import tan
@@ -3156,7 +3165,7 @@ def tan(double: float) -> float:
 
 
 def asin(double: float) -> float:
-    """Cython wrapper for the |numpy.arcsin| function of module |numpy| applied on a
+    """Cython wrapper for the |numpy.arcsin| function of module |numpy| applied to a
     single |float| object.
 
     >>> from hydpy.cythons.modelutils import asin
@@ -3170,7 +3179,7 @@ def asin(double: float) -> float:
 
 
 def acos(double: float) -> float:
-    """Cython wrapper for the |numpy.arccos| function of module |numpy| applied on a
+    """Cython wrapper for the |numpy.arccos| function of module |numpy| applied to a
     single |float| object.
 
     >>> from hydpy.cythons.modelutils import acos
@@ -3184,7 +3193,7 @@ def acos(double: float) -> float:
 
 
 def atan(double: float) -> float:
-    """Cython wrapper for the |numpy.arctan| function of module |numpy| applied on a
+    """Cython wrapper for the |numpy.arctan| function of module |numpy| applied to a
     single |float| object.
 
     >>> from hydpy.cythons.modelutils import atan
@@ -3212,7 +3221,7 @@ def tanh(double: float) -> float:
 
 
 def isnan(double: float) -> float:
-    """Cython wrapper for the |numpy.isnan| function of module |numpy| applied on a
+    """Cython wrapper for the |numpy.isnan| function of module |numpy| applied to a
     single |float| object.
 
     >>> from hydpy.cythons.modelutils import isnan
@@ -3226,7 +3235,7 @@ def isnan(double: float) -> float:
 
 
 def isinf(double: float) -> float:
-    """Cython wrapper for the |numpy.isinf| function of module |numpy| applied on a
+    """Cython wrapper for the |numpy.isinf| function of module |numpy| applied to a
     single |float| object.
 
     >>> from hydpy.cythons.modelutils import isnan

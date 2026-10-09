@@ -3526,6 +3526,7 @@ class SolverModel(Model):
 
     PART_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
     FULL_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
+    POST_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
 
     @abc.abstractmethod
     def solve(self) -> bool:
@@ -3655,12 +3656,14 @@ class ELSModel(SolverModel):
     SOLVERSEQUENCES: ClassVar[tuple[type[sequencetools.DependentSequence], ...]]
     PART_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
     FULL_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
+    POST_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
     METHOD_GROUPS: ClassVar[tuple[str, ...]] = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
         "OBSERVER_METHODS",
         "PART_ODE_METHODS",
         "FULL_ODE_METHODS",
+        "POST_ODE_METHODS",
         "ADD_METHODS",
         "OUTLET_METHODS",
         "SENDER_METHODS",
@@ -3685,6 +3688,7 @@ class ELSModel(SolverModel):
         self.update_inlets()
         self.update_observers()
         self.solve()
+        self.run_post_ode()
         self.update_outlets()
         self.update_senders()
         self.update_outputs()
@@ -4171,6 +4175,16 @@ class ELSModel(SolverModel):
         0.75
         """
         for method in self.FULL_ODE_METHODS:
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
+
+    def run_post_ode(self) -> None:
+        """Apply all methods stored in the `POST_ODE_METHODS` tuple.
+
+        |ELSModel.simulate| and |ELSIEModel.simulate| call |ELSModel.run_post_ode|
+        after solving the ODE system and before updating the outlet nodes, e.g. to
+        pass step-averaged fluxes to submodels (see |dam_llake|).
+        """
+        for method in self.POST_ODE_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def get_point_states(self) -> None:
@@ -4716,6 +4730,7 @@ class ELSIEModel(ELSModel):
             self.set_state_old(state)
             self.apply_implicit_euler_fallback()
             self.new2old()
+        self.run_post_ode()
         self.update_outlets()
         self.update_senders()
         self.update_outputs()

@@ -300,7 +300,9 @@ def load_modelmodule(module: types.ModuleType | str, /) -> types.ModuleType:
     return module
 
 
-def prepare_model(module: types.ModuleType | str) -> modeltools.Model:
+def prepare_model(
+    module: types.ModuleType | str, *, ignore_deprecated: bool = False
+) -> modeltools.Model:
     """Prepare and return the model of the given module.
 
     In usual *HydPy* projects, each control file only prepares an individual model
@@ -314,9 +316,29 @@ def prepare_model(module: types.ModuleType | str) -> modeltools.Model:
 
     See the documentation of |dam_v001| on how to apply function |prepare_model|
     properly.
+
+    Note that preparing deprecated models results in a |HydPyDeprecationWarning|:
+
+    >>> from hydpy import prepare_model
+    >>> from hydpy.core.testtools import warn_later
+    >>> with warn_later():
+    ...     model = prepare_model("exch_branch_hbv96")  # doctest: +ELLIPSIS
+    HydPyDeprecationWarning: Application model `exch_branch_hbv96` is deprecated and \
+will be removed in HydPy 8.0.  Please use `exch_branch_rules` instead (method \
+`convert_2_exch_branch_rules` of `exch_branch_hbv96` helps to convert existing \
+configurations).
+
+    You can use the `ignore_deprecated` argument to silence such warnings:
+
+    >>> with warn_later():
+    ...     model = prepare_model("exch_branch_hbv96", ignore_deprecated=True)
     """
     module = load_modelmodule(module)
-    model = module.Model()
+    if ignore_deprecated:
+        with exceptiontools.ignore_deprecations():
+            model = module.Model()
+    else:
+        model = module.Model()
     assert isinstance(model, modeltools.Model)
     if hydpy.pub.options.usecython and hasattr(module, "cythonizer"):
         cymodule = module.cythonizer.cymodule

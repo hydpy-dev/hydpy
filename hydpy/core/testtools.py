@@ -2113,8 +2113,7 @@ result sequences of any of its predecessors: NKor
     <BLANKLINE>
     """
     blanks = " " * indent
-    with exceptiontools.ignore_deprecations():
-        model = importtools.prepare_model(applicationmodel)
+    model = importtools.prepare_model(applicationmodel, ignore_deprecated=True)
     results: list[str] = []
     method2errors: dict[str, str] = {}
     for method in model.get_methods():

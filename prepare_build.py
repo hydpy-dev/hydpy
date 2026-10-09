@@ -231,7 +231,7 @@ def _write_mypy_plugin_data() -> None:
                 modelmodule = f"hydpy.models.{modelname}"
             else:
                 continue
-            model = prepare_model(modelname)
+            model = prepare_model(modelname, ignore_deprecated=True)
             subdict = {}
             for method in model.get_methods():
                 complete_name = method.__name__.lower()

@@ -1,8 +1,10 @@
 """This module implements some exception classes and related features."""
 
+import contextlib
 import enum
 import importlib
 import types
+import warnings
 
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
@@ -10,6 +12,26 @@ from hydpy.core.typingtools import *
 
 class HydPyDeprecationWarning(DeprecationWarning):
     """Warning for deprecated *HydPy* features."""
+
+
+@contextlib.contextmanager
+def ignore_deprecations() -> Iterator[None]:
+    """Suppress all |HydPyDeprecationWarning| warnings within the current context.
+
+    >>> import warnings
+    >>> from hydpy.core.exceptiontools import (
+    ...     HydPyDeprecationWarning, ignore_deprecations
+    ... )
+    >>> from hydpy.core.testtools import warn_later
+    >>> with warn_later():
+    ...     warnings.warn("deprecated", HydPyDeprecationWarning)
+    HydPyDeprecationWarning: deprecated
+    >>> with warn_later(), ignore_deprecations():
+    ...     warnings.warn("deprecated", HydPyDeprecationWarning)
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", HydPyDeprecationWarning)
+        yield
 
 
 class AttributeNotReady(RuntimeError):

@@ -473,8 +473,10 @@ class Calc_Outputs_V1(modeltools.Method):
         reaching the capacity limit of 2 m³/s.  |exch_branch_hbv96| redirects the
         discharge exceeding this threshold to `branch2`:
 
+        >>> from hydpy.core.exceptiontools import ignore_deprecations
         >>> from hydpy.models.exch_branch_hbv96 import *
-        >>> parameterstep()
+        >>> with ignore_deprecations():
+        ...     parameterstep()
         >>> xpoints(0.0, 2.0, 4.0)
         >>> ypoints(branch1=[0.0, 2.0, 2.0],
         ...         branch2=[0.0, 0.0, 2.0])

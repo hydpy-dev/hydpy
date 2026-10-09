@@ -747,7 +747,8 @@ class Cythonizer:
         >>> cythonizer.pyxwriter is pyxwriter
         False
         """
-        model = self.Model()
+        with exceptiontools.ignore_deprecations():
+            model = self.Model()
         dict_ = vars(self)
         dict_["model"] = model
         model.parameters = importtools.prepare_parameters(dict_)

@@ -3408,7 +3408,7 @@ already a collective `NileRiver` member.
         |Element.model| creates some connection required by the respective model type
         automatically.  These examples should be relevant for developers only.
 
-        The following |exch_branch_hbv96| model branches a single input value (from to
+        The following |exch_branch_rules| model branches a single input value (from
         node `inp`) to multiple outputs (nodes `out1` and `out2`):
 
         >>> from hydpy import Element, Node, reverse_model_wildcard_import, pub
@@ -3419,24 +3419,26 @@ already a collective `NileRiver` member.
         ...                   outlets=("branch_output_1", "branch_output_2"))
         >>> inp = element.inlets.branch_input
         >>> out1, out2 = element.outlets
-        >>> from hydpy.models.exch_branch_hbv96 import *
+        >>> from hydpy.models.exch_branch_rules import *
         >>> parameterstep()
-        >>> delta(0.0)
-        >>> minimum(0.0)
-        >>> xpoints(0.0, 3.0)
-        >>> ypoints(branch_output_1=[0.0, 1.0], branch_output_2=[0.0, 2.0])
+        >>> rules(
+        ...     PPolys(
+        ...         branch_output_1=PPoly(xs=[0.0, 3.0], ys=[0.0, 1.0]),
+        ...         branch_output_2=PPoly(xs=[0.0, 3.0], ys=[0.0, 2.0]),
+        ...     )
+        ... )
         >>> parameters.update()
         >>> element.model = model
 
         To show that the inlet and outlet connections are built properly, we assign a
         new value to the inlet node `inp` and verify that the suitable fractions of
-        this value are passed to the outlet nodes out1` and `out2` by calling the
+        this value are passed to the outlet nodes `out1` and `out2` by calling the
         method |Model.simulate|:
 
         >>> inp.sequences.sim = 999.0
         >>> model.simulate(0)
-        >>> fluxes.originalinput
-        originalinput(999.0)
+        >>> fluxes.input_
+        input_(999.0)
         >>> out1.sequences.sim
         sim(333.0)
         >>> out2.sequences.sim

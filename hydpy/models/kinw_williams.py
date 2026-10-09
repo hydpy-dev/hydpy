@@ -1093,6 +1093,7 @@ class Model(kinw_model.BaseModelProfile):
         kinw_model.Calc_DH_V1,
     )
     FULL_ODE_METHODS = (kinw_model.Update_H_V1,)
+    POST_ODE_METHODS = ()
     OUTLET_METHODS = (kinw_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()

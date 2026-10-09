@@ -6130,6 +6130,7 @@ class Model(modeltools.ELSModel):
         Update_WaterVolume_V3,
         Update_WaterVolume_V4,
     )
+    POST_ODE_METHODS = ()
     OUTLET_METHODS = (
         Pass_Outflow_V1,
         Update_LoggedOutflow_V1,

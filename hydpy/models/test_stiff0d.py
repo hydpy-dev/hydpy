@@ -36,6 +36,7 @@ class Model(modeltools.ELSModel):
     ADD_METHODS = ()
     PART_ODE_METHODS = (test_model.Calc_Q_V1,)
     FULL_ODE_METHODS = (test_model.Calc_S_V1,)
+    POST_ODE_METHODS = ()
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()

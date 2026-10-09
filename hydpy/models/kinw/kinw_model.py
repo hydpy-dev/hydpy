@@ -3392,6 +3392,7 @@ class Model(modeltools.ELSModel, modeltools.SegmentModel):
         Calc_DH_V1,
     )
     FULL_ODE_METHODS = (Update_H_V1, Update_VG_V1)
+    POST_ODE_METHODS = ()
     OUTLET_METHODS = (Pass_Q_V1, Calc_Outflow_V1, Pass_Outflow_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()

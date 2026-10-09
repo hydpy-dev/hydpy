@@ -276,6 +276,7 @@ class Model(
         dam_model.Calc_Outflow_V4,
     )
     FULL_ODE_METHODS = (dam_model.Update_WaterVolume_V1,)
+    POST_ODE_METHODS = ()
     OUTLET_METHODS = (
         dam_model.Calc_WaterLevel_V1,
         dam_model.Calc_OuterWaterLevel_V1,

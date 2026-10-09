@@ -367,6 +367,7 @@ class Model(
         dam_model.Calc_Outflow_V1,
     )
     FULL_ODE_METHODS = (dam_model.Update_WaterVolume_V1,)
+    POST_ODE_METHODS = ()
     OUTLET_METHODS = (dam_model.Calc_WaterLevel_V1, dam_model.Pass_Outflow_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (precipinterfaces.PrecipModel_V2, petinterfaces.PETModel_V1)

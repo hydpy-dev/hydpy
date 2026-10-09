@@ -3337,6 +3337,7 @@ class Model(modeltools.ELSModel):
         Update_HQ_V1,
         Update_HS_V1,
     )
+    POST_ODE_METHODS = ()
     OUTLET_METHODS = (Calc_ET_V1, Calc_R_V1, Pass_R_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (

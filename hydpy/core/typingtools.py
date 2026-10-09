@@ -264,6 +264,7 @@ MethodGroup = Literal[
     "RUN_METHODS",
     "PART_ODE_METHODS",
     "FULL_ODE_METHODS",
+    "POST_ODE_METHODS",
     "ADD_METHODS",
     "INTERFACE_METHODS",
     "OUTLET_METHODS",

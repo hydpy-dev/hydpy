@@ -756,6 +756,7 @@ class Model(modeltools.ELSModel):
         kinw_model.Calc_QA_V1,
     )
     FULL_ODE_METHODS = (kinw_model.Update_VG_V1,)
+    POST_ODE_METHODS = ()
     OUTLET_METHODS = (kinw_model.Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()

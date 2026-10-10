@@ -1,0 +1,275 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.lland.lland_fixed &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.lland.lland_fixed</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.lland.lland_fixed</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. _`Wikipedia page on latent heat`: https://en.wikipedia.org/wiki/Latent_heat</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">parametertools</span>
+
+
+<div class="viewcode-block" id="CPWasser"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.CPWasser">[docs]</a><span class="k">class</span> <span class="nc">CPWasser</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Spezifische Wärmekapazität von Wasser (specific heat capacity of water)</span>
+<span class="sd">    [MJ/mm/K].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0041868</span></div>
+
+
+<div class="viewcode-block" id="CPEis"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.CPEis">[docs]</a><span class="k">class</span> <span class="nc">CPEis</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Spezifische Wärmekapazität von Eis bei 0 °C (specific heat capacity of</span>
+<span class="sd">    ice at a temperature of 0 °C) [MJ/mm/K].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.00209</span></div>
+
+
+<div class="viewcode-block" id="RSchmelz"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.RSchmelz">[docs]</a><span class="k">class</span> <span class="nc">RSchmelz</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Spezifische Schmelzwärme von Wasser (specific melt heat of water)</span>
+<span class="sd">    [MJ/mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.334</span></div>
+
+
+<div class="viewcode-block" id="Pi"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.Pi">[docs]</a><span class="k">class</span> <span class="nc">Pi</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;π [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">3.141592653589793</span></div>
+
+
+<div class="viewcode-block" id="Z"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.Z">[docs]</a><span class="k">class</span> <span class="nc">Z</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Halbe Mächtigkeit der in der Temperaturmodellierung betrachteten</span>
+<span class="sd">    Bodensäule (the half thickness of the surface soil layer relevant for</span>
+<span class="sd">    modelling soil temperature) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.1</span></div>
+
+
+<div class="viewcode-block" id="BoWa2Z"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.BoWa2Z">[docs]</a><span class="k">class</span> <span class="nc">BoWa2Z</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bodenwassergehalt der Bodenschicht bis zu einer Tiefe 2z (soil water</span>
+<span class="sd">    content of the soil layer down two a depth of 2z) [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">80.0</span></div>
+
+
+<div class="viewcode-block" id="LambdaG"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.LambdaG">[docs]</a><span class="k">class</span> <span class="nc">LambdaG</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wärmeleitfähigkeit des Bodens (thermal conductivity of the top soil</span>
+<span class="sd">    layer) [MJ/m/K/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.05184</span></div>
+
+
+<div class="viewcode-block" id="Sigma"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.Sigma">[docs]</a><span class="k">class</span> <span class="nc">Sigma</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Stefan-Boltzmann-Konstante (Stefan-Boltzmann constant) [MJ/m²/K/d].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">4.89888e-09</span></div>
+
+
+<div class="viewcode-block" id="RDryAir"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.RDryAir">[docs]</a><span class="k">class</span> <span class="nc">RDryAir</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Gaskonstante für trockene Luft (gas constant for dry air) [MJ/kg/K].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.287058</span></div>
+
+
+<div class="viewcode-block" id="RWaterVapour"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.RWaterVapour">[docs]</a><span class="k">class</span> <span class="nc">RWaterVapour</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Gaskonstante für Wasserdampf (gas constant for water vapour)</span>
+<span class="sd">    [MJ/kg/K].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.461495</span></div>
+
+
+<div class="viewcode-block" id="LW"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.LW">[docs]</a><span class="k">class</span> <span class="nc">LW</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Latente Verdunstungswärme bei 15°C (heat of condensation at at</span>
+<span class="sd">    temperature of 15°C) [MJ/m²/mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">2.4624</span></div>
+
+
+<div class="viewcode-block" id="LWE"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.LWE">[docs]</a><span class="k">class</span> <span class="nc">LWE</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Mittlere latente Verdunstungswärme für Wasser und Eis (average heat</span>
+<span class="sd">    of condensation for water and ice) [MJ/m²/mm].</span>
+
+<span class="sd">    Following the equations given on the `Wikipedia page on latent heat`_,</span>
+<span class="sd">    we calculate the latent heat of water and the latent heat of sublimation</span>
+<span class="sd">    both at a temperature of 0°C...</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; t = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; round_((2500.8-2.36*t+0.0016*t**2-0.00006*t**3)/1000)</span>
+<span class="sd">    2.5008</span>
+<span class="sd">    &gt;&gt;&gt; round_((2834.1-0.29*t-0.004*t**2)/1000)</span>
+<span class="sd">    2.8341</span>
+
+<span class="sd">    ... and use their average as the default value for parameter |LWE|:</span>
+
+<span class="sd">    &gt;&gt;&gt; round_((2.8341+2.5008)/2)</span>
+<span class="sd">    2.66745</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.lland.lland_fixed import LWE</span>
+<span class="sd">    &gt;&gt;&gt; round_(LWE.INIT)</span>
+<span class="sd">    2.66745</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">2.66745</span></div>
+
+
+<div class="viewcode-block" id="CPLuft"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.CPLuft">[docs]</a><span class="k">class</span> <span class="nc">CPLuft</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Spezifische Wärmekapazität Luft (heat of condensation for a</span>
+<span class="sd">    water temperature of 15°C) [MJ/kg/K].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.001005</span></div>
+
+
+<div class="viewcode-block" id="Psy"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.Psy">[docs]</a><span class="k">class</span> <span class="nc">Psy</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Psychrometerkonstante bei Normaldruck (psychrometric constant at</span>
+<span class="sd">    normal pressure) [kPa/°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0655</span></div>
+
+
+<div class="viewcode-block" id="PsyInv"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.PsyInv">[docs]</a><span class="k">class</span> <span class="nc">PsyInv</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Kehrwert der Psychrometerkonstante über Schnee und Eis bei 0°C</span>
+<span class="sd">    (inverse psychrometric constant for ice and snow at 0°C) [°C/kPa].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">17.6</span></div>
+
+
+<div class="viewcode-block" id="Z0"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.Z0">[docs]</a><span class="k">class</span> <span class="nc">Z0</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Rauhigkeitslänge für Wiese (roughness length for short grass) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.003</span></div>
+
+
+<div class="viewcode-block" id="Sol"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.Sol">[docs]</a><span class="k">class</span> <span class="nc">Sol</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Solarkonstante (solar constant) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">118.1088</span></div>
+
+
+<div class="viewcode-block" id="FrAtm"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.FrAtm">[docs]</a><span class="k">class</span> <span class="nc">FrAtm</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Empirischer Faktor zur Berechnung der atmosphärischen Gegenstrahlung</span>
+<span class="sd">    (empirical factor for the calculation of atmospheric radiation) [-]&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.28</span></div>
+
+
+<div class="viewcode-block" id="CG"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fixed.CG">[docs]</a><span class="k">class</span> <span class="nc">CG</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">FixedParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Volumetrische Wärmekapazität des Bodens (volumetric heat capacity of</span>
+<span class="sd">    soil) [MJ/m³/°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.5</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.lland.lland_fixed</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

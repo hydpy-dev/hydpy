@@ -1,0 +1,53 @@
+.. |AGR| replace:: :class:`~hydpy.models.wland.wland_derived.AGR`
+.. |ALR| replace:: :class:`~hydpy.models.wland.wland_derived.ALR`
+.. |AL| replace:: :class:`~hydpy.models.wland.wland_control.AL`
+.. |ASR| replace:: :class:`~hydpy.models.wland.wland_derived.ASR`
+.. |AS_| replace:: :class:`~hydpy.models.wland.wland_control.AS_`
+.. |AT| replace:: :class:`~hydpy.models.wland.wland_derived.AT`
+.. |AUR| replace:: :class:`~hydpy.models.wland.wland_control.AUR`
+.. |B| replace:: :class:`~hydpy.models.wland.wland_control.B`
+.. |CGF| replace:: :class:`~hydpy.models.wland.wland_control.CGF`
+.. |Calc_CDG_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_CDG_V1`
+.. |Calc_CDG_V2| replace:: :class:`~hydpy.models.wland.wland_model.Calc_CDG_V2`
+.. |Calc_DGEq_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_DGEq_V1`
+.. |Calc_DVEq_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_DVEq_V1`
+.. |Calc_DVEq_V2| replace:: :class:`~hydpy.models.wland.wland_model.Calc_DVEq_V2`
+.. |Calc_DVEq_V3| replace:: :class:`~hydpy.models.wland.wland_model.Calc_DVEq_V3`
+.. |Calc_DVEq_V4| replace:: :class:`~hydpy.models.wland.wland_model.Calc_DVEq_V4`
+.. |Calc_FGS_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_FGS_V1`
+.. |Calc_GF_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_GF_V1`
+.. |DDT| replace:: :class:`~hydpy.models.wland.wland_control.DDT`
+.. |DGEq| replace:: :class:`~hydpy.models.wland.wland_aides.DGEq`
+.. |DG| replace:: :class:`~hydpy.models.wland.wland_states.DG`
+.. |DVEq| replace:: :class:`~hydpy.models.wland.wland_aides.DVEq`
+.. |FGS| replace:: :class:`~hydpy.models.wland.wland_fluxes.FGS`
+.. |GF| replace:: :class:`~hydpy.models.wland.wland_aides.GF`
+.. |LT| replace:: :class:`~hydpy.models.wland.wland_control.LT`
+.. |NUG| replace:: :class:`~hydpy.models.wland.wland_derived.NUG`
+.. |NU| replace:: :class:`~hydpy.models.wland.wland_control.NU`
+.. |PegasusDGEq| replace:: :class:`~hydpy.models.wland.wland_model.PegasusDGEq`
+.. |PsiAE| replace:: :class:`~hydpy.models.wland.wland_control.PsiAE`
+.. |QF| replace:: :class:`~hydpy.models.wland.wland_derived.QF`
+.. |Return_DVH_V1| replace:: :class:`~hydpy.models.wland.wland_model.Return_DVH_V1`
+.. |Return_DVH_V2| replace:: :class:`~hydpy.models.wland.wland_model.Return_DVH_V2`
+.. |Return_ErrorDV_V1| replace:: :class:`~hydpy.models.wland.wland_model.Return_ErrorDV_V1`
+.. |SAND| replace:: :const:`~hydpy.models.wland.wland_constants.SAND`
+.. |SOIL_CONSTANTS| replace:: :const:`~hydpy.models.wland.wland_constants.SOIL_CONSTANTS`
+.. |SoilParameter| replace:: :class:`~hydpy.models.wland.wland_parameters.SoilParameter`
+.. |ThetaR| replace:: :class:`~hydpy.models.wland.wland_control.ThetaR`
+.. |ThetaS| replace:: :class:`~hydpy.models.wland.wland_control.ThetaS`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |smoothtools| replace:: :mod:`~hydpy.auxs.smoothtools`
+.. |wland_constants| replace:: :mod:`~hydpy.models.wland.wland_constants`
+.. |wland| replace:: :mod:`~hydpy.models.wland`
+
+.. _wland:
+
+wland
+=====
+
+.. automodule:: hydpy.models.wland
+    :members:
+    :show-inheritance:
+    :exclude-members: Self, Reversible, Generic, Sized, Awaitable, IntVar, clear_overloads, TypeAlias, Sequence, Hashable, SenderSequences, SUBMETHODS, SupportsAbs, AnyStr, assert_never, reveal_type, CLASSES, REQUIREDSEQUENCES, ItemsView, Union, SupportsFloat, get_overloads, get_origin, OUTLET_METHODS, NoReturn, no_type_check, Type, Final, PART_ODE_METHODS, RECEIVER_METHODS, Tuple, AbstractSet, ByteString, MappingView, subpars, MutableSequence, MutableSet, SupportsRound, CONTROLPARAMETERS, INLET_METHODS, get_protocol_members, SOLVERSEQUENCES, FrozenSet, no_type_check_decorator, fastaccess_old, Mapping, FIXEDPARAMETERS, seqs, KeysView, SUBMODELS, Protocol, SupportsComplex, SENDER_METHODS, ContextManager, deprecated, SupportsBytes, get_original_bases, Iterator, is_protocol, TypeGuard, DefaultDict, LiteralString, Required, TextIO, TYPE_CHECKING, AsyncContextManager, fastaccess_new, FULL_ODE_METHODS, SOLVERPARAMETERS, BinaryIO, fastaccess, runtime, IO, Text, TypeVarTuple, ValuesView, AsyncIterable, Generator, Optional, assert_type, Literal, dataclass_transform, subvars, pars, InletSequences, get_args, ParamSpec, Annotated, cast, final, subseqs, ClassVar, Any, Unpack, Coroutine, is_typeddict, Counter, UPDATEDSEQUENCES, Callable, Dict, NamedTuple, overload, OrderedDict, Set, ADD_METHODS, Collection, Pattern, List, get_type_hints, Concatenate, ParamSpecKwargs, DERIVEDPARAMETERS, AsyncGenerator, override, Container, RUN_METHODS, NotRequired, NewType, RESULTSEQUENCES, SupportsInt, Buffer, Iterable, TypeVar, SupportsIndex, MutableMapping, ChainMap, FactorSequences, ForwardRef, TypeAliasType, AsyncIterator, Never, ParamSpecArgs, Match, LogSequences, Deque, TypedDict, ReceiverSequences, runtime_checkable

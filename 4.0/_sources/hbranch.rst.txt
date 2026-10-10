@@ -1,0 +1,21 @@
+.. |Branched| replace:: :class:`~hydpy.models.hbranch.hbranch_outlets.Branched`
+.. |Input| replace:: :class:`~hydpy.models.hbranch.hbranch_fluxes.Input`
+.. |LinkSequence| replace:: :class:`~hydpy.core.sequencetools.LinkSequence`
+.. |NodeSequence| replace:: :class:`~hydpy.core.sequencetools.NodeSequence`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |Outputs| replace:: :class:`~hydpy.models.hbranch.hbranch_fluxes.Outputs`
+.. |Total| replace:: :class:`~hydpy.models.hbranch.hbranch_inlets.Total`
+.. |XPoints| replace:: :class:`~hydpy.models.hbranch.hbranch_control.XPoints`
+.. |YPoints| replace:: :class:`~hydpy.models.hbranch.hbranch_control.YPoints`
+.. |hbranch| replace:: :mod:`~hydpy.models.hbranch`
+.. |input| replace:: :func:`input`
+
+.. _hbranch:
+
+hbranch
+=======
+
+.. automodule:: hydpy.models.hbranch
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, ReceiverSequences, InputSequences, StateSequences, LogSequences, AideSequences, SenderSequences

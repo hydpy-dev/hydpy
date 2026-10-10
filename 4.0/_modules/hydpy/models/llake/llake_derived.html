@@ -1,0 +1,213 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.llake.llake_derived &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.llake.llake_derived</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.llake.llake_derived</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">parametertools</span>
+
+<span class="c1"># ...from llake</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.llake</span> <span class="kn">import</span> <span class="n">llake_control</span>
+
+
+<div class="viewcode-block" id="TOY"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_derived.TOY">[docs]</a><span class="k">class</span> <span class="nc">TOY</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">TOYParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;References the |Indexer.timeofyear| index array provided by the</span>
+<span class="sd">    instance of class |Indexer| available in module |pub|. [-].&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="Seconds"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_derived.Seconds">[docs]</a><span class="k">class</span> <span class="nc">Seconds</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SecondsParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Length of the actual simulation step size in seconds [s].&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="NmbSubsteps"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_derived.NmbSubsteps">[docs]</a><span class="k">class</span> <span class="nc">NmbSubsteps</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Number of the internal simulation steps [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">llake_control</span><span class="o">.</span><span class="n">MaxDT</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Seconds</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="NmbSubsteps.update"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_derived.NmbSubsteps.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Determine the number of substeps.</span>
+
+<span class="sd">        Initialize a llake model and assume a simulation step size of 12 hours:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.llake import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds.update()</span>
+
+<span class="sd">        If the maximum internal step size is also set to 12 hours, there is</span>
+<span class="sd">        only one internal calculation step per outer simulation step:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxdt(&quot;12h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbsubsteps.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbsubsteps</span>
+<span class="sd">        nmbsubsteps(1)</span>
+
+<span class="sd">        Assigning smaller values to `maxdt` increases `nmbstepsize`:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxdt(&quot;1h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbsubsteps.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbsubsteps</span>
+<span class="sd">        nmbsubsteps(12)</span>
+
+<span class="sd">        In case the simulationstep is not a whole multiple of `dwmax`,</span>
+<span class="sd">        the value of `nmbsubsteps` is rounded up:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxdt(&quot;59m&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbsubsteps.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbsubsteps</span>
+<span class="sd">        nmbsubsteps(13)</span>
+
+<span class="sd">        Even for `maxdt` values exceeding the simulationstep, the value</span>
+<span class="sd">        of `numbsubsteps` does not become smaller than one:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxdt(&quot;2d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbsubsteps.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbsubsteps</span>
+<span class="sd">        nmbsubsteps(1)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">maxdt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">maxdt</span>
+        <span class="n">seconds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">seconds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">seconds</span> <span class="o">/</span> <span class="n">maxdt</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="VQ"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_derived.VQ">[docs]</a><span class="k">class</span> <span class="nc">VQ</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Hilfsterm (auxiliary term): math:VdtQ = 2 \\cdot + dt \\cdot Q` [m³].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">llake_control</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span>
+        <span class="n">llake_control</span><span class="o">.</span><span class="n">V</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Seconds</span><span class="p">,</span>
+        <span class="n">NmbSubsteps</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="VQ.update"><a class="viewcode-back" href="../../../../llake.html#hydpy.models.llake.llake_derived.VQ.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calulate the auxilary term.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2001-01-01&quot;, &quot;12h&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.llake import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; n(3)</span>
+<span class="sd">        &gt;&gt;&gt; v(0., 1e5, 1e6)</span>
+<span class="sd">        &gt;&gt;&gt; q(_1=[0., 1., 2.], _7=[0., 2., 5.])</span>
+<span class="sd">        &gt;&gt;&gt; maxdt(&quot;12h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbsubsteps.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.vq.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.vq</span>
+<span class="sd">        vq(toy_1_1_0_0_0=[0.0, 243200.0, 2086400.0],</span>
+<span class="sd">           toy_7_1_0_0_0=[0.0, 286400.0, 2216000.0])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">toy</span><span class="p">,</span> <span class="n">qs</span><span class="p">)</span> <span class="ow">in</span> <span class="n">con</span><span class="o">.</span><span class="n">q</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">toy</span><span class="p">),</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">con</span><span class="o">.</span><span class="n">v</span> <span class="o">+</span> <span class="n">der</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="n">der</span><span class="o">.</span><span class="n">nmbsubsteps</span> <span class="o">*</span> <span class="n">qs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.llake.llake_derived</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

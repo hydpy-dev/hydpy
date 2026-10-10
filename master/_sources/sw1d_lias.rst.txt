@@ -1,0 +1,20 @@
+.. |CrossSectionModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V2`
+.. |RoutingModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1`
+.. |RoutingModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2`
+.. |RoutingModel_V3| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3`
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |sw1d.DOCNAME.long| replace:: HydPy-SW1D
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_lias.DOCNAME.complete| replace:: HydPy-SW1D-LIAS (submodel for calculating the discharge between two channel segments based on Bates et al. (2010) and Almeida et al. (2012))
+.. |sw1d_lias| replace:: :mod:`~hydpy.models.sw1d_lias`
+.. |sw1d_network| replace:: :mod:`~hydpy.models.sw1d_network`
+
+.. _sw1d_lias:
+
+sw1d_lias
+=========
+
+.. automodule:: hydpy.models.sw1d_lias
+    :members:
+    :show-inheritance:
+    :exclude-members: NoReturn, UPDATEDSEQUENCES, ClassVar, Type, SupportsAbs, IO, Pattern, fastaccess, Optional, MutableMapping, ValuesView, Tuple, SenderSequences, FULL_ODE_METHODS, get_origin, LogSequences, SupportsFloat, disjoint_base, TypeAlias, cast, Mapping, fastaccess_old, Iterator, is_protocol, Concatenate, ADD_METHODS, DefaultDict, CapsuleType, PART_ODE_METHODS, evaluate_forward_ref, fastaccess_new, ItemsView, get_type_hints, no_type_check_decorator, Awaitable, Sentinel, get_original_bases, sentinel, is_typeddict, TypedDict, TypeAliasType, subpars, ReceiverSequences, Buffer, SupportsBytes, Protocol, AbstractSet, TextIO, RECEIVER_METHODS, DERIVEDPARAMETERS, NewType, ReadOnly, MutableSequence, BinaryIO, Never, NoDefault, Doc, NotRequired, Self, Unpack, SupportsInt, subseqs, RESULTSEQUENCES, SUBMETHODS, get_protocol_members, SUBMODELINTERFACES, Hashable, seqs, AsyncIterable, IntVar, pars, SupportsRound, get_annotations, TypeVarTuple, get_args, ParamSpecArgs, MappingView, Counter, Match, Required, SupportsIndex, OrderedDict, SOLVERSEQUENCES, AideSequences, ContextManager, MutableSet, Final, ByteString, Sequence, get_overloads, SUBMODELS, Callable, AsyncIterator, Generator, RUN_METHODS, FIXEDPARAMETERS, AsyncGenerator, AsyncContextManager, override, assert_type, runtime_checkable, Literal, SENDER_METHODS, Writer, subvars, ChainMap, Generic, NamedTuple, ObserverSequences, Iterable, REQUIREDSEQUENCES, Annotated, runtime, deprecated, final, INTERFACE_METHODS, Sized, List, ParamSpecKwargs, Union, ForwardRef, Reversible, InputSequences, Set, reveal_type, type_repr, no_type_check, TypeForm, Reader, LiteralString, Deque, Any, TypeGuard, Coroutine, TypeVar, dataclass_transform, OBSERVER_METHODS, ParamSpec, Collection, clear_overloads, assert_never, SOLVERPARAMETERS, AnyStr, InletSequences, FrozenSet, TypeIs, Container, Text, INLET_METHODS, OUTLET_METHODS, overload, CLASSES, Format, CONTROLPARAMETERS, SupportsComplex, KeysView, NoExtraItems, Dict, TYPE_CHECKING

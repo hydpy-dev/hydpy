@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>smoothutils &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>window.MathJax = {"chtml": {"displayAlign": "left"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Auxiliary Tools" href="auxiliaries.html" />
+    <link rel="prev" title="sequenceutils" href="sequenceutils.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="auxiliaries.html" title="Auxiliary Tools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="sequenceutils.html" title="sequenceutils"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="cythons.html" accesskey="U">Cython Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">smoothutils</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="cythons.html">Cython Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="annutils.html">annutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configutils.html">configutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interputils.html">interputils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modelutils.html">modelutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pointerutils.html">pointerutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ppolyutils.html">ppolyutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quadutils.html">quadutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rootutils.html">rootutils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequenceutils.html">sequenceutils</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">smoothutils</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#max-log-float-700">MAX_LOG_FLOAT = 700</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smooth-logistic1">smooth_logistic1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smooth-logistic1-derivative2">smooth_logistic1_derivative2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smooth-logistic2">smooth_logistic2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smooth-logistic2-derivative1">smooth_logistic2_derivative1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smooth-logistic2-derivative2">smooth_logistic2_derivative2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smooth-logistic3">smooth_logistic3</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smooth-max1">smooth_max1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smooth-min1">smooth_min1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smooth-max2">smooth_max2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smooth-min2">smooth_min2</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="sequenceutils.html"
+                          title="previous chapter">sequenceutils</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="auxiliaries.html"
+                          title="next chapter">Auxiliary Tools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/smoothutils.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="smoothutils">
+<span id="id1"></span><h1>smoothutils<a class="headerlink" href="#smoothutils" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.cythons.smoothutils">This Cython module implements the performance-critical functions of the
+Python module <cite>smoothtools</cite>.</p>
+<section id="max-log-float-700">
+<h2>MAX_LOG_FLOAT = 700<a class="headerlink" href="#max-log-float-700" title="Link to this heading">¶</a></h2>
+<p>The natural logarithm of the highest possible float value.</p>
+<p>The exact value depends on the actual system.  So an automated estimation
+of this value would be advisable.</p>
+</section>
+<section id="smooth-logistic1">
+<h2>smooth_logistic1<a class="headerlink" href="#smooth-logistic1" title="Link to this heading">¶</a></h2>
+<p>Smoothing kernel based on the logistic function.</p>
+<p><span class="math notranslate nohighlight">\(f_{log1}(x, c) = 1-\frac{1}{1+exp(x/c)}\)</span></p>
+<p>The following example shows the typical shape of the logistic function
+for four different smoothing parameters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="kn">import</span> <span class="n">smoothutils</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="o">-</span><span class="mi">5</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;value, par=10.0,  par=1.0,  par=0.1,  par=0.0&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">lfill</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic1</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">),</span>
+<span class="gp">... </span>               <span class="n">width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rfill</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">value, par=10.0,  par=1.0,  par=0.1,  par=0.0</span>
+<span class="go">   -5, 0.377541, 0.006693, 0.000000, 0.000000</span>
+<span class="go">   -4, 0.401312, 0.017986, 0.000000, 0.000000</span>
+<span class="go">   -3, 0.425557, 0.047426, 0.000000, 0.000000</span>
+<span class="go">   -2, 0.450166, 0.119203, 0.000000, 0.000000</span>
+<span class="go">   -1, 0.475021, 0.268941, 0.000045, 0.000000</span>
+<span class="go">    0, 0.500000, 0.500000, 0.500000, 0.500000</span>
+<span class="go">    1, 0.524979, 0.731059, 0.999955, 1.000000</span>
+<span class="go">    2, 0.549834, 0.880797, 1.000000, 1.000000</span>
+<span class="go">    3, 0.574443, 0.952574, 1.000000, 1.000000</span>
+<span class="go">    4, 0.598688, 0.982014, 1.000000, 1.000000</span>
+<span class="go">    5, 0.622459, 0.993307, 1.000000, 1.000000</span>
+</pre></div>
+</div>
+<p>With the highest value of the smoothing parameter (10.0), the result
+approximates a straight line.  With the lowest smoothing parameter (0.0),
+the result is identical with a discontinuous first-order step function.</p>
+<p>Function <cite>smooth_logistic1</cite> protects itself against numerical overflow.
+Hence even extremely high <cite>value/parameter</cite> ratios are allowed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic1</span><span class="p">(</span><span class="mf">1000.</span><span class="p">,</span> <span class="mf">.1</span><span class="p">))</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+</section>
+<section id="smooth-logistic1-derivative2">
+<h2>smooth_logistic1_derivative2<a class="headerlink" href="#smooth-logistic1-derivative2" title="Link to this heading">¶</a></h2>
+<p>Calculate the derivative of the function <cite>smooth_logistic1</cite> with respect
+to the given value.</p>
+<p><span class="math notranslate nohighlight">\(\frac{d}{dx}f_{log1}(x, c) = \frac{exp(x/c)}{(exp(x/c)+1)^2}\)</span></p>
+<p>The following example shows the derivates for four different smoothing
+parameters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="o">-</span><span class="mi">5</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;value,  par=3.0,  par=1.0,  par=0.1,  par=0.0&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">lfill</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+<span class="gp">... </span>        <span class="n">result</span> <span class="o">=</span> <span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic1_derivative2</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+<span class="gp">... </span>            <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rfill</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">value,  par=3.0,  par=1.0,  par=0.1,  par=0.0</span>
+<span class="go">   -5, 0.044543, 0.006648, 0.000000, 0.000000</span>
+<span class="go">   -4, 0.055030, 0.017663, 0.000000, 0.000000</span>
+<span class="go">   -3, 0.065537, 0.045177, 0.000000, 0.000000</span>
+<span class="go">   -2, 0.074719, 0.104994, 0.000000, 0.000000</span>
+<span class="go">   -1, 0.081061, 0.196612, 0.000454, 0.000000</span>
+<span class="go">    0, 0.083333, 0.250000, 2.500000, inf</span>
+<span class="go">    1, 0.081061, 0.196612, 0.000454, 0.000000</span>
+<span class="go">    2, 0.074719, 0.104994, 0.000000, 0.000000</span>
+<span class="go">    3, 0.065537, 0.045177, 0.000000, 0.000000</span>
+<span class="go">    4, 0.055030, 0.017663, 0.000000, 0.000000</span>
+<span class="go">    5, 0.044543, 0.006648, 0.000000, 0.000000</span>
+</pre></div>
+</div>
+<p>We validate the calculated derivatives by comparing them with sufficiently
+accurate numerical approximations:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dx</span> <span class="o">=</span> <span class="mf">1e-7</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="o">-</span><span class="mi">5</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;value,  par=3.0,  par=1.0,  par=0.1,  par=0.0&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">lfill</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+<span class="gp">... </span>        <span class="n">est</span> <span class="o">=</span> <span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic1</span><span class="p">(</span><span class="n">value</span><span class="o">+</span><span class="n">dx</span><span class="p">,</span> <span class="n">parameter</span><span class="p">)</span> <span class="o">-</span>
+<span class="gp">... </span>               <span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic1</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">))</span><span class="o">/</span><span class="n">dx</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="n">est</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rfill</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">value,  par=3.0,  par=1.0,  par=0.1,  par=0.0</span>
+<span class="go">   -5, 0.044543, 0.006648, 0.000000, 0.000000</span>
+<span class="go">   -4, 0.055030, 0.017663, 0.000000, 0.000000</span>
+<span class="go">   -3, 0.065537, 0.045177, 0.000000, 0.000000</span>
+<span class="go">   -2, 0.074719, 0.104994, 0.000000, 0.000000</span>
+<span class="go">   -1, 0.081061, 0.196612, 0.000454, 0.000000</span>
+<span class="go">    0, 0.083333, 0.250000, 2.500000, 5000000.0</span>
+<span class="go">    1, 0.081061, 0.196612, 0.000454, 0.000000</span>
+<span class="go">    2, 0.074719, 0.104994, 0.000000, 0.000000</span>
+<span class="go">    3, 0.065537, 0.045177, 0.000000, 0.000000</span>
+<span class="go">    4, 0.055030, 0.017663, 0.000000, 0.000000</span>
+<span class="go">    5, 0.044543, 0.006648, 0.000000, 0.000000</span>
+</pre></div>
+</div>
+<p>Function <cite>smooth_logistic2_derivative1</cite> protects itself against numerical
+overflow. Hence even extremely high <cite>value/parameter</cite> ratios
+are allowed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic1_derivative2</span><span class="p">(</span><span class="mf">1000.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</section>
+<section id="smooth-logistic2">
+<h2>smooth_logistic2<a class="headerlink" href="#smooth-logistic2" title="Link to this heading">¶</a></h2>
+<p>Smoothing kernel based on the integral of the logistic function.</p>
+<p><span class="math notranslate nohighlight">\(f_{log2}(x, c) = c \cdot ln(1+exp(x/c))\)</span></p>
+<p>The following example shows the shape of the integral of the
+logistic function for four different smoothing parameters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="o">-</span><span class="mi">5</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;value, par=3.0,  par=1.0,  par=0.1,  par=0.0&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">lfill</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic2</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">),</span>
+<span class="gp">... </span>               <span class="n">width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rfill</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">value, par=3.0,  par=1.0,  par=0.1,  par=0.0</span>
+<span class="go">   -5, 0.519024, 0.006715, 0.000000, 0.000000</span>
+<span class="go">   -4, 0.701888, 0.018150, 0.000000, 0.000000</span>
+<span class="go">   -3, 0.939785, 0.048587, 0.000000, 0.000000</span>
+<span class="go">   -2, 1.243110, 0.126928, 0.000000, 0.000000</span>
+<span class="go">   -1, 1.620917, 0.313262, 0.000005, 0.000000</span>
+<span class="go">    0, 2.079442, 0.693147, 0.069315, 0.000000</span>
+<span class="go">    1, 2.620917, 1.313262, 1.000005, 1.000000</span>
+<span class="go">    2, 3.243110, 2.126928, 2.000000, 2.000000</span>
+<span class="go">    3, 3.939785, 3.048587, 3.000000, 3.000000</span>
+<span class="go">    4, 4.701888, 4.018150, 4.000000, 4.000000</span>
+<span class="go">    5, 5.519024, 5.006715, 5.000000, 5.000000</span>
+</pre></div>
+</div>
+<p>With the highest value of the smoothing parameter (3.0), the resulting
+line is relatively straight.  With the lowest smoothing parameter (0.0),
+the result is identical with a second-order discontinuous step function.</p>
+<p>Function <cite>smooth_logistic2</cite> protects itself against numerical overflow.
+Hence even extremely high <cite>value/parameter</cite> ratios are allowed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic2</span><span class="p">(</span><span class="mf">1000.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">))</span>
+<span class="go">1000.0</span>
+</pre></div>
+</div>
+</section>
+<section id="smooth-logistic2-derivative1">
+<h2>smooth_logistic2_derivative1<a class="headerlink" href="#smooth-logistic2-derivative1" title="Link to this heading">¶</a></h2>
+<p>Calculate the derivative of the function <cite>smooth_logistic2</cite> with respect
+to its smoothing parameter.</p>
+<p><span class="math notranslate nohighlight">\(\frac{d}{dc}f_{log2}(x, c) =
+\frac{x}{c \cdot exp(x/c)+c} \cdot ln(exp(-x/c)+1)\)</span></p>
+<p>The following example shows the derivates for four different smoothing
+parameters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="o">-</span><span class="mi">5</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;value,  par=3.0,  par=1.0,  par=0.1,  par=0.0&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">lfill</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic2_derivative1</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">),</span>
+<span class="gp">... </span>               <span class="n">width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rfill</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">value,  par=3.0,  par=1.0,  par=0.1,  par=0.0</span>
+<span class="go">   -5, 0.437790, 0.040180, 0.000000, 0.000000</span>
+<span class="go">   -4, 0.512107, 0.090095, 0.000000, 0.000000</span>
+<span class="go">   -3, 0.582203, 0.190865, 0.000000, 0.000000</span>
+<span class="go">   -2, 0.640533, 0.365334, 0.000000, 0.000000</span>
+<span class="go">   -1, 0.679449, 0.582203, 0.000499, 0.000000</span>
+<span class="go">    0, 0.693147, 0.693147, 0.693147, 0.693147</span>
+<span class="go">    1, 0.679449, 0.582203, 0.000499, 0.000000</span>
+<span class="go">    2, 0.640533, 0.365334, 0.000000, 0.000000</span>
+<span class="go">    3, 0.582203, 0.190865, 0.000000, 0.000000</span>
+<span class="go">    4, 0.512107, 0.090095, 0.000000, 0.000000</span>
+<span class="go">    5, 0.437790, 0.040180, 0.000000, 0.000000</span>
+</pre></div>
+</div>
+<p>We validate the calculated derivatives by comparing them with sufficiently
+accurate numerical approximations.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dc</span> <span class="o">=</span> <span class="mf">1e-6</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="o">-</span><span class="mi">5</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;value,  par=3.0,  par=1.0,  par=0.1,  par=0.0&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">lfill</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+<span class="gp">... </span>        <span class="n">est</span> <span class="o">=</span> <span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic2</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="o">+</span><span class="n">dc</span><span class="p">)</span> <span class="o">-</span>
+<span class="gp">... </span>               <span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic2</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">))</span><span class="o">/</span><span class="n">dc</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="n">est</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rfill</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">value,  par=3.0,  par=1.0,  par=0.1,  par=0.0</span>
+<span class="go">   -5, 0.437790, 0.040180, 0.000000, 0.000000</span>
+<span class="go">   -4, 0.512107, 0.090095, 0.000000, 0.000000</span>
+<span class="go">   -3, 0.582203, 0.190865, 0.000000, 0.000000</span>
+<span class="go">   -2, 0.640533, 0.365334, 0.000000, 0.000000</span>
+<span class="go">   -1, 0.679449, 0.582203, 0.000499, 0.000000</span>
+<span class="go">    0, 0.693147, 0.693147, 0.693147, 0.693147</span>
+<span class="go">    1, 0.679449, 0.582203, 0.000499, 0.000000</span>
+<span class="go">    2, 0.640533, 0.365334, 0.000000, 0.000000</span>
+<span class="go">    3, 0.582203, 0.190865, 0.000000, 0.000000</span>
+<span class="go">    4, 0.512107, 0.090095, 0.000000, 0.000000</span>
+<span class="go">    5, 0.437790, 0.040180, 0.000000, 0.000000</span>
+</pre></div>
+</div>
+<p>Function <cite>smooth_logistic2_derivative1</cite> protects itself against numerical
+overflow. Hence even extremely high negative <cite>value/parameter</cite> ratios
+are allowed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic2_derivative1</span><span class="p">(</span><span class="o">-</span><span class="mf">1000.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</section>
+<section id="smooth-logistic2-derivative2">
+<h2>smooth_logistic2_derivative2<a class="headerlink" href="#smooth-logistic2-derivative2" title="Link to this heading">¶</a></h2>
+<p>Calculate the derivative of the function <cite>smooth_logistic2</cite> with respect
+to the given value.</p>
+<p><span class="math notranslate nohighlight">\(\frac{d}{dx}f_{log2}(x, c) = \frac{exp(x/c)}{exp(x/c)+1}\)</span></p>
+<p>The following example shows the derivates for four different smoothing
+parameters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="o">-</span><span class="mi">5</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;value,  par=3.0,  par=1.0,  par=0.1,  par=0.0&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">lfill</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic2_derivative2</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">),</span>
+<span class="gp">... </span>               <span class="n">width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rfill</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">value,  par=3.0,  par=1.0,  par=0.1,  par=0.0</span>
+<span class="go">   -5, 0.158869, 0.006693, 0.000000, 0.000000</span>
+<span class="go">   -4, 0.208609, 0.017986, 0.000000, 0.000000</span>
+<span class="go">   -3, 0.268941, 0.047426, 0.000000, 0.000000</span>
+<span class="go">   -2, 0.339244, 0.119203, 0.000000, 0.000000</span>
+<span class="go">   -1, 0.417430, 0.268941, 0.000045, 0.000000</span>
+<span class="go">    0, 0.500000, 0.500000, 0.500000, 1.000000</span>
+<span class="go">    1, 0.582570, 0.731059, 0.999955, 1.000000</span>
+<span class="go">    2, 0.660756, 0.880797, 1.000000, 1.000000</span>
+<span class="go">    3, 0.731059, 0.952574, 1.000000, 1.000000</span>
+<span class="go">    4, 0.791391, 0.982014, 1.000000, 1.000000</span>
+<span class="go">    5, 0.841131, 0.993307, 1.000000, 1.000000</span>
+</pre></div>
+</div>
+<p>We validate the calculated derivatives by comparing them with sufficiently
+accurate numerical approximations.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dx</span> <span class="o">=</span> <span class="mf">1e-7</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="o">-</span><span class="mi">5</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;value,  par=3.0,  par=1.0,  par=0.1,  par=0.0&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">lfill</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+<span class="gp">... </span>        <span class="n">est</span> <span class="o">=</span> <span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic2</span><span class="p">(</span><span class="n">value</span><span class="o">+</span><span class="n">dx</span><span class="p">,</span> <span class="n">parameter</span><span class="p">)</span> <span class="o">-</span>
+<span class="gp">... </span>               <span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic2</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">))</span><span class="o">/</span><span class="n">dx</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="n">est</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rfill</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">value,  par=3.0,  par=1.0,  par=0.1,  par=0.0</span>
+<span class="go">   -5, 0.158869, 0.006693, 0.000000, 0.000000</span>
+<span class="go">   -4, 0.208609, 0.017986, 0.000000, 0.000000</span>
+<span class="go">   -3, 0.268941, 0.047426, 0.000000, 0.000000</span>
+<span class="go">   -2, 0.339244, 0.119203, 0.000000, 0.000000</span>
+<span class="go">   -1, 0.417430, 0.268941, 0.000045, 0.000000</span>
+<span class="go">    0, 0.500000, 0.500000, 0.500000, 1.000000</span>
+<span class="go">    1, 0.582570, 0.731059, 0.999955, 1.000000</span>
+<span class="go">    2, 0.660756, 0.880797, 1.000000, 1.000000</span>
+<span class="go">    3, 0.731059, 0.952574, 1.000000, 1.000000</span>
+<span class="go">    4, 0.791391, 0.982014, 1.000000, 1.000000</span>
+<span class="go">    5, 0.841131, 0.993307, 1.000000, 1.000000</span>
+</pre></div>
+</div>
+<p>Function <cite>smooth_logistic2_derivative2</cite> protects itself against numerical
+overflow. Hence even extremely high <cite>value/parameter</cite> ratios
+are allowed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic2_derivative2</span><span class="p">(</span><span class="mf">1000.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">))</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+</section>
+<section id="smooth-logistic3">
+<h2>smooth_logistic3<a class="headerlink" href="#smooth-logistic3" title="Link to this heading">¶</a></h2>
+<p>Smoothing kernel which combines <cite>smooth_logistic1</cite> and <cite>smooth_logistic2</cite> for
+the regularization of functions containing two second-order discontinuities.</p>
+<p><span class="math notranslate nohighlight">\(f_{log3}(x, c) =
+(1-w) \cdot f_{log2}(x, c) + w \cdot (1-f_{log2}(x, c))\)</span></p>
+<p><span class="math notranslate nohighlight">\(w = f_{log2}(x-1/2, d)\)</span></p>
+<p><span class="math notranslate nohighlight">\(d = max(0.54 \cdot c^{1.17}, 0.025)\)</span></p>
+<p>The following example shows the shape of this combined smoothing
+function for four different smoothing parameters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">arange</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">5.5</span><span class="p">,</span> <span class="mi">6</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="o">-</span><span class="mf">5.5</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;value,  par=3.0,  par=1.0,  par=0.1,  par=0.0&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">lfill</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_logistic3</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">),</span>
+<span class="gp">... </span>               <span class="n">width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rfill</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">value,  par=3.0,  par=1.0,  par=0.1,  par=0.0</span>
+<span class="go"> -5.5, 0.167513, 0.003996, 0.000000, 0.000000</span>
+<span class="go"> -4.5, 0.206271, 0.010618, 0.000000, 0.000000</span>
+<span class="go"> -3.5, 0.251687, 0.027603, 0.000000, 0.000000</span>
+<span class="go"> -2.5, 0.304292, 0.068844, 0.000000, 0.000000</span>
+<span class="go"> -1.5, 0.364136, 0.158615, 0.000000, 0.000000</span>
+<span class="go"> -0.5, 0.430211, 0.314615, 0.000672, 0.000000</span>
+<span class="go">  0.5, 0.500000, 0.500000, 0.500000, 0.500000</span>
+<span class="go">  1.5, 0.569789, 0.685385, 0.999328, 1.000000</span>
+<span class="go">  2.5, 0.635864, 0.841385, 1.000000, 1.000000</span>
+<span class="go">  3.5, 0.695708, 0.931156, 1.000000, 1.000000</span>
+<span class="go">  4.5, 0.748313, 0.972397, 1.000000, 1.000000</span>
+<span class="go">  5.5, 0.793729, 0.989382, 1.000000, 1.000000</span>
+</pre></div>
+</div>
+<p>With the highest value of the smoothing parameter (3.0), the resulting
+line is relatively straight.  With the lowest smoothing parameter (0.0),
+the result is identical with a function with two second-order
+discontinuities.</p>
+</section>
+<section id="smooth-max1">
+<h2>smooth_max1<a class="headerlink" href="#smooth-max1" title="Link to this heading">¶</a></h2>
+<p>Smoothing kernel for approximating the maximum function for two values
+based on the “LogSumExp” function.</p>
+<p><span class="math notranslate nohighlight">\(f_{max}(x, y, c) = c \cdot ln(exp(x/c)+exp(y/c))\)</span></p>
+<p>The following example shows the different degree of approximation of
+the maximum function for four different smoothing parameters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">11</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">lfill</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_max1</span><span class="p">(</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">),</span>
+<span class="gp">... </span>               <span class="n">width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rfill</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0</span>
+<span class="go">      0, 5.519024, 5.006715, 5.000000, 5.000000</span>
+<span class="go">      1, 5.701888, 5.018150, 5.000000, 5.000000</span>
+<span class="go">      2, 5.939785, 5.048587, 5.000014, 5.000000</span>
+<span class="go">      3, 6.243110, 5.126928, 5.000382, 5.000000</span>
+<span class="go">      4, 6.620917, 5.313262, 5.010516, 5.000000</span>
+<span class="go">      5, 7.079442, 5.693147, 5.207944, 5.000000</span>
+<span class="go">      6, 7.620917, 6.313262, 6.010516, 6.000000</span>
+<span class="go">      7, 8.243110, 7.126928, 7.000382, 7.000000</span>
+<span class="go">      8, 8.939785, 8.048587, 8.000014, 8.000000</span>
+<span class="go">      9, 9.701888, 9.018150, 9.000000, 9.000000</span>
+<span class="go">     10, 10.519024, 10.006715, 10.00000, 10.00000</span>
+</pre></div>
+</div>
+<p>With the highest value of the smoothing parameter (3.0), the resulting
+line is relatively straight.  With the lowest smoothing parameter (0.0),
+the result is identical with the usual (discontinuous) maximum function.</p>
+<p>Function <cite>smooth_max1</cite> protects itself against numerical underflow and
+overflow.  In the following example, extreme values are added to both
+the <cite>x</cite> and the <cite>y</cite> value of 5 and 6, respectively.  The degree of
+smoothing is always identical:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">test</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;-1e8&quot;</span><span class="p">,</span> <span class="s2">&quot;0.0&quot;</span><span class="p">,</span> <span class="s2">&quot;1e8&quot;</span><span class="p">]:</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">test</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_max1</span><span class="p">(</span><span class="n">test</span><span class="o">+</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">test</span><span class="o">+</span><span class="mf">6.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span><span class="o">-</span><span class="n">test</span><span class="p">)</span>
+<span class="go">-1e8, 6.313262</span>
+<span class="go">0.0, 6.313262</span>
+<span class="go">1e8, 6.313262</span>
+</pre></div>
+</div>
+</section>
+<section id="smooth-min1">
+<h2>smooth_min1<a class="headerlink" href="#smooth-min1" title="Link to this heading">¶</a></h2>
+<p>Smoothing kernel for approximating the minimum function for two
+values based on the LogSumExp function.</p>
+<p><span class="math notranslate nohighlight">\(f_{max}(x, y, c) = -c \cdot ln(exp(x/-c)+exp(y/-c))\)</span></p>
+<p>The following example shows the different degree of approximation of
+the minimum function for four different smoothing parameters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">11</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">lfill</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_min1</span><span class="p">(</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">),</span>
+<span class="gp">... </span>               <span class="n">width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rfill</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0</span>
+<span class="go">      0, -0.519024, -0.006715, 0.000000, 0.000000</span>
+<span class="go">      1, 0.298112, 0.981850, 1.000000, 1.000000</span>
+<span class="go">      2, 1.060215, 1.951413, 1.999986, 2.000000</span>
+<span class="go">      3, 1.756890, 2.873072, 2.999618, 3.000000</span>
+<span class="go">      4, 2.379083, 3.686738, 3.989484, 4.000000</span>
+<span class="go">      5, 2.920558, 4.306853, 4.792056, 5.000000</span>
+<span class="go">      6, 3.379083, 4.686738, 4.989484, 5.000000</span>
+<span class="go">      7, 3.756890, 4.873072, 4.999618, 5.000000</span>
+<span class="go">      8, 4.060215, 4.951413, 4.999986, 5.000000</span>
+<span class="go">      9, 4.298112, 4.981850, 5.000000, 5.000000</span>
+<span class="go">     10, 4.480976, 4.993285, 5.000000, 5.000000</span>
+</pre></div>
+</div>
+<p>With the highest value of the smoothing parameter (3.0), the resulting
+line is relatively straight.  With the lowest smoothing parameter (0.0),
+the result is identical with the usual (discontinuous) minimum function.</p>
+<p>Function <cite>smooth_min1</cite> protects itself against numerical underflow and
+overflow.  In the following example, extreme values are added to both
+the <cite>x</cite> and the <cite>y</cite> value of 5 and 6, respectively.  The degree of
+smoothing is always identical:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">test</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;-1e8&quot;</span><span class="p">,</span> <span class="s2">&quot; 0.0&quot;</span><span class="p">,</span> <span class="s2">&quot; 1e8&quot;</span><span class="p">]:</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">test</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_min1</span><span class="p">(</span><span class="n">test</span><span class="o">+</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">test</span><span class="o">+</span><span class="mf">6.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span><span class="o">-</span><span class="n">test</span><span class="p">)</span>
+<span class="go">-1e8, 4.686738</span>
+<span class="go"> 0.0, 4.686738</span>
+<span class="go"> 1e8, 4.686738</span>
+</pre></div>
+</div>
+</section>
+<section id="smooth-max2">
+<h2>smooth_max2<a class="headerlink" href="#smooth-max2" title="Link to this heading">¶</a></h2>
+<p>Smoothing kernel for approximating the maximum function for three values
+based on the “LogSumExp” function.</p>
+<p><span class="math notranslate nohighlight">\(f_{max}(x, y, z, c) = c \cdot ln(exp(x/c)+exp(y/c)+exp(z/c))\)</span></p>
+<p>The following example shows the different degree of approximation of
+the maximum function for four different smoothing parameters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">11</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;z_value, par=3.0,  par=1.0,  par=0.3,  par=0.0&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">lfill</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_max2</span><span class="p">(</span><span class="o">-</span><span class="mf">50.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">),</span>
+<span class="gp">... </span>               <span class="n">width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rfill</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">z_value, par=3.0,  par=1.0,  par=0.3,  par=0.0</span>
+<span class="go">      0, 5.519024, 5.006715, 5.000000, 5.000000</span>
+<span class="go">      1, 5.701888, 5.018150, 5.000000, 5.000000</span>
+<span class="go">      2, 5.939785, 5.048587, 5.000014, 5.000000</span>
+<span class="go">      3, 6.243110, 5.126928, 5.000382, 5.000000</span>
+<span class="go">      4, 6.620917, 5.313262, 5.010516, 5.000000</span>
+<span class="go">      5, 7.079442, 5.693147, 5.207944, 5.000000</span>
+<span class="go">      6, 7.620917, 6.313262, 6.010516, 6.000000</span>
+<span class="go">      7, 8.243110, 7.126928, 7.000382, 7.000000</span>
+<span class="go">      8, 8.939785, 8.048587, 8.000014, 8.000000</span>
+<span class="go">      9, 9.701888, 9.018150, 9.000000, 9.000000</span>
+<span class="go">     10, 10.519024, 10.006715, 10.00000, 10.00000</span>
+</pre></div>
+</div>
+<p>With the highest value of the smoothing parameter (3.0), the resulting
+line is relatively straight.  With the lowest smoothing parameter (0.0),
+the result is identical with the usual (discontinuous) maximum function.</p>
+<p>Function <cite>smooth_max2</cite> protects itself against numerical underflow and
+overflow.  In the following example, extreme values are added to the <cite>x</cite>,
+the <cite>y</cite>, and the <cite>z</cite> value of 5, 6, and 7, respectively.  The degree of
+smoothing is always identical:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">test</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;-1e8&quot;</span><span class="p">,</span> <span class="s2">&quot;0.0&quot;</span><span class="p">,</span> <span class="s2">&quot;1e8&quot;</span><span class="p">]:</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">test</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_max2</span><span class="p">(</span><span class="n">test</span><span class="o">+</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">test</span><span class="o">+</span><span class="mf">6.0</span><span class="p">,</span> <span class="n">test</span><span class="o">+</span><span class="mf">7.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span><span class="o">-</span><span class="n">test</span><span class="p">)</span>
+<span class="go">-1e8, 7.407606</span>
+<span class="go">0.0, 7.407606</span>
+<span class="go">1e8, 7.407606</span>
+</pre></div>
+</div>
+</section>
+<section id="smooth-min2">
+<h2>smooth_min2<a class="headerlink" href="#smooth-min2" title="Link to this heading">¶</a></h2>
+<p>Smoothing kernel for approximating the minimum function for two
+values based on the LogSumExp function.</p>
+<p><span class="math notranslate nohighlight">\(f_{max}(x, y, z, c) = -c \cdot ln(exp(x/-c)+exp(y/-c)+exp(z/-c))\)</span></p>
+<p>The following example shows the different degree of approximation of
+the minimum function for four different smoothing parameters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">11</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;z_value, par=3.0,  par=1.0,  par=0.3,  par=0.0&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">lfill</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]):</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_min2</span><span class="p">(</span><span class="mf">60.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">parameter</span><span class="p">),</span>
+<span class="gp">... </span>               <span class="n">width</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">rfill</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">round_</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="go">z_value, par=3.0,  par=1.0,  par=0.3,  par=0.0</span>
+<span class="go">      0, -0.519024, -0.006715, 0.000000, 0.000000</span>
+<span class="go">      1, 0.298112, 0.981850, 1.000000, 1.000000</span>
+<span class="go">      2, 1.060215, 1.951413, 1.999986, 2.000000</span>
+<span class="go">      3, 1.756890, 2.873072, 2.999618, 3.000000</span>
+<span class="go">      4, 2.379083, 3.686738, 3.989484, 4.000000</span>
+<span class="go">      5, 2.920558, 4.306853, 4.792056, 5.000000</span>
+<span class="go">      6, 3.379083, 4.686738, 4.989484, 5.000000</span>
+<span class="go">      7, 3.756890, 4.873072, 4.999618, 5.000000</span>
+<span class="go">      8, 4.060215, 4.951413, 4.999986, 5.000000</span>
+<span class="go">      9, 4.298112, 4.981850, 5.000000, 5.000000</span>
+<span class="go">     10, 4.480976, 4.993285, 5.000000, 5.000000</span>
+</pre></div>
+</div>
+<p>With the highest value of the smoothing parameter (3.0), the resulting
+line is relatively straight.  With the lowest smoothing parameter (0.0),
+the result is identical with the usual (discontinuous) minimum function.</p>
+<p>Function <cite>smooth_min2</cite> protects itself against numerical underflow and
+overflow.  In the following example, extreme values are added to the <cite>x</cite>,
+the <cite>y</cite>, and the <cite>z</cite> value of 5, 6, and 7, respectively.  The degree of
+smoothing is always identical:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">test</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;-1e8&quot;</span><span class="p">,</span> <span class="s2">&quot; 0.0&quot;</span><span class="p">,</span> <span class="s2">&quot; 1e8&quot;</span><span class="p">]:</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">test</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">smoothutils</span><span class="o">.</span><span class="n">smooth_min2</span><span class="p">(</span><span class="n">test</span><span class="o">+</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">test</span><span class="o">+</span><span class="mf">6.0</span><span class="p">,</span> <span class="n">test</span><span class="o">+</span><span class="mf">7.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span><span class="o">-</span><span class="n">test</span><span class="p">)</span>
+<span class="go">-1e8, 4.592394</span>
+<span class="go"> 0.0, 4.592394</span>
+<span class="go"> 1e8, 4.592394</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="auxiliaries.html" title="Auxiliary Tools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="sequenceutils.html" title="sequenceutils"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="cythons.html" >Cython Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">smoothutils</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

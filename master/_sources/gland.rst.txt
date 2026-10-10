@@ -1,0 +1,41 @@
+.. |Area| replace:: :class:`~hydpy.models.gland.gland_control.Area`
+.. |Beta| replace:: :class:`~hydpy.models.gland.gland_derived.Beta`
+.. |Calc_Q10_V1| replace:: :class:`~hydpy.models.gland.gland_model.Calc_Q10_V1`
+.. |Calc_Q1_V1| replace:: :class:`~hydpy.models.gland.gland_model.Calc_Q1_V1`
+.. |Calc_Q9_V1| replace:: :class:`~hydpy.models.gland.gland_model.Calc_Q9_V1`
+.. |I| replace:: :class:`~hydpy.models.gland.gland_states.I`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PN| replace:: :class:`~hydpy.models.gland.gland_fluxes.PN`
+.. |PR1| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR1`
+.. |PR9| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR9`
+.. |PR| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR`
+.. |Parameter.get_timefactor| replace:: :func:`~hydpy.core.parametertools.Parameter.get_timefactor`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |Q10| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q10`
+.. |Q1| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q1`
+.. |Q9| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q9`
+.. |QFactor| replace:: :class:`~hydpy.models.gland.gland_derived.QFactor`
+.. |RConcModel_V1| replace:: :class:`~hydpy.interfaces.rconcinterfaces.RConcModel_V1`
+.. |R| replace:: :class:`~hydpy.models.gland.gland_states.R`
+.. |S| replace:: :class:`~hydpy.models.gland.gland_states.S`
+.. |X2.get_timefactor| replace:: :func:`~hydpy.models.gland.gland_control.X2.get_timefactor`
+.. |X2| replace:: :class:`~hydpy.models.gland.gland_control.X2`
+.. |X3.get_timefactor| replace:: :func:`~hydpy.models.gland.gland_control.X3.get_timefactor`
+.. |X3| replace:: :class:`~hydpy.models.gland.gland_control.X3`
+.. |evap_ret_tw2002| replace:: :mod:`~hydpy.models.evap_ret_tw2002`
+.. |gland.DOCNAME.complete| replace:: HydPy-G (base model)
+.. |gland.DOCNAME.long| replace:: HydPy-G
+.. |gland| replace:: :mod:`~hydpy.models.gland`
+.. |parameterstep| replace:: :func:`~hydpy.core.importtools.parameterstep`
+.. |rconc_uh| replace:: :mod:`~hydpy.models.rconc_uh`
+.. |simulationstep| replace:: :func:`~hydpy.core.importtools.simulationstep`
+
+.. _gland:
+
+gland
+=====
+
+.. automodule:: hydpy.models.gland
+    :members:
+    :show-inheritance:
+    :exclude-members: NoReturn, UPDATEDSEQUENCES, ClassVar, Type, SupportsAbs, IO, Pattern, fastaccess, Optional, MutableMapping, ValuesView, Tuple, SenderSequences, FULL_ODE_METHODS, get_origin, LogSequences, SupportsFloat, disjoint_base, TypeAlias, cast, Mapping, fastaccess_old, Iterator, is_protocol, Concatenate, ADD_METHODS, DefaultDict, CapsuleType, PART_ODE_METHODS, evaluate_forward_ref, fastaccess_new, ItemsView, get_type_hints, no_type_check_decorator, Awaitable, Sentinel, get_original_bases, sentinel, is_typeddict, TypedDict, TypeAliasType, subpars, ReceiverSequences, Buffer, SupportsBytes, Protocol, AbstractSet, TextIO, RECEIVER_METHODS, DERIVEDPARAMETERS, NewType, ReadOnly, MutableSequence, BinaryIO, Never, NoDefault, Doc, NotRequired, Self, Unpack, SupportsInt, subseqs, RESULTSEQUENCES, SUBMETHODS, get_protocol_members, SUBMODELINTERFACES, Hashable, seqs, AsyncIterable, IntVar, pars, SupportsRound, get_annotations, TypeVarTuple, get_args, ParamSpecArgs, MappingView, Counter, Match, Required, SupportsIndex, OrderedDict, SOLVERSEQUENCES, AideSequences, ContextManager, MutableSet, Final, ByteString, Sequence, get_overloads, SUBMODELS, Callable, AsyncIterator, Generator, RUN_METHODS, FIXEDPARAMETERS, AsyncGenerator, FactorSequences, AsyncContextManager, override, assert_type, runtime_checkable, Literal, SENDER_METHODS, Writer, subvars, ChainMap, Generic, NamedTuple, ObserverSequences, Iterable, REQUIREDSEQUENCES, Annotated, runtime, deprecated, final, INTERFACE_METHODS, Sized, List, ParamSpecKwargs, Union, ForwardRef, Reversible, Set, reveal_type, type_repr, no_type_check, TypeForm, Reader, LiteralString, Deque, Any, TypeGuard, Coroutine, TypeVar, dataclass_transform, OBSERVER_METHODS, ParamSpec, Collection, clear_overloads, assert_never, SOLVERPARAMETERS, AnyStr, InletSequences, FrozenSet, TypeIs, Container, Text, INLET_METHODS, OUTLET_METHODS, overload, CLASSES, Format, CONTROLPARAMETERS, SupportsComplex, KeysView, NoExtraItems, Dict, TYPE_CHECKING

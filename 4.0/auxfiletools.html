@@ -1,0 +1,990 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>auxfiletools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="devicetools" href="devicetools.html" />
+    <link rel="prev" title="autodoctools" href="autodoctools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="devicetools.html" title="devicetools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="autodoctools.html" title="autodoctools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">auxfiletools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="auxfiletools">
+<span id="id1"></span><h1>auxfiletools<a class="headerlink" href="#auxfiletools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.auxfiletools"></span><p>This module supports writing auxiliary files.</p>
+<p>In <em>HydPy</em>, parameter values are usually not shared between different model
+objects handled by different elements, even if the model objects are of the
+same type (e.g. <a class="reference internal" href="lland_v1.html#module-hydpy.models.lland_v1" title="hydpy.models.lland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v1</span></code></a>).  This approach offers flexibility in applying
+different parameterisation schemes.  However, often modellers prefer to use
+a minimal amount of values for specific parameters  (at least within
+hydrologically homogeneous regions).  Hence, the downside of this flexibility
+is that the same parameter values might appear in hundreds or even thousands
+of parameter control files (one file for each model/element).</p>
+<p>To decrease this redundancy, <em>HydPy</em> allows for passing names of auxiliary
+control files to parameters defined within regular control files.  <em>HydPy</em>
+then reads the actual parameter values from the auxiliary files, each one
+possibly referenced within a large number of control files.</p>
+<p>Reading parameters from regular and from auxiliary control files is straightforward.
+However, storing some parameters in a large number of regular control files and
+some other parameters in a small number of auxiliary files can be complicated.
+The features implemented in module <a class="reference internal" href="#module-hydpy.core.auxfiletools" title="hydpy.core.auxfiletools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">auxfiletools</span></code></a> are a means to perform such
+actions in a semi-automated manner (other means are the selection mechanism
+implemented in module <a class="reference internal" href="selectiontools.html#module-hydpy.core.selectiontools" title="hydpy.core.selectiontools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">selectiontools</span></code></a>).</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.auxfiletools" title="hydpy.core.auxfiletools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">auxfiletools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> Structures auxiliary file information.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a> Map different <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> objects to the names of auxiliary files.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt id="hydpy.core.auxfiletools.Auxfiler">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.auxfiletools.</span></code><code class="sig-name descname"><span class="pre">Auxfiler</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">models</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">module</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><span class="pre">hydpy.core.modeltools.Model</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#Auxfiler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.Auxfiler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Structures auxiliary file information.</p>
+<p>For writing some parameter information to auxiliary files, it is advisable
+to prepare (only) one <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Auxfiler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span> <span class="o">=</span> <span class="n">Auxfiler</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Each <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object is capable of handling parameter information for
+different kinds of models and performs some plausibility checks on added data.
+Assume, we want to store the control files of a “LARSIM type” HydPy project
+involving the application models <a class="reference internal" href="lland_v1.html#module-hydpy.models.lland_v1" title="hydpy.models.lland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v1</span></code></a>, <a class="reference internal" href="lland_v2.html#module-hydpy.models.lland_v2" title="hydpy.models.lland_v2"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v2</span></code></a> and <a class="reference internal" href="lstream_v001.html#module-hydpy.models.lstream_v001" title="hydpy.models.lstream_v001"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lstream_v001</span></code></a>.
+The following example shows how we add these models to the <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object
+by passing through module (<a class="reference internal" href="lland_v1.html#module-hydpy.models.lland_v1" title="hydpy.models.lland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v1</span></code></a>), a working model object (<a class="reference internal" href="lland_v2.html#module-hydpy.models.lland_v2" title="hydpy.models.lland_v2"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v2</span></code></a>)
+or their name (<a class="reference internal" href="lstream_v001.html#module-hydpy.models.lstream_v001" title="hydpy.models.lstream_v001"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lstream_v001</span></code></a>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">prepare_model</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models</span> <span class="kn">import</span> <span class="n">lland_v1</span> <span class="k">as</span> <span class="n">module</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">prepare_model</span><span class="p">(</span><span class="s2">&quot;lland_v2&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">string</span> <span class="o">=</span> <span class="s2">&quot;lstream_v001&quot;</span>
+</pre></div>
+</div>
+<p>You can add all model types individually or in groups:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">add_models</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">add_models</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span>
+<span class="go">Auxfiler(&quot;lland_v1&quot;, &quot;lland_v2&quot;, &quot;lstream_v001&quot;)</span>
+</pre></div>
+</div>
+<p>Alternatively, you can pass the models directly to the constructor:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Auxfiler</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
+<span class="go">Auxfiler(&quot;lland_v1&quot;, &quot;lland_v2&quot;, &quot;lstream_v001&quot;)</span>
+</pre></div>
+</div>
+<p>Wrong model specifications result in errors like the following:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">add_models</span><span class="p">(</span><span class="s2">&quot;asdf&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ModuleNotFoundError</span>: <span class="n">While trying to add one ore more models to the actual `Auxfiler` object, the following error occurred: No module named &#39;hydpy.models.asdf&#39;</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object allocates a separate <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a> object to each model
+type.  These are available via keyword and attribute access:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="p">[</span><span class="s2">&quot;lland_v1&quot;</span><span class="p">]</span>
+<span class="go">SubAuxfiler()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v2</span>
+<span class="go">SubAuxfiler()</span>
+</pre></div>
+</div>
+<p>Adding new and deleting existing <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a> objects via attribute access
+is disabled for safety purposes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v2</span> <span class="o">=</span> <span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">Class `Auxfiler` does not support adding `SubAuxfiler` objects via attribute access.  Use method `add_models` to register additional models.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">Class `Auxfiler` does not support deleting `SubAuxfiler` objects via attribute access.  Use method `remove_models` to remove registered models.</span>
+</pre></div>
+</div>
+<p>As stated by the last error message, you should remove models and their
+<a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a> objects via method <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler.remove_models" title="hydpy.core.auxfiletools.Auxfiler.remove_models"><code class="xref py py-func docutils literal notranslate"><span class="pre">remove_models()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">remove_models</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span>
+<span class="go">Auxfiler(&quot;lland_v2&quot;)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">remove_models</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to remove one or more models from the actual `Auxfiler` object, the following error occurred: Model `lland_v1` is currently not registered.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">The actual `Auxfiler` object does neither have a normal attribute nor does it handle a model named `lland_v1`.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="p">[</span><span class="s2">&quot;lland_v1&quot;</span><span class="p">]</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">KeyError</span>: <span class="n">&#39;The actual `Auxfiler` object does not handle a model named `lland_v1`.&#39;</span>
+</pre></div>
+</div>
+<p>For other types, attribute access works as usual:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">test</span> <span class="o">=</span> <span class="mi">123</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hasattr</span><span class="p">(</span><span class="n">auxfiler</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">auxfiler</span><span class="o">.</span><span class="n">test</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hasattr</span><span class="p">(</span><span class="n">auxfiler</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="hydpy.core.auxfiletools.Auxfiler.add_models">
+<code class="sig-name descname"><span class="pre">add_models</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">models</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">module</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><span class="pre">hydpy.core.modeltools.Model</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#Auxfiler.add_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.Auxfiler.add_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register an arbitrary number of <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a> types.</p>
+<p>For further information, see the main documentation on class <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.auxfiletools.Auxfiler.remove_models">
+<code class="sig-name descname"><span class="pre">remove_models</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">models</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">module</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><span class="pre">hydpy.core.modeltools.Model</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#Auxfiler.remove_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.Auxfiler.remove_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unregister an arbitrary number of <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a> classes.</p>
+<p>For further information, see the main documentation on class <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.auxfiletools.Auxfiler.get">
+<code class="sig-name descname"><span class="pre">get</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><span class="pre">hydpy.core.modeltools.Model</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><span class="pre">hydpy.core.auxfiletools.SubAuxfiler</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#Auxfiler.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.Auxfiler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a> object related to the given <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a> type.</p>
+<p>In contrast to attribute and keyword access, method <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler.get" title="hydpy.core.auxfiletools.Auxfiler.get"><code class="xref py py-func docutils literal notranslate"><span class="pre">get()</span></code></a> returns
+<code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code> when it does not handle the requested <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a> object:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Auxfiler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span> <span class="o">=</span> <span class="n">Auxfiler</span><span class="p">(</span><span class="s2">&quot;lland_v1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lland_v1&quot;</span><span class="p">)</span>
+<span class="go">SubAuxfiler()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lland_v2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.auxfiletools.Auxfiler.modelnames">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">modelnames</span></code><a class="headerlink" href="#hydpy.core.auxfiletools.Auxfiler.modelnames" title="Permalink to this definition">¶</a></dt>
+<dd><p>A sorted <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> of all names of the handled models.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Auxfiler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Auxfiler</span><span class="p">(</span><span class="s2">&quot;lland_v2&quot;</span><span class="p">,</span> <span class="s2">&quot;lstream_v001&quot;</span><span class="p">,</span> <span class="s2">&quot;lland_v1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">modelnames</span>
+<span class="go">(&#39;lland_v1&#39;, &#39;lland_v2&#39;, &#39;lstream_v001&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.auxfiletools.Auxfiler.write">
+<code class="sig-name descname"><span class="pre">write</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameterstep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">timetools.PeriodConstrArg</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulationstep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">timetools.PeriodConstrArg</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#Auxfiler.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.Auxfiler.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write all defined auxiliary control files.</p>
+<p>Before being able to write parameter information into auxiliary files, you
+need to know how to add this information to your <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object.  Hence,
+please read the documentation on method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameter" title="hydpy.core.auxfiletools.SubAuxfiler.add_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_parameter()</span></code></a>
+of class <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a> first, from which we borrow the following
+(slightly modified) test-setting:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.lland</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nhru</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lnk</span><span class="p">(</span><span class="n">ACKER</span><span class="p">,</span> <span class="n">LAUBW</span><span class="p">,</span> <span class="n">WASSER</span><span class="p">,</span> <span class="n">ACKER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="p">(</span><span class="n">acker</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">laubw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqd1</span><span class="p">(</span><span class="mf">200.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqd2</span><span class="p">(</span><span class="mf">100.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Auxfiler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span> <span class="o">=</span> <span class="n">Auxfiler</span><span class="p">(</span><span class="s2">&quot;lland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;lland_v2&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">eqd1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">parameter</span><span class="o">=</span><span class="n">treft</span><span class="p">,</span>
+<span class="gp">... </span>                                <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                                <span class="n">keywordarguments</span><span class="o">=</span><span class="n">treft</span><span class="o">.</span><span class="n">keywordarguments</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v2</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqd1</span><span class="p">,</span> <span class="n">eqd2</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Class <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> takes the target path from the <a class="reference internal" href="filetools.html#hydpy.core.filetools.ControlManager" title="hydpy.core.filetools.ControlManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlManager</span></code></a> object
+stored in the global <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> object.  For testing, we initialise one and
+override its <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a> <a class="reference internal" href="filetools.html#hydpy.core.filetools.FileManager.currentpath" title="hydpy.core.filetools.FileManager.currentpath"><code class="xref py py-const docutils literal notranslate"><span class="pre">currentpath</span></code></a> with a simple <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>
+object defining the test target path:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">projectname</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">ControlManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Test</span><span class="p">(</span><span class="n">ControlManager</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">currentpath</span> <span class="o">=</span> <span class="s2">&quot;test_directory&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">controlmanager</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Usually, <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> objects write control files to disk, of course.
+But to show (and to test) the results in the following test, we
+redirected file writing via class <a class="reference internal" href="testtools.html#hydpy.core.testtools.Open" title="hydpy.core.testtools.Open"><code class="xref py py-class docutils literal notranslate"><span class="pre">Open</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Open</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">Open</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">auxfiler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">parameterstep</span><span class="o">=</span><span class="s2">&quot;1d&quot;</span><span class="p">,</span> <span class="n">simulationstep</span><span class="o">=</span><span class="s2">&quot;12h&quot;</span><span class="p">)</span>
+<span class="go">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="go">test_directory/file1.py</span>
+<span class="go">-----------------------------------</span>
+<span class="go"># -*- coding: utf-8 -*-</span>
+
+<span class="go">from hydpy.models.lland_v1 import *</span>
+
+<span class="go">simulationstep(&quot;12h&quot;)</span>
+<span class="go">parameterstep(&quot;1d&quot;)</span>
+
+<span class="go">treft(acker=2.0, laubw=1.0)</span>
+<span class="go">eqd1(200.0)</span>
+
+<span class="go">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="go">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+<span class="go">test_directory/file2.py</span>
+<span class="go">-----------------------------------</span>
+<span class="go"># -*- coding: utf-8 -*-</span>
+
+<span class="go">from hydpy.models.lland_v2 import *</span>
+
+<span class="go">simulationstep(&quot;12h&quot;)</span>
+<span class="go">parameterstep(&quot;1d&quot;)</span>
+
+<span class="go">eqd1(200.0)</span>
+<span class="go">eqd2(100.0)</span>
+
+<span class="go">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.auxfiletools.SubAuxfiler">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.auxfiletools.</span></code><code class="sig-name descname"><span class="pre">SubAuxfiler</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><span class="pre">hydpy.core.auxfiletools.Auxfiler</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><span class="pre">hydpy.core.modeltools.Model</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#SubAuxfiler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.SubAuxfiler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Map different <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> objects to the names of auxiliary files.</p>
+<p>Usually, <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a> objects are not initialised by the user explicitly
+but made available by their master <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object.  After that, users can
+access them and subsequently register different <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> objects.  See the
+documentation on method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameter" title="hydpy.core.auxfiletools.SubAuxfiler.add_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_parameter()</span></code></a> for further information.</p>
+<dl class="py method">
+<dt id="hydpy.core.auxfiletools.SubAuxfiler.add_parameter">
+<code class="sig-name descname"><span class="pre">add_parameter</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><span class="pre">hydpy.core.parametertools.Parameter</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywordarguments</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.KeywordArguments" title="hydpy.core.parametertools.KeywordArguments"><span class="pre">hydpy.core.parametertools.KeywordArguments</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#SubAuxfiler.add_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a single <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> to the actual <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a> object.</p>
+<p>To show how <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a> works, we first prepare an instance of
+application model <a class="reference internal" href="lland_v1.html#module-hydpy.models.lland_v1" title="hydpy.models.lland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v1</span></code></a> and define the values of some of its parameters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.lland_v1</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nhru</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lnk</span><span class="p">(</span><span class="n">ACKER</span><span class="p">,</span> <span class="n">LAUBW</span><span class="p">,</span> <span class="n">WASSER</span><span class="p">,</span> <span class="n">ACKER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="p">(</span><span class="n">acker</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">laubw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span><span class="p">(</span><span class="mf">5000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqi1</span><span class="p">(</span><span class="mf">2000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqi2</span><span class="p">(</span><span class="mf">1000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqd1</span><span class="p">(</span><span class="mf">100.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqd2</span><span class="p">(</span><span class="mf">50.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next, we initialise an <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a> object handling a single <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a>
+object.  The purpose of the <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a> object is to allocate the
+above parameters to two auxiliary files named <cite>file1</cite> and <cite>file2</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Auxfiler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span> <span class="o">=</span> <span class="n">Auxfiler</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Auxiliary file <cite>file1</cite> shall contain the actual values of parameters
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.EQB" title="hydpy.models.lland.lland_control.EQB"><code class="xref py py-class docutils literal notranslate"><span class="pre">EQB</span></code></a>, <a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.EQI1" title="hydpy.models.lland.lland_control.EQI1"><code class="xref py py-class docutils literal notranslate"><span class="pre">EQI1</span></code></a>, and <a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.EQI2" title="hydpy.models.lland.lland_control.EQI2"><code class="xref py py-class docutils literal notranslate"><span class="pre">EQI2</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">eqi1</span><span class="p">,</span> <span class="n">eqi2</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">file1</span>
+<span class="go">(eqb(5000.0), eqi1(2000.0), eqi2(1000.0))</span>
+</pre></div>
+</div>
+<p>Auxiliary file <cite>file2</cite> shall contain the actual values of parameters
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.EQD1" title="hydpy.models.lland.lland_control.EQD1"><code class="xref py py-class docutils literal notranslate"><span class="pre">EQD1</span></code></a>, <a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.EQD2" title="hydpy.models.lland.lland_control.EQD2"><code class="xref py py-class docutils literal notranslate"><span class="pre">EQD2</span></code></a>, and (also!) of parameter
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.EQB" title="hydpy.models.lland.lland_control.EQB"><code class="xref py py-class docutils literal notranslate"><span class="pre">EQB</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqd1</span><span class="p">,</span> <span class="n">eqd2</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to extend the range of parameters handled by the actual `SubAuxfiler` object, the following error occurred: You tried to allocate parameter `eqb(5000.0)` to filename `file2`, but an equal `EQB` object has already been allocated to filename `file1`.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">file2</span>
+<span class="go">(eqd1(100.0), eqd2(50.0))</span>
+</pre></div>
+</div>
+<p>As explained by the error message, allocating the same parameter type
+with equal values to two different auxiliary files is not allowed.
+Nevertheless, after changing the value of parameter <a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.EQB" title="hydpy.models.lland.lland_control.EQB"><code class="xref py py-class docutils literal notranslate"><span class="pre">EQB</span></code></a>,
+it can be allocated to filename <cite>file2</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span> <span class="o">*=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">file2</span>
+<span class="go">(eqb(10000.0), eqd1(100.0), eqd2(50.0))</span>
+</pre></div>
+</div>
+<p>The following example shows that parameter <a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.EQB" title="hydpy.models.lland.lland_control.EQB"><code class="xref py py-class docutils literal notranslate"><span class="pre">EQB</span></code></a> already
+allocated to <cite>file1</cite> has still the same value (we implemented this safety
+mechanism via deep copying) and that one can view all registered parameters
+by using their names as attribute names:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">eqb</span>
+<span class="go">(eqb(10000.0), eqb(5000.0))</span>
+</pre></div>
+</div>
+<p>During adding parameters method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameter" title="hydpy.core.auxfiletools.SubAuxfiler.add_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_parameter()</span></code></a> performs some
+additional plausibility checks.  First, it prevents from using the same
+filename twice:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">add_models</span><span class="p">(</span><span class="s2">&quot;lstream_v001&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lstream_v001</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">treft</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to extend the range of parameters handled by the actual `SubAuxfiler` object, the following error occurred: Filename `file1` is already allocated to another `SubAuxfiler` object.</span>
+</pre></div>
+</div>
+<p>Second, it checks that an assigned parameter belongs to the corresponding model:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lstream_v001</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">treft</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file3&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">While trying to extend the range of parameters handled by the actual `SubAuxfiler` object, the following error occurred: Variable type `TRefT` is not handled by model `lstream_v001`.</span>
+</pre></div>
+</div>
+<p>The examples above deal with simple 0-dimensional <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> subclasses
+where there is no question in how to define equality.  However, for
+multidimensional <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> subclasses requiring that the shape and all
+values are equal might often be too strict.</p>
+<p>The auxiliary file functionalities of <em>HydPy</em> allow using the
+<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter.keywordarguments" title="hydpy.core.parametertools.Parameter.keywordarguments"><code class="xref py py-const docutils literal notranslate"><span class="pre">keywordarguments</span></code></a> property of a parameter to check for equality
+instead (put more concretely, method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings" title="hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_parameterstrings()</span></code></a>
+uses method <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.KeywordArguments.subset_of" title="hydpy.core.parametertools.KeywordArguments.subset_of"><code class="xref py py-func docutils literal notranslate"><span class="pre">subset_of()</span></code></a> of class <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.KeywordArguments" title="hydpy.core.parametertools.KeywordArguments"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeywordArguments</span></code></a> for
+comparisons). If we want to apply this feature for the instances of the
+<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.ZipParameter" title="hydpy.core.parametertools.ZipParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ZipParameter</span></code></a> subclass <a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.TRefT" title="hydpy.models.lland.lland_control.TRefT"><code class="xref py py-class docutils literal notranslate"><span class="pre">TRefT</span></code></a>, we need to additionally
+pass a <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.KeywordArguments" title="hydpy.core.parametertools.KeywordArguments"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeywordArguments</span></code></a> object to method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameter" title="hydpy.core.auxfiletools.SubAuxfiler.add_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_parameter()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">treft</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">,</span> <span class="n">keywordarguments</span><span class="o">=</span><span class="n">treft</span><span class="o">.</span><span class="n">keywordarguments</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">treft</span>
+<span class="go">(KeywordArguments(acker=2.0, laubw=1.0),)</span>
+</pre></div>
+</div>
+<p>Alternatively, we can also pass a manually defined <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.KeywordArguments" title="hydpy.core.parametertools.KeywordArguments"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeywordArguments</span></code></a> object
+(for which we perform similar plausibility checks as discussed above):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">KeywordArguments</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">treft</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">keywordarguments</span><span class="o">=</span><span class="n">KeywordArguments</span><span class="p">(</span><span class="n">acker</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">laubw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to extend the range of parameters handled by the actual `SubAuxfiler` object, the following error occurred: You tried to allocate parameter `treft(acker=2.0, laubw=1.0)` with keyword arguments `KeywordArguments(acker=2.0, laubw=1.0)` to filename `file2`, but an `TRefT` with equal keyword arguments has already been allocated to filename `file1`.</span>
+</pre></div>
+</div>
+<p>Often, we want such a manually defined <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.KeywordArguments" title="hydpy.core.parametertools.KeywordArguments"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeywordArguments</span></code></a> object to be more
+general so that it covers as many actual parameter objects as possible:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">treft</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">keywordarguments</span><span class="o">=</span><span class="n">KeywordArguments</span><span class="p">(</span><span class="n">acker</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">laubw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">nadelw</span><span class="o">=</span><span class="mf">0.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">treft</span>
+<span class="go">(KeywordArguments(acker=2.0, laubw=1.0), KeywordArguments(acker=2.0, laubw=1.0, nadelw=0.0))</span>
+</pre></div>
+</div>
+<p>Note that due to the current implementation of method
+<a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings" title="hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_parameterstrings()</span></code></a> the final state of the <a class="reference internal" href="#hydpy.core.auxfiletools.Auxfiler" title="hydpy.core.auxfiletools.Auxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Auxfiler</span></code></a>
+object results in some ambiguity (see the documentation on method
+<a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings" title="hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_parameterstrings()</span></code></a> for further information).  Hence,
+we might add more detailed plausibility checks regarding equality
+of <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.KeywordArguments" title="hydpy.core.parametertools.KeywordArguments"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeywordArguments</span></code></a> objects in the future.</p>
+<p>Unfortunately, the string representations of <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a> objects
+are not executable at the moment:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="go">SubAuxfiler(file1, file2)</span>
+</pre></div>
+</div>
+<p>Erroneous attribute access results in the following error:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span><span class="o">.</span><span class="n">wrong</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">`wrong` is neither a filename nor a name of a parameter handled by the actual `SubAuxfiler` object.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.auxfiletools.SubAuxfiler.add_parameters">
+<code class="sig-name descname"><span class="pre">add_parameters</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><span class="pre">hydpy.core.parametertools.Parameter</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#SubAuxfiler.add_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an arbitrary number of <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> objects to the actual
+<a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler" title="hydpy.core.auxfiletools.SubAuxfiler"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubAuxfiler</span></code></a> object.</p>
+<p>Method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameters" title="hydpy.core.auxfiletools.SubAuxfiler.add_parameters"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_parameters()</span></code></a> works like method
+<a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameter" title="hydpy.core.auxfiletools.SubAuxfiler.add_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_parameter()</span></code></a> but allows to add multiple parameters
+at once.  On the downside, it does not allow to define alternative
+keyword arguments.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.auxfiletools.SubAuxfiler.remove_parameters">
+<code class="sig-name descname"><span class="pre">remove_parameters</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parametertype</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><span class="pre">hydpy.core.parametertools.Parameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#SubAuxfiler.remove_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.SubAuxfiler.remove_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the registered <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> objects of the given type related to the
+given filename.</p>
+<p>The following (slightly modified) test-setting stems from the documentation
+on method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameter" title="hydpy.core.auxfiletools.SubAuxfiler.add_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_parameter()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.lland_v1</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nhru</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lnk</span><span class="p">(</span><span class="n">ACKER</span><span class="p">,</span> <span class="n">LAUBW</span><span class="p">,</span> <span class="n">WASSER</span><span class="p">,</span> <span class="n">ACKER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="p">(</span><span class="n">acker</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">laubw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span><span class="p">(</span><span class="mf">5000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqi1</span><span class="p">(</span><span class="mf">2000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqd1</span><span class="p">(</span><span class="mf">100.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Auxfiler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span> <span class="o">=</span> <span class="n">Auxfiler</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span> <span class="o">=</span> <span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">eqi1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">treft</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">,</span> <span class="n">keywordarguments</span><span class="o">=</span><span class="n">treft</span><span class="o">.</span><span class="n">keywordarguments</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span> <span class="o">*=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">eqd1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">file1</span>
+<span class="go">(KeywordArguments(acker=2.0, laubw=1.0), eqb(5000.0), eqi1(2000.0))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">file2</span>
+<span class="go">(eqb(10000.0), eqd1(100.0))</span>
+</pre></div>
+</div>
+<p>To be able to start from this setting repeatedly, we make a deep copy
+of an internal dictionary:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">copy</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">_type2filename2reference</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>First, you can remove all parameters related to a specific filename:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">remove_parameters</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filenames</span><span class="p">()</span>
+<span class="go">(&#39;file2&#39;,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">file2</span>
+<span class="go">(eqb(10000.0), eqd1(100.0))</span>
+</pre></div>
+</div>
+<p>Second, you can remove all parameters of a specific type:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">_type2filename2reference</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">copy</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">remove_parameters</span><span class="p">(</span><span class="n">parametertype</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">eqb</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">file1</span>
+<span class="go">(KeywordArguments(acker=2.0, laubw=1.0), eqi1(2000.0))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">file2</span>
+<span class="go">(eqd1(100.0),)</span>
+</pre></div>
+</div>
+<p>Third, you can remove a specific parameter object by defining both its
+time and its filename:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">_type2filename2reference</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">copy</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">remove_parameters</span><span class="p">(</span><span class="n">parametertype</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">eqb</span><span class="p">),</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">file1</span>
+<span class="go">(KeywordArguments(acker=2.0, laubw=1.0), eqi1(2000.0))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">file2</span>
+<span class="go">(eqb(10000.0), eqd1(100.0))</span>
+</pre></div>
+</div>
+<p>Fourth, you can remove all parameters at once:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">_type2filename2reference</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">copy</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">remove_parameters</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filenames</span><span class="p">()</span>
+<span class="go">()</span>
+</pre></div>
+</div>
+<p>Each combination of arguments comes with a particular error message:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">remove_parameters</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to remove the parameter object(s) allocated to filename `file2`, the following error occurred: No such parameter object(s) available.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">remove_parameters</span><span class="p">(</span><span class="n">parametertype</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">eqd2</span><span class="p">))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to remove the parameter object(s) of type `EQD2`, the following error occurred: No such parameter object(s) available.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">remove_parameters</span><span class="p">(</span><span class="n">parametertype</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">eqd2</span><span class="p">),</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to remove a parameter object of type `EQD2` allocated to filename `file2`, the following error occurred: No such parameter object(s) available.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">_type2filename2reference</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">remove_parameters</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">While trying to remove all parameter objects, the following error occurred: &#39;NoneType&#39; object has no attribute &#39;items&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.auxfiletools.SubAuxfiler.get_filenames">
+<code class="sig-name descname"><span class="pre">get_filenames</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parametertype</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><span class="pre">hydpy.core.parametertools.Parameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><span class="p"><span class="pre">…</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#SubAuxfiler.get_filenames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.SubAuxfiler.get_filenames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> of all or a selection of the handled auxiliary file names.</p>
+<p>The following (slightly modified) test-setting stems from the documentation
+on method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameter" title="hydpy.core.auxfiletools.SubAuxfiler.add_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_parameter()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.lland_v1</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nhru</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lnk</span><span class="p">(</span><span class="n">ACKER</span><span class="p">,</span> <span class="n">LAUBW</span><span class="p">,</span> <span class="n">WASSER</span><span class="p">,</span> <span class="n">ACKER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="p">(</span><span class="n">acker</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">laubw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span><span class="p">(</span><span class="mf">5000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqi1</span><span class="p">(</span><span class="mf">2000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqd1</span><span class="p">(</span><span class="mf">100.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Auxfiler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span> <span class="o">=</span> <span class="n">Auxfiler</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span> <span class="o">=</span> <span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">eqi1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">treft</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">,</span> <span class="n">keywordarguments</span><span class="o">=</span><span class="n">treft</span><span class="o">.</span><span class="n">keywordarguments</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span> <span class="o">*=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">eqd1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Without an argument, method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_filenames" title="hydpy.core.auxfiletools.SubAuxfiler.get_filenames"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_filenames()</span></code></a> returns
+all auxiliary filenames:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filenames</span><span class="p">()</span>
+<span class="go">(&#39;file1&#39;, &#39;file2&#39;)</span>
+</pre></div>
+</div>
+<p>For a given parameter type, method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_filenames" title="hydpy.core.auxfiletools.SubAuxfiler.get_filenames"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_filenames()</span></code></a> returns
+only the auxiliary filenames allocating such a type:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filenames</span><span class="p">(</span><span class="n">parametertype</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">eqi1</span><span class="p">))</span>
+<span class="go">(&#39;file1&#39;,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.auxfiletools.SubAuxfiler.get_parametertypes">
+<code class="sig-name descname"><span class="pre">get_parametertypes</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><span class="pre">hydpy.core.parametertools.Parameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="p"><span class="pre">…</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#SubAuxfiler.get_parametertypes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.SubAuxfiler.get_parametertypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> of all or a selection of the handled parameter types.</p>
+<p>The following (slightly modified) test-setting stems from the documentation
+on method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameter" title="hydpy.core.auxfiletools.SubAuxfiler.add_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_parameter()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.lland_v1</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nhru</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lnk</span><span class="p">(</span><span class="n">ACKER</span><span class="p">,</span> <span class="n">LAUBW</span><span class="p">,</span> <span class="n">WASSER</span><span class="p">,</span> <span class="n">ACKER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="p">(</span><span class="n">acker</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">laubw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span><span class="p">(</span><span class="mf">5000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqi1</span><span class="p">(</span><span class="mf">2000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqd1</span><span class="p">(</span><span class="mf">100.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Auxfiler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span> <span class="o">=</span> <span class="n">Auxfiler</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span> <span class="o">=</span> <span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">eqi1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">treft</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">,</span> <span class="n">keywordarguments</span><span class="o">=</span><span class="n">treft</span><span class="o">.</span><span class="n">keywordarguments</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span> <span class="o">*=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">eqd1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Without an argument, method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_parametertypes" title="hydpy.core.auxfiletools.SubAuxfiler.get_parametertypes"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_parametertypes()</span></code></a> returns
+all registered parameter types:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">parametertype</span> <span class="ow">in</span> <span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_parametertypes</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">parametertype</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="go">TRefT</span>
+<span class="go">EQB</span>
+<span class="go">EQI1</span>
+<span class="go">EQD1</span>
+</pre></div>
+</div>
+<p>For a given filename, method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_parametertypes" title="hydpy.core.auxfiletools.SubAuxfiler.get_parametertypes"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_parametertypes()</span></code></a> returns
+only the registered parameter types allocated for this filename:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">parametertype</span> <span class="ow">in</span> <span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_parametertypes</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">parametertype</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="go">TRefT</span>
+<span class="go">EQB</span>
+<span class="go">EQI1</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings">
+<code class="sig-name descname"><span class="pre">get_parameterstrings</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parametertype</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><span class="pre">hydpy.core.parametertools.Parameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><span class="p"><span class="pre">…</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#SubAuxfiler.get_parameterstrings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> of string representations of all or a selection of the
+handled parameter objects.</p>
+<p>The following (slightly modified) test-setting stems from the documentation
+on method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameter" title="hydpy.core.auxfiletools.SubAuxfiler.add_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_parameter()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.lland_v1</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nhru</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lnk</span><span class="p">(</span><span class="n">ACKER</span><span class="p">,</span> <span class="n">LAUBW</span><span class="p">,</span> <span class="n">WASSER</span><span class="p">,</span> <span class="n">ACKER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="p">(</span><span class="n">acker</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">laubw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span><span class="p">(</span><span class="mf">5000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqi1</span><span class="p">(</span><span class="mf">2000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqd1</span><span class="p">(</span><span class="mf">100.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Auxfiler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span> <span class="o">=</span> <span class="n">Auxfiler</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span> <span class="o">=</span> <span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">eqi1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">treft</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">,</span> <span class="n">keywordarguments</span><span class="o">=</span><span class="n">treft</span><span class="o">.</span><span class="n">keywordarguments</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span> <span class="o">*=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">eqd1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Without an argument, method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings" title="hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_parameterstrings()</span></code></a> returns
+the string representations of all registered parameter objects:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">string</span> <span class="ow">in</span> <span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_parameterstrings</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+<span class="go">treft(acker=2.0, laubw=1.0)</span>
+<span class="go">eqb(5000.0)</span>
+<span class="go">eqb(10000.0)</span>
+<span class="go">eqi1(2000.0)</span>
+<span class="go">eqd1(100.0)</span>
+</pre></div>
+</div>
+<p>For a given filename, method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings" title="hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_parameterstrings()</span></code></a> returns
+only the string representations of the registered parameter objects
+allocated for this filename:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">string</span> <span class="ow">in</span> <span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_parameterstrings</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+<span class="go">treft(acker=2.0, laubw=1.0)</span>
+<span class="go">eqb(5000.0)</span>
+<span class="go">eqi1(2000.0)</span>
+</pre></div>
+</div>
+<p>For a given parameter type, method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings" title="hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_parameterstrings()</span></code></a>
+returns only the string representations of the registered parameter
+objects of such a type:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">string</span> <span class="ow">in</span> <span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_parameterstrings</span><span class="p">(</span><span class="n">parametertype</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">eqb</span><span class="p">)):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+<span class="go">eqb(5000.0)</span>
+<span class="go">eqb(10000.0)</span>
+</pre></div>
+</div>
+<p>For a given filename and a given parameter type, method
+<a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings" title="hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_parameterstrings()</span></code></a> returns only the string representation
+of the registered parameter object of such a type allocated by such a filename:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_parameterstrings</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">,</span> <span class="n">parametertype</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">eqb</span><span class="p">))</span>
+<span class="go">(&#39;eqb(5000.0)&#39;,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.auxfiletools.SubAuxfiler.get_references">
+<code class="sig-name descname"><span class="pre">get_references</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parametertype</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><span class="pre">hydpy.core.parametertools.Parameter</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><span class="pre">hydpy.core.parametertools.Parameter</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.KeywordArguments" title="hydpy.core.parametertools.KeywordArguments"><span class="pre">hydpy.core.parametertools.KeywordArguments</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="p"><span class="pre">…</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#SubAuxfiler.get_references"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.SubAuxfiler.get_references" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> of all or a selection of the reference parameter objects
+or their related reference keyword arguments.</p>
+<p>The following (slightly modified) test-setting stems from the documentation
+on method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameter" title="hydpy.core.auxfiletools.SubAuxfiler.add_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_parameter()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.lland_v1</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nhru</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lnk</span><span class="p">(</span><span class="n">ACKER</span><span class="p">,</span> <span class="n">LAUBW</span><span class="p">,</span> <span class="n">WASSER</span><span class="p">,</span> <span class="n">ACKER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="p">(</span><span class="n">acker</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">laubw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span><span class="p">(</span><span class="mf">5000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqi1</span><span class="p">(</span><span class="mf">2000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqd1</span><span class="p">(</span><span class="mf">100.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Auxfiler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span> <span class="o">=</span> <span class="n">Auxfiler</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span> <span class="o">=</span> <span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">eqi1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">treft</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">,</span> <span class="n">keywordarguments</span><span class="o">=</span><span class="n">treft</span><span class="o">.</span><span class="n">keywordarguments</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span> <span class="o">*=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">eqd1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Despite returning the reference objects instead of parameter string
+representations, method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_references" title="hydpy.core.auxfiletools.SubAuxfiler.get_references"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_references()</span></code></a> works precisely
+like method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings" title="hydpy.core.auxfiletools.SubAuxfiler.get_parameterstrings"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_parameterstrings()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">reference</span> <span class="ow">in</span> <span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_references</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+<span class="go">KeywordArguments(acker=2.0, laubw=1.0)</span>
+<span class="go">eqb(5000.0)</span>
+<span class="go">eqb(10000.0)</span>
+<span class="go">eqi1(2000.0)</span>
+<span class="go">eqd1(100.0)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">reference</span> <span class="ow">in</span> <span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_references</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+<span class="go">KeywordArguments(acker=2.0, laubw=1.0)</span>
+<span class="go">eqb(5000.0)</span>
+<span class="go">eqi1(2000.0)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">reference</span> <span class="ow">in</span> <span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_references</span><span class="p">(</span><span class="n">parametertype</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">eqb</span><span class="p">)):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+<span class="go">eqb(5000.0)</span>
+<span class="go">eqb(10000.0)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_references</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">,</span> <span class="n">parametertype</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">eqb</span><span class="p">))</span>
+<span class="go">(eqb(5000.0),)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.auxfiletools.SubAuxfiler.get_filename">
+<code class="sig-name descname"><span class="pre">get_filename</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><span class="pre">hydpy.core.parametertools.Parameter</span></a></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/hydpy/core/auxfiletools.html#SubAuxfiler.get_filename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.auxfiletools.SubAuxfiler.get_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>If possible, return an auxiliary filename suitable for the given parameter
+object.</p>
+<p>The following (slightly modified) test-setting stems from the documentation
+on method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameter" title="hydpy.core.auxfiletools.SubAuxfiler.add_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_parameter()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.lland_v1</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nhru</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lnk</span><span class="p">(</span><span class="n">ACKER</span><span class="p">,</span> <span class="n">LAUBW</span><span class="p">,</span> <span class="n">WASSER</span><span class="p">,</span> <span class="n">ACKER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="p">(</span><span class="n">acker</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">laubw</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span><span class="p">(</span><span class="mf">5000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqi1</span><span class="p">(</span><span class="mf">2000.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqd1</span><span class="p">(</span><span class="mf">100.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Auxfiler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auxfiler</span> <span class="o">=</span> <span class="n">Auxfiler</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span> <span class="o">=</span> <span class="n">auxfiler</span><span class="o">.</span><span class="n">lland_v1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">eqi1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">treft</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">,</span> <span class="n">keywordarguments</span><span class="o">=</span><span class="n">treft</span><span class="o">.</span><span class="n">keywordarguments</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span> <span class="o">*=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameters</span><span class="p">(</span><span class="n">eqb</span><span class="p">,</span> <span class="n">eqd1</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In simple cases, method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_filename" title="hydpy.core.auxfiletools.SubAuxfiler.get_filename"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_filename()</span></code></a> searches for an equal
+reference parameter object and returns the related auxiliary filename:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">eqb</span><span class="p">)</span>
+<span class="go">&#39;file2&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span> <span class="o">/=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">eqb</span><span class="p">)</span>
+<span class="go">&#39;file1&#39;</span>
+</pre></div>
+</div>
+<p>If it cannot find an equal reference parameter, it returns <code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">eqb</span> <span class="o">/=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">eqb</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If a registered parameter object is associated with a <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.KeywordArguments" title="hydpy.core.parametertools.KeywordArguments"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeywordArguments</span></code></a> object
+(see the documentation on method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.add_parameter" title="hydpy.core.auxfiletools.SubAuxfiler.add_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_parameter()</span></code></a> on how to do this),
+<a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_filename" title="hydpy.core.auxfiletools.SubAuxfiler.get_filename"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_filename()</span></code></a> does not check for equality.  Instead,  it uses
+method <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.KeywordArguments.subset_of" title="hydpy.core.parametertools.KeywordArguments.subset_of"><code class="xref py py-func docutils literal notranslate"><span class="pre">subset_of()</span></code></a> to check if the keyword arguments of the
+given parameter are a subset of keyword arguments of the registered parameter:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">treft</span><span class="p">)</span>
+<span class="go">&#39;file1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="p">(</span><span class="n">acker</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">laubw</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">treft</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As a result, auxiliary file <cite>file1</cite> is also considered suitable for a
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.TRefT" title="hydpy.models.lland.lland_control.TRefT"><code class="xref py py-class docutils literal notranslate"><span class="pre">TRefT</span></code></a> object related to land-use type <a class="reference internal" href="lland.html#hydpy.models.lland.lland_constants.ACKER" title="hydpy.models.lland.lland_constants.ACKER"><code class="xref py py-const docutils literal notranslate"><span class="pre">ACKER</span></code></a>
+(acre) only:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lnk</span><span class="p">(</span><span class="n">ACKER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="p">(</span><span class="n">acker</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">treft</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="p">(</span><span class="n">acker</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">treft</span><span class="p">)</span>
+<span class="go">&#39;file1&#39;</span>
+</pre></div>
+</div>
+<p>The above mechanism is convenient (and possibly even necessary to make
+writing auxiliary files feasible for many parameter types) but can lead
+to ambiguous situations.  To demonstrate this, we register the currently
+relevant keyword arguments of parameter <a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.TRefT" title="hydpy.models.lland.lland_control.TRefT"><code class="xref py py-class docutils literal notranslate"><span class="pre">TRefT</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">treft</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">,</span> <span class="n">keywordarguments</span><span class="o">=</span><span class="n">treft</span><span class="o">.</span><span class="n">keywordarguments</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, the keyword arguments of <a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.TRefT" title="hydpy.models.lland.lland_control.TRefT"><code class="xref py py-class docutils literal notranslate"><span class="pre">TRefT</span></code></a> are a subset of
+both registered <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.KeywordArguments" title="hydpy.core.parametertools.KeywordArguments"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeywordArguments</span></code></a> objects:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="o">.</span><span class="n">keywordarguments</span>
+<span class="go">KeywordArguments(acker=2.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_references</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">parametertype</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">treft</span><span class="p">),</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file1&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span>
+<span class="go">KeywordArguments(acker=2.0, laubw=1.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="o">.</span><span class="n">keywordarguments</span><span class="o">.</span><span class="n">subset_of</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_references</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">parametertype</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">treft</span><span class="p">),</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;file2&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span>
+<span class="go">KeywordArguments(acker=2.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">treft</span><span class="o">.</span><span class="n">keywordarguments</span><span class="o">.</span><span class="n">subset_of</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Method <a class="reference internal" href="#hydpy.core.auxfiletools.SubAuxfiler.get_filename" title="hydpy.core.auxfiletools.SubAuxfiler.get_filename"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_filename()</span></code></a> emits a warning when it finds multiple
+suitable auxiliary files:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">treft</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">UserWarning</span>: <span class="n">Parameter `treft(2.0)` matches several auxiliary files: file1 and file2</span>
+</pre></div>
+</div>
+<p>Nevertheless, it returns the first match (which might be confusing due to
+its arbitrariness but at least results in a working project configuration):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">()</span> <span class="p">:</span>
+<span class="gp">... </span>    <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">subauxfiler</span><span class="o">.</span><span class="n">get_filename</span><span class="p">(</span><span class="n">treft</span><span class="p">)</span>
+<span class="go">&#39;file1&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="autodoctools.html"
+                        title="previous chapter">autodoctools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="devicetools.html"
+                        title="next chapter">devicetools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/auxfiletools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="devicetools.html" title="devicetools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="autodoctools.html" title="autodoctools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">auxfiletools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

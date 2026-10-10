@@ -1,0 +1,91 @@
+.. |AddItem| replace:: :class:`~hydpy.core.itemtools.AddItem`
+.. |AssertionError| replace:: :class:`AssertionError`
+.. |ChangeItem.value| replace:: :const:`~hydpy.core.itemtools.ChangeItem.value`
+.. |ChangeItem| replace:: :class:`~hydpy.core.itemtools.ChangeItem`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |ExchangeItem| replace:: :class:`~hydpy.core.itemtools.ExchangeItem`
+.. |False| replace:: :const:`False`
+.. |FileManager.currentpath| replace:: :const:`~hydpy.core.filetools.FileManager.currentpath`
+.. |GetItem| replace:: :class:`~hydpy.core.itemtools.GetItem`
+.. |IOSequence.dirpath| replace:: :const:`~hydpy.core.sequencetools.IOSequence.dirpath`
+.. |IOSequence.diskflag_reading| replace:: :const:`~hydpy.core.sequencetools.IOSequence.diskflag_reading`
+.. |IOSequence.diskflag_writing| replace:: :const:`~hydpy.core.sequencetools.IOSequence.diskflag_writing`
+.. |IOSequence.prepare_series| replace:: :func:`~hydpy.core.sequencetools.IOSequence.prepare_series`
+.. |IOSequence.ramflag| replace:: :const:`~hydpy.core.sequencetools.IOSequence.ramflag`
+.. |IOSequence.series| replace:: :const:`~hydpy.core.sequencetools.IOSequence.series`
+.. |IOSequence| replace:: :class:`~hydpy.core.sequencetools.IOSequence`
+.. |InputSequence| replace:: :class:`~hydpy.core.sequencetools.InputSequence`
+.. |Model| replace:: :class:`~hydpy.core.modeltools.Model`
+.. |MultiplyItem| replace:: :class:`~hydpy.core.itemtools.MultiplyItem`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |None| replace:: :const:`None`
+.. |Options| replace:: :class:`~hydpy.core.optiontools.Options`
+.. |PrepareSeriesArguments.from_xmldata| replace:: :func:`~hydpy.exe.xmltools.PrepareSeriesArguments.from_xmldata`
+.. |PrepareSeriesArguments| replace:: :class:`~hydpy.exe.xmltools.PrepareSeriesArguments`
+.. |Selections| replace:: :class:`~hydpy.core.selectiontools.Selections`
+.. |Selection| replace:: :class:`~hydpy.core.selectiontools.Selection`
+.. |SequenceManager| replace:: :class:`~hydpy.core.filetools.SequenceManager`
+.. |SetItem| replace:: :class:`~hydpy.core.itemtools.SetItem`
+.. |Timegrids| replace:: :class:`~hydpy.core.timetools.Timegrids`
+.. |True| replace:: :const:`True`
+.. |XMLBase.find| replace:: :func:`~hydpy.exe.xmltools.XMLBase.find`
+.. |XMLBase| replace:: :class:`~hydpy.exe.xmltools.XMLBase`
+.. |XMLConditions| replace:: :class:`~hydpy.exe.xmltools.XMLConditions`
+.. |XMLControlDefault| replace:: :class:`~hydpy.exe.xmltools.XMLControlDefault`
+.. |XMLControlUserDefined| replace:: :class:`~hydpy.exe.xmltools.XMLControlUserDefined`
+.. |XMLExchange| replace:: :class:`~hydpy.exe.xmltools.XMLExchange`
+.. |XMLInterface.elements| replace:: :const:`~hydpy.exe.xmltools.XMLInterface.elements`
+.. |XMLInterface.selections| replace:: :const:`~hydpy.exe.xmltools.XMLInterface.selections`
+.. |XMLInterface.update_selections| replace:: :func:`~hydpy.exe.xmltools.XMLInterface.update_selections`
+.. |XMLInterface.validate_xml| replace:: :func:`~hydpy.exe.xmltools.XMLInterface.validate_xml`
+.. |XMLInterface| replace:: :class:`~hydpy.exe.xmltools.XMLInterface`
+.. |XMLItemgroup| replace:: :class:`~hydpy.exe.xmltools.XMLItemgroup`
+.. |XMLModel| replace:: :class:`~hydpy.exe.xmltools.XMLModel`
+.. |XMLNetworkDefault| replace:: :class:`~hydpy.exe.xmltools.XMLNetworkDefault`
+.. |XMLNetworkUserDefined| replace:: :class:`~hydpy.exe.xmltools.XMLNetworkUserDefined`
+.. |XMLNode| replace:: :class:`~hydpy.exe.xmltools.XMLNode`
+.. |XMLSelector.selections| replace:: :const:`~hydpy.exe.xmltools.XMLSelector.selections`
+.. |XMLSelector| replace:: :class:`~hydpy.exe.xmltools.XMLSelector`
+.. |XMLSeries| replace:: :class:`~hydpy.exe.xmltools.XMLSeries`
+.. |XMLSubseries.change_dirpath| replace:: :func:`~hydpy.exe.xmltools.XMLSubseries.change_dirpath`
+.. |XMLSubseries.load_series| replace:: :func:`~hydpy.exe.xmltools.XMLSubseries.load_series`
+.. |XMLSubseries.prepare_series| replace:: :func:`~hydpy.exe.xmltools.XMLSubseries.prepare_series`
+.. |XMLSubseries| replace:: :class:`~hydpy.exe.xmltools.XMLSubseries`
+.. |XMLSubvars| replace:: :class:`~hydpy.exe.xmltools.XMLSubvars`
+.. |XMLVar| replace:: :class:`~hydpy.exe.xmltools.XMLVar`
+.. |XSDWriter.write_xsd| replace:: :func:`~hydpy.exe.xmltools.XSDWriter.write_xsd`
+.. |XSDWriter| replace:: :class:`~hydpy.exe.xmltools.XSDWriter`
+.. |classmethod| replace:: :class:`classmethod`
+.. |find| replace:: :func:`~hydpy.exe.xmltools.find`
+.. |hland_96| replace:: :mod:`~hydpy.models.hland_96`
+.. |hyd| replace:: :mod:`~hydpy.exe.hyd`
+.. |list| replace:: :class:`list`
+.. |musk_classic| replace:: :mod:`~hydpy.models.musk_classic`
+.. |prepare_full_example_1| replace:: :func:`~hydpy.core.testtools.prepare_full_example_1`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |run_simulation| replace:: :func:`~hydpy.exe.xmltools.run_simulation`
+.. |run_subprocess| replace:: :func:`~hydpy.exe.commandtools.run_subprocess`
+.. |strip| replace:: :func:`~hydpy.exe.xmltools.strip`
+.. |xml_validate| replace:: :func:`~hydpy.exe.xmltools.xml_validate`
+.. |xmltools| replace:: :mod:`~hydpy.exe.xmltools`
+.. |collections.defaultdict| replace:: :class:`~collections.defaultdict`
+.. |hland_control.Alpha| replace:: :class:`~hydpy.models.hland.hland_control.Alpha`
+.. |hland_control.K4| replace:: :class:`~hydpy.models.hland.hland_control.K4`
+.. |hland_control.K| replace:: :class:`~hydpy.models.hland.hland_control.K`
+.. |hland_control.RfCF| replace:: :class:`~hydpy.models.hland.hland_control.RfCF`
+.. |hland_control.SfCF| replace:: :class:`~hydpy.models.hland.hland_control.SfCF`
+.. |hland_factors.ContriArea| replace:: :class:`~hydpy.models.hland.hland_factors.ContriArea`
+.. |hland_fluxes.QT| replace:: :class:`~hydpy.models.hland.hland_fluxes.QT`
+.. |hland_inputs.T| replace:: :class:`~hydpy.models.hland.hland_inputs.T`
+.. |hland_states.SM| replace:: :class:`~hydpy.models.hland.hland_states.SM`
+.. |musk_control.NmbSegments| replace:: :class:`~hydpy.models.musk.musk_control.NmbSegments`
+
+.. _xmltools:
+
+xmltools
+========
+
+.. automodule:: hydpy.exe.xmltools
+    :members:
+    :show-inheritance:
+    :exclude-members: NoReturn, UPDATEDSEQUENCES, ClassVar, Type, SupportsAbs, IO, Pattern, fastaccess, Optional, MutableMapping, ValuesView, Tuple, FULL_ODE_METHODS, get_origin, SupportsFloat, disjoint_base, TypeAlias, cast, Mapping, fastaccess_old, Iterator, is_protocol, Concatenate, ADD_METHODS, DefaultDict, CapsuleType, PART_ODE_METHODS, evaluate_forward_ref, fastaccess_new, ItemsView, get_type_hints, no_type_check_decorator, Awaitable, Sentinel, get_original_bases, sentinel, is_typeddict, TypedDict, TypeAliasType, subpars, Buffer, SupportsBytes, Protocol, AbstractSet, TextIO, RECEIVER_METHODS, DERIVEDPARAMETERS, NewType, ReadOnly, MutableSequence, BinaryIO, Never, NoDefault, Doc, NotRequired, Self, Unpack, SupportsInt, subseqs, RESULTSEQUENCES, SUBMETHODS, get_protocol_members, SUBMODELINTERFACES, Hashable, seqs, AsyncIterable, IntVar, pars, SupportsRound, get_annotations, TypeVarTuple, get_args, ParamSpecArgs, MappingView, Counter, Match, Required, SupportsIndex, OrderedDict, SOLVERSEQUENCES, ContextManager, MutableSet, Final, ByteString, Sequence, get_overloads, SUBMODELS, Callable, AsyncIterator, Generator, RUN_METHODS, FIXEDPARAMETERS, AsyncGenerator, AsyncContextManager, override, assert_type, runtime_checkable, Literal, SENDER_METHODS, Writer, subvars, ChainMap, Generic, NamedTuple, Iterable, REQUIREDSEQUENCES, Annotated, runtime, deprecated, final, INTERFACE_METHODS, Sized, List, ParamSpecKwargs, Union, ForwardRef, Reversible, Set, reveal_type, type_repr, no_type_check, TypeForm, Reader, LiteralString, Deque, Any, TypeGuard, Coroutine, TypeVar, dataclass_transform, OBSERVER_METHODS, ParamSpec, Collection, clear_overloads, assert_never, SOLVERPARAMETERS, AnyStr, FrozenSet, TypeIs, Container, Text, INLET_METHODS, OUTLET_METHODS, overload, CLASSES, Format, CONTROLPARAMETERS, SupportsComplex, KeysView, NoExtraItems, Dict, TYPE_CHECKING

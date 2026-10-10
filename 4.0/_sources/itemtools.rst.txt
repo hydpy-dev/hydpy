@@ -1,0 +1,35 @@
+.. |AddItem| replace:: :class:`~hydpy.core.itemtools.AddItem`
+.. |ChangeItem.collect_variables| replace:: :func:`~hydpy.core.itemtools.ChangeItem.collect_variables`
+.. |ChangeItem.shape| replace:: :const:`~hydpy.core.itemtools.ChangeItem.shape`
+.. |ChangeItem.update_variables| replace:: :func:`~hydpy.core.itemtools.ChangeItem.update_variables`
+.. |ChangeItem.update_variable| replace:: :func:`~hydpy.core.itemtools.ChangeItem.update_variable`
+.. |ChangeItem.value| replace:: :const:`~hydpy.core.itemtools.ChangeItem.value`
+.. |ChangeItem| replace:: :class:`~hydpy.core.itemtools.ChangeItem`
+.. |Device| replace:: :class:`~hydpy.core.devicetools.Device`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |ExchangeItem.collect_variables| replace:: :func:`~hydpy.core.itemtools.ExchangeItem.collect_variables`
+.. |ExchangeItem.insert_variables| replace:: :func:`~hydpy.core.itemtools.ExchangeItem.insert_variables`
+.. |ExchangeItem| replace:: :class:`~hydpy.core.itemtools.ExchangeItem`
+.. |ExchangeSpecification| replace:: :class:`~hydpy.core.itemtools.ExchangeSpecification`
+.. |MathItem| replace:: :class:`~hydpy.core.itemtools.MathItem`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |Selections| replace:: :class:`~hydpy.core.selectiontools.Selections`
+.. |Sequence_| replace:: :class:`~hydpy.core.sequencetools.Sequence_`
+.. |SetItem| replace:: :class:`~hydpy.core.itemtools.SetItem`
+.. |Variable| replace:: :class:`~hydpy.core.variabletools.Variable`
+.. |hland_v1| replace:: :mod:`~hydpy.models.hland_v1`
+.. |hland| replace:: :mod:`~hydpy.models.hland`
+.. |hland_control.Alpha| replace:: :class:`~hydpy.models.hland.hland_control.Alpha`
+.. |hland_control.FC| replace:: :class:`~hydpy.models.hland.hland_control.FC`
+.. |hland_states.Ic| replace:: :class:`~hydpy.models.hland.hland_states.Ic`
+
+.. _itemtools:
+
+itemtools
+=========
+
+.. automodule:: hydpy.core.itemtools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

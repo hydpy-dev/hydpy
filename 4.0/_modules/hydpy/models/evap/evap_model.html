@@ -1,0 +1,1412 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.evap.evap_model &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.evap.evap_model</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.evap.evap_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. _`Allen`: http://www.fao.org/3/x0490e/x0490e00.htm</span>
+<span class="sd">.. _`solar time`: https://en.wikipedia.org/wiki/Solar_time</span>
+<span class="sd">.. _`DWA-M 504`: `https://de.dwa.de/de/regelwerksankuendigungen-volltext/verdunstung-von-land-und-wasserfl%C3%A4chen.html` # pylint: disable=line-too-long</span>
+<span class="sd">.. Link does not work after line break (reason not found yet)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># imports...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="kn">import</span> <span class="n">modelutils</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.evap</span> <span class="kn">import</span> <span class="n">evap_control</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.evap</span> <span class="kn">import</span> <span class="n">evap_derived</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.evap</span> <span class="kn">import</span> <span class="n">evap_inputs</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.evap</span> <span class="kn">import</span> <span class="n">evap_fluxes</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.evap</span> <span class="kn">import</span> <span class="n">evap_logs</span>
+
+
+<div class="viewcode-block" id="Calc_AdjustedWindSpeed_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_AdjustedWindSpeed_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_AdjustedWindSpeed_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Adjust the measured wind speed to a height of two meters above</span>
+<span class="sd">    the ground.</span>
+
+<span class="sd">    Basic equation (`Allen`_ equation 47, modified for higher precision):</span>
+<span class="sd">      :math:`AdjustedWindSpeed = WindSpeed \\cdot</span>
+<span class="sd">      \\frac{ln((2-d)/z_0)}</span>
+<span class="sd">      {ln((MeasuringHeightWindSpeed-d)/z_0)}` \n</span>
+
+<span class="sd">      :math:`d = 2 / 3 \\cdot 0.12` \n</span>
+
+<span class="sd">      :math:`z_0 = 0.123 \\cdot 0.12`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; measuringheightwindspeed(10.0)</span>
+<span class="sd">        &gt;&gt;&gt; inputs.windspeed = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_adjustedwindspeed_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.adjustedwindspeed</span>
+<span class="sd">        adjustedwindspeed(3.738763)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_control</span><span class="o">.</span><span class="n">MeasuringHeightWindSpeed</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_inputs</span><span class="o">.</span><span class="n">WindSpeed</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">AdjustedWindSpeed</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">d_d</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">/</span> <span class="mf">3.0</span> <span class="o">*</span> <span class="mf">0.12</span>
+        <span class="n">d_z0</span> <span class="o">=</span> <span class="mf">0.123</span> <span class="o">*</span> <span class="mf">0.12</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">adjustedwindspeed</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">windspeed</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="n">modelutils</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="mf">2.0</span> <span class="o">-</span> <span class="n">d_d</span><span class="p">)</span> <span class="o">/</span> <span class="n">d_z0</span><span class="p">)</span>
+            <span class="o">/</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">log</span><span class="p">((</span><span class="n">con</span><span class="o">.</span><span class="n">measuringheightwindspeed</span> <span class="o">-</span> <span class="n">d_d</span><span class="p">)</span> <span class="o">/</span> <span class="n">d_z0</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_SaturationVapourPressure_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_SaturationVapourPressure_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_SaturationVapourPressure_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the saturation vapour pressure.</span>
+
+<span class="sd">    Basic equation (`Allen`_, equation 11):</span>
+<span class="sd">      :math:`SaturationVapourPressure = 0.6108 \\cdot</span>
+<span class="sd">      \\exp(\\frac{17.27 \\cdot AirTemperature}{AirTemperature + 237.3})`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; inputs.airtemperature = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_saturationvapourpressure_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.saturationvapourpressure</span>
+<span class="sd">        saturationvapourpressure(1.227963)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_inputs</span><span class="o">.</span><span class="n">AirTemperature</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SaturationVapourPressure</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">saturationvapourpressure</span> <span class="o">=</span> <span class="mf">0.6108</span> <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+            <span class="mf">17.27</span> <span class="o">*</span> <span class="n">inp</span><span class="o">.</span><span class="n">airtemperature</span> <span class="o">/</span> <span class="p">(</span><span class="n">inp</span><span class="o">.</span><span class="n">airtemperature</span> <span class="o">+</span> <span class="mf">237.3</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_SaturationVapourPressureSlope_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_SaturationVapourPressureSlope_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_SaturationVapourPressureSlope_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the slope of the saturation vapour pressure curve.</span>
+
+<span class="sd">    Basic equation (`Allen`_, equation 13):</span>
+<span class="sd">      :math:`SaturationVapourPressureSlope = 4098 \\cdot</span>
+<span class="sd">      \\frac{SaturationVapourPressure}{(AirTemperature+237.3)^2}`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; inputs.airtemperature = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.saturationvapourpressure(1.227963)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_saturationvapourpressureslope_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.saturationvapourpressureslope</span>
+<span class="sd">        saturationvapourpressureslope(0.082283)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_inputs</span><span class="o">.</span><span class="n">AirTemperature</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SaturationVapourPressure</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SaturationVapourPressureSlope</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">saturationvapourpressureslope</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mf">4098.0</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">saturationvapourpressure</span> <span class="o">/</span> <span class="p">(</span><span class="n">inp</span><span class="o">.</span><span class="n">airtemperature</span> <span class="o">+</span> <span class="mf">237.3</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_ActualVapourPressure_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_ActualVapourPressure_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_ActualVapourPressure_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the actual vapour pressure.</span>
+
+<span class="sd">    Basic equation (`Allen`_, equation 19, modified):</span>
+<span class="sd">      :math:`ActualVapourPressure = SaturationVapourPressure \\cdot</span>
+<span class="sd">      RelativeHumidity / 100`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; inputs.relativehumidity = 60.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.saturationvapourpressure = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_actualvapourpressure_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualvapourpressure</span>
+<span class="sd">        actualvapourpressure(1.8)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_inputs</span><span class="o">.</span><span class="n">RelativeHumidity</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SaturationVapourPressure</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">ActualVapourPressure</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">actualvapourpressure</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">saturationvapourpressure</span> <span class="o">*</span> <span class="n">inp</span><span class="o">.</span><span class="n">relativehumidity</span> <span class="o">/</span> <span class="mf">100.0</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_EarthSunDistance_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_EarthSunDistance_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_EarthSunDistance_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the relative inverse distance between the earth and the sun.</span>
+
+<span class="sd">    Basic equation (`Allen`_, equation 23):</span>
+<span class="sd">      :math:`EarthSunDistance = 1 + 0.033 \\cdot cos(</span>
+<span class="sd">      2 \\cdot \\pi / 366 \\cdot (DOY + 1)`</span>
+
+<span class="sd">    Note that this equation differs a little from the one given by `Allen`_.</span>
+<span class="sd">    The following examples show that |Calc_EarthSunDistance_V1| calculates</span>
+<span class="sd">    the same distance value for a specific &quot;day&quot; (e.g. the 1st March) both</span>
+<span class="sd">    for leap years and non-leap years.  Hence, there is a tiny &quot;jump&quot;</span>
+<span class="sd">    between the 28th February and the 1st March for non-leap years.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        We define an initialisation period covering both a leap year (2000)</span>
+<span class="sd">        and a non-leap year (2001):</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub, round_</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2002-01-01&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; derived.doy.update()</span>
+
+<span class="sd">        The following convenience function applies method</span>
+<span class="sd">        |Calc_EarthSunDistance_V1| for the given dates and prints the results:</span>
+
+<span class="sd">        &gt;&gt;&gt; def test(*dates):</span>
+<span class="sd">        ...     for date in dates:</span>
+<span class="sd">        ...         model.idx_sim = pub.timegrids.init[date]</span>
+<span class="sd">        ...         model.calc_earthsundistance_v1()</span>
+<span class="sd">        ...         print(date, end=&quot;: &quot;)</span>
+<span class="sd">        ...         round_(fluxes.earthsundistance.value)</span>
+
+<span class="sd">        The results are identical for both years:</span>
+
+<span class="sd">        &gt;&gt;&gt; test(&quot;2000-01-01&quot;, &quot;2000-02-28&quot;, &quot;2000-02-29&quot;,</span>
+<span class="sd">        ...      &quot;2000-03-01&quot;, &quot;2000-07-01&quot;, &quot;2000-12-31&quot;)</span>
+<span class="sd">        2000-01-01: 1.032995</span>
+<span class="sd">        2000-02-28: 1.017471</span>
+<span class="sd">        2000-02-29: 1.016988</span>
+<span class="sd">        2000-03-01: 1.0165</span>
+<span class="sd">        2000-07-01: 0.967</span>
+<span class="sd">        2000-12-31: 1.033</span>
+
+<span class="sd">        &gt;&gt;&gt; test(&quot;2001-01-01&quot;, &quot;2001-02-28&quot;,</span>
+<span class="sd">        ...      &quot;2001-03-01&quot;, &quot;2001-07-01&quot;, &quot;2001-12-31&quot;)</span>
+<span class="sd">        2001-01-01: 1.032995</span>
+<span class="sd">        2001-02-28: 1.017471</span>
+<span class="sd">        2001-03-01: 1.0165</span>
+<span class="sd">        2001-07-01: 0.967</span>
+<span class="sd">        2001-12-31: 1.033</span>
+
+<span class="sd">        The following calculation agrees with example 8 of `Allen`_:</span>
+
+<span class="sd">        &gt;&gt;&gt; derived.doy(246)</span>
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_earthsundistance_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.earthsundistance</span>
+<span class="sd">        earthsundistance(0.984993)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_derived</span><span class="o">.</span><span class="n">DOY</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">EarthSunDistance</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">earthsundistance</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="mf">0.033</span> <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span>
+            <span class="mi">2</span> <span class="o">*</span> <span class="mf">3.141592653589793</span> <span class="o">/</span> <span class="mf">366.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">doy</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">idx_sim</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_SolarDeclination_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_SolarDeclination_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_SolarDeclination_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the solar declination.</span>
+
+<span class="sd">    Basic equation (`Allen`_, equation 24):</span>
+<span class="sd">      :math:`SolarDeclination = 0.409 \\cdot sin(</span>
+<span class="sd">      2 \\cdot \\pi / 366 \\cdot (DOY + 1) - 1.39)`</span>
+
+<span class="sd">    Note that this equation actually differs from the one given by</span>
+<span class="sd">    `Allen`_ a little, due to reasons explained in the documentation</span>
+<span class="sd">    on method |Calc_EarthSunDistance_V1|.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        We define an initialisation period covering both a leap year (2000)</span>
+<span class="sd">        and a non-leap year (2001):</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub, round_</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2002-01-01&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; derived.doy.update()</span>
+
+<span class="sd">        The following convenience function applies method</span>
+<span class="sd">        |Calc_SolarDeclination_V1| for the given dates and prints the results:</span>
+
+<span class="sd">        &gt;&gt;&gt; def test(*dates):</span>
+<span class="sd">        ...     for date in dates:</span>
+<span class="sd">        ...         model.idx_sim = pub.timegrids.init[date]</span>
+<span class="sd">        ...         model.calc_solardeclination_v1()</span>
+<span class="sd">        ...         print(date, end=&quot;: &quot;)</span>
+<span class="sd">        ...         round_(fluxes.solardeclination.value)</span>
+
+<span class="sd">        The results are identical for both years:</span>
+
+<span class="sd">        &gt;&gt;&gt; test(&quot;2000-01-01&quot;, &quot;2000-02-28&quot;, &quot;2000-02-29&quot;,</span>
+<span class="sd">        ...      &quot;2000-03-01&quot;, &quot;2000-12-31&quot;)</span>
+<span class="sd">        2000-01-01: -0.401012</span>
+<span class="sd">        2000-02-28: -0.150618</span>
+<span class="sd">        2000-02-29: -0.144069</span>
+<span class="sd">        2000-03-01: -0.137476</span>
+<span class="sd">        2000-12-31: -0.402334</span>
+
+<span class="sd">        &gt;&gt;&gt; test(&quot;2001-01-01&quot;, &quot;2001-02-28&quot;,</span>
+<span class="sd">        ...      &quot;2001-03-01&quot;, &quot;2001-12-31&quot;)</span>
+<span class="sd">        2001-01-01: -0.401012</span>
+<span class="sd">        2001-02-28: -0.150618</span>
+<span class="sd">        2001-03-01: -0.137476</span>
+<span class="sd">        2001-12-31: -0.402334</span>
+
+<span class="sd">        The following calculation agrees with example 8 of `Allen`_:</span>
+
+<span class="sd">        &gt;&gt;&gt; derived.doy(246)</span>
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_solardeclination_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.solardeclination</span>
+<span class="sd">        solardeclination(0.117464)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_derived</span><span class="o">.</span><span class="n">DOY</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SolarDeclination</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">solardeclination</span> <span class="o">=</span> <span class="mf">0.409</span> <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span>
+            <span class="mi">2</span> <span class="o">*</span> <span class="mf">3.141592653589793</span> <span class="o">/</span> <span class="mi">366</span> <span class="o">*</span> <span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">doy</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">idx_sim</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.39</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_SunsetHourAngle_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_SunsetHourAngle_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_SunsetHourAngle_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the sunset hour angle.</span>
+
+<span class="sd">    Basic equation (`Allen`_, equation 25):</span>
+<span class="sd">      :math:`SunsetHourAngle =</span>
+<span class="sd">      arccos(-tan(LatitudeRad) \\cdot tan(SolarDeclination))`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        The following calculation agrees with example 8 of `Allen`_:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; derived.doy.shape = 1</span>
+<span class="sd">        &gt;&gt;&gt; derived.doy(246)</span>
+<span class="sd">        &gt;&gt;&gt; derived.latituderad(-.35)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.solardeclination = 0.12</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_sunsethourangle_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.sunsethourangle</span>
+<span class="sd">        sunsethourangle(1.526767)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_derived</span><span class="o">.</span><span class="n">LatitudeRad</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SolarDeclination</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SunsetHourAngle</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">sunsethourangle</span> <span class="o">=</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">acos</span><span class="p">(</span>
+            <span class="o">-</span><span class="n">modelutils</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">latituderad</span><span class="p">)</span> <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">solardeclination</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_SolarTimeAngle_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_SolarTimeAngle_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_SolarTimeAngle_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the solar time angle at the midpoint of the current period.</span>
+
+<span class="sd">    Basic equations (`Allen`_, equations 31 to 33):</span>
+<span class="sd">      :math:`SolarTimeAngle =</span>
+<span class="sd">      \\pi / 12 \\cdot ((SCT + (Longitude - UTCLongitude) / 15 + S_c) - 12)` \n</span>
+
+<span class="sd">      :math:`S_c = 0.1645 \\cdot sin(2 \\cdot b) -</span>
+<span class="sd">      0.1255 \\cdot cos(b) - 0.025 \\cdot sin(b)` \n</span>
+
+<span class="sd">      :math:`b = (2 \\cdot \\pi (DOY - 80)) / 365`</span>
+
+<span class="sd">    Note there are two small deviations from the equations given by</span>
+<span class="sd">    `Allen`_.  The first one is to describe longitudes east of</span>
+<span class="sd">    Greenwich with positive numbers and longitudes west of Greenwich</span>
+<span class="sd">    with negative numbers.  The second one is due to the definition of</span>
+<span class="sd">    parameter |DOY|, as explained in the documentation on method</span>
+<span class="sd">    |Calc_EarthSunDistance_V1|.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub, round_</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-09-03&quot;, &quot;2000-09-04&quot;, &quot;1h&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; longitude(15)</span>
+<span class="sd">        &gt;&gt;&gt; derived.doy.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.sct.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.utclongitude.update()</span>
+<span class="sd">        &gt;&gt;&gt; for hour in range(24):</span>
+<span class="sd">        ...     model.idx_sim = hour</span>
+<span class="sd">        ...     model.calc_solartimeangle_v1()</span>
+<span class="sd">        ...     print(hour, end=&quot;: &quot;)</span>
+<span class="sd">        ...     round_(fluxes.solartimeangle.value)   # doctest: +ELLIPSIS</span>
+<span class="sd">        0: -3.004157</span>
+<span class="sd">        1: -2.742358</span>
+<span class="sd">        ...</span>
+<span class="sd">        11: -0.124364</span>
+<span class="sd">        12: 0.137435</span>
+<span class="sd">        ...</span>
+<span class="sd">        22: 2.755429</span>
+<span class="sd">        23: 3.017229</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_control</span><span class="o">.</span><span class="n">Longitude</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_derived</span><span class="o">.</span><span class="n">DOY</span><span class="p">,</span>
+        <span class="n">evap_derived</span><span class="o">.</span><span class="n">SCT</span><span class="p">,</span>
+        <span class="n">evap_derived</span><span class="o">.</span><span class="n">UTCLongitude</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SolarTimeAngle</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">d_pi</span> <span class="o">=</span> <span class="mf">3.141592653589793</span>
+        <span class="n">d_b</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">d_pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">doy</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">idx_sim</span><span class="p">]</span> <span class="o">-</span> <span class="mf">80.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">365.0</span>
+        <span class="n">d_sc</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mf">0.1645</span> <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">d_b</span><span class="p">)</span>
+            <span class="o">-</span> <span class="mf">0.1255</span> <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">d_b</span><span class="p">)</span>
+            <span class="o">-</span> <span class="mf">0.025</span> <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">d_b</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">solartimeangle</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">d_pi</span>
+            <span class="o">/</span> <span class="mf">12.0</span>
+            <span class="o">*</span> <span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">der</span><span class="o">.</span><span class="n">sct</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">idx_sim</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">longitude</span> <span class="o">-</span> <span class="n">der</span><span class="o">.</span><span class="n">utclongitude</span><span class="p">)</span> <span class="o">/</span> <span class="mf">15.0</span>
+                    <span class="o">+</span> <span class="n">d_sc</span>
+                <span class="p">)</span>
+                <span class="o">-</span> <span class="mf">12.0</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_ExtraterrestrialRadiation_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_ExtraterrestrialRadiation_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_ExtraterrestrialRadiation_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the extraterrestrial radiation.</span>
+
+<span class="sd">    Basic equation for daily simulation steps (`Allen`_, equation 21):</span>
+<span class="sd">      :math:`ExternalTerrestrialRadiation =</span>
+<span class="sd">      \\frac{Seconds \\ 4.92}{\\pi \\ 60 \\cdot 60} \\cdot</span>
+<span class="sd">      EarthSunDistance \\cdot (</span>
+<span class="sd">      SunsetHourAngle \\cdot sin(LatitudeRad) \\cdot sin(SolarDeclination) +</span>
+<span class="sd">      cos(LatitudeRad) \\cdot cos(SolarDeclination) \\cdot sin(SunsetHourAngle)</span>
+<span class="sd">      )`</span>
+
+<span class="sd">    Basic equation for (sub)hourly simulation steps (`Allen`_, eq. 28 to 30):</span>
+<span class="sd">      :math:`ExternalTerrestrialRadiation =</span>
+<span class="sd">      \\frac{12 \\cdot 4.92}{\\pi} \\cdot EarthSunDistance \\cdot (</span>
+<span class="sd">      (\\omega_2 - \\omega_1) \\cdot sin(LatitudeRad) \\cdot</span>
+<span class="sd">      sin(SolarDeclination) +</span>
+<span class="sd">      cos(LatitudeRad) \\cdot cos(SolarDeclination) \\cdot</span>
+<span class="sd">      (sin(\\omega_2) - sin(\\omega_1))</span>
+<span class="sd">      )` \n</span>
+
+<span class="sd">      :math:`omega_1 = SolarTimeAngle -</span>
+<span class="sd">      \\frac{\\pi \\cdot Seconds}{60 \\cdot 60 \\cdot 24}` \n</span>
+
+<span class="sd">      :math:`omega_2 = SolarTimeAngle +</span>
+<span class="sd">      \\frac{\\pi \\cdot Seconds}{60 \\cdot 60 \\cdot 24}`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        The following calculation agrees with example 8 of `Allen`_</span>
+<span class="sd">        for daily time steps:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds(60*60*24)</span>
+<span class="sd">        &gt;&gt;&gt; derived.latituderad(-0.35)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.earthsundistance = 0.985</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.solardeclination = 0.12</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.sunsethourangle = 1.527</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_extraterrestrialradiation_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.extraterrestrialradiation</span>
+<span class="sd">        extraterrestrialradiation(32.173851)</span>
+
+<span class="sd">        The following calculation repeats the above example for an hourly</span>
+<span class="sd">        simulation time step, still covering the whole day:</span>
+
+<span class="sd">        &gt;&gt;&gt; import numpy</span>
+<span class="sd">        &gt;&gt;&gt; longitude(-20)</span>
+<span class="sd">        &gt;&gt;&gt; derived.utclongitude(-20)</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds(60*60)</span>
+<span class="sd">        &gt;&gt;&gt; derived.doy.shape = 24</span>
+<span class="sd">        &gt;&gt;&gt; derived.doy(246)</span>
+<span class="sd">        &gt;&gt;&gt; derived.sct.shape = 24</span>
+<span class="sd">        &gt;&gt;&gt; derived.sct = numpy.linspace(0.5, 23.5, 24)</span>
+<span class="sd">        &gt;&gt;&gt; sum_ = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; for hour in range(24):</span>
+<span class="sd">        ...     model.idx_sim = hour</span>
+<span class="sd">        ...     model.calc_solartimeangle_v1()</span>
+<span class="sd">        ...     model.calc_extraterrestrialradiation_v1()</span>
+<span class="sd">        ...     print(hour, end=&quot;: &quot;)</span>
+<span class="sd">        ...     round_(fluxes.extraterrestrialradiation.value)</span>
+<span class="sd">        ...     sum_ += fluxes.extraterrestrialradiation</span>
+<span class="sd">        0: 0.0</span>
+<span class="sd">        1: 0.0</span>
+<span class="sd">        2: 0.0</span>
+<span class="sd">        3: 0.0</span>
+<span class="sd">        4: 0.0</span>
+<span class="sd">        5: 0.0</span>
+<span class="sd">        6: 0.418507</span>
+<span class="sd">        7: 1.552903</span>
+<span class="sd">        8: 2.567915</span>
+<span class="sd">        9: 3.39437</span>
+<span class="sd">        10: 3.975948</span>
+<span class="sd">        11: 4.273015</span>
+<span class="sd">        12: 4.265326</span>
+<span class="sd">        13: 3.953405</span>
+<span class="sd">        14: 3.35851</span>
+<span class="sd">        15: 2.52118</span>
+<span class="sd">        16: 1.49848</span>
+<span class="sd">        17: 0.360103</span>
+<span class="sd">        18: 0.0</span>
+<span class="sd">        19: 0.0</span>
+<span class="sd">        20: 0.0</span>
+<span class="sd">        21: 0.0</span>
+<span class="sd">        22: 0.0</span>
+<span class="sd">        23: 0.0</span>
+
+<span class="sd">        Note that, even with identical values of the local longitude</span>
+<span class="sd">        (|Longitude|) and the one of the time zone (|UTCLongitude|), the</span>
+<span class="sd">        calculated radiation values are not symmetrically shaped during the</span>
+<span class="sd">        day due to the eccentricity of the Earth&quot;s orbit (see `solar time`_).</span>
+
+<span class="sd">        There is a small deviation between the directly calculated daily</span>
+<span class="sd">        value and the sum of the hourly values:</span>
+
+<span class="sd">        &gt;&gt;&gt; round_(sum_)</span>
+<span class="sd">        32.139663</span>
+
+<span class="sd">        For sub-daily simulation time steps, the results of method</span>
+<span class="sd">        |Calc_ExtraterrestrialRadiation_V1| are most accurate for the shortest</span>
+<span class="sd">        time steps.  On the other hand, they can be (extremely) inaccurate</span>
+<span class="sd">        for timesteps between one hour and one day.  We demonstrate this by</span>
+<span class="sd">        comparing the sum of the sub-daily values of different step sizes with</span>
+<span class="sd">        the directly calculated daily value (note the apparent total fail of</span>
+<span class="sd">        method |Calc_ExtraterrestrialRadiation_V1| for a step size of 720</span>
+<span class="sd">        minutes):</span>
+
+<span class="sd">        &gt;&gt;&gt; for minutes in [1, 5, 15, 30, 60, 90, 120, 144, 160,</span>
+<span class="sd">        ...                 180, 240, 288, 360, 480, 720, 1440]:</span>
+<span class="sd">        ...     derived.seconds(minutes*60)</span>
+<span class="sd">        ...     nmb = int(1440/minutes)</span>
+<span class="sd">        ...     derived.doy.shape = nmb</span>
+<span class="sd">        ...     derived.doy(246)</span>
+<span class="sd">        ...     derived.sct.shape = nmb</span>
+<span class="sd">        ...     derived.sct = numpy.linspace(</span>
+<span class="sd">        ...         minutes/60/2, 24-minutes/60/2, nmb)</span>
+<span class="sd">        ...     sum_ = 0.0</span>
+<span class="sd">        ...     for idx in range(nmb):</span>
+<span class="sd">        ...         model.idx_sim = idx</span>
+<span class="sd">        ...         model.calc_solartimeangle_v1()</span>
+<span class="sd">        ...         model.calc_extraterrestrialradiation_v1()</span>
+<span class="sd">        ...         sum_ += fluxes.extraterrestrialradiation</span>
+<span class="sd">        ...     print(minutes, end=&quot;: &quot;)</span>
+<span class="sd">        ...     round_(sum_-32.173851)</span>
+<span class="sd">        1: -0.000054</span>
+<span class="sd">        5: -0.000739</span>
+<span class="sd">        15: -0.008646</span>
+<span class="sd">        30: -0.034188</span>
+<span class="sd">        60: -0.034188</span>
+<span class="sd">        90: -0.034188</span>
+<span class="sd">        120: -0.034188</span>
+<span class="sd">        144: -1.246615</span>
+<span class="sd">        160: -0.823971</span>
+<span class="sd">        180: -0.034188</span>
+<span class="sd">        240: -3.86418</span>
+<span class="sd">        288: -2.201488</span>
+<span class="sd">        360: -0.034188</span>
+<span class="sd">        480: -3.86418</span>
+<span class="sd">        720: -32.173851</span>
+<span class="sd">        1440: 0.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_derived</span><span class="o">.</span><span class="n">Seconds</span><span class="p">,</span>
+        <span class="n">evap_derived</span><span class="o">.</span><span class="n">LatitudeRad</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SolarTimeAngle</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">EarthSunDistance</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SolarDeclination</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SunsetHourAngle</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">ExtraterrestrialRadiation</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">d_pi</span> <span class="o">=</span> <span class="mf">3.141592653589793</span>
+        <span class="k">if</span> <span class="n">der</span><span class="o">.</span><span class="n">seconds</span> <span class="o">&lt;</span> <span class="mf">60.0</span> <span class="o">*</span> <span class="mf">60.0</span> <span class="o">*</span> <span class="mf">24.0</span><span class="p">:</span>
+            <span class="n">d_delta</span> <span class="o">=</span> <span class="n">d_pi</span> <span class="o">*</span> <span class="n">der</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="mf">60.0</span> <span class="o">/</span> <span class="mf">60.0</span> <span class="o">/</span> <span class="mf">24.0</span>
+            <span class="n">d_omega1</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">solartimeangle</span> <span class="o">-</span> <span class="n">d_delta</span>
+            <span class="n">d_omega2</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">solartimeangle</span> <span class="o">+</span> <span class="n">d_delta</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">extraterrestrialradiation</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+                <span class="mf">12.0</span>
+                <span class="o">*</span> <span class="mf">4.92</span>
+                <span class="o">/</span> <span class="n">d_pi</span>
+                <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">earthsundistance</span>
+                <span class="o">*</span> <span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="p">(</span><span class="n">d_omega2</span> <span class="o">-</span> <span class="n">d_omega1</span><span class="p">)</span>
+                        <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">latituderad</span><span class="p">)</span>
+                        <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">solardeclination</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="o">+</span> <span class="p">(</span>
+                        <span class="n">modelutils</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">latituderad</span><span class="p">)</span>
+                        <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">solardeclination</span><span class="p">)</span>
+                        <span class="o">*</span> <span class="p">(</span><span class="n">modelutils</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">d_omega2</span><span class="p">)</span> <span class="o">-</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">d_omega1</span><span class="p">))</span>
+                    <span class="p">)</span>
+                <span class="p">),</span>
+                <span class="mf">0.0</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">extraterrestrialradiation</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">der</span><span class="o">.</span><span class="n">seconds</span>
+                <span class="o">*</span> <span class="mf">0.0820</span>
+                <span class="o">/</span> <span class="mf">60.0</span>
+                <span class="o">/</span> <span class="n">d_pi</span>
+                <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">earthsundistance</span>
+                <span class="o">*</span> <span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="n">flu</span><span class="o">.</span><span class="n">sunsethourangle</span>
+                        <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">latituderad</span><span class="p">)</span>
+                        <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">solardeclination</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="o">+</span> <span class="p">(</span>
+                        <span class="n">modelutils</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">latituderad</span><span class="p">)</span>
+                        <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">solardeclination</span><span class="p">)</span>
+                        <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">sunsethourangle</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_PossibleSunshineDuration_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_PossibleSunshineDuration_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_PossibleSunshineDuration_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the possible astronomical sunshine duration.</span>
+
+<span class="sd">    Basic equation for daily timesteps (`Allen`_, equation 34):</span>
+<span class="sd">      :math:`PossibleSunshineDuration = 24 / \\pi \\cdot SunsetHourAngle`</span>
+
+<span class="sd">    Basic equation for (sub)hourly timesteps:</span>
+<span class="sd">      :math:`PossibleSunshineDuration =</span>
+<span class="sd">      min(max(12 / \\pi \\cdot (SunsetHourAngle - \\tau), 0),</span>
+<span class="sd">      \\frac{Seconds}{60 \\cdot 60})` \n</span>
+
+<span class="sd">      :math:`\\tau = \\Bigl \\lbrace</span>
+<span class="sd">      {</span>
+<span class="sd">      {-SolarTimeAngle - \\pi \\cdot Days \\ | \\ SolarTimeAngle \\leq 0}</span>
+<span class="sd">      \\atop</span>
+<span class="sd">      {SolarTimeAngle - \\pi \\cdot Days \\ | \\ SolarTimeAngle &gt; 0}</span>
+<span class="sd">      }`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        The following calculation agrees with example 9 of `Allen`_:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds(60*60*24)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.sunsethourangle(1.527)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_possiblesunshineduration_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.possiblesunshineduration</span>
+<span class="sd">        possiblesunshineduration(11.665421)</span>
+
+<span class="sd">        The following calculation repeats the above example for an hourly</span>
+<span class="sd">        simulation time step, still covering the whole day. Therefore the ratio</span>
+<span class="sd">        is only calculated for the hours of sunrise and sunset. In between the</span>
+<span class="sd">        ratio is set to 1 (day) or 0 (night):</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; import numpy</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds(60*60)</span>
+<span class="sd">        &gt;&gt;&gt; solartimeangles = numpy.linspace(-3.004157, 3.017229, 24)</span>
+<span class="sd">        &gt;&gt;&gt; sum_ = 0.</span>
+<span class="sd">        &gt;&gt;&gt; for hour, solartimeangle in enumerate(solartimeangles):</span>
+<span class="sd">        ...     fluxes.solartimeangle = solartimeangle</span>
+<span class="sd">        ...     model.calc_possiblesunshineduration_v1()</span>
+<span class="sd">        ...     print(hour, end=&quot;: &quot;)   # doctest: +ELLIPSIS</span>
+<span class="sd">        ...     round_(fluxes.possiblesunshineduration.value)</span>
+<span class="sd">        ...     sum_ += fluxes.possiblesunshineduration.value</span>
+<span class="sd">        0: 0.0</span>
+<span class="sd">        ...</span>
+<span class="sd">        5: 0.0</span>
+<span class="sd">        6: 0.857676</span>
+<span class="sd">        7: 1.0</span>
+<span class="sd">        ...</span>
+<span class="sd">        16: 1.0</span>
+<span class="sd">        17: 0.807745</span>
+<span class="sd">        18: 0.0</span>
+<span class="sd">        ...</span>
+<span class="sd">        23: 0.0</span>
+
+<span class="sd">        The sum of the hourly sunshine durations equals the one-step</span>
+<span class="sd">        calculation result:</span>
+
+<span class="sd">        &gt;&gt;&gt; round_(sum_)</span>
+<span class="sd">        11.665421</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_derived</span><span class="o">.</span><span class="n">Seconds</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SolarTimeAngle</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SunsetHourAngle</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">PossibleSunshineDuration</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">d_pi</span> <span class="o">=</span> <span class="mf">3.141592653589793</span>
+        <span class="n">d_hours</span> <span class="o">=</span> <span class="n">der</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="mf">60.0</span> <span class="o">/</span> <span class="mf">60.0</span>
+        <span class="n">d_days</span> <span class="o">=</span> <span class="n">d_hours</span> <span class="o">/</span> <span class="mf">24.0</span>
+        <span class="k">if</span> <span class="n">d_hours</span> <span class="o">&lt;</span> <span class="mf">24.0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">solartimeangle</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="n">d_thresh</span> <span class="o">=</span> <span class="o">-</span><span class="n">flu</span><span class="o">.</span><span class="n">solartimeangle</span> <span class="o">-</span> <span class="n">d_pi</span> <span class="o">*</span> <span class="n">d_days</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">d_thresh</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">solartimeangle</span> <span class="o">-</span> <span class="n">d_pi</span> <span class="o">*</span> <span class="n">d_days</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">possiblesunshineduration</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+                <span class="nb">max</span><span class="p">(</span><span class="mf">12.0</span> <span class="o">/</span> <span class="n">d_pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">sunsethourangle</span> <span class="o">-</span> <span class="n">d_thresh</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">d_hours</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">possiblesunshineduration</span> <span class="o">=</span> <span class="mf">24.0</span> <span class="o">/</span> <span class="n">d_pi</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">sunsethourangle</span></div>
+
+
+<div class="viewcode-block" id="Calc_ClearSkySolarRadiation_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_ClearSkySolarRadiation_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_ClearSkySolarRadiation_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the clear sky solar radiation.</span>
+
+<span class="sd">    Basic equation (adjusted to |Calc_GlobalRadiation_V1|, `Allen`_ eq. 35):</span>
+<span class="sd">      :math:`ClearSkySolarRadiation =</span>
+<span class="sd">      ExtraterrestrialRadiation \\cdot (AngstromConstant + AngstromFactor)`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        We use the Ångström coefficients (a=0.19, b=0.55) recommended</span>
+<span class="sd">        for Germany by `DWA-M 504`_ for January and the default values</span>
+<span class="sd">        (a=0.25, b=0.5) for February:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-30&quot;, &quot;2000-02-03&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; angstromconstant.jan = 0.19</span>
+<span class="sd">        &gt;&gt;&gt; angstromfactor.jan = 0.55</span>
+<span class="sd">        &gt;&gt;&gt; angstromconstant.feb = 0.25</span>
+<span class="sd">        &gt;&gt;&gt; angstromfactor.feb = 0.5</span>
+<span class="sd">        &gt;&gt;&gt; derived.moy.update()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.extraterrestrialradiation = 40.0</span>
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = 1</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_clearskysolarradiation_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.clearskysolarradiation</span>
+<span class="sd">        clearskysolarradiation(29.6)</span>
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = 2</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_clearskysolarradiation_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.clearskysolarradiation</span>
+<span class="sd">        clearskysolarradiation(30.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_control</span><span class="o">.</span><span class="n">AngstromConstant</span><span class="p">,</span>
+        <span class="n">evap_control</span><span class="o">.</span><span class="n">AngstromFactor</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_derived</span><span class="o">.</span><span class="n">MOY</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">ExtraterrestrialRadiation</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">ClearSkySolarRadiation</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">der</span><span class="o">.</span><span class="n">moy</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">idx_sim</span><span class="p">]</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">clearskysolarradiation</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">extraterrestrialradiation</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="n">con</span><span class="o">.</span><span class="n">angstromconstant</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">con</span><span class="o">.</span><span class="n">angstromfactor</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Update_LoggedClearSkySolarRadiation_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Update_LoggedClearSkySolarRadiation_V1">[docs]</a><span class="k">class</span> <span class="nc">Update_LoggedClearSkySolarRadiation_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Log the clear sky solar radiation values of the last 24 hours.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        The following example shows that each new method call successively</span>
+<span class="sd">        moves the three memorized values to the right and stores the</span>
+<span class="sd">        respective new value on the most left position:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmblogentries(3)</span>
+<span class="sd">        &gt;&gt;&gt; logs.loggedclearskysolarradiation.shape = 3</span>
+<span class="sd">        &gt;&gt;&gt; logs.loggedclearskysolarradiation = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import UnitTest</span>
+<span class="sd">        &gt;&gt;&gt; test = UnitTest(model,</span>
+<span class="sd">        ...                 model.update_loggedclearskysolarradiation_v1,</span>
+<span class="sd">        ...                 last_example=4,</span>
+<span class="sd">        ...                 parseqs=(fluxes.clearskysolarradiation,</span>
+<span class="sd">        ...                          logs.loggedclearskysolarradiation))</span>
+<span class="sd">        &gt;&gt;&gt; test.nexts.clearskysolarradiation = 1.0, 3.0, 2.0, 4.0</span>
+<span class="sd">        &gt;&gt;&gt; del test.inits.loggedclearskysolarradiation</span>
+<span class="sd">        &gt;&gt;&gt; test()</span>
+<span class="sd">        | ex. | clearskysolarradiation |           loggedclearskysolarradiation\</span>
+<span class="sd"> |</span>
+<span class="sd">        -----------------------------------------------------------------------\</span>
+<span class="sd">--</span>
+<span class="sd">        |   1 |                    1.0 | 1.0  0.0                           0.0\</span>
+<span class="sd"> |</span>
+<span class="sd">        |   2 |                    3.0 | 3.0  1.0                           0.0\</span>
+<span class="sd"> |</span>
+<span class="sd">        |   3 |                    2.0 | 2.0  3.0                           1.0\</span>
+<span class="sd"> |</span>
+<span class="sd">        |   4 |                    4.0 | 4.0  2.0                           3.0\</span>
+<span class="sd"> |</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_derived</span><span class="o">.</span><span class="n">NmbLogEntries</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">ClearSkySolarRadiation</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_logs</span><span class="o">.</span><span class="n">LoggedClearSkySolarRadiation</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">log</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmblogentries</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">loggedclearskysolarradiation</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">loggedclearskysolarradiation</span><span class="p">[</span>
+                <span class="n">idx</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="p">]</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">loggedclearskysolarradiation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">clearskysolarradiation</span></div>
+
+
+<div class="viewcode-block" id="Calc_GlobalRadiation_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_GlobalRadiation_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_GlobalRadiation_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the extraterrestrial radiation.</span>
+
+<span class="sd">    Basic equation (`Allen`_, equation 35):</span>
+<span class="sd">      :math:`GlobalRadiation = ExtraterrestrialRadiation \\cdot (</span>
+<span class="sd">      AngstromConstant + AngstromFactor \\cdot</span>
+<span class="sd">      SunshineDuration / PossibleSunshineDuration</span>
+<span class="sd">      )`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        We use the Ångström coefficients (a=0.19, b=0.55) recommended</span>
+<span class="sd">        for Germany by `DWA-M 504`_ for January and the default values</span>
+<span class="sd">        (a=0.25, b=0.5) for February:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub, round_</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-30&quot;, &quot;2000-02-03&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; angstromconstant.jan = 0.19</span>
+<span class="sd">        &gt;&gt;&gt; angstromfactor.jan = 0.55</span>
+<span class="sd">        &gt;&gt;&gt; angstromconstant.feb = 0.25</span>
+<span class="sd">        &gt;&gt;&gt; angstromfactor.feb = 0.5</span>
+<span class="sd">        &gt;&gt;&gt; derived.moy.update()</span>
+<span class="sd">        &gt;&gt;&gt; inputs.sunshineduration = 12.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.possiblesunshineduration = 14.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.extraterrestrialradiation = 40.0</span>
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = 1</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_globalradiation_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.globalradiation</span>
+<span class="sd">        globalradiation(26.457143)</span>
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = 2</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_globalradiation_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.globalradiation</span>
+<span class="sd">        globalradiation(27.142857)</span>
+
+<span class="sd">        For zero possible sunshine durations, |Calc_GlobalRadiation_V1|</span>
+<span class="sd">        sets |GlobalRadiation| to zero:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.possiblesunshineduration = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_globalradiation_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.globalradiation</span>
+<span class="sd">        globalradiation(0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_control</span><span class="o">.</span><span class="n">AngstromConstant</span><span class="p">,</span>
+        <span class="n">evap_control</span><span class="o">.</span><span class="n">AngstromFactor</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_derived</span><span class="o">.</span><span class="n">MOY</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">ExtraterrestrialRadiation</span><span class="p">,</span>
+        <span class="n">evap_inputs</span><span class="o">.</span><span class="n">SunshineDuration</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">PossibleSunshineDuration</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">GlobalRadiation</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">possiblesunshineduration</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">der</span><span class="o">.</span><span class="n">moy</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">idx_sim</span><span class="p">]</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">globalradiation</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">extraterrestrialradiation</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="n">con</span><span class="o">.</span><span class="n">angstromconstant</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+                <span class="o">+</span> <span class="n">con</span><span class="o">.</span><span class="n">angstromfactor</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+                <span class="o">*</span> <span class="n">inp</span><span class="o">.</span><span class="n">sunshineduration</span>
+                <span class="o">/</span> <span class="n">flu</span><span class="o">.</span><span class="n">possiblesunshineduration</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">globalradiation</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+<div class="viewcode-block" id="Update_LoggedGlobalRadiation_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Update_LoggedGlobalRadiation_V1">[docs]</a><span class="k">class</span> <span class="nc">Update_LoggedGlobalRadiation_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Log the global radiation values of the last 24 hours.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        The following example shows that each new method call successively</span>
+<span class="sd">        moves the three memorized values to the right and stores the</span>
+<span class="sd">        respective new value on the most left position:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmblogentries(3)</span>
+<span class="sd">        &gt;&gt;&gt; logs.loggedglobalradiation.shape = 3</span>
+<span class="sd">        &gt;&gt;&gt; logs.loggedglobalradiation = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import UnitTest</span>
+<span class="sd">        &gt;&gt;&gt; test = UnitTest(model,</span>
+<span class="sd">        ...                 model.update_loggedglobalradiation_v1,</span>
+<span class="sd">        ...                 last_example=4,</span>
+<span class="sd">        ...                 parseqs=(fluxes.globalradiation,</span>
+<span class="sd">        ...                          logs.loggedglobalradiation))</span>
+<span class="sd">        &gt;&gt;&gt; test.nexts.globalradiation = 1.0, 3.0, 2.0, 4.0</span>
+<span class="sd">        &gt;&gt;&gt; del test.inits.loggedglobalradiation</span>
+<span class="sd">        &gt;&gt;&gt; test()</span>
+<span class="sd">        | ex. | globalradiation |           loggedglobalradiation |</span>
+<span class="sd">        -----------------------------------------------------------</span>
+<span class="sd">        |   1 |             1.0 | 1.0  0.0                    0.0 |</span>
+<span class="sd">        |   2 |             3.0 | 3.0  1.0                    0.0 |</span>
+<span class="sd">        |   3 |             2.0 | 2.0  3.0                    1.0 |</span>
+<span class="sd">        |   4 |             4.0 | 4.0  2.0                    3.0 |</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_derived</span><span class="o">.</span><span class="n">NmbLogEntries</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">GlobalRadiation</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_logs</span><span class="o">.</span><span class="n">LoggedGlobalRadiation</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">log</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmblogentries</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">loggedglobalradiation</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">loggedglobalradiation</span><span class="p">[</span><span class="n">idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">loggedglobalradiation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">globalradiation</span></div>
+
+
+<div class="viewcode-block" id="Calc_NetShortwaveRadiation_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_NetShortwaveRadiation_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_NetShortwaveRadiation_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the net shortwave radiation for the hypothetical grass</span>
+<span class="sd">    reference crop.</span>
+
+<span class="sd">    Basic equation (`Allen`_, equation 38):</span>
+<span class="sd">      :math:`NetShortwaveRadiation = (1.0 - 0.23) \\cdot GlobalRadiation`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.globalradiation = 20.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_netshortwaveradiation_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.netshortwaveradiation</span>
+<span class="sd">        netshortwaveradiation(15.4)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">GlobalRadiation</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">NetShortwaveRadiation</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">netshortwaveradiation</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="mf">0.23</span><span class="p">)</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">globalradiation</span></div>
+
+
+<div class="viewcode-block" id="Calc_NetLongwaveRadiation_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_NetLongwaveRadiation_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_NetLongwaveRadiation_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the net longwave radiation.</span>
+
+<span class="sd">    Basic equation (`Allen`_, equation 39, modified):</span>
+<span class="sd">      :math:`NetLongwaveRadiation =</span>
+<span class="sd">      \\sigma \\cdot Seconds \\cdot (AirTemperature+273.16)^4</span>
+<span class="sd">      \\cdot (0.34 - 0.14 \\sqrt{ActualVapourPressure}) \\cdot</span>
+<span class="sd">      (1.35 \\cdot GR / CSSR - 0.35)` \n</span>
+
+<span class="sd">      :math:`GR = \\Bigl \\lbrace</span>
+<span class="sd">      {</span>
+<span class="sd">      {GlobalRadiation \\ | \\ ClearSkySolarRadiation &gt; 0}</span>
+<span class="sd">      \\atop</span>
+<span class="sd">      {\\sum{LoggedGlobalRadiation} \\ | \\ ClearSkySolarRadiation = 0}</span>
+<span class="sd">      }` \n</span>
+
+<span class="sd">      :math:`CSSR = \\Bigl \\lbrace</span>
+<span class="sd">      {</span>
+<span class="sd">      {ClearSkySolarRadiation \\ | \\ ClearSkySolarRadiation &gt; 0}</span>
+<span class="sd">      \\atop</span>
+<span class="sd">      {\\sum{LoggedClearSkySolarRadiation} \\ | \\ ClearSkySolarRadiation = 0}</span>
+<span class="sd">      }` \n</span>
+
+<span class="sd">      :math:`\\sigma = 5.6747685185185184 \\cdot 10^{-14}`</span>
+
+<span class="sd">    Note that during night periods, when clear sky radiation is zero, we use</span>
+<span class="sd">    the global radiation and clear sky radiation sums of the last 24 hours.</span>
+<span class="sd">    Averaging over the last three hours before sunset, as suggested by</span>
+<span class="sd">    `Allen`_, could be a more precise but also more complicated and</span>
+<span class="sd">    error-prone approach.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        The following calculation agrees with example 11 of `Allen`_:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds(60*60*24)</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmblogentries(1)</span>
+<span class="sd">        &gt;&gt;&gt; inputs.airtemperature = 22.1</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualvapourpressure = 2.1</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.clearskysolarradiation = 18.8</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.globalradiation = 14.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_netlongwaveradiation_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.netlongwaveradiation</span>
+<span class="sd">        netlongwaveradiation(3.531847)</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.clearskysolarradiation = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; logs.loggedclearskysolarradiation.shape = 1</span>
+<span class="sd">        &gt;&gt;&gt; logs.loggedclearskysolarradiation = 12.0</span>
+<span class="sd">        &gt;&gt;&gt; logs.loggedglobalradiation.shape = 1</span>
+<span class="sd">        &gt;&gt;&gt; logs.loggedglobalradiation = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_netlongwaveradiation_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.netlongwaveradiation</span>
+<span class="sd">        netlongwaveradiation(3.959909)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_derived</span><span class="o">.</span><span class="n">NmbLogEntries</span><span class="p">,</span>
+        <span class="n">evap_derived</span><span class="o">.</span><span class="n">Seconds</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_inputs</span><span class="o">.</span><span class="n">AirTemperature</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">ClearSkySolarRadiation</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">GlobalRadiation</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">ActualVapourPressure</span><span class="p">,</span>
+        <span class="n">evap_logs</span><span class="o">.</span><span class="n">LoggedGlobalRadiation</span><span class="p">,</span>
+        <span class="n">evap_logs</span><span class="o">.</span><span class="n">LoggedClearSkySolarRadiation</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">NetLongwaveRadiation</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">log</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">clearskysolarradiation</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">d_globalradiation</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">globalradiation</span>
+            <span class="n">d_clearskysolarradiation</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">clearskysolarradiation</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">d_globalradiation</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">d_clearskysolarradiation</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmblogentries</span><span class="p">):</span>
+                <span class="n">d_clearskysolarradiation</span> <span class="o">+=</span> <span class="n">log</span><span class="o">.</span><span class="n">loggedclearskysolarradiation</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+                <span class="n">d_globalradiation</span> <span class="o">+=</span> <span class="n">log</span><span class="o">.</span><span class="n">loggedglobalradiation</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">netlongwaveradiation</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mf">4.903e-9</span>
+            <span class="o">/</span> <span class="mf">24.0</span>
+            <span class="o">/</span> <span class="mf">60.0</span>
+            <span class="o">/</span> <span class="mf">60.0</span>
+            <span class="o">*</span> <span class="n">der</span><span class="o">.</span><span class="n">seconds</span>
+            <span class="o">*</span> <span class="p">(</span><span class="n">inp</span><span class="o">.</span><span class="n">airtemperature</span> <span class="o">+</span> <span class="mf">273.16</span><span class="p">)</span> <span class="o">**</span> <span class="mi">4</span>
+            <span class="o">*</span> <span class="p">(</span><span class="mf">0.34</span> <span class="o">-</span> <span class="mf">0.14</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">actualvapourpressure</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">)</span>
+            <span class="o">*</span> <span class="p">(</span><span class="mf">1.35</span> <span class="o">*</span> <span class="n">d_globalradiation</span> <span class="o">/</span> <span class="n">d_clearskysolarradiation</span> <span class="o">-</span> <span class="mf">0.35</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_NetRadiation_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_NetRadiation_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_NetRadiation_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the total net radiation.</span>
+
+<span class="sd">    Basic equation (`Allen`_, equation 40):</span>
+<span class="sd">      :math:`NetRadiation = NetShortwaveRadiation-NetLongwaveRadiation`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        The following calculation agrees with example 12 of `Allen`_:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.netshortwaveradiation  = 11.1</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.netlongwaveradiation  = 3.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_netradiation_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.netradiation</span>
+<span class="sd">        netradiation(7.6)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">NetShortwaveRadiation</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">NetLongwaveRadiation</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">NetRadiation</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">netradiation</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">netshortwaveradiation</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">netlongwaveradiation</span></div>
+
+
+<div class="viewcode-block" id="Calc_SoilHeatFlux_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_SoilHeatFlux_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_SoilHeatFlux_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the soil heat flux.</span>
+
+<span class="sd">    Basic equation for daily timesteps (`Allen`_, equation 42):</span>
+<span class="sd">      :math:`SoilHeatFlux = 0` \n</span>
+
+<span class="sd">    Basic equation for (sub)hourly timesteps (`Allen`_, eq. 45 and 46 ):</span>
+<span class="sd">      :math:`SoilHeatFlux = \\Bigl \\lbrace</span>
+<span class="sd">      {</span>
+<span class="sd">      {0.1 \\cdot SoilHeatFlux \\ | \\ NetRadiation \\geq 0}</span>
+<span class="sd">      \\atop</span>
+<span class="sd">      {0.5 \\cdot SoilHeatFlux \\ | \\ NetRadiation &lt; 0}</span>
+<span class="sd">      }`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        For simulation time steps shorter one day, we define all steps with</span>
+<span class="sd">        a positive |NetRadiation| to be part of the daylight period and all</span>
+<span class="sd">        steps with a negative |NetRadiation| to be part of the nighttime</span>
+<span class="sd">        period.  In case the summed |NetRadiation| of all daylight steps is</span>
+<span class="sd">        five times as high as the absolute summed |NetRadiation| of all</span>
+<span class="sd">        nighttime steps, the total |SoilHeatFlux| is zero:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds(60*60)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.netradiation = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_soilheatflux_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.soilheatflux</span>
+<span class="sd">        soilheatflux(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.netradiation = -2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_soilheatflux_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.soilheatflux</span>
+<span class="sd">        soilheatflux(-1.0)</span>
+
+<span class="sd">        For any simulation step size of least one day, method</span>
+<span class="sd">        |Calc_SoilHeatFlux_V1| sets the |SoilHeatFlux| to zero, which</span>
+<span class="sd">        is suggested by `Allen`_ for daily simulation steps only:</span>
+
+
+<span class="sd">        &gt;&gt;&gt; derived.seconds(60*60*24)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.netradiation = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_soilheatflux_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.soilheatflux</span>
+<span class="sd">        soilheatflux(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.netradiation = -2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_soilheatflux_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.soilheatflux</span>
+<span class="sd">        soilheatflux(0.0)</span>
+
+<span class="sd">        Hence, be aware that function |Calc_SoilHeatFlux_V1| does not give</span>
+<span class="sd">        the best results for intermediate (e.g. 12 hours) or larger</span>
+<span class="sd">        step sizes (e.g. one month).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_derived</span><span class="o">.</span><span class="n">Seconds</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">NetRadiation</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SoilHeatFlux</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">if</span> <span class="n">der</span><span class="o">.</span><span class="n">seconds</span> <span class="o">&lt;</span> <span class="mf">60.0</span> <span class="o">*</span> <span class="mf">60.0</span> <span class="o">*</span> <span class="mf">24.0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">netradiation</span> <span class="o">&gt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">soilheatflux</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">netradiation</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">soilheatflux</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">netradiation</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">soilheatflux</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+<div class="viewcode-block" id="Calc_PsychrometricConstant_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_PsychrometricConstant_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_PsychrometricConstant_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the psychrometric constant.</span>
+
+<span class="sd">    Basic equation (`Allen`_, equation 8):</span>
+<span class="sd">      :math:`PsychrometricConstant =</span>
+<span class="sd">      6.65 \\cdot 10^{-4} \\cdot AtmosphericPressure`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        The following calculation agrees with example 2 of `Allen`_:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; inputs.atmosphericpressure = 81.8</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_psychrometricconstant_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.psychrometricconstant</span>
+<span class="sd">        psychrometricconstant(0.054397)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_inputs</span><span class="o">.</span><span class="n">AtmosphericPressure</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">PsychrometricConstant</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">psychrometricconstant</span> <span class="o">=</span> <span class="mf">6.65e-4</span> <span class="o">*</span> <span class="n">inp</span><span class="o">.</span><span class="n">atmosphericpressure</span></div>
+
+
+<div class="viewcode-block" id="Calc_ReferenceEvapotranspiration_V1"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_ReferenceEvapotranspiration_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the reference evapotranspiration constant.</span>
+
+<span class="sd">    Basic equation (`Allen`_, equation 6):</span>
+<span class="sd">      :math:`ReferenceEvapotranspiration =</span>
+<span class="sd">      \\frac{</span>
+<span class="sd">      0.408 \\cdot SaturationVapourPressureSlope \\cdot</span>
+<span class="sd">      (NetRadiation - SoilHeatFlux) +</span>
+<span class="sd">      PsychrometricConstant \\cdot</span>
+<span class="sd">      \\frac{37.5 \\cdot Seconds}{60 \\cdot 60 \\cdot (AirTemperature + 273)}</span>
+<span class="sd">      \\cdot AdjustedWindSpeed \\cdot</span>
+<span class="sd">      (SaturationVapourPressure - ActualVapourPressure)</span>
+<span class="sd">      }</span>
+<span class="sd">      {</span>
+<span class="sd">      SaturationVapourPressureSlope +</span>
+<span class="sd">      PsychrometricConstant \\cdot (1 + 0.34 \\cdot AdjustedWindSpeed)</span>
+<span class="sd">      }`</span>
+
+<span class="sd">    Note that `Allen`_ recommends the coefficient 37 for</span>
+<span class="sd">    hourly simulations and the coefficient 900 for daily simulations.</span>
+<span class="sd">    Function |Calc_ReferenceEvapotranspiration_V1| generally uses 37.5,</span>
+<span class="sd">    which gives 900 when multiplied with 24.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        The following calculation agrees with example 18 of `Allen`_,</span>
+<span class="sd">        dealing with a daily simulation step:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.evap import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds(24*60*60)</span>
+<span class="sd">        &gt;&gt;&gt; inputs.airtemperature = 16.9</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.netradiation = 13.28</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.soilheatflux = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.psychrometricconstant = 0.0666</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.adjustedwindspeed = 2.078</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualvapourpressure = 1.409</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.saturationvapourpressure = 1.997</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.saturationvapourpressureslope = 0.122</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_referenceevapotranspiration_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.referenceevapotranspiration</span>
+<span class="sd">        referenceevapotranspiration(3.877117)</span>
+
+<span class="sd">        The following calculation agrees with example 19 of `Allen`_,</span>
+<span class="sd">        dealing with an hourly simulation step (note that there is a</span>
+<span class="sd">        difference due to using 37.5 instead of 37 that is smaller</span>
+<span class="sd">        than the precision of the results tabulated by `Allen`_:</span>
+
+<span class="sd">        &gt;&gt;&gt; derived.seconds(60*60)</span>
+<span class="sd">        &gt;&gt;&gt; inputs.airtemperature = 38.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.netradiation = 1.749</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.soilheatflux = 0.175</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.psychrometricconstant = 0.0673</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.adjustedwindspeed = 3.3</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualvapourpressure = 3.445</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.saturationvapourpressure = 6.625</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.saturationvapourpressureslope = 0.358</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_referenceevapotranspiration_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.referenceevapotranspiration</span>
+<span class="sd">        referenceevapotranspiration(0.629106)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_derived</span><span class="o">.</span><span class="n">Seconds</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_inputs</span><span class="o">.</span><span class="n">AirTemperature</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SaturationVapourPressureSlope</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">NetRadiation</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SoilHeatFlux</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">PsychrometricConstant</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">AdjustedWindSpeed</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">SaturationVapourPressure</span><span class="p">,</span>
+        <span class="n">evap_fluxes</span><span class="o">.</span><span class="n">ActualVapourPressure</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">evap_fluxes</span><span class="o">.</span><span class="n">ReferenceEvapotranspiration</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">referenceevapotranspiration</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mf">0.408</span>
+            <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">saturationvapourpressureslope</span>
+            <span class="o">*</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">netradiation</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">soilheatflux</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">psychrometricconstant</span>
+            <span class="o">*</span> <span class="p">(</span><span class="mf">37.5</span> <span class="o">/</span> <span class="mf">60.0</span> <span class="o">/</span> <span class="mf">60.0</span> <span class="o">*</span> <span class="n">der</span><span class="o">.</span><span class="n">seconds</span><span class="p">)</span>
+            <span class="o">/</span> <span class="p">(</span><span class="n">inp</span><span class="o">.</span><span class="n">airtemperature</span> <span class="o">+</span> <span class="mf">273.0</span><span class="p">)</span>
+            <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">adjustedwindspeed</span>
+            <span class="o">*</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">saturationvapourpressure</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">actualvapourpressure</span><span class="p">)</span>
+        <span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">saturationvapourpressureslope</span>
+            <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">psychrometricconstant</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mf">0.34</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">adjustedwindspeed</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_model.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The Evap base model.&quot;&quot;&quot;</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Calc_AdjustedWindSpeed_V1</span><span class="p">,</span>
+        <span class="n">Calc_SaturationVapourPressure_V1</span><span class="p">,</span>
+        <span class="n">Calc_SaturationVapourPressureSlope_V1</span><span class="p">,</span>
+        <span class="n">Calc_ActualVapourPressure_V1</span><span class="p">,</span>
+        <span class="n">Calc_EarthSunDistance_V1</span><span class="p">,</span>
+        <span class="n">Calc_SolarDeclination_V1</span><span class="p">,</span>
+        <span class="n">Calc_SunsetHourAngle_V1</span><span class="p">,</span>
+        <span class="n">Calc_SolarTimeAngle_V1</span><span class="p">,</span>
+        <span class="n">Calc_ExtraterrestrialRadiation_V1</span><span class="p">,</span>
+        <span class="n">Calc_PossibleSunshineDuration_V1</span><span class="p">,</span>
+        <span class="n">Calc_ClearSkySolarRadiation_V1</span><span class="p">,</span>
+        <span class="n">Update_LoggedClearSkySolarRadiation_V1</span><span class="p">,</span>
+        <span class="n">Calc_GlobalRadiation_V1</span><span class="p">,</span>
+        <span class="n">Update_LoggedGlobalRadiation_V1</span><span class="p">,</span>
+        <span class="n">Calc_NetShortwaveRadiation_V1</span><span class="p">,</span>
+        <span class="n">Calc_NetLongwaveRadiation_V1</span><span class="p">,</span>
+        <span class="n">Calc_NetRadiation_V1</span><span class="p">,</span>
+        <span class="n">Calc_SoilHeatFlux_V1</span><span class="p">,</span>
+        <span class="n">Calc_PsychrometricConstant_V1</span><span class="p">,</span>
+        <span class="n">Calc_ReferenceEvapotranspiration_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.evap.evap_model</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

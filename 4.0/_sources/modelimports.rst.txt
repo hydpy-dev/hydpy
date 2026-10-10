@@ -1,0 +1,22 @@
+.. |Cythonizer| replace:: :class:`~hydpy.cythons.modelutils.Cythonizer`
+.. |Tester| replace:: :class:`~hydpy.core.testtools.Tester`
+.. |controlcheck| replace:: :func:`~hydpy.core.importtools.controlcheck`
+.. |importtools| replace:: :mod:`~hydpy.core.importtools`
+.. |modelimports| replace:: :mod:`~hydpy.exe.modelimports`
+.. |modelutils| replace:: :mod:`~hydpy.cythons.modelutils`
+.. |numpy| replace:: :mod:`~numpy`
+.. |parameterstep| replace:: :func:`~hydpy.core.importtools.parameterstep`
+.. |simulationstep| replace:: :func:`~hydpy.core.importtools.simulationstep`
+.. |testtools| replace:: :mod:`~hydpy.core.testtools`
+.. |numpy.inf| replace:: :const:`~numpy.inf`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+
+
+.. _modelimports:
+
+
+modelimports
+============
+
+.. automodule:: hydpy.exe.modelimports
+    :show-inheritance:

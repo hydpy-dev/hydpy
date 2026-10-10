@@ -1,0 +1,45 @@
+.. |False| replace:: :const:`False`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |SummaryRow.summarise_criteria| replace:: :func:`~hydpy.auxs.statstools.SummaryRow.summarise_criteria`
+.. |SummaryRowSimple| replace:: :class:`~hydpy.auxs.statstools.SummaryRowSimple`
+.. |SummaryRowWeighted| replace:: :class:`~hydpy.auxs.statstools.SummaryRowWeighted`
+.. |SummaryRow| replace:: :class:`~hydpy.auxs.statstools.SummaryRow`
+.. |Timegrids.eval_| replace:: :attr:`~hydpy.core.timetools.Timegrids.eval_`
+.. |Timegrid| replace:: :class:`~hydpy.core.timetools.Timegrid`
+.. |aggregate_series| replace:: :func:`~hydpy.core.seriestools.aggregate_series`
+.. |bias_abs| replace:: :func:`~hydpy.auxs.statstools.bias_abs`
+.. |bias_rel| replace:: :func:`~hydpy.auxs.statstools.bias_rel`
+.. |calc_weights| replace:: :func:`~hydpy.auxs.statstools.calc_weights`
+.. |corr2| replace:: :func:`~hydpy.auxs.statstools.corr2`
+.. |corr| replace:: :func:`~hydpy.auxs.statstools.corr`
+.. |fdc_nse_log| replace:: :func:`~hydpy.auxs.statstools.fdc_nse_log`
+.. |fdc_nse| replace:: :func:`~hydpy.auxs.statstools.fdc_nse`
+.. |filter_series| replace:: :func:`~hydpy.auxs.statstools.filter_series`
+.. |hsepd_manual| replace:: :func:`~hydpy.auxs.statstools.hsepd_manual`
+.. |hsepd_pdf| replace:: :func:`~hydpy.auxs.statstools.hsepd_pdf`
+.. |hsepd| replace:: :func:`~hydpy.auxs.statstools.hsepd`
+.. |kge| replace:: :func:`~hydpy.auxs.statstools.kge`
+.. |list| replace:: :class:`list`
+.. |nan| replace:: :const:`~hydpy.exe.modelimports.nan`
+.. |nse_log| replace:: :func:`~hydpy.auxs.statstools.nse_log`
+.. |nse| replace:: :func:`~hydpy.auxs.statstools.nse`
+.. |numpy| replace:: :mod:`~numpy`
+.. |prepare_arrays| replace:: :func:`~hydpy.auxs.statstools.prepare_arrays`
+.. |print_evaluationtable| replace:: :func:`~hydpy.auxs.statstools.print_evaluationtable`
+.. |rmse| replace:: :func:`~hydpy.auxs.statstools.rmse`
+.. |statstools| replace:: :mod:`~hydpy.auxs.statstools`
+.. |std_ratio| replace:: :func:`~hydpy.auxs.statstools.std_ratio`
+.. |tuple| replace:: :class:`tuple`
+.. |var_ratio| replace:: :func:`~hydpy.auxs.statstools.var_ratio`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |pandas.Series| replace:: :class:`~pandas.Series`
+
+.. _statstools:
+
+statstools
+==========
+
+.. automodule:: hydpy.auxs.statstools
+    :members:
+    :show-inheritance:
+    :exclude-members: Counter, subpars, TypeGuard, is_protocol, TypeForm, IntVar, get_origin, Union, Protocol, Buffer, Unpack, TypeVarTuple, Never, SupportsInt, subvars, ValuesView, List, Doc, AsyncGenerator, assert_never, OBSERVER_METHODS, NoExtraItems, SENDER_METHODS, TextIO, get_protocol_members, Sized, ForwardRef, clear_overloads, Literal, overload, get_overloads, LiteralString, Self, TypeVar, NotRequired, get_args, Tuple, SupportsIndex, ClassVar, Mapping, get_type_hints, Reader, RECEIVER_METHODS, Set, NamedTuple, TypedDict, dataclass_transform, FIXEDPARAMETERS, Optional, FULL_ODE_METHODS, RESULTSEQUENCES, Text, Annotated, type_repr, reveal_type, Deque, runtime_checkable, ContextManager, NewType, INTERFACE_METHODS, assert_type, ByteString, cast, seqs, Format, ParamSpecArgs, FrozenSet, MutableSet, AsyncContextManager, Pattern, AbstractSet, TYPE_CHECKING, fastaccess_old, CLASSES, Container, CONTROLPARAMETERS, disjoint_base, ADD_METHODS, is_typeddict, MappingView, AnyStr, RUN_METHODS, DERIVEDPARAMETERS, CapsuleType, Hashable, ParamSpec, SUBMETHODS, Type, DefaultDict, NoReturn, ParamSpecKwargs, ChainMap, pars, deprecated, Awaitable, Dict, Reversible, Generator, MutableMapping, Sentinel, IO, TypeAliasType, fastaccess, subseqs, Concatenate, Callable, sentinel, SOLVERSEQUENCES, INLET_METHODS, REQUIREDSEQUENCES, Iterable, ItemsView, Coroutine, SOLVERPARAMETERS, NoDefault, get_annotations, runtime, OrderedDict, KeysView, Match, SupportsBytes, BinaryIO, Final, SupportsFloat, AsyncIterator, fastaccess_new, Any, SUBMODELS, SUBMODELINTERFACES, UPDATEDSEQUENCES, no_type_check_decorator, evaluate_forward_ref, Required, Writer, Generic, Sequence, no_type_check, SupportsComplex, Collection, SupportsAbs, SupportsRound, override, PART_ODE_METHODS, AsyncIterable, final, TypeAlias, ReadOnly, get_original_bases, Iterator, TypeIs, MutableSequence, OUTLET_METHODS

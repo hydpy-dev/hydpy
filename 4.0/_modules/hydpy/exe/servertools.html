@@ -1,0 +1,1372 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.exe.servertools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.exe.servertools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.exe.servertools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># noinspection PyUnresolvedReferences</span>
+<span class="sd">&quot;&quot;&quot;This module implements features for using *HydPy* as an HTTP server</span>
+<span class="sd">application.</span>
+
+<span class="sd">.. _`OpenDA`: https://www.openda.org/</span>
+<span class="sd">.. _`curl`: https://curl.haxx.se/</span>
+<span class="sd">.. _`HydPy-OpenDA-Black-Box-Model-Wrapper`: \</span>
+<span class="sd">https://github.com/hydpy-dev/OpenDA/tree/master/extensions/\</span>
+<span class="sd">HydPyOpenDABBModelWrapper</span>
+<span class="sd">.. _`issue`: https://github.com/hydpy-dev/OpenDA/issues</span>
+
+<span class="sd">*HydPy* is designed to be used interactively.  Consider the typical steps of</span>
+<span class="sd">calibrating model parameters.  Usually, one first prepares an instance of</span>
+<span class="sd">class |HydPy|, then changes some parameter values and performs a simulation,</span>
+<span class="sd">and finally inspects whether the new simulation results are better than the</span>
+<span class="sd">ones of the original parameterisation or not.  One can perform these steps</span>
+<span class="sd">manually (in a Python console) or apply optimisation tools like those</span>
+<span class="sd">provided by |scipy| (usually in a Python script).</span>
+
+<span class="sd">Performing or implementing such procedures is relatively simple, as long as</span>
+<span class="sd">all tools are written in Python or come with a Python interface, which is</span>
+<span class="sd">not the case for some relevant optimisation tools.  One example is</span>
+<span class="sd">`OpenDA`_, being written in Java, which was the original reason for</span>
+<span class="sd">adding module |servertools| to the *HydPy* framework.</span>
+
+<span class="sd">Module |servertools| solves such integration problems by allowing to run</span>
+<span class="sd">*HydPy* within an HTTP server.  After starting such a server, one can use</span>
+<span class="sd">any HTTP client (e.g. `curl`_) to perform the steps described above.</span>
+
+<span class="sd">The API of the |HydPy| server is relatively simple, allowing to perform a</span>
+<span class="sd">&quot;normal&quot; calibration using a few server methods only.  However, it is</span>
+<span class="sd">also more restrictive than controlling *HydPy* within a Python process.</span>
+<span class="sd">Within a Python process, you are free to do anything, when using the</span>
+<span class="sd">*HydPy* server you can, more or less, control *HydPy* in a manner that has</span>
+<span class="sd">been anticipated by the framework developers only.</span>
+
+<span class="sd">Commonly but not mandatory, one configures the initial state of a *HydPy*</span>
+<span class="sd">server with an XML file.  As an example, we prepare the `LahnH` project</span>
+<span class="sd">by calling function |prepare_full_example_1|, which contains the XML</span>
+<span class="sd">configuration file `multiple_runs_alpha.xml`:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.examples import prepare_full_example_1</span>
+<span class="sd">&gt;&gt;&gt; prepare_full_example_1()</span>
+
+<span class="sd">To start the server in a new process, open a command-line tool and</span>
+<span class="sd">insert the following command (see module |hyd| for general information</span>
+<span class="sd">on how to use *HydPy* via command line):</span>
+
+<span class="sd">&gt;&gt;&gt; command = &quot;hyd.py start_server 8080 LahnH multiple_runs_alpha.xml&quot;</span>
+<span class="sd">&gt;&gt;&gt; from hydpy import run_subprocess, TestIO</span>
+<span class="sd">&gt;&gt;&gt; with TestIO():</span>
+<span class="sd">...     process = run_subprocess(command, blocking=False, verbose=False)</span>
+<span class="sd">...     result = run_subprocess(&quot;hyd.py await_server 8080 10&quot;, verbose=False)</span>
+
+<span class="sd">The *HydPy* server should now be running on port 8080.  You can use any</span>
+<span class="sd">HTTP client to check it is working.  For example, you can print the</span>
+<span class="sd">following URL in your web browser to get information on the types of</span>
+<span class="sd">exchange items defined in `multiple_runs_alpha.xml` (the</span>
+<span class="sd">`HydPy-OpenDA-Black-Box-Model-Wrapper`_ does it similarly):</span>
+
+<span class="sd">&gt;&gt;&gt; url = &quot;http://localhost:8080/itemtypes&quot;</span>
+<span class="sd">&gt;&gt;&gt; from urllib import request</span>
+<span class="sd">&gt;&gt;&gt; print(str(request.urlopen(url).read(), encoding=&quot;utf-8&quot;))</span>
+<span class="sd">alpha = Double0D</span>
+<span class="sd">dill_nodes_sim_series = TimeSeries0D</span>
+
+<span class="sd">In general, it is possible to control the *HydPy* server via invoking</span>
+<span class="sd">each method with a separate HTTP request.  However, one can use methods</span>
+<span class="sd">|HydPyServer.GET_execute| and |HydPyServer.POST_execute| alternatively</span>
+<span class="sd">to execute a larger number of methods with only one HTTP request.</span>
+<span class="sd">We now define three such metafunctions that change the value of parameter</span>
+<span class="sd">|hland_control.Alpha|, perform a simulation run, and print the newly</span>
+<span class="sd">calculated discharge at the outlet of the headwater catchment `Dill`,</span>
+<span class="sd">respectively, very similar as the</span>
+<span class="sd">`HydPy-OpenDA-Black-Box-Model-Wrapper`_ does.</span>
+
+<span class="sd">Function `set_itemvalues` wraps the POST methods |HydPyServer.POST_timegrid|,</span>
+<span class="sd">|HydPyServer.POST_parameteritemvalues|, and</span>
+<span class="sd">|HydPyServer.POST_conditionitemvalues|, and also the GET method</span>
+<span class="sd">|HydPyServer.GET_load_conditionvalues|.  These methods are executed</span>
+<span class="sd">in the given order.  Arguments `firstdate`, `lastdate`, and `alpha` allow</span>
+<span class="sd">changing the start and end point of the simulation period and the value</span>
+<span class="sd">of parameter |hland_control.alpha|, respectively:</span>
+
+<span class="sd">&gt;&gt;&gt; def set_itemvalues(id_, firstdate, lastdate, alpha):</span>
+<span class="sd">...     content = (f&quot;firstdate = {firstdate}\\n&quot;</span>
+<span class="sd">...                f&quot;lastdate = {lastdate}\\n&quot;</span>
+<span class="sd">...                f&quot;alpha = {alpha}&quot;).encode(&quot;utf-8&quot;)</span>
+<span class="sd">...     methods = &quot;,&quot;.join((&quot;POST_timegrid&quot;,</span>
+<span class="sd">...                         &quot;POST_parameteritemvalues&quot;,</span>
+<span class="sd">...                         &quot;GET_load_conditionvalues&quot;,</span>
+<span class="sd">...                         &quot;POST_conditionitemvalues&quot;))</span>
+<span class="sd">...     url = f&quot;http://localhost:8080/execute?id={id_}&amp;methods={methods}&quot;</span>
+<span class="sd">...     request.urlopen(url, data=content)</span>
+
+<span class="sd">Function `simulate` wraps only GET methods and triggers the next simulation</span>
+<span class="sd">run.  As for all GET and POST methods, one should pass the query parameter</span>
+<span class="sd">`id`, used by the *HydPy* server for internal bookmarking:</span>
+
+<span class="sd">&gt;&gt;&gt; def simulate(id_):</span>
+<span class="sd">...     methods = &quot;,&quot;.join((&quot;GET_simulate&quot;,</span>
+<span class="sd">...                         &quot;GET_save_timegrid&quot;,</span>
+<span class="sd">...                         &quot;GET_save_parameteritemvalues&quot;,</span>
+<span class="sd">...                         &quot;GET_save_conditionvalues&quot;,</span>
+<span class="sd">...                         &quot;GET_save_modifiedconditionitemvalues&quot;,</span>
+<span class="sd">...                         &quot;GET_save_getitemvalues&quot;))</span>
+<span class="sd">...     url = f&quot;http://localhost:8080/execute?id={id_}&amp;methods={methods}&quot;</span>
+<span class="sd">...     request.urlopen(url)</span>
+
+<span class="sd">Function `print_itemvalues` also wraps only GET methods and prints the current</span>
+<span class="sd">value of parameter |hland_control.Alpha| as well as the lastly simulated</span>
+<span class="sd">discharge values corresponding to the given `id` value:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import print_values</span>
+<span class="sd">&gt;&gt;&gt; def print_itemvalues(id_):</span>
+<span class="sd">...     methods = &quot;,&quot;.join((&quot;GET_savedtimegrid&quot;,</span>
+<span class="sd">...                         &quot;GET_savedparameteritemvalues&quot;,</span>
+<span class="sd">...                         &quot;GET_savedmodifiedconditionitemvalues&quot;,</span>
+<span class="sd">...                         &quot;GET_savedgetitemvalues&quot;))</span>
+<span class="sd">...     url = f&quot;http://localhost:8080/execute?id={id_}&amp;methods={methods}&quot;</span>
+<span class="sd">...     data = str(request.urlopen(url).read(), encoding=&quot;utf-8&quot;)</span>
+<span class="sd">...     for line in data.split(&quot;\\n&quot;):</span>
+<span class="sd">...         if line.startswith(&quot;alpha&quot;):</span>
+<span class="sd">...             alpha = line.split(&quot;=&quot;)[1].strip()</span>
+<span class="sd">...         if line.startswith(&quot;dill&quot;):</span>
+<span class="sd">...             discharge = eval(line.split(&quot;=&quot;)[1])</span>
+<span class="sd">...     print(f&quot;{alpha}: &quot;, end=&quot;&quot;)</span>
+<span class="sd">...     print_values(discharge)</span>
+
+<span class="sd">For the sake of brevity, we also define `do_everything` just calling</span>
+<span class="sd">the other functions:</span>
+
+<span class="sd">&gt;&gt;&gt; def do_everything(id_, firstdate, lastdate, alpha):</span>
+<span class="sd">...     set_itemvalues(id_, firstdate, lastdate, alpha)</span>
+<span class="sd">...     simulate(id_)</span>
+<span class="sd">...     print_itemvalues(id_)</span>
+
+<span class="sd">In the first and simplest example, we perform a simulation throughout</span>
+<span class="sd">five days for an |hland_control.Alpha| value of 2:</span>
+
+<span class="sd">&gt;&gt;&gt; do_everything(&quot;1a&quot;, &quot;1996-01-01&quot;, &quot;1996-01-06&quot;, 2.0)</span>
+<span class="sd">2.0: 35.537828, 7.741064, 5.018981, 4.501784, 4.238874</span>
+
+<span class="sd">The second example shows interlocked simulation runs.  The first call</span>
+<span class="sd">only triggers a simulation run for the first initialised day:</span>
+
+<span class="sd">&gt;&gt;&gt; do_everything(&quot;1b&quot;, &quot;1996-01-01&quot;, &quot;1996-01-02&quot;, 2.0)</span>
+<span class="sd">2.0: 35.537828</span>
+
+<span class="sd">The second call repeats the first one with a different `id` value:</span>
+
+<span class="sd">&gt;&gt;&gt; do_everything(&quot;2&quot;, &quot;1996-01-01&quot;, &quot;1996-01-02&quot;, 2.0)</span>
+<span class="sd">2.0: 35.537828</span>
+
+<span class="sd">The third call covers the first three initialisation days:</span>
+
+<span class="sd">&gt;&gt;&gt; do_everything(&quot;3&quot;, &quot;1996-01-01&quot;, &quot;1996-01-04&quot;, 2.0)</span>
+<span class="sd">2.0: 35.537828, 7.741064, 5.018981</span>
+
+<span class="sd">The fourth call continues the simulation of the first call, covering</span>
+<span class="sd">the last four initialised days:</span>
+
+<span class="sd">&gt;&gt;&gt; do_everything(&quot;1b&quot;, &quot;1996-01-02&quot;, &quot;1996-01-06&quot;, 2.0)</span>
+<span class="sd">2.0: 7.741064, 5.018981, 4.501784, 4.238874</span>
+
+<span class="sd">The results of the very first call of function `do_everything` (with</span>
+<span class="sd">`id=1`) are identical with the pulled-together discharge values of the</span>
+<span class="sd">calls with `id=1b`, made possible by the internal bookmarking feature of</span>
+<span class="sd">the *HydPy* server.  Here we use numbers, but any other strings are</span>
+<span class="sd">valid `id` values.</span>
+
+<span class="sd">The third example extends the second one on applying different parameter</span>
+<span class="sd">values:</span>
+
+<span class="sd">&gt;&gt;&gt; do_everything(&quot;4&quot;, &quot;1996-01-01&quot;, &quot;1996-01-04&quot;, 2.0)</span>
+<span class="sd">2.0: 35.537828, 7.741064, 5.018981</span>
+<span class="sd">&gt;&gt;&gt; do_everything(&quot;5&quot;, &quot;1996-01-01&quot;, &quot;1996-01-04&quot;, 1.0)</span>
+<span class="sd">1.0: 11.78038, 8.901179, 7.131072</span>
+<span class="sd">&gt;&gt;&gt; do_everything(&quot;4&quot;, &quot;1996-01-04&quot;, &quot;1996-01-06&quot;, 2.0)</span>
+<span class="sd">2.0: 4.501784, 4.238874</span>
+<span class="sd">&gt;&gt;&gt; do_everything(&quot;5&quot;, &quot;1996-01-04&quot;, &quot;1996-01-06&quot;, 1.0)</span>
+<span class="sd">1.0: 6.017787, 5.313211</span>
+<span class="sd">&gt;&gt;&gt; do_everything(&quot;5&quot;, &quot;1996-01-01&quot;, &quot;1996-01-06&quot;, 1.0)</span>
+<span class="sd">1.0: 11.78038, 8.901179, 7.131072, 6.017787, 5.313211</span>
+
+<span class="sd">The order in which function `do_everything` calls its subfunctions seems quite</span>
+<span class="sd">natural, but some tools might require do deviate from it.  For example,</span>
+<span class="sd">`OpenDA`_ offers ensemble-based algorithms triggering the simulation</span>
+<span class="sd">of all memberse before starting to query any simulation results.  The</span>
+<span class="sd">fourth example shows that the underlying atomic methods do support</span>
+<span class="sd">such an order of execution:</span>
+
+<span class="sd">&gt;&gt;&gt; set_itemvalues(&quot;6&quot;, &quot;1996-01-01&quot;, &quot;1996-01-03&quot;, 2.0)</span>
+<span class="sd">&gt;&gt;&gt; simulate(&quot;6&quot;)</span>
+<span class="sd">&gt;&gt;&gt; set_itemvalues(&quot;7&quot;, &quot;1996-01-01&quot;, &quot;1996-01-03&quot;, 1.0)</span>
+<span class="sd">&gt;&gt;&gt; simulate(&quot;7&quot;)</span>
+<span class="sd">&gt;&gt;&gt; print_itemvalues(&quot;6&quot;)</span>
+<span class="sd">2.0: 35.537828, 7.741064</span>
+<span class="sd">&gt;&gt;&gt; print_itemvalues(&quot;7&quot;)</span>
+<span class="sd">1.0: 11.78038, 8.901179</span>
+<span class="sd">&gt;&gt;&gt; set_itemvalues(&quot;6&quot;, &quot;1996-01-03&quot;, &quot;1996-01-06&quot;, 2.0)</span>
+<span class="sd">&gt;&gt;&gt; simulate(&quot;6&quot;)</span>
+<span class="sd">&gt;&gt;&gt; set_itemvalues(&quot;7&quot;, &quot;1996-01-03&quot;, &quot;1996-01-06&quot;, 1.0)</span>
+<span class="sd">&gt;&gt;&gt; simulate(&quot;7&quot;)</span>
+<span class="sd">&gt;&gt;&gt; print_itemvalues(&quot;6&quot;)</span>
+<span class="sd">2.0: 5.018981, 4.501784, 4.238874</span>
+<span class="sd">&gt;&gt;&gt; print_itemvalues(&quot;7&quot;)</span>
+<span class="sd">1.0: 7.131072, 6.017787, 5.313211</span>
+
+<span class="sd">.. note::</span>
+
+<span class="sd">   The functions `set_itemvalues` and `simulate` still need to be executed</span>
+<span class="sd">   directly one after another.  We are not aware of an `OpenDA`_ algorithm</span>
+<span class="sd">   deviating from this pattern.  If you know one that might be suitable</span>
+<span class="sd">   for *HydPy* applications, please open an `issue`_.</span>
+
+<span class="sd">Finally, we close the server and kill its process (just closing your</span>
+<span class="sd">command-line tool works as well):</span>
+
+<span class="sd">&gt;&gt;&gt; _ = request.urlopen(&quot;http://localhost:8080/close_server&quot;)</span>
+<span class="sd">&gt;&gt;&gt; process.kill()</span>
+<span class="sd">&gt;&gt;&gt; _ = process.communicate()</span>
+
+<span class="sd">The above description focussed on coupling *HydPy* to `OpenDA`_.  However,</span>
+<span class="sd">the applied atomic submethods of class |HydPyServer| are thought to couple</span>
+<span class="sd">*HydPy*  with other software products, as well. See the documentation on</span>
+<span class="sd">class |HydPyServer| for further information.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">mimetypes</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># import http.server   #  moved below for efficiency reasons</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">urllib.error</span>
+<span class="kn">import</span> <span class="nn">urllib.parse</span>
+<span class="kn">import</span> <span class="nn">urllib.request</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">typing_extensions</span> <span class="kn">import</span> <span class="n">Literal</span>  <span class="c1"># type: ignore[misc]</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">conf</span>
+<span class="kn">from</span> <span class="nn">hydpy.auxs</span> <span class="kn">import</span> <span class="n">xmltools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">hydpytools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">itemtools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">timetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.exe</span> <span class="kn">import</span> <span class="n">commandtools</span>
+
+
+<span class="c1"># pylint: disable=wrong-import-position, wrong-import-order</span>
+<span class="c1"># see the documentation on method `start_server` for explanations</span>
+<span class="n">mimetypes</span><span class="o">.</span><span class="n">inited</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="kn">import</span> <span class="nn">http.server</span>
+
+<span class="n">mimetypes</span><span class="o">.</span><span class="n">inited</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1"># pylint: enable=wrong-import-position, wrong-import-order</span>
+
+
+<div class="viewcode-block" id="ServerState"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.ServerState">[docs]</a><span class="k">class</span> <span class="nc">ServerState</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Singleton class handling states like the current |HydPy| instance</span>
+<span class="sd">    and the current exchange items.</span>
+
+<span class="sd">    The instance of class |ServerState| is available as the member `state` of</span>
+<span class="sd">    class |HydPyServer| after calling function |start_server|. You could create</span>
+<span class="sd">    other instances (like we do in the following examples), but most likely,</span>
+<span class="sd">    you shouldn&#39;t.  The primary purpose of this instance is to store information</span>
+<span class="sd">    between successive initialisations of class |HydPyServer|.</span>
+
+<span class="sd">    We use the `LahnH` project and its (complicated) XML configuration</span>
+<span class="sd">    file `multiple_runs.xml` as an example (module |xmltools| provides</span>
+<span class="sd">    information on interpreting this file):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.examples import prepare_full_example_1</span>
+<span class="sd">    &gt;&gt;&gt; prepare_full_example_1()</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import print_values, TestIO</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.exe.servertools import ServerState</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():    # doctest: +ELLIPSIS</span>
+<span class="sd">    ...     state = ServerState(&quot;LahnH&quot;, &quot;multiple_runs.xml&quot;)</span>
+<span class="sd">    Start HydPy project `LahnH` (...).</span>
+<span class="sd">    Read configuration file `multiple_runs.xml` (...).</span>
+<span class="sd">    Interpret the defined options (...).</span>
+<span class="sd">    Interpret the defined period (...).</span>
+<span class="sd">    Read all network files (...).</span>
+<span class="sd">    Activate the selected network (...).</span>
+<span class="sd">    Read the required control files (...).</span>
+<span class="sd">    Read the required condition files (...).</span>
+<span class="sd">    Read the required time series files (...).</span>
+
+<span class="sd">    After initialisation, all defined exchange items are available:</span>
+
+<span class="sd">    &gt;&gt;&gt; for item in state.parameteritems:</span>
+<span class="sd">    ...     print(item)</span>
+<span class="sd">    SetItem(&quot;alpha&quot;, &quot;hland_v1&quot;, &quot;control.alpha&quot;, 0)</span>
+<span class="sd">    SetItem(&quot;beta&quot;, &quot;hland_v1&quot;, &quot;control.beta&quot;, 0)</span>
+<span class="sd">    SetItem(&quot;lag&quot;, &quot;hstream_v1&quot;, &quot;control.lag&quot;, 0)</span>
+<span class="sd">    SetItem(&quot;damp&quot;, &quot;hstream_v1&quot;, &quot;control.damp&quot;, 0)</span>
+<span class="sd">    AddItem(&quot;sfcf_1&quot;, &quot;hland_v1&quot;, &quot;control.sfcf&quot;, &quot;control.rfcf&quot;, 0)</span>
+<span class="sd">    AddItem(&quot;sfcf_2&quot;, &quot;hland_v1&quot;, &quot;control.sfcf&quot;, &quot;control.rfcf&quot;, 0)</span>
+<span class="sd">    AddItem(&quot;sfcf_3&quot;, &quot;hland_v1&quot;, &quot;control.sfcf&quot;, &quot;control.rfcf&quot;, 1)</span>
+<span class="sd">    &gt;&gt;&gt; for item in state.conditionitems:</span>
+<span class="sd">    ...     print(item)</span>
+<span class="sd">    SetItem(&quot;sm_lahn_2&quot;, &quot;hland_v1&quot;, &quot;states.sm&quot;, 0)</span>
+<span class="sd">    SetItem(&quot;sm_lahn_1&quot;, &quot;hland_v1&quot;, &quot;states.sm&quot;, 1)</span>
+<span class="sd">    SetItem(&quot;quh&quot;, &quot;hland_v1&quot;, &quot;logs.quh&quot;, 0)</span>
+<span class="sd">    &gt;&gt;&gt; for item in state.getitems:</span>
+<span class="sd">    ...     print(item)</span>
+<span class="sd">    GetItem(&quot;hland_v1&quot;, &quot;fluxes.qt&quot;)</span>
+<span class="sd">    GetItem(&quot;hland_v1&quot;, &quot;fluxes.qt.series&quot;)</span>
+<span class="sd">    GetItem(&quot;hland_v1&quot;, &quot;states.sm&quot;)</span>
+<span class="sd">    GetItem(&quot;hland_v1&quot;, &quot;states.sm.series&quot;)</span>
+<span class="sd">    GetItem(&quot;nodes&quot;, &quot;nodes.sim.series&quot;)</span>
+
+<span class="sd">    The initialisation also memorises the initial conditions of</span>
+<span class="sd">    all elements:</span>
+
+<span class="sd">    &gt;&gt;&gt; for element in state.init_conditions:</span>
+<span class="sd">    ...     print(element)</span>
+<span class="sd">    land_dill</span>
+<span class="sd">    land_lahn_1</span>
+<span class="sd">    land_lahn_2</span>
+<span class="sd">    land_lahn_3</span>
+<span class="sd">    stream_dill_lahn_2</span>
+<span class="sd">    stream_lahn_1_lahn_2</span>
+<span class="sd">    stream_lahn_2_lahn_3</span>
+
+<span class="sd">    The initialisation also prepares all selected series arrays and</span>
+<span class="sd">    reads the required input data:</span>
+
+<span class="sd">    &gt;&gt;&gt; print_values(</span>
+<span class="sd">    ...     state.hp.elements.land_dill.model.sequences.inputs.t.series)</span>
+<span class="sd">    -0.298846, -0.811539, -2.493848, -5.968849, -6.999618</span>
+<span class="sd">    &gt;&gt;&gt; state.hp.nodes.dill.sequences.sim.series</span>
+<span class="sd">    InfoArray([ nan,  nan,  nan,  nan,  nan])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">hp</span><span class="p">:</span> <span class="n">hydpytools</span><span class="o">.</span><span class="n">HydPy</span>
+    <span class="n">parameteritems</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">itemtools</span><span class="o">.</span><span class="n">ChangeItem</span><span class="p">]</span>
+    <span class="n">conditionitems</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">itemtools</span><span class="o">.</span><span class="n">ChangeItem</span><span class="p">]</span>
+    <span class="n">getitems</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">itemtools</span><span class="o">.</span><span class="n">GetItem</span><span class="p">]</span>
+    <span class="n">conditions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">hydpytools</span><span class="o">.</span><span class="n">ConditionsType</span><span class="p">]]</span>
+    <span class="n">parameteritemvalues</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+    <span class="n">modifiedconditionitemvalues</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+    <span class="n">getitemvalues</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span>
+    <span class="n">timegrids</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Timegrid</span><span class="p">]</span>
+    <span class="n">init_conditions</span><span class="p">:</span> <span class="n">hydpytools</span><span class="o">.</span><span class="n">ConditionsType</span>
+    <span class="n">idx1</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">idx2</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">projectname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">xmlfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">write</span> <span class="o">=</span> <span class="n">commandtools</span><span class="o">.</span><span class="n">print_textandtime</span>
+        <span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Start HydPy project `</span><span class="si">{</span><span class="n">projectname</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+        <span class="n">hp</span> <span class="o">=</span> <span class="n">hydpytools</span><span class="o">.</span><span class="n">HydPy</span><span class="p">(</span><span class="n">projectname</span><span class="p">)</span>
+        <span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Read configuration file `</span><span class="si">{</span><span class="n">xmlfile</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+        <span class="n">interface</span> <span class="o">=</span> <span class="n">xmltools</span><span class="o">.</span><span class="n">XMLInterface</span><span class="p">(</span><span class="n">xmlfile</span><span class="p">)</span>
+        <span class="n">write</span><span class="p">(</span><span class="s2">&quot;Interpret the defined options&quot;</span><span class="p">)</span>
+        <span class="n">interface</span><span class="o">.</span><span class="n">update_options</span><span class="p">()</span>
+        <span class="n">write</span><span class="p">(</span><span class="s2">&quot;Interpret the defined period&quot;</span><span class="p">)</span>
+        <span class="n">interface</span><span class="o">.</span><span class="n">update_timegrids</span><span class="p">()</span>
+        <span class="n">write</span><span class="p">(</span><span class="s2">&quot;Read all network files&quot;</span><span class="p">)</span>
+        <span class="n">hp</span><span class="o">.</span><span class="n">prepare_network</span><span class="p">()</span>
+        <span class="n">write</span><span class="p">(</span><span class="s2">&quot;Activate the selected network&quot;</span><span class="p">)</span>
+        <span class="n">hp</span><span class="o">.</span><span class="n">update_devices</span><span class="p">(</span>
+            <span class="n">selection</span><span class="o">=</span><span class="n">interface</span><span class="o">.</span><span class="n">fullselection</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">write</span><span class="p">(</span><span class="s2">&quot;Read the required control files&quot;</span><span class="p">)</span>
+        <span class="n">hp</span><span class="o">.</span><span class="n">prepare_models</span><span class="p">()</span>
+        <span class="n">write</span><span class="p">(</span><span class="s2">&quot;Read the required condition files&quot;</span><span class="p">)</span>
+        <span class="n">interface</span><span class="o">.</span><span class="n">conditions_io</span><span class="o">.</span><span class="n">load_conditions</span><span class="p">()</span>
+        <span class="n">write</span><span class="p">(</span><span class="s2">&quot;Read the required time series files&quot;</span><span class="p">)</span>
+        <span class="n">interface</span><span class="o">.</span><span class="n">series_io</span><span class="o">.</span><span class="n">prepare_series</span><span class="p">()</span>
+        <span class="n">interface</span><span class="o">.</span><span class="n">exchange</span><span class="o">.</span><span class="n">prepare_series</span><span class="p">()</span>
+        <span class="n">interface</span><span class="o">.</span><span class="n">series_io</span><span class="o">.</span><span class="n">load_series</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hp</span> <span class="o">=</span> <span class="n">hp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameteritems</span> <span class="o">=</span> <span class="n">interface</span><span class="o">.</span><span class="n">exchange</span><span class="o">.</span><span class="n">parameteritems</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conditionitems</span> <span class="o">=</span> <span class="n">interface</span><span class="o">.</span><span class="n">exchange</span><span class="o">.</span><span class="n">conditionitems</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getitems</span> <span class="o">=</span> <span class="n">interface</span><span class="o">.</span><span class="n">exchange</span><span class="o">.</span><span class="n">getitems</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conditions</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameteritemvalues</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">modifiedconditionitemvalues</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getitemvalues</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_conditions</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">conditions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="p">{}</span></div>
+
+
+<div class="viewcode-block" id="HydPyServer"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer">[docs]</a><span class="k">class</span> <span class="nc">HydPyServer</span><span class="p">(</span><span class="n">http</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">BaseHTTPRequestHandler</span><span class="p">):</span>
+    <span class="c1"># noinspection PyUnresolvedReferences</span>
+    <span class="sd">&quot;&quot;&quot;The API of the *HydPy* server.</span>
+
+<span class="sd">    Note that, technically, |HydPyServer| is, strictly speaking, only the HTTP</span>
+<span class="sd">    request handler for the real HTTP server class (from the standard library).</span>
+
+<span class="sd">    After initialising the *HydPy* server, each communication via a GET</span>
+<span class="sd">    or POST request is handled by a new instance of |HydPyServer|.</span>
+<span class="sd">    All requests are handled in a unified way through using either method</span>
+<span class="sd">    |HydPyServer.do_GET| or [HydPyServer.do_POST|, which select and apply</span>
+<span class="sd">    the actual GET or POST method.  All methods provided by class</span>
+<span class="sd">    |HydPyServer| starting with &quot;GET&quot; or &quot;POST&quot;  are accessible via HTTP.</span>
+
+<span class="sd">    As in the main documentation on module |servertools|, we use the</span>
+<span class="sd">    `multiple_runs_alpha.xml` file of the `LahnH` project as an example.</span>
+<span class="sd">    However, this time we select the more complex XML configuration file</span>
+<span class="sd">    `multiple_runs.xml`, covering a higher number of cases:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.examples import prepare_full_example_1</span>
+<span class="sd">    &gt;&gt;&gt; prepare_full_example_1()</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import run_subprocess, TestIO</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     process = run_subprocess(</span>
+<span class="sd">    ...         &quot;hyd.py start_server 8080 LahnH multiple_runs.xml&quot;,</span>
+<span class="sd">    ...         blocking=False, verbose=False)</span>
+<span class="sd">    ...     result = run_subprocess(</span>
+<span class="sd">    ...         &quot;hyd.py await_server 8080 10&quot;, verbose=False)</span>
+
+<span class="sd">    We define a test function simplifying sending the following requests,</span>
+<span class="sd">    offering two optional arguments.  Without passing a value to `id_`,</span>
+<span class="sd">    `test` does not add a query parameter `id` to the URL.  When passing</span>
+<span class="sd">    a string to `data`, `test` sends a POST request, otherwise a GET request:</span>
+
+<span class="sd">    &gt;&gt;&gt; from urllib import request</span>
+<span class="sd">    &gt;&gt;&gt; def test(name, id_=None, data=None):</span>
+<span class="sd">    ...     if id_ is None:</span>
+<span class="sd">    ...         url = f&quot;http://localhost:8080/{name}&quot;</span>
+<span class="sd">    ...     else:</span>
+<span class="sd">    ...         url = f&quot;http://localhost:8080/{name}?id={id_}&quot;</span>
+<span class="sd">    ...     if data is None:</span>
+<span class="sd">    ...         response = request.urlopen(url)</span>
+<span class="sd">    ...     else:</span>
+<span class="sd">    ...         data = bytes(data, encoding=&quot;utf-8&quot;)</span>
+<span class="sd">    ...         response = request.urlopen(url, data=data)</span>
+<span class="sd">    ...     print(str(response.read(), encoding=&quot;utf-8&quot;))</span>
+
+<span class="sd">    Asking for its status tells us that the server is ready, provided that</span>
+<span class="sd">    the selected *HydPy* project has been initialised already (which may</span>
+<span class="sd">    take a while, depending on the size of the particular project):</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;status&quot;)</span>
+<span class="sd">    status = ready</span>
+
+<span class="sd">    |HydPyServer| returns the error code `400` if it realises the URL to be</span>
+<span class="sd">    wrongthe and the error code `500` in all other cases of error:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;missing&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    urllib.error.HTTPError: HTTP Error 400: RuntimeError: \</span>
+<span class="sd">No method `GET_missing` available.</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;parameteritemvalues&quot;, data=&quot;alpha = []&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    urllib.error.HTTPError: HTTP Error 500: ValueError: While trying to \</span>
+<span class="sd">execute method `POST_parameteritemvalues`, the following error occurred: \</span>
+<span class="sd">When trying to convert the value(s) `[]` assigned to SetItem `alpha` to a \</span>
+<span class="sd">numpy array of shape `()` and type `float`, the following error occurred: \</span>
+<span class="sd">could not broadcast input array from shape (0,) into shape ()...</span>
+
+<span class="sd">    Some methods require identity information, passed as query parameter</span>
+<span class="sd">    `id`, used for internal bookmarking:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;save_conditionvalues&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to \</span>
+<span class="sd">execute method `GET_save_conditionvalues`, the following error occurred: \</span>
+<span class="sd">For the GET method `save_conditionvalues` no query parameter `id` is given.</span>
+
+<span class="sd">    POST methods always expect an arbitrary number of lines, each one</span>
+<span class="sd">    assigning some values to some variable (in most cases numbers to</span>
+<span class="sd">    exchange items):</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;parameteritems&quot;,</span>
+<span class="sd">    ...      data=(&quot;x = y\\n&quot;</span>
+<span class="sd">    ...            &quot;   \\n&quot;</span>
+<span class="sd">    ...            &quot;x == y\\n&quot;</span>
+<span class="sd">    ...            &quot;x = y&quot;))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    urllib.error.HTTPError: HTTP Error 400: RuntimeError: The POST method \</span>
+<span class="sd">`parameteritems` received a wrongly formated data body.  The following line \</span>
+<span class="sd">has been extracted but cannot be further processed: `x == y`.</span>
+
+<span class="sd">    Before explaining the more offical methods, we introduce the method</span>
+<span class="sd">    |HydPyServer.POST_evaluate|, which allows evaluating any expression</span>
+<span class="sd">    within the server process.  Its most likelely use-case ist to access</span>
+<span class="sd">    the (sub)attributes of the single instance of class |ServerState|</span>
+<span class="sd">    available in module |servertools|.  This method can be of help when</span>
+<span class="sd">    being puzzled about the state of the *HydPy* server.  Use it, for</span>
+<span class="sd">    example, to find out which |Node| objects are available and to see,</span>
+<span class="sd">    to which one is the outlet node of |Element| object `land_dill`:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;evaluate&quot;,</span>
+<span class="sd">    ...      data=(&quot;nodes = HydPyServer.state.hp.nodes\\n&quot;</span>
+<span class="sd">    ...            &quot;elements = HydPyServer.state.hp.elements.land_dill&quot;))</span>
+<span class="sd">    nodes = Nodes(&quot;dill&quot;, &quot;lahn_1&quot;, &quot;lahn_2&quot;, &quot;lahn_3&quot;)</span>
+<span class="sd">    elements = Element(&quot;land_dill&quot;, outlets=&quot;dill&quot;, keywords=&quot;catchment&quot;)</span>
+
+<span class="sd">    Method |HydPyServer.GET_itemtypes|, already described in the</span>
+<span class="sd">    main documentation of module |servertools|, returns all available</span>
+<span class="sd">    exchange item types at once. However, it also possible to query those</span>
+<span class="sd">    that are related to setting parameter values</span>
+<span class="sd">    (|HydPyServer.GET_parameteritemtypes|), setting condition values</span>
+<span class="sd">    (|HydPyServer.GET_conditionitemtypes|), and getting different kinds</span>
+<span class="sd">    of values (|HydPyServer.GET_getitemtypes|) separately:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;parameteritemtypes&quot;)</span>
+<span class="sd">    alpha = Double0D</span>
+<span class="sd">    beta = Double0D</span>
+<span class="sd">    lag = Double0D</span>
+<span class="sd">    damp = Double0D</span>
+<span class="sd">    sfcf_1 = Double0D</span>
+<span class="sd">    sfcf_2 = Double0D</span>
+<span class="sd">    sfcf_3 = Double1D</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;conditionitemtypes&quot;)</span>
+<span class="sd">    sm_lahn_2 = Double0D</span>
+<span class="sd">    sm_lahn_1 = Double1D</span>
+<span class="sd">    quh = Double0D</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;getitemtypes&quot;)</span>
+<span class="sd">    land_dill_fluxes_qt = Double0D</span>
+<span class="sd">    land_dill_fluxes_qt_series = TimeSeries0D</span>
+<span class="sd">    land_dill_states_sm = Double1D</span>
+<span class="sd">    land_lahn_1_states_sm = Double1D</span>
+<span class="sd">    land_lahn_2_states_sm = Double1D</span>
+<span class="sd">    land_lahn_3_states_sm = Double1D</span>
+<span class="sd">    land_lahn_3_states_sm_series = TimeSeries1D</span>
+<span class="sd">    dill_nodes_sim_series = TimeSeries0D</span>
+
+<span class="sd">    One can query (|HydPyServer.GET_timegrid|) and change</span>
+<span class="sd">    (|HydPyServer.POST_timegrid|) the current simulation</span>
+<span class="sd">    period, which is identical with the initialisation period at first:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;timegrid&quot;)</span>
+<span class="sd">    firstdate = 1996-01-01T00:00:00+01:00</span>
+<span class="sd">    lastdate = 1996-01-06T00:00:00+01:00</span>
+<span class="sd">    stepsize = 1d</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;timegrid&quot;,</span>
+<span class="sd">    ...      data=(&quot;firstdate = 1996-01-01\\n&quot;</span>
+<span class="sd">    ...            &quot;lastdate = 1996-01-02&quot;))</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;timegrid&quot;)</span>
+<span class="sd">    firstdate = 1996-01-01T00:00:00+01:00</span>
+<span class="sd">    lastdate = 1996-01-02T00:00:00+01:00</span>
+<span class="sd">    stepsize = 1d</span>
+
+<span class="sd">    Eventually, one might require to memorise simulation periods for different</span>
+<span class="sd">    simulation members.  Use method |HydPyServer.GET_save_timegrid| for</span>
+<span class="sd">    storing and method |HydPyServer.GET_savedtimegrid| querying this kind of</span>
+<span class="sd">    information.  Note that |HydPyServer.GET_savedtimegrid| returns the</span>
+<span class="sd">    initialisation period instead of the simulation period when</span>
+<span class="sd">    |HydPyServer.GET_save_timegrid| has not been called with the same `id`</span>
+<span class="sd">    query parameter value before:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;savedtimegrid&quot;, id_=&quot;0&quot;)</span>
+<span class="sd">    firstdate = 1996-01-01T00:00:00+01:00</span>
+<span class="sd">    lastdate = 1996-01-06T00:00:00+01:00</span>
+<span class="sd">    stepsize = 1d</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;save_timegrid&quot;, id_=&quot;0&quot;)</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;savedtimegrid&quot;, id_=&quot;0&quot;)</span>
+<span class="sd">    firstdate = 1996-01-01T00:00:00+01:00</span>
+<span class="sd">    lastdate = 1996-01-02T00:00:00+01:00</span>
+<span class="sd">    stepsize = 1d</span>
+
+<span class="sd">    Posting values of parameter items (|HydPyServer.POST_parameteritemvalues|)</span>
+<span class="sd">    does directly update the values of the corresponding |Parameter| objects:</span>
+
+<span class="sd">    &gt;&gt;&gt; control = &quot;HydPyServer.state.hp.elements.land_dill.model.parameters.control&quot;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;evaluate&quot;,</span>
+<span class="sd">    ...      data=(f&quot;alpha = {control}.alpha\\n&quot;</span>
+<span class="sd">    ...            f&quot;sfcf = {control}.sfcf&quot;))</span>
+<span class="sd">    alpha = alpha(1.0)</span>
+<span class="sd">    sfcf = sfcf(1.1)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;parameteritemvalues&quot;,</span>
+<span class="sd">    ...      data=(&quot;alpha = 3.0\\n&quot;</span>
+<span class="sd">    ...            &quot;beta = 2.0\\n&quot;</span>
+<span class="sd">    ...            &quot;lag = 1.0\\n&quot;</span>
+<span class="sd">    ...            &quot;damp = 0.5\\n&quot;</span>
+<span class="sd">    ...            &quot;sfcf_1 = 0.3\\n&quot;</span>
+<span class="sd">    ...            &quot;sfcf_2 = 0.2\\n&quot;</span>
+<span class="sd">    ...            &quot;sfcf_3 = 0.1\\n&quot;))</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;evaluate&quot;,</span>
+<span class="sd">    ...      data=(f&quot;alpha = {control}.alpha\\n&quot;</span>
+<span class="sd">    ...            f&quot;sfcf = {control}.sfcf&quot;))</span>
+<span class="sd">    alpha = alpha(3.0)</span>
+<span class="sd">    sfcf = sfcf(1.34283)</span>
+
+<span class="sd">    The list of exchange items must be complete:</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;parameteritemvalues&quot;,</span>
+<span class="sd">    ...      data=(&quot;alpha = 3.0\\n&quot;</span>
+<span class="sd">    ...            &quot;beta = 2.0&quot;))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to \</span>
+<span class="sd">execute method `POST_parameteritemvalues`, the following error occurred: \</span>
+<span class="sd">A value for parameter item `lag` is missing.</span>
+
+<span class="sd">    Note that the related GET request</span>
+<span class="sd">    (|HydPyServer.GET_parameteritemvalues|) does return the</span>
+<span class="sd">    lastly applied values of the exchange items instead of the modified</span>
+<span class="sd">    values of the |Parameter| objects:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;parameteritemvalues&quot;)</span>
+<span class="sd">    alpha = 3.0</span>
+<span class="sd">    beta = 2.0</span>
+<span class="sd">    lag = 1.0</span>
+<span class="sd">    damp = 0.5</span>
+<span class="sd">    sfcf_1 = 0.3</span>
+<span class="sd">    sfcf_2 = 0.2</span>
+<span class="sd">    sfcf_3 = [ 0.1  0.1  0.1  0.1  0.1  0.1  0.1  0.1  0.1  0.1  \</span>
+<span class="sd">0.1  0.1  0.1  0.1]</span>
+
+<span class="sd">    The same is true for exchange items handling condition sequences</span>
+<span class="sd">    via methods |HydPyServer.POST_conditionitemvalues| and</span>
+<span class="sd">    |HydPyServer.GET_conditionitemvalues| (note that the too high</span>
+<span class="sd">    value for |hland_states.SM| is trimmed to its highest possible value</span>
+<span class="sd">    |hland_control.FC|):</span>
+
+<span class="sd">    &gt;&gt;&gt; sequences = &quot;HydPyServer.state.hp.elements.land_lahn_2.model.sequences&quot;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;evaluate&quot;,</span>
+<span class="sd">    ...      data=(f&quot;sm = {sequences}.states.sm \\n&quot;</span>
+<span class="sd">    ...            f&quot;quh = {sequences}.logs.quh&quot;))    # doctest: +ELLIPSIS</span>
+<span class="sd">    sm = sm(138.31396, ..., 164.63255)</span>
+<span class="sd">    quh = quh(0.7, 0.0)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;conditionitemvalues&quot;,</span>
+<span class="sd">    ...      data=(&quot;sm_lahn_2 = 246.0\\n&quot;</span>
+<span class="sd">    ...            &quot;sm_lahn_1 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)\\n&quot;</span>
+<span class="sd">    ...            &quot;quh = 1.0\\n&quot;))</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;evaluate&quot;,</span>
+<span class="sd">    ...      data=(f&quot;sm = {sequences}.states.sm\\n&quot;</span>
+<span class="sd">    ...            f&quot;quh = {sequences}.logs.quh&quot;))    # doctest: +ELLIPSIS</span>
+<span class="sd">    sm = sm(197.0, ... 197.0)</span>
+<span class="sd">    quh = quh(1.0, 0.0)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;conditionitemvalues&quot;)</span>
+<span class="sd">    sm_lahn_2 = 246.0</span>
+<span class="sd">    sm_lahn_1 = [  1.   2.   3.   4.   5.   6.   7.   8.   9.  10.  \</span>
+<span class="sd">11.  12.  13.]</span>
+<span class="sd">    quh = 1.0</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;conditionitemvalues&quot;,</span>
+<span class="sd">    ...      data=&quot;sm_lahn_2 = 246.0&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to \</span>
+<span class="sd">execute method `POST_conditionitemvalues`, the following error occurred: \</span>
+<span class="sd">A value for condition item `sm_lahn_1` is missing.</span>
+
+<span class="sd">    The &quot;official&quot; way to gain information on modified parameters or</span>
+<span class="sd">    conditions is to use the method |HydPyServer.GET_getitemvalues|:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;getitemvalues&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    land_dill_fluxes_qt = nan</span>
+<span class="sd">    land_dill_fluxes_qt_series = [nan]</span>
+<span class="sd">    land_dill_states_sm = [185.13164, ...]</span>
+<span class="sd">    land_lahn_1_states_sm = [1.0, 2.0, ..., 12.0, 13.0]</span>
+<span class="sd">    land_lahn_2_states_sm = [197.0, ..., 197.0]</span>
+<span class="sd">    land_lahn_3_states_sm = [101.31248, ...]</span>
+<span class="sd">    land_lahn_3_states_sm_series = [[nan, ..., nan]]</span>
+<span class="sd">    dill_nodes_sim_series = [nan]</span>
+
+<span class="sd">    You can save both the current values of the exchange items (methods</span>
+<span class="sd">    |HydPyServer.GET_save_parameteritemvalues| and</span>
+<span class="sd">    |HydPyServer.GET_save_getitemvalues| for the parameter related</span>
+<span class="sd">    |ChangeItem| objects and for the|GetItem| objects, respectively), as</span>
+<span class="sd">    well as the values of the current condition sequences (method</span>
+<span class="sd">    |HydPyServer.GET_save_conditionvalues| for an arbitrary `id` string:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;save_parameteritemvalues&quot;, id_=&quot;1&quot;)</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;save_getitemvalues&quot;, id_=&quot;1&quot;)</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;save_conditionvalues&quot;, id_=&quot;two&quot;)</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+
+<span class="sd">    We now modify the parameter and condition values again, but this time</span>
+<span class="sd">    in one step through calling method |HydPyServer.POST_changeitemvalues|,</span>
+<span class="sd">    and trigger a simulation run afterwards by calling method</span>
+<span class="sd">    |HydPyServer.GET_simulate|:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;changeitemvalues&quot;,</span>
+<span class="sd">    ...      data=(&quot;alpha = 1.0\\n&quot;</span>
+<span class="sd">    ...            &quot;beta = 1.0\\n&quot;</span>
+<span class="sd">    ...            &quot;lag = 0.0\\n&quot;</span>
+<span class="sd">    ...            &quot;damp = 0.0\\n&quot;</span>
+<span class="sd">    ...            &quot;sfcf_1 = 0.0\\n&quot;</span>
+<span class="sd">    ...            &quot;sfcf_2 = 0.0\\n&quot;</span>
+<span class="sd">    ...            &quot;sfcf_3 = 0.0\\n&quot;</span>
+<span class="sd">    ...            &quot;sm_lahn_2 = 100.0\\n&quot;</span>
+<span class="sd">    ...            &quot;sm_lahn_1 = 50.\\n&quot;</span>
+<span class="sd">    ...            &quot;quh = .0\\n&quot;))</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;simulate&quot;)</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;changeitemvalues&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    alpha = 1.0</span>
+<span class="sd">    ...</span>
+<span class="sd">    sm_lahn_2 = 100.0</span>
+<span class="sd">    ...</span>
+
+<span class="sd">    Now both the current and the saved |GetItem| values are available by</span>
+<span class="sd">    invoking methods|HydPyServer.GET_getitemvalues| and</span>
+<span class="sd">    |HydPyServer.GET_savedgetitemvalues|, respectively:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;getitemvalues&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    land_dill_fluxes_qt = 7.735543</span>
+<span class="sd">    ...</span>
+<span class="sd">    land_lahn_2_states_sm = [99.848023, ..., 99.848023]</span>
+<span class="sd">    ...</span>
+<span class="sd">    dill_nodes_sim_series = [7.735543]</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;savedgetitemvalues&quot;, id_=&quot;1&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    land_dill_fluxes_qt = nan</span>
+<span class="sd">    ...</span>
+<span class="sd">    land_lahn_2_states_sm = [197.0, ..., 197.0]</span>
+<span class="sd">    ...</span>
+<span class="sd">    dill_nodes_sim_series = [nan]</span>
+
+<span class="sd">    The same holds for the saved |ChangeItem| values and</span>
+<span class="sd">    methods |HydPyServer.GET_parameteritemvalues| and</span>
+<span class="sd">    |HydPyServer.GET_savedparameteritemvalues|:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;parameteritemvalues&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    alpha = 1.0</span>
+<span class="sd">    ...</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;savedparameteritemvalues&quot;, id_=&quot;1&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    alpha = 3.0</span>
+<span class="sd">    ...</span>
+
+<span class="sd">    Be aware that, for unknown values of query parameter `id`, both</span>
+<span class="sd">    methods |HydPyServer.GET_savedgetitemvalues| and</span>
+<span class="sd">    |HydPyServer.GET_savedparameteritemvalues| fall back to methods</span>
+<span class="sd">    |HydPyServer.GET_getitemvalues| and |HydPyServer.GET_parameteritemvalues|,</span>
+<span class="sd">    respectively:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;savedgetitemvalues&quot;, id_=&quot;?&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    land_dill_fluxes_qt = 7.735543</span>
+<span class="sd">    ...</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;savedparameteritemvalues&quot;, id_=&quot;?&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    alpha = 1.0</span>
+<span class="sd">    ...</span>
+
+<span class="sd">    The *HydPy* server can memorise different exchange item values for</span>
+<span class="sd">    different values of query parameter `id`.  Making things more complicated,</span>
+<span class="sd">    memorisation of the actual condition values also takes the current time</span>
+<span class="sd">    point into account.  You load conditions for the current start date</span>
+<span class="sd">    of the simulation period, and you save them for the current end date,</span>
+<span class="sd">    this may become more understandable by looking at the following</span>
+<span class="sd">    example, where method |HydPyServer.GET_load_conditionvalues|</span>
+<span class="sd">    overwrites the first soil moisture value for element `land_lahn_1`</span>
+<span class="sd">    (99.8 mm) with different values.  The value 138.3 mm was initially</span>
+<span class="sd">    available for the start of the first date of the initialisation</span>
+<span class="sd">    period, the value 197.0 has been saved when the end of the first</span>
+<span class="sd">    day of the initialisation period was identical with the end of the</span>
+<span class="sd">    simulation period:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;evaluate&quot;,</span>
+<span class="sd">    ...      data=f&quot;sm = {sequences}.states.sm&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    sm = sm(99.848023, ..., 99.848023)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;load_conditionvalues&quot;, id_=&quot;two&quot;)</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;evaluate&quot;,</span>
+<span class="sd">    ...      data=f&quot;sm = {sequences}.states.sm&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    sm = sm(138.31396, ..., 164.63255)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;timegrid&quot;,</span>
+<span class="sd">    ...      data=(&quot;firstdate = 1996-01-02\\n&quot;</span>
+<span class="sd">    ...            &quot;lastdate = 1996-01-03&quot;))</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;load_conditionvalues&quot;, id_=&quot;two&quot;)</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;evaluate&quot;,</span>
+<span class="sd">    ...      data=f&quot;sm = {sequences}.states.sm&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    sm = sm(197.0, ..., 197.0)</span>
+
+<span class="sd">    Loading condition values for a specific time point requires saving</span>
+<span class="sd">    them before</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;timegrid&quot;,</span>
+<span class="sd">    ...      data=(&quot;firstdate = 1996-01-04\\n&quot;</span>
+<span class="sd">    ...            &quot;lastdate = 1996-01-05&quot;))</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;load_conditionvalues&quot;, id_=&quot;two&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to \</span>
+<span class="sd">execute method `GET_load_conditionvalues`, the following error occurred: \</span>
+<span class="sd">Conditions for ID `two` and time point `1996-01-04 00:00:00` are required, \</span>
+<span class="sd">but have not been calculated so far.</span>
+
+<span class="sd">    Some algorithms both provide new information about initial conditions</span>
+<span class="sd">    but also require information on how the conditions evolve during a</span>
+<span class="sd">    simulation run.  For such purposes, you can use method</span>
+<span class="sd">    |HydPyServer.GET_save_modifiedconditionitemvalues| to store the current</span>
+<span class="sd">    conditions under an arbitrary `id`, and use method</span>
+<span class="sd">    |HydPyServer.GET_savedmodifiedconditionitemvalues| to query them later.</span>
+<span class="sd">    Please note that these methods are not flexible enough for some</span>
+<span class="sd">    real-world applications yet and are going to be improved later:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;save_modifiedconditionitemvalues&quot;, id_=&quot;before&quot;)</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;simulate&quot;)</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;save_modifiedconditionitemvalues&quot;, id_=&quot;after&quot;)</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;savedmodifiedconditionitemvalues&quot;,</span>
+<span class="sd">    ...     id_=&quot;before&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    sm_lahn_2 = [ 197.  ...]</span>
+<span class="sd">    sm_lahn_1 = [  1.   ...]</span>
+<span class="sd">    quh = [ 1.  0.]</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;savedmodifiedconditionitemvalues&quot;,</span>
+<span class="sd">    ...     id_=&quot;after&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">    sm_lahn_2 = [ 196.621130...]</span>
+<span class="sd">    sm_lahn_1 = [  0.99808...]</span>
+<span class="sd">    quh = [ 0.0005...]</span>
+
+<span class="sd">    To close the *HydPy* server, call |HydPyServer.GET_close_server|:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;close_server&quot;)</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    &gt;&gt;&gt; process.kill()</span>
+<span class="sd">    &gt;&gt;&gt; _ = process.communicate()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># pylint: disable=invalid-name</span>
+    <span class="c1"># due to &quot;GET&quot; and &quot;POST&quot; method names in accordance</span>
+    <span class="c1"># with BaseHTTPRequestHandler</span>
+
+    <span class="n">state</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">ServerState</span><span class="p">]</span>
+    <span class="n">extensions_map</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span>
+    <span class="n">_requesttype</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;POST&quot;</span><span class="p">]</span>
+    <span class="n">_statuscode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">200</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">500</span><span class="p">]</span>
+    <span class="n">_inputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">_outputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span>
+
+<div class="viewcode-block" id="HydPyServer.do_GET"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.do_GET">[docs]</a>    <span class="k">def</span> <span class="nf">do_GET</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Select and apply the currently requested GET method.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_requesttype</span> <span class="o">=</span> <span class="s2">&quot;GET&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_do_get_or_post</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="HydPyServer.do_POST"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.do_POST">[docs]</a>    <span class="k">def</span> <span class="nf">do_POST</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Select and apply the currently requested POST method.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_requesttype</span> <span class="o">=</span> <span class="s2">&quot;POST&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_do_get_or_post</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_do_get_or_post</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_statuscode</span> <span class="o">=</span> <span class="mi">200</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_requesttype</span> <span class="o">==</span> <span class="s2">&quot;POST&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_inputs</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_method</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_methodname</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_apply_method</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_output</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_statuscode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">400</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_statuscode</span> <span class="o">=</span> <span class="mi">500</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_statuscode</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_prepare_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">content_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;Content-Length&quot;</span><span class="p">])</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rfile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">content_length</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_statuscode</span> <span class="o">=</span> <span class="mi">400</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The POST method `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_externalname</span><span class="si">}</span><span class="s2">` received a &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;wrongly formated data body.  The following line has been &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;extracted but cannot be further processed: `</span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">`.&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span> <span class="nn">exc</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_queryparameter</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_queryparameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">query</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">parse_qs</span><span class="p">(</span><span class="n">query</span><span class="p">)[</span><span class="n">name</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_statuscode</span> <span class="o">=</span> <span class="mi">400</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;For the </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_requesttype</span><span class="si">}</span><span class="s2"> method `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_externalname</span><span class="si">}</span><span class="s2">` &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;no query parameter `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` is given.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_externalname</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_methodname</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_requesttype</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_externalname</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_get_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">method</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_statuscode</span> <span class="o">=</span> <span class="mi">400</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No method `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">` available.&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">_apply_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">MethodType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">method</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_statuscode</span> <span class="o">=</span> <span class="mi">500</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to execute method `</span><span class="si">{</span><span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_write_output</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="n">bstring</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_statuscode</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_header</span><span class="p">(</span><span class="s2">&quot;Content-type&quot;</span><span class="p">,</span> <span class="s2">&quot;text/html&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_headers</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">bstring</span><span class="p">)</span>
+
+<div class="viewcode-block" id="HydPyServer.GET_execute"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_execute">[docs]</a>    <span class="k">def</span> <span class="nf">GET_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Execute an arbitrary number of GET methods.</span>
+
+<span class="sd">        The method names must be passed as query parameters, as explained</span>
+<span class="sd">        in the main documentation on module |servertools|.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="HydPyServer.POST_execute"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.POST_execute">[docs]</a>    <span class="k">def</span> <span class="nf">POST_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Execute an arbitrary number of POST and GET methods.</span>
+
+<span class="sd">        The method names must be passed as query parameters, as explained</span>
+<span class="sd">        in the main documentation on module |servertools|.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_execute</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_execute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_queryparameter</span><span class="p">(</span><span class="s2">&quot;methods&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_apply_method</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_method</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+<div class="viewcode-block" id="HydPyServer.POST_evaluate"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.POST_evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">POST_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Evaluate any valid Python expression with the *HydPy* server</span>
+<span class="sd">        process and get its result.</span>
+
+<span class="sd">        Method |HydPyServer.POST_evaluate| serves to test and debug, primarily.</span>
+<span class="sd">        The main documentation on module |servertools| explains its usage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">flatten_repr</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_status"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_status">[docs]</a>    <span class="k">def</span> <span class="nf">GET_status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return &quot;status = ready&quot; as soon as possible.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;ready&quot;</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_close_server"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_close_server">[docs]</a>    <span class="k">def</span> <span class="nf">GET_close_server</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Stop and close the *HydPy* server.&quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_close_server</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">server_close</span><span class="p">()</span>
+
+        <span class="n">shutter</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">_close_server</span><span class="p">)</span>
+        <span class="n">shutter</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_itemtypes"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_itemtypes">[docs]</a>    <span class="k">def</span> <span class="nf">GET_itemtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the types of all current exchange items.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GET_changeitemtypes</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GET_getitemtypes</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_changeitemtypes"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_changeitemtypes">[docs]</a>    <span class="k">def</span> <span class="nf">GET_changeitemtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the types of all current exchange items supposed to change the</span>
+<span class="sd">        values of |Parameter|, |StateSequence|, or |LogSequence| objects.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GET_parameteritemtypes</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GET_conditionitemtypes</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_parameteritemtypes"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_parameteritemtypes">[docs]</a>    <span class="k">def</span> <span class="nf">GET_parameteritemtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the types of all current exchange items supposed to change</span>
+<span class="sd">        the values of |Parameter| objects.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">parameteritems</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_itemtype</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_conditionitemtypes"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_conditionitemtypes">[docs]</a>    <span class="k">def</span> <span class="nf">GET_conditionitemtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the types of all current exchange items supposed to change</span>
+<span class="sd">        the values of |StateSequence| or |LogSequence| objects.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">conditionitems</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_itemtype</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_getitemtypes"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_getitemtypes">[docs]</a>    <span class="k">def</span> <span class="nf">GET_getitemtypes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the types of all current exchange items supposed to return</span>
+<span class="sd">        the values of |Parameter| or |Sequence_| objects or the time series</span>
+<span class="sd">        of |IOSequence| objects.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">getitems</span><span class="p">:</span>
+            <span class="n">type_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_itemtype</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">yield_name2value</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">type_</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_timegrid"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_timegrid">[docs]</a>    <span class="k">def</span> <span class="nf">GET_timegrid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the current simulation |Timegrid|.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_timegrid</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HydPyServer.POST_timegrid"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.POST_timegrid">[docs]</a>    <span class="k">def</span> <span class="nf">POST_timegrid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Change the current simulation |Timegrid|.&quot;&quot;&quot;</span>
+        <span class="n">init</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span>
+        <span class="n">sim</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span>
+        <span class="n">sim</span><span class="o">.</span><span class="n">firstdate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="p">[</span><span class="s2">&quot;firstdate&quot;</span><span class="p">]</span>
+        <span class="n">sim</span><span class="o">.</span><span class="n">lastdate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="p">[</span><span class="s2">&quot;lastdate&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">idx1</span> <span class="o">=</span> <span class="n">init</span><span class="p">[</span><span class="n">sim</span><span class="o">.</span><span class="n">firstdate</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">idx2</span> <span class="o">=</span> <span class="n">init</span><span class="p">[</span><span class="n">sim</span><span class="o">.</span><span class="n">lastdate</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_simulate"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_simulate">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">GET_simulate</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Perform a simulation run.&quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">hp</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_changeitemvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_changeitemvalues">[docs]</a>    <span class="k">def</span> <span class="nf">GET_changeitemvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the values of all |ChangeItem| objects.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GET_parameteritemvalues</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GET_conditionitemvalues</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="HydPyServer.POST_changeitemvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.POST_changeitemvalues">[docs]</a>    <span class="k">def</span> <span class="nf">POST_changeitemvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Change the values of all |ChangeItem| objects and apply them</span>
+<span class="sd">        on the respective |Variable| objects.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">POST_parameteritemvalues</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">POST_conditionitemvalues</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_parameteritemvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_parameteritemvalues">[docs]</a>    <span class="k">def</span> <span class="nf">GET_parameteritemvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the values of all |ChangeItem| objects handling |Parameter|</span>
+<span class="sd">        objects.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">parameteritems</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">value</span></div>
+
+<div class="viewcode-block" id="HydPyServer.POST_parameteritemvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.POST_parameteritemvalues">[docs]</a>    <span class="k">def</span> <span class="nf">POST_parameteritemvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Change the values of the relevant |ChangeItem| objects and apply</span>
+<span class="sd">        them to their respective |Parameter| objects.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_post_itemvalues</span><span class="p">(</span><span class="s2">&quot;parameter&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">parameteritems</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_conditionitemvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_conditionitemvalues">[docs]</a>    <span class="k">def</span> <span class="nf">GET_conditionitemvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the values of all |ChangeItem| objects handling |StateSequence|</span>
+<span class="sd">        or |LogSequence| objects.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">conditionitems</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">value</span></div>
+
+<div class="viewcode-block" id="HydPyServer.POST_conditionitemvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.POST_conditionitemvalues">[docs]</a>    <span class="k">def</span> <span class="nf">POST_conditionitemvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Change the values of the relevant |ChangeItem| objects and apply</span>
+<span class="sd">        them to their respective |StateSequence| or |LogSequence| objects.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_post_itemvalues</span><span class="p">(</span><span class="s2">&quot;condition&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">conditionitems</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_getitemvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_getitemvalues">[docs]</a>    <span class="k">def</span> <span class="nf">GET_getitemvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the values of all |Variable| objects observed by the</span>
+<span class="sd">        current |GetItem| objects.</span>
+
+<span class="sd">        For |GetItem| objects observing time series,</span>
+<span class="sd">        |HydPyServer.GET_getitemvalues| returns only the values within</span>
+<span class="sd">        the current simulation period.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">getitems</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">yield_name2value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">idx1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">idx2</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_load_conditionvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_load_conditionvalues">[docs]</a>    <span class="k">def</span> <span class="nf">GET_load_conditionvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Assign the |StateSequence| or |LogSequence| object values available</span>
+<span class="sd">        for the current simulation start point to the current |HydPy| instance.</span>
+
+<span class="sd">        When the simulation start point is identical with the initialisation</span>
+<span class="sd">        time point, and you did not save conditions for it beforehand, the</span>
+<span class="sd">        &quot;original&quot; initial conditions are used (usually those of the</span>
+<span class="sd">        conditions files of the respective *HydPy*  project).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">hp</span><span class="o">.</span><span class="n">conditions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">conditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">idx1</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">idx1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_statuscode</span> <span class="o">=</span> <span class="mi">500</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Conditions for ID `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="si">}</span><span class="s2">` and time point &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">firstdate</span><span class="si">}</span><span class="s2">` are required, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;but have not been calculated so far.&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">hp</span><span class="o">.</span><span class="n">conditions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">init_conditions</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_save_conditionvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_save_conditionvalues">[docs]</a>    <span class="k">def</span> <span class="nf">GET_save_conditionvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save the |StateSequence| and |LogSequence| object values of the</span>
+<span class="sd">        current |HydPy| instance for the current simulation endpoint.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">conditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">conditions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">conditions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">idx2</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">hp</span><span class="o">.</span><span class="n">conditions</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_save_parameteritemvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_save_parameteritemvalues">[docs]</a>    <span class="k">def</span> <span class="nf">GET_save_parameteritemvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save the values of those |ChangeItem| objects which are</span>
+<span class="sd">        handling |Parameter| objects.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">parameteritems</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">parameteritemvalues</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">][</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_savedparameteritemvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_savedparameteritemvalues">[docs]</a>    <span class="k">def</span> <span class="nf">GET_savedparameteritemvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the previously saved values of those |ChangeItem| objects</span>
+<span class="sd">        which are handling |Parameter| objects.&quot;&quot;&quot;</span>
+        <span class="n">dict_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">parameteritemvalues</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dict_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">GET_parameteritemvalues</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_save_modifiedconditionitemvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_save_modifiedconditionitemvalues">[docs]</a>    <span class="k">def</span> <span class="nf">GET_save_modifiedconditionitemvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;ToDo: extend functionality&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">conditionitems</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">modifiedconditionitemvalues</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">][</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span>
+                <span class="nb">list</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">device2target</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_savedmodifiedconditionitemvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_savedmodifiedconditionitemvalues">[docs]</a>    <span class="k">def</span> <span class="nf">GET_savedmodifiedconditionitemvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;ToDo: extend functionality&quot;&quot;&quot;</span>
+        <span class="n">dict_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">modifiedconditionitemvalues</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dict_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">GET_conditionitemvalues</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_save_getitemvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_save_getitemvalues">[docs]</a>    <span class="k">def</span> <span class="nf">GET_save_getitemvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save the values of all current |GetItem| objects.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">getitems</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">yield_name2value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">idx1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">idx2</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">getitemvalues</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_savedgetitemvalues"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_savedgetitemvalues">[docs]</a>    <span class="k">def</span> <span class="nf">GET_savedgetitemvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the previously saved values of all |GetItem| objects.&quot;&quot;&quot;</span>
+        <span class="n">dict_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">getitemvalues</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dict_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">GET_getitemvalues</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_save_timegrid"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_save_timegrid">[docs]</a>    <span class="k">def</span> <span class="nf">GET_save_timegrid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save the current simulation period.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">timegrids</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="HydPyServer.GET_savedtimegrid"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.HydPyServer.GET_savedtimegrid">[docs]</a>    <span class="k">def</span> <span class="nf">GET_savedtimegrid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get the previously saved simulation period.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_timegrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">timegrids</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_timegrid</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_itemtype</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="n">itemtools</span><span class="o">.</span><span class="n">ExchangeItem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">targetspecs</span><span class="o">.</span><span class="n">series</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;TimeSeries</span><span class="si">{</span><span class="n">item</span><span class="o">.</span><span class="n">ndim</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s2">D&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Double</span><span class="si">{</span><span class="n">item</span><span class="o">.</span><span class="n">ndim</span><span class="si">}</span><span class="s2">D&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_write_timegrid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timegrid</span><span class="p">:</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Timegrid</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">utcoffset</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utcoffset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="s2">&quot;firstdate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timegrid</span><span class="o">.</span><span class="n">firstdate</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="s2">&quot;iso1&quot;</span><span class="p">,</span> <span class="n">utcoffset</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="s2">&quot;lastdate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timegrid</span><span class="o">.</span><span class="n">lastdate</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="s2">&quot;iso1&quot;</span><span class="p">,</span> <span class="n">utcoffset</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="s2">&quot;stepsize&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timegrid</span><span class="o">.</span><span class="n">stepsize</span>
+
+    <span class="k">def</span> <span class="nf">_post_itemvalues</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">typename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">items</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">itemtools</span><span class="o">.</span><span class="n">ChangeItem</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span><span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_statuscode</span> <span class="o">=</span> <span class="mi">500</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;A value for </span><span class="si">{</span><span class="n">typename</span><span class="si">}</span><span class="s2"> item `</span><span class="si">{</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` is missing.&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">update_variables</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="start_server"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.start_server">[docs]</a><span class="k">def</span> <span class="nf">start_server</span><span class="p">(</span>
+    <span class="n">socket</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">projectname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">xmlfilename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Start the *HydPy* server using the given socket.</span>
+
+<span class="sd">    The folder with the given `projectname` must be available within the</span>
+<span class="sd">    current working directory.  The XML configuration file must be placed</span>
+<span class="sd">    within the project folder unless `xmlfilename` is an absolute file path.</span>
+<span class="sd">    The XML configuration file must be valid concerning the schema file</span>
+<span class="sd">    `HydPyConfigMultipleRuns.xsd` (see class |ServerState| for further information).</span>
+
+<span class="sd">    Note that function |start_server| tries to read the &quot;mime types&quot; from</span>
+<span class="sd">    a dictionary stored in the file `mimetypes.txt` available in subpackage</span>
+<span class="sd">    `conf`, and passes it as attribute `extension_map` to class |HydPyServer|.</span>
+<span class="sd">    The reason is to avoid the long computation time of function</span>
+<span class="sd">    |mimetypes.init| of module |mimetypes|, usually called when defining</span>
+<span class="sd">    class `BaseHTTPRequestHandler` of module `http.server`.  If file</span>
+<span class="sd">    `mimetypes.txt` does not exist or does not work for some reasons,</span>
+<span class="sd">    |start_server| calls |mimetypes.init| as usual, (over)writes</span>
+<span class="sd">    `mimetypes.txt`, and tries to proceed as expected.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">confpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># type: ignore[attr-defined, name-defined]</span>
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">confpath</span><span class="p">,</span> <span class="s2">&quot;mimetypes.txt&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+            <span class="n">types_map</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">())))</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="n">mimetypes</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="n">types_map</span> <span class="o">=</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">types_map</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">types_map</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;&quot;</span><span class="p">:</span> <span class="s2">&quot;application/octet-stream&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;.py&quot;</span><span class="p">:</span> <span class="s2">&quot;text/plain&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;.c&quot;</span><span class="p">:</span> <span class="s2">&quot;text/plain&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;.h&quot;</span><span class="p">:</span> <span class="s2">&quot;text/plain&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+            <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">types_map</span><span class="p">))</span>
+    <span class="n">HydPyServer</span><span class="o">.</span><span class="n">extensions_map</span> <span class="o">=</span> <span class="n">types_map</span>
+    <span class="n">HydPyServer</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">ServerState</span><span class="p">(</span>
+        <span class="n">projectname</span><span class="o">=</span><span class="n">projectname</span><span class="p">,</span>
+        <span class="n">xmlfile</span><span class="o">=</span><span class="n">xmlfilename</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">server</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">((</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">socket</span><span class="p">)),</span> <span class="n">HydPyServer</span><span class="p">)</span>
+    <span class="n">server</span><span class="o">.</span><span class="n">serve_forever</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="await_server"><a class="viewcode-back" href="../../../servertools.html#hydpy.exe.servertools.await_server">[docs]</a><span class="k">def</span> <span class="nf">await_server</span><span class="p">(</span>
+    <span class="n">port</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">seconds</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Block the current process until either the *HydPy* server is responding</span>
+<span class="sd">    on the given `port` or the given number of `seconds` elapsed.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import run_subprocess, TestIO</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():    # doctest: +ELLIPSIS</span>
+<span class="sd">    ...     result = run_subprocess(&quot;hyd.py await_server 8080 0.1&quot;)</span>
+<span class="sd">    Invoking hyd.py with arguments `await_server, 8080, 0.1` resulted in \</span>
+<span class="sd">the following error:</span>
+<span class="sd">    &lt;urlopen error Waited for 0.1 seconds without response on port 8080.&gt;</span>
+<span class="sd">    ...</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.examples import prepare_full_example_1</span>
+<span class="sd">    &gt;&gt;&gt; prepare_full_example_1()</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     process = run_subprocess(</span>
+<span class="sd">    ...         &quot;hyd.py start_server 8080 LahnH multiple_runs.xml&quot;,</span>
+<span class="sd">    ...         blocking=False, verbose=False)</span>
+<span class="sd">    ...     result = run_subprocess(&quot;hyd.py await_server 8080 10&quot;, verbose=False)</span>
+
+<span class="sd">    &gt;&gt;&gt; from urllib import request</span>
+<span class="sd">    &gt;&gt;&gt; _ = request.urlopen(&quot;http://localhost:8080/close_server&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; process.kill()</span>
+<span class="sd">    &gt;&gt;&gt; _ = process.communicate()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">now</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">now</span> <span class="o">&lt;=</span> <span class="n">end</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;http://localhost:</span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">/status&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+        <span class="k">except</span> <span class="n">urllib</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">URLError</span><span class="p">:</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">urllib</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">URLError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Waited for </span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2"> seconds without response on port </span><span class="si">{</span><span class="n">port</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.exe.servertools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

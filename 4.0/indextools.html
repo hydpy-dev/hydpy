@@ -1,0 +1,410 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>indextools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="itemtools" href="itemtools.html" />
+    <link rel="prev" title="importtools" href="importtools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="itemtools.html" title="itemtools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="importtools.html" title="importtools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">indextools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="indextools">
+<span id="id1"></span><h1>indextools<a class="headerlink" href="#indextools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.indextools"></span><p>This module implements tools to determine time-related indices.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.indextools" title="hydpy.core.indextools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">indextools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.indextools.IndexerProperty" title="hydpy.core.indextools.IndexerProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexerProperty</span></code></a> A property for handling time-related indices.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.indextools.Indexer" title="hydpy.core.indextools.Indexer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Indexer</span></code></a> Handles different <a class="reference internal" href="#hydpy.core.indextools.IndexerProperty" title="hydpy.core.indextools.IndexerProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexerProperty</span></code></a> objects defining time-related indices.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt id="hydpy.core.indextools.IndexerProperty">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.indextools.</span></code><code class="sig-name descname"><span class="pre">IndexerProperty</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fget</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/indextools.html#IndexerProperty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.indextools.IndexerProperty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">hydpy.core.propertytools.InputType</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">hydpy.core.propertytools.OutputType</span></code>], <a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseDescriptor" title="hydpy.core.propertytools.BaseDescriptor"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.propertytools.BaseDescriptor</span></code></a></p>
+<p>A property for handling time-related indices.</p>
+<p>Some models (e.g. <a class="reference internal" href="lland_v1.html#module-hydpy.models.lland_v1" title="hydpy.models.lland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v1</span></code></a>) require time related index values.
+<a class="reference internal" href="#hydpy.core.indextools.IndexerProperty" title="hydpy.core.indextools.IndexerProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexerProperty</span></code></a> provides some caching functionalities to avoid
+recalculating the same indices for different model instances over
+and over again.  We illustrate this by taking property
+<a class="reference internal" href="#hydpy.core.indextools.Indexer.monthofyear" title="hydpy.core.indextools.Indexer.monthofyear"><code class="xref py py-const docutils literal notranslate"><span class="pre">monthofyear</span></code></a> as an example.</p>
+<p>Generally, <a class="reference internal" href="#hydpy.core.indextools.Indexer" title="hydpy.core.indextools.Indexer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Indexer</span></code></a> needs to know the relevant initialisation
+period before being able to calculate any time-related index values.
+If you forget to define one first, you get the following error
+message:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">An Indexer object has been asked for an `monthofyear` array.  Such an array has neither been determined yet nor can it be determined automatically at the moment.   Either define an `monthofyear` array manually and pass it to the Indexer object, or make a proper Timegrids object available within the pub module.</span>
+</pre></div>
+</div>
+<p>For efficiency, repeated querying of <a class="reference internal" href="#hydpy.core.indextools.Indexer.monthofyear" title="hydpy.core.indextools.Indexer.monthofyear"><code class="xref py py-const docutils literal notranslate"><span class="pre">monthofyear</span></code></a> returns
+the same <a class="reference external" href="https://numpy.org/doc/stable/reference/index.html#module-numpy" title="(in NumPy v1.20)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">numpy</span></code></a> <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.20)"><code class="xref py py-func docutils literal notranslate"><span class="pre">array()</span></code></a> object:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;27.02.2004&quot;</span><span class="p">,</span> <span class="s2">&quot;3.03.2004&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">monthofyear</span> <span class="o">=</span> <span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">monthofyear</span>
+<span class="go">array([1, 1, 1, 2, 2])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span>
+<span class="go">array([1, 1, 1, 2, 2])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span> <span class="ow">is</span> <span class="n">monthofyear</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>When the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> object handled by module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> changes,
+<a class="reference internal" href="#hydpy.core.indextools.IndexerProperty" title="hydpy.core.indextools.IndexerProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexerProperty</span></code></a> calculates and returns a new index array:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">firstdate</span> <span class="o">+=</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span>
+<span class="go">array([1, 1, 2, 2])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span> <span class="ow">is</span> <span class="n">monthofyear</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>When in doubt, you can manually delete the cached <a class="reference external" href="https://numpy.org/doc/stable/reference/index.html#module-numpy" title="(in NumPy v1.20)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">numpy</span></code></a> <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a>
+and receive a freshly calculated index array afterwards:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">monthofyear</span> <span class="o">=</span> <span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span> <span class="ow">is</span> <span class="n">monthofyear</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span>
+<span class="go">array([1, 1, 2, 2])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span> <span class="ow">is</span> <span class="n">monthofyear</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>You are allowed to define alternative values manually, which
+seems advisable only for testing purposes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span>
+<span class="go">array([0, 1, 2, 3])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">firstdate</span> <span class="o">-=</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span>
+<span class="go">array([1, 1, 1, 2, 2])</span>
+</pre></div>
+</div>
+<p>When assigning inadequate data, you get errors like the following:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span> <span class="o">=</span> <span class="s2">&quot;wrong&quot;</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to assign a new `monthofyear` index array to an Indexer object, the following error occurred: invalid literal for int() with base 10: &#39;wrong&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]]</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The `monthofyear` index array of an Indexer object must be 1-dimensional.  However, the given value has interpreted as a 2-dimensional object.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The `monthofyear` index array of an Indexer object must have a number of entries fitting to the initialization time period precisely.  However, the given value has been interpreted to be of length `4` and the length of the Timegrid object representing the actual initialisation period is `5`.</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt id="hydpy.core.indextools.IndexerProperty.fget">
+<code class="sig-name descname"><span class="pre">fget</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="propertytools.html#hydpy.core.propertytools.FGet" title="hydpy.core.propertytools.FGet"><span class="pre">hydpy.core.propertytools.FGet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">OutputType</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.core.indextools.IndexerProperty.fget" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.indextools.IndexerProperty.fset">
+<code class="sig-name descname"><span class="pre">fset</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="propertytools.html#hydpy.core.propertytools.FSet" title="hydpy.core.propertytools.FSet"><span class="pre">hydpy.core.propertytools.FSet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">InputType</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.core.indextools.IndexerProperty.fset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.indextools.IndexerProperty.fdel">
+<code class="sig-name descname"><span class="pre">fdel</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="propertytools.html#hydpy.core.propertytools.FDel" title="hydpy.core.propertytools.FDel"><span class="pre">hydpy.core.propertytools.FDel</span></a></em><a class="headerlink" href="#hydpy.core.indextools.IndexerProperty.fdel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.indextools.IndexerProperty.call_fget">
+<code class="sig-name descname"><span class="pre">call_fget</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a><a class="reference internal" href="_modules/hydpy/core/indextools.html#IndexerProperty.call_fget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.indextools.IndexerProperty.call_fget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method for implementing unique getter functionalities.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.indextools.IndexerProperty.call_fset">
+<code class="sig-name descname"><span class="pre">call_fset</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/indextools.html#IndexerProperty.call_fset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.indextools.IndexerProperty.call_fset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method for implementing unique setter functionalities.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.indextools.IndexerProperty.call_fdel">
+<code class="sig-name descname"><span class="pre">call_fdel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/indextools.html#IndexerProperty.call_fdel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.indextools.IndexerProperty.call_fdel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method for implementing unique deleter functionalities.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.indextools.Indexer">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.indextools.</span></code><code class="sig-name descname"><span class="pre">Indexer</span></code><a class="reference internal" href="_modules/hydpy/core/indextools.html#Indexer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.indextools.Indexer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Handles different <a class="reference internal" href="#hydpy.core.indextools.IndexerProperty" title="hydpy.core.indextools.IndexerProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexerProperty</span></code></a> objects defining time-related
+indices.</p>
+<p>One can specify the index arrays manually, but they are usually
+determined automatically based on the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> object made
+available through module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.</p>
+<dl class="py attribute">
+<dt id="hydpy.core.indextools.Indexer.monthofyear">
+<code class="sig-name descname"><span class="pre">monthofyear</span></code><a class="reference internal" href="_modules/hydpy/core/indextools.html#Indexer.monthofyear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.indextools.Indexer.monthofyear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index values, representing the month of the year.</p>
+<p>The following example shows the month indices of the last days of
+February and the first days of March for a leap year:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;27.02.2004&quot;</span><span class="p">,</span> <span class="s2">&quot;3.03.2004&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">monthofyear</span> <span class="o">=</span> <span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">monthofyear</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">monthofyear</span>
+<span class="go">array([1, 1, 1, 2, 2])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.indextools.Indexer.dayofyear">
+<code class="sig-name descname"><span class="pre">dayofyear</span></code><a class="reference internal" href="_modules/hydpy/core/indextools.html#Indexer.dayofyear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.indextools.Indexer.dayofyear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index values, representing the month of the year.</p>
+<p>For reasons of consistency between leap years and non-leap years,
+assuming a daily time step, index 59 is always associated with the
+29th of February.  Hence, it is missing in non-leap years:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.indextools</span> <span class="kn">import</span> <span class="n">Indexer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;27.02.2004&quot;</span><span class="p">,</span> <span class="s2">&quot;3.03.2004&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Indexer</span><span class="p">()</span><span class="o">.</span><span class="n">dayofyear</span>
+<span class="go">array([57, 58, 59, 60, 61])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;27.02.2005&quot;</span><span class="p">,</span> <span class="s2">&quot;3.03.2005&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Indexer</span><span class="p">()</span><span class="o">.</span><span class="n">dayofyear</span>
+<span class="go">array([57, 58, 60, 61])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.indextools.Indexer.timeofyear">
+<code class="sig-name descname"><span class="pre">timeofyear</span></code><a class="reference internal" href="_modules/hydpy/core/indextools.html#Indexer.timeofyear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.indextools.Indexer.timeofyear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index values, representing the time of the year.</p>
+<p>Let us reconsider one of the examples of the documentation on
+property <a class="reference internal" href="#hydpy.core.indextools.Indexer.dayofyear" title="hydpy.core.indextools.Indexer.dayofyear"><code class="xref py py-const docutils literal notranslate"><span class="pre">dayofyear</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Timegrids</span><span class="p">,</span> <span class="n">Timegrid</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.indextools</span> <span class="kn">import</span> <span class="n">Indexer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;27.02.2005&quot;</span><span class="p">,</span> <span class="s2">&quot;3.03.2005&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+<p>Due to the simulation step size of one day, the index arrays
+calculated by properties <a class="reference internal" href="#hydpy.core.indextools.Indexer.dayofyear" title="hydpy.core.indextools.Indexer.dayofyear"><code class="xref py py-const docutils literal notranslate"><span class="pre">dayofyear</span></code></a> and <a class="reference internal" href="#hydpy.core.indextools.Indexer.timeofyear" title="hydpy.core.indextools.Indexer.timeofyear"><code class="xref py py-const docutils literal notranslate"><span class="pre">timeofyear</span></code></a>
+are identical:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Indexer</span><span class="p">()</span><span class="o">.</span><span class="n">dayofyear</span>
+<span class="go">array([57, 58, 60, 61])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Indexer</span><span class="p">()</span><span class="o">.</span><span class="n">timeofyear</span>
+<span class="go">array([57, 58, 60, 61])</span>
+</pre></div>
+</div>
+<p>In the next example, we halve the step size:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;27.02.2005&quot;</span><span class="p">,</span> <span class="s2">&quot;3.03.2005&quot;</span><span class="p">,</span> <span class="s2">&quot;12h&quot;</span>
+</pre></div>
+</div>
+<p>Now two subsequent simulation steps associated are with the same day:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Indexer</span><span class="p">()</span><span class="o">.</span><span class="n">dayofyear</span>
+<span class="go">array([57, 57, 58, 58, 60, 60, 61, 61])</span>
+</pre></div>
+</div>
+<p>However, the <cite>timeofyear</cite> array gives the index of the
+respective simulation steps of the actual year:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Indexer</span><span class="p">()</span><span class="o">.</span><span class="n">timeofyear</span>
+<span class="go">array([114, 115, 116, 117, 120, 121, 122, 123])</span>
+</pre></div>
+</div>
+<p>Note the gap in the returned index array due to 2005 being not a
+leap year.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.indextools.Indexer.standardclocktime">
+<code class="sig-name descname"><span class="pre">standardclocktime</span></code><a class="reference internal" href="_modules/hydpy/core/indextools.html#Indexer.standardclocktime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.indextools.Indexer.standardclocktime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard clock time at the midpoints of the initialisation time
+steps in hours.</p>
+<p>Note that the standard clock time is not usable as an index.  Hence,
+we might later move property <a class="reference internal" href="#hydpy.core.indextools.Indexer.standardclocktime" title="hydpy.core.indextools.Indexer.standardclocktime"><code class="xref py py-const docutils literal notranslate"><span class="pre">standardclocktime</span></code></a> somewhere
+else or give class <a class="reference internal" href="#hydpy.core.indextools.Indexer" title="hydpy.core.indextools.Indexer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Indexer</span></code></a> a more general purpose (and name) later.</p>
+<p>The following examples demonstrate the calculation of the standard
+clock time for simulation step sizes of one day, one hour, one minute,
+and one second, respectively:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span><span class="p">,</span> <span class="n">print_values</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;27.02.2004&quot;</span><span class="p">,</span> <span class="s2">&quot;3.03.2004&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_values</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">standardclocktime</span><span class="p">)</span>
+<span class="go">12.0, 12.0, 12.0, 12.0, 12.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;27.02.2004 21:00&quot;</span><span class="p">,</span> <span class="s2">&quot;28.02.2004 03:00&quot;</span><span class="p">,</span> <span class="s2">&quot;1h&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_values</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">standardclocktime</span><span class="p">)</span>
+<span class="go">21.5, 22.5, 23.5, 0.5, 1.5, 2.5</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;27.02.2004 23:57:0&quot;</span><span class="p">,</span> <span class="s2">&quot;28.02.2004 00:03:00&quot;</span><span class="p">,</span> <span class="s2">&quot;1m&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_values</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">standardclocktime</span><span class="p">)</span>
+<span class="go">23.958333, 23.975, 23.991667, 0.008333, 0.025, 0.041667</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;27.02.2004 23:59:57&quot;</span><span class="p">,</span> <span class="s2">&quot;28.02.2004 00:00:03&quot;</span><span class="p">,</span> <span class="s2">&quot;1s&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_values</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">indexer</span><span class="o">.</span><span class="n">standardclocktime</span><span class="p">)</span>
+<span class="go">23.999306, 23.999583, 23.999861, 0.000139, 0.000417, 0.000694</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="importtools.html"
+                        title="previous chapter">importtools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="itemtools.html"
+                        title="next chapter">itemtools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/indextools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="itemtools.html" title="itemtools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="importtools.html" title="importtools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">indextools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

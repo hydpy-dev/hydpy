@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.lland.lland_parameters &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.lland.lland_parameters</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.lland.lland_parameters</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">parametertools</span>
+
+<span class="c1"># ...from lland</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.lland</span> <span class="kn">import</span> <span class="n">lland_constants</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.lland</span> <span class="kn">import</span> <span class="n">lland_masks</span>
+
+
+<div class="viewcode-block" id="ParameterComplete"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.ParameterComplete">[docs]</a><span class="k">class</span> <span class="nc">ParameterComplete</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">ZipParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for 1-dimensional parameters relevant for all types</span>
+<span class="sd">    of landuse.</span>
+
+<span class="sd">    Class |ParameterComplete| of base model |lland| basically works</span>
+<span class="sd">    like class |hland_parameters.ParameterComplete| of base model</span>
+<span class="sd">    |hland|, but references |lland| specific parameters and constants,</span>
+<span class="sd">    as shown in the following examples based on parameter |KG| (for</span>
+<span class="sd">    explanations, see the documentation on class</span>
+<span class="sd">    |hland_parameters.ParameterComplete|):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nhru(5)</span>
+<span class="sd">    &gt;&gt;&gt; lnk(ACKER, VERS, GLETS, SEE, ACKER)</span>
+<span class="sd">    &gt;&gt;&gt; kg(acker=2.0, vers=1.0, glets=4.0, see=3.0)</span>
+<span class="sd">    &gt;&gt;&gt; kg</span>
+<span class="sd">    kg(acker=2.0, glets=4.0, see=3.0, vers=1.0)</span>
+<span class="sd">    &gt;&gt;&gt; kg.values</span>
+<span class="sd">    array([ 2.,  1.,  4.,  3.,  2.])</span>
+<span class="sd">    &gt;&gt;&gt; kg(5.0, 4.0, 3.0, 2.0, 1.0)</span>
+<span class="sd">    &gt;&gt;&gt; derived.absfhru(0.0, 0.1, 0.2, 0.3, 0.4)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(kg.average_values())</span>
+<span class="sd">    2.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">MODEL_CONSTANTS</span> <span class="o">=</span> <span class="n">lland_constants</span><span class="o">.</span><span class="n">CONSTANTS</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">refweights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Alias for the associated instance of |FHRU| for calculating</span>
+<span class="sd">        areal mean values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">absfhru</span></div>
+
+
+<div class="viewcode-block" id="ParameterLand"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.ParameterLand">[docs]</a><span class="k">class</span> <span class="nc">ParameterLand</span><span class="p">(</span><span class="n">ParameterComplete</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for 1-dimensional parameters relevant for all hydrological</span>
+<span class="sd">    response units except those of type |WASSER|, |FLUSS|, and |SEE|.</span>
+
+<span class="sd">    |ParameterLand| works similar to |lland_parameters.ParameterComplete|.</span>
+<span class="sd">    Some examples based on parameter |TGr|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nhru(5)</span>
+<span class="sd">    &gt;&gt;&gt; lnk(WASSER, ACKER, FLUSS, VERS, ACKER)</span>
+<span class="sd">    &gt;&gt;&gt; tgr(wasser=2.0, acker=1.0, fluss=4.0, vers=3.0)</span>
+<span class="sd">    &gt;&gt;&gt; tgr</span>
+<span class="sd">    tgr(acker=1.0, vers=3.0)</span>
+<span class="sd">    &gt;&gt;&gt; tgr(acker=2.0, default=8.0)</span>
+<span class="sd">    &gt;&gt;&gt; tgr</span>
+<span class="sd">    tgr(acker=2.0, vers=8.0)</span>
+<span class="sd">    &gt;&gt;&gt; derived.absfhru(nan, 1.0, nan, 1.0, 1.0)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(tgr.average_values())</span>
+<span class="sd">    4.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ParameterSoil"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.ParameterSoil">[docs]</a><span class="k">class</span> <span class="nc">ParameterSoil</span><span class="p">(</span><span class="n">ParameterComplete</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for 1-dimensional parameters relevant for all hydrological</span>
+<span class="sd">    response units except those of type |WASSER|, |FLUSS|, |SEE|, and |VERS|.</span>
+
+<span class="sd">    |ParameterLand| works similar to |lland_parameters.ParameterComplete|.</span>
+<span class="sd">    Some examples based on parameter |WMax|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nhru(5)</span>
+<span class="sd">    &gt;&gt;&gt; lnk(WASSER, ACKER, LAUBW, VERS, ACKER)</span>
+<span class="sd">    &gt;&gt;&gt; wmax(wasser=300.0, acker=200.0, laubw=400.0, vers=300.0)</span>
+<span class="sd">    &gt;&gt;&gt; wmax</span>
+<span class="sd">    wmax(acker=200.0, laubw=400.0)</span>
+<span class="sd">    &gt;&gt;&gt; wmax(acker=200.0, default=800.0)</span>
+<span class="sd">    &gt;&gt;&gt; wmax</span>
+<span class="sd">    wmax(acker=200.0, laubw=800.0)</span>
+<span class="sd">    &gt;&gt;&gt; derived.absfhru(nan, 1.0, 1.0, nan, 1.0)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(wmax.average_values())</span>
+<span class="sd">    400.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Soil</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ParameterSoilThreshold"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.ParameterSoilThreshold">[docs]</a><span class="k">class</span> <span class="nc">ParameterSoilThreshold</span><span class="p">(</span><span class="n">ParameterSoil</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for defining threshold parameters related to |WMax|.</span>
+
+<span class="sd">    Base class |ParameterSoilThreshold| provides the convenience to define</span>
+<span class="sd">    thresholds via the keyword argument `relative`. For example, you can</span>
+<span class="sd">    define the value of parameter |PWP| as a portion of the current value</span>
+<span class="sd">    of |WMax|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.lland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nhru(2)</span>
+<span class="sd">    &gt;&gt;&gt; lnk(ACKER, LAUBW)</span>
+<span class="sd">    &gt;&gt;&gt; wmax(100.0, 200.0)</span>
+<span class="sd">    &gt;&gt;&gt; pwp(relative=0.2)</span>
+<span class="sd">    &gt;&gt;&gt; pwp</span>
+<span class="sd">    pwp(acker=20.0, laubw=40.0)</span>
+
+<span class="sd">    Trimming works as to be expected:</span>
+
+<span class="sd">    &gt;&gt;&gt; pwp(relative=-0.2)</span>
+<span class="sd">    &gt;&gt;&gt; pwp</span>
+<span class="sd">    pwp(0.0)</span>
+
+<span class="sd">    You can also use the common ways to define soil parameter values:</span>
+
+<span class="sd">    &gt;&gt;&gt; pwp(acker=30.0, laubw=60.0)</span>
+<span class="sd">    &gt;&gt;&gt; pwp</span>
+<span class="sd">    pwp(acker=30.0, laubw=60.0)</span>
+<span class="sd">    &gt;&gt;&gt; pwp(10.0)</span>
+<span class="sd">    &gt;&gt;&gt; pwp</span>
+<span class="sd">    pwp(10.0)</span>
+
+<span class="sd">    We do not allow to combine the keyword argument `relative` with other ones:</span>
+
+<span class="sd">    &gt;&gt;&gt; pwp(relative=True, acker=10.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to set the values of parameter `pwp` of \</span>
+<span class="sd">element `?` with arguments `relative and acker`:  It is not allowed to use \</span>
+<span class="sd">keyword `relative` and other keywords at the same time.</span>
+
+<span class="sd">    Other possible errors related to the usage of |ParameterSoil| are</span>
+<span class="sd">    reported as usual:</span>
+
+<span class="sd">    &gt;&gt;&gt; pwp(feld=20.0, acker=10.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to set the values of parameter `pwp` of \</span>
+<span class="sd">element `?` based on keyword arguments `feld and acker`, the following error \</span>
+<span class="sd">occurred: Keyword `feld` is not among the available model constants.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;relative&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;relative&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">wmax</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;While trying to set the values of parameter &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> with arguments &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">`:  &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;It is not allowed to use keyword `relative` and &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;other keywords at the same time.&quot;</span>
+                    <span class="p">)</span> <span class="kn">from</span> <span class="bp">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">exc</span></div>
+
+
+<div class="viewcode-block" id="LanduseMonthParameter"><a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.LanduseMonthParameter">[docs]</a><span class="k">class</span> <span class="nc">LanduseMonthParameter</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordParameter2D</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for parameters which values depend both an the actual</span>
+<span class="sd">    land use class and the actual month.&quot;&quot;&quot;</span>
+
+    <span class="n">COLNAMES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;jan&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;feb&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mar&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;apr&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mai&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;jun&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;jul&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;aug&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sep&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;oct&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;nov&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;dec&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ROWNAMES</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+        <span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span> <span class="ow">in</span> <span class="n">lland_constants</span><span class="o">.</span><span class="n">CONSTANTS</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="p">)</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.lland.lland_parameters</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+.. |Calc_Q_V1| replace:: :class:`~hydpy.models.test.test_model.Calc_Q_V1`
+.. |Calc_S_V1| replace:: :class:`~hydpy.models.test.test_model.Calc_S_V1`
+.. |K| replace:: :class:`~hydpy.models.test.test_control.K`
+.. |test| replace:: :mod:`~hydpy.models.test`
+
+.. _test:
+
+test
+====
+
+.. automodule:: hydpy.models.test
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, InletSequences, ReceiverSequences, InputSequences, LogSequences, AideSequences, OutletSequences, SenderSequences

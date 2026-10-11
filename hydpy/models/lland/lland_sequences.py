@@ -4,9 +4,10 @@ from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_derived
+from hydpy.models.lland import lland_variables
 
 
-class Flux1DSequence(sequencetools.FluxSequence):
+class Flux1DSequence(lland_variables.MixinHRUs, sequencetools.FluxSequence):
     """Base class for 1-dimensional flux subclasses that support
     aggregation with respect to |AbsFHRU|.
 
@@ -36,7 +37,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
         return model.parameters.derived.absfhru
 
 
-class State1DSequence(sequencetools.StateSequence):
+class State1DSequence(lland_variables.MixinHRUs, sequencetools.StateSequence):
     """Base class for 1-dimensional state subclasses that support
     aggregation with respect to |AbsFHRU|.
 

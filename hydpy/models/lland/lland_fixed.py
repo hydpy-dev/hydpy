@@ -4,6 +4,7 @@
 
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
+from hydpy.models.lland import lland_variables
 
 
 class CPWasser(parametertools.FixedParameter):
@@ -58,7 +59,7 @@ class Z(parametertools.FixedParameter):
     INIT = 0.1
 
 
-class BoWa2Z(parametertools.FixedParameter):
+class BoWa2Z(lland_variables.MixinHRUs, parametertools.FixedParameter):
     """Bodenwassergehalt der Bodenschicht bis zu einer Tiefe 2z (soil water content of
     the soil layer down two a depth of 2z) [mm]."""
 

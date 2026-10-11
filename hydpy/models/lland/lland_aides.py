@@ -2,22 +2,23 @@
 
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.lland import lland_variables
 
 
-class SNRatio(sequencetools.AideSequence):
+class SNRatio(lland_variables.MixinHRUs, sequencetools.AideSequence):
     """Ratio of frozen precipitation to total precipitation [-]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class RLAtm(sequencetools.AideSequence):
+class RLAtm(lland_variables.MixinHRUs, sequencetools.AideSequence):
     """Atmosphärische Gegenstrahlung (longwave radiation emitted from the
     atmosphere) [W/m²]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class TempS(sequencetools.AideSequence):
+class TempS(lland_variables.MixinHRUs, sequencetools.AideSequence):
     """Temperatur der Schneedecke (temperature of the snow layer) [°C].
 
     Note that the value of sequence |TempS| is |numpy.nan| for snow-free
@@ -27,7 +28,7 @@ class TempS(sequencetools.AideSequence):
     NDIM: Final[Literal[1]] = 1
 
 
-class TempSInz(sequencetools.AideSequence):
+class TempSInz(lland_variables.MixinHRUs, sequencetools.AideSequence):
     """Temperatur des interzepierten Schnees (temperature of the intercepted snow) [°C].
 
     Note that the value of sequence |TempSInz| is |numpy.nan| for missing intercepted

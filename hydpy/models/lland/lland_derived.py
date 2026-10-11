@@ -3,7 +3,6 @@
 import numpy
 
 import hydpy
-from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
@@ -29,16 +28,13 @@ class Days(parametertools.DaysParameter):
     """The length of the actual simulation step size in days [d]."""
 
 
-class NmbLogEntries(parametertools.Parameter):
+class NmbLogEntries(parametertools.NmbParameter):
     """The number of log entries required for a memory duration of 24 hours [-]."""
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (1, None)
 
     def update(self) -> None:
-        """Calculate the number of entries and adjust the shape of all relevant log
-        sequences.
+        """Calculate the number of entries.
 
         The aimed memory duration is one day.  Hence, the number of required log
         entries depends on the simulation step size:
@@ -50,28 +46,6 @@ class NmbLogEntries(parametertools.Parameter):
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(24)
-        >>> logs
-        loggedsunshineduration(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                               nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                               nan, nan, nan, nan)
-        loggedpossiblesunshineduration(nan, nan, nan, nan, nan, nan, nan, nan,
-                                       nan, nan, nan, nan, nan, nan, nan, nan,
-                                       nan, nan, nan, nan, nan, nan, nan, nan)
-
-        To prevent from loosing information, updating parameter |NmbLogEntries| resets
-        the shape of the relevant log sequences only when necessary:
-
-        >>> logs.loggedsunshineduration = 2.0
-        >>> logs.loggedpossiblesunshineduration.shape = (6,)
-        >>> logs.loggedpossiblesunshineduration = 3.0
-        >>> derived.nmblogentries.update()
-        >>> logs   # doctest: +ELLIPSIS
-        loggedsunshineduration(2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-                               2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-                               2.0, 2.0, 2.0, 2.0)
-        loggedpossiblesunshineduration(nan, nan, nan, nan, nan, nan, nan, nan,
-                                       nan, nan, nan, nan, nan, nan, nan, nan,
-                                       nan, nan, nan, nan, nan, nan, nan, nan)
 
         There is an explicit check for inappropriate simulation step sizes:
 
@@ -95,13 +69,7 @@ determined for a the current simulation step size.  The fraction of the memory p
                 f"the memory period (1d) and the simulation step size "
                 f"({hydpy.pub.timegrids.stepsize}) leaves a remainder."
             )
-        self(nmb)
-        nmb = int(nmb)
-        logs = self.subpars.pars.model.sequences.logs
-        for seq in logs:
-            shape = exceptiontools.getattr_(seq, "shape", (None,))
-            if nmb != shape[-1]:
-                seq.shape = nmb
+        self(int(nmb))
 
 
 class AbsFHRU(lland_parameters.ParameterComplete):

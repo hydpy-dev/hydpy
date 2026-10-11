@@ -2,12 +2,10 @@
 
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
-
-if TYPE_CHECKING:
-    from hydpy.core import variabletools
+from hydpy.models.evap import evap_variables
 
 
-class BaseSequence1D(sequencetools.ModelSequence):
+class BaseSequence1D(evap_variables.MixinHRUs, sequencetools.ModelSequence):
     """Base class for all 1-dimensional sequence classes.
 
     >>> from hydpy.models.hland_96 import *

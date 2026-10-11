@@ -4,34 +4,16 @@ import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
+from hydpy.models.ga import ga_variables
 
 
-class NmbSoils(parametertools.Parameter):
+class NmbSoils(parametertools.NmbParameter):
     """The number of separately modelled soil compartments in the subbasin [-]."""
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (1, None)
 
-    def __call__(self, *args, **kwargs) -> None:
-        nmbsoils_old = exceptiontools.getattr_(self, "value", None)
-        super().__call__(*args, **kwargs)
-        nmbsoils_new = self.value
-        if nmbsoils_new != nmbsoils_old:
-            nmbbins = exceptiontools.getattr_(self.subpars.nmbbins, "value", None)
-            for subpars in self.subpars.pars:
-                for par in subpars:
-                    if par.NDIM == 1:
-                        par.shape = nmbsoils_new
-            for subseqs in self.subpars.pars.model.sequences:
-                for seq in subseqs:
-                    if seq.NDIM == 1:
-                        seq.shape = nmbsoils_new
-                    elif (seq.NDIM == 2) and (nmbbins is not None):
-                        seq.shape = nmbbins, nmbsoils_new
 
-
-class NmbBins(parametertools.Parameter):
+class NmbBins(parametertools.NmbParameter):
     """The number of available bins for each soil compartment [-].
 
     Each soil compartment consists of multiple bins.  Bins are the "places" where
@@ -46,21 +28,7 @@ class NmbBins(parametertools.Parameter):
     and depth.
     """
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (2, None)
-
-    def __call__(self, *args, **kwargs) -> None:
-        nmbbins_old = exceptiontools.getattr_(self, "value", None)
-        super().__call__(*args, **kwargs)
-        nmbbins_new = self.value
-        if nmbbins_new != nmbbins_old:
-            nmbsoils = exceptiontools.getattr_(self.subpars.nmbsoils, "value", None)
-            if nmbsoils is not None:
-                for subseqs in self.subpars.pars.model.sequences:
-                    for seq in subseqs:
-                        if seq.NDIM == 2:
-                            seq.shape = nmbbins_new, nmbsoils
 
 
 class DT(parametertools.Parameter):
@@ -121,7 +89,7 @@ class DT(parametertools.Parameter):
         return super().trim(lower=dt, upper=dt)
 
 
-class Sealed(parametertools.Parameter):
+class Sealed(ga_variables.MixinSoils, parametertools.Parameter):
     """Flag indicating if a (soil) compartment is sealed for infiltration [-]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -129,7 +97,7 @@ class Sealed(parametertools.Parameter):
     SPAN = (False, True)
 
 
-class SoilArea(parametertools.Parameter):
+class SoilArea(ga_variables.MixinSoils, parametertools.Parameter):
     """The area of each soil compartment [km²]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -137,7 +105,7 @@ class SoilArea(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class SoilDepth(parametertools.Parameter):
+class SoilDepth(ga_variables.MixinSoils, parametertools.Parameter):
     """Depth of the considered soil domains [mm]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -145,7 +113,7 @@ class SoilDepth(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class ResidualMoisture(parametertools.Parameter):
+class ResidualMoisture(ga_variables.MixinSoils, parametertools.Parameter):
     """Relative residual water content [-]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -175,7 +143,7 @@ class ResidualMoisture(parametertools.Parameter):
         return super().trim(lower, upper)
 
 
-class SaturationMoisture(parametertools.Parameter):
+class SaturationMoisture(ga_variables.MixinSoils, parametertools.Parameter):
     """Relative saturation water content [-]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -205,7 +173,7 @@ class SaturationMoisture(parametertools.Parameter):
         return super().trim(lower, upper)
 
 
-class SaturatedConductivity(parametertools.Parameter):
+class SaturatedConductivity(ga_variables.MixinSoils, parametertools.Parameter):
     """Saturated hydraulic conductivity [mm/T]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -214,7 +182,7 @@ class SaturatedConductivity(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class PoreSizeDistribution(parametertools.Parameter):
+class PoreSizeDistribution(ga_variables.MixinSoils, parametertools.Parameter):
     """Pore-size distribution parameter [-]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -222,7 +190,7 @@ class PoreSizeDistribution(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class AirEntryPotential(parametertools.Parameter):
+class AirEntryPotential(ga_variables.MixinSoils, parametertools.Parameter):
     """Air entry potential [mm]."""
 
     NDIM: Final[Literal[1]] = 1

@@ -5,6 +5,7 @@ import numpy
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.ga import ga_control
+from hydpy.models.ga import ga_variables
 
 
 class NmbSubsteps(parametertools.Parameter):
@@ -30,7 +31,7 @@ class NmbSubsteps(parametertools.Parameter):
         self.value = int(round(1.0 / self.subpars.pars.control.dt.value))
 
 
-class SoilAreaFraction(parametertools.Parameter):
+class SoilAreaFraction(ga_variables.MixinSoils, parametertools.Parameter):
     """The area fraction of each soil compartment [-]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -55,7 +56,7 @@ class SoilAreaFraction(parametertools.Parameter):
         self.values = soilarea / numpy.sum(soilarea)
 
 
-class EffectiveCapillarySuction(parametertools.Parameter):
+class EffectiveCapillarySuction(ga_variables.MixinSoils, parametertools.Parameter):
     """The effective capillary suction according to the Brooks-Corey soil moisture
     characteristic model :cite:p:`ref-Brooks1966` [mm]."""
 

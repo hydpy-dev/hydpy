@@ -3,9 +3,10 @@
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 from hydpy.models.ga import ga_control
+from hydpy.models.ga import ga_variables
 
 
-class Moisture(sequencetools.StateSequence):
+class Moisture(ga_variables.MixinBinsSoils, sequencetools.StateSequence):
     """The relative soil moisture of each bin (within the wetting front) [-].
 
     The current moisture of inactive bins usually equals the "initial moisture" of the
@@ -50,7 +51,7 @@ class Moisture(sequencetools.StateSequence):
         return super().trim(lower, upper)
 
 
-class FrontDepth(sequencetools.StateSequence):
+class FrontDepth(ga_variables.MixinBinsSoils, sequencetools.StateSequence):
     """The depth of the wetting front in each bin [-].
 
     The current wetting front depth of inactive bins is zero.  But zero front depth

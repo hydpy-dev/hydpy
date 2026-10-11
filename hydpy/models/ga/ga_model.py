@@ -682,10 +682,10 @@ class Shift_Front_V1(modeltools.Method):
       \frac{CapillaryDrive_{0, LastActiveBin} + InitialSurfaceWater}{FrontDepth_{bin}}
       \right)`
 
-    Note the used equation deviates from equation 8 of :cite:t:`ref-Lai2015` in adding
-    the initial surface water depth to the effective capillary drive, which increases
-    infiltration.  Using |InitialSurfaceWater| instead of |ActualSurfaceWater| assures
-    the bin processing order does not affect the individual infiltration rates.
+    Note that the equation used deviates from equation 8 of :cite:t:`ref-Lai2015` by
+    adding the initial surface water depth to the effective capillary drive, which
+    increases infiltration.  Using |InitialSurfaceWater| instead of |ActualSurfaceWater|
+    ensures the bin processing order does not affect the individual infiltration rates.
 
     Examples:
 
@@ -733,14 +733,14 @@ class Shift_Front_V1(modeltools.Method):
         ...     print(f"infiltration: {repr_(infiltration)}")
         ...     print(f"frontdepth: {repr_values(states.frontdepth[:, 0])}")
 
-        |Shift_Front_V1| is to be applied on non-last active wetting front bins and the
-        last bin if it is saturated. We start with demonstrating its functionality for
+        |Shift_Front_V1| is to be applied to the non-last active wetting front bins and
+        the last bin if it is saturated. We start by demonstrating its functionality for
         the latter case.
 
         The first example is standard so far that the given basic equation applies
-        without additional restrictions and initial and actual surface water depths are
-        identical.  2.75 mm of the available surface water infiltrate and shift the
-        wetting front by about 13.75 mm:
+        without additional restrictions, and the initial and actual surface water depths
+        are identical.  2.75 mm of the available surface water infiltrates and shifts
+        the wetting front by about 13.75 mm:
 
         >>> check(bin_=2, initialsurfacewater=10.0, actualsurfacewater=10.0,
         ...       frontdepth=[1000.0, 500.0, 100.0, 0.0],
@@ -751,9 +751,8 @@ class Shift_Front_V1(modeltools.Method):
         frontdepth: 1000.0, 500.0, 113.752138, 0.0
 
         Next, we decrease the amount of available surface water to 1 mm but let the
-        initial surface water depth at 10 mm.  Thus, the potential infiltration stays
-        as is, but the actual infiltration reduces to 1 mm (and the front shift to
-        5 mm):
+        initial surface water depth be 10 mm.  Thus, the potential infiltration stays as
+        is, but the actual infiltration reduces to 1 mm (and the front shifts to 5 mm):
 
         >>> check(bin_=2, initialsurfacewater=10.0, actualsurfacewater=1.0,
         ...       frontdepth=[1000.0, 500.0, 100.0, 0.0],
@@ -915,7 +914,7 @@ class Redistribute_Front_V1(modeltools.Method):
     r"""Modify the selected bin's wetting front depth and relative moisture content
     based on a Green & Ampt redistribution equation.
 
-    |Redistribute_Front_V1| applies for the last active wetting front bin when rainfall
+    |Redistribute_Front_V1| applies to the last active wetting front bin when rainfall
     intensity does not exceed saturated conductivity.
 
     Basic equations (:cite:t:`ref-Lai2015`, equation 6)
@@ -940,7 +939,7 @@ class Redistribute_Front_V1(modeltools.Method):
     wetting front depth rest on the GARTO source code provided by the authors.  One
     might have expected to use :math:`Conductivity_{bin}` and
     :math:`CapillaryDrive_{bin-1,bin}` instead of :math:`SaturatedConductivity` and
-    :math:`EffectiveCapillarySuction`.  There is a remark of the authors (possibly
+    :math:`EffectiveCapillarySuction`.  There is a remark by the authors (possibly
     concerning the :math:`CapillaryDrive_{bin-1,bin}` vs
     :math:`EffectiveCapillarySuction` issue only) that oscillations in infiltration
     rates might show up otherwise.  Maybe we can discuss this with the authors or
@@ -1094,7 +1093,7 @@ class Redistribute_Front_V1(modeltools.Method):
               20 mm/h (the rainfall rate) in the 21st hour despite a saturated
               conductivity of 13.2 mm/h.  For our assumption, the percolation rate is
               12.8 mm/h.  Nevertheless, we should keep this deviation from the original
-              implementation in mind for a while;  in case it brings unexpected side
+              implementation in mind for a while, in case it brings unexpected side
               effects in future applications.
     """
 
@@ -1204,8 +1203,8 @@ class Infiltrate_WettingFrontBins_V1(modeltools.Method):
     Examples:
 
         Instead of triggering actual calculations, we try to show how
-        |Infiltrate_WettingFrontBins_V1| selects the mentioned methods based on mocking
-        them.  Therefore, we must import the model in pure Python mode:
+        |Infiltrate_WettingFrontBins_V1| selects the mentioned methods by mocking them.
+        Therefore, we must import the model in pure Python mode:
 
         >>> from hydpy.core.importtools import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
@@ -1433,7 +1432,7 @@ class Merge_FrontDepthOvershootings_V1(modeltools.Method):
         moisture: 0.1, 0.5, 0.1, 0.1, 0.1
         moisturechange: 0.2, 0.0, 0.0, 0.0, 0.0
 
-        In case of an overshooting, |Merge_FrontDepthOvershootings_V1| must add the
+        In case of an overshoot, |Merge_FrontDepthOvershootings_V1| must add the
         (additional) water content of the (deactivated) right neighbour to the
         (preserved) left neighbour:
 
@@ -1667,8 +1666,8 @@ class Water_AllBins_V1(modeltools.Method):
     r"""Water the soil's body by (potentially) adding water to all active bins.
 
     The soil water addition calculated by |Water_AllBins_V1| equals the defined soil
-    water supply, except adding the complete supply would exceed the saturation water
-    content.
+    water supply, except that adding the complete supply would exceed the saturation
+    water content.
 
     Note that the caller needs to pass the supply as a method parameter, which allows
     him to decide whether to add everything in one simulation step or multiple
@@ -1690,7 +1689,7 @@ class Water_AllBins_V1(modeltools.Method):
         >>> saturationmoisture(0.5)
         >>> derived.soilareafraction.update()
 
-        The following test function works similar to the one defined for demonstrating
+        The following test function works similarly to the one defined for demonstrating
         |Active_Bin_V1| but considers the soil water addition instead of infiltration:
 
         >>> from hydpy.core.objecttools import repr_, repr_values
@@ -1721,7 +1720,7 @@ class Water_AllBins_V1(modeltools.Method):
         moisturechange: 1.0, 2.0, 3.0, 4.0
         soilwateraddition: 0.0
 
-        |Water_AllBins_V1| tries to add the supply to the dryest bin by increasing its
+        |Water_AllBins_V1| tries to add the supply to the driest bin by increasing its
         relative moisture content:
 
         >>> check(soilwatersupply=5.0,
@@ -1800,7 +1799,7 @@ class Water_AllBins_V1(modeltools.Method):
         moisturechange: 0.0, 0.0, 0.0, 0.0
         soilwateraddition: 25.0
 
-        The last two examples demonstrate, similar to the first example, that
+        The last two examples demonstrate, similarly to the first example, that
         |Water_AllBins_V1| adjusts the relative moisture value of all non-active bins
         after increasing the moisture of the first bin:
 
@@ -1997,8 +1996,8 @@ class Withdraw_AllBins_V1(modeltools.Method):
         moisture: 0.1, 0.2, 0.25, 0.1
         frontdepth: 100.0, 75.0, 50.0, 0.0
 
-        However, |Withdraw_AllBins_V1| never takes more water than indicated by soil's
-        residual moisture:
+        However, |Withdraw_AllBins_V1| never takes more water than indicated by the
+        soil's residual moisture:
 
         >>> check(demand=40.0, actualsurfacewater=0.0,
         ...       frontdepth=[100.0, 75.0, 50.0, 25.0],
@@ -2097,9 +2096,9 @@ class Perform_GARTO_V1(modeltools.Method):
     Method |Perform_GARTO_V1| executes its submethods |Percolate_FilledBin_V1|,
     |Infiltrate_WettingFrontBins_V1|, |Merge_FrontDepthOvershootings_V1|,
     |Merge_SoilDepthOvershootings_V1|, |Water_AllBins_V1|, and |Withdraw_AllBins_V1| in
-    the order of mentioning on all non-sealed soil compartments.  Additionally, it
-    converts surface water that cannot infiltrate (or evaporate) during a numerical
-    substep immediately to surface runoff (no ponding).  So, it provides all core
+    the order of mention on all non-sealed soil compartments.  Additionally, it converts
+    surface water that cannot infiltrate (or evaporate) during a numerical substep
+    immediately to surface runoff (no ponding).  So, it provides all core
     functionalities of application model |ga_garto|, and the explanations and test
     results for |ga_garto| essentially apply to |Perform_GARTO_V1|, too.
     """
@@ -2366,7 +2365,7 @@ class Set_InitialSurfaceWater_V1(modeltools.Method):
 
     Example:
 
-        Note that |Set_InitialSurfaceWater_V1| multiplies the given value with |DT| to
+        Note that |Set_InitialSurfaceWater_V1| multiplies the given value by |DT| to
         adjust it to the numerical substep width:
 
         >>> from hydpy.models.ga import *
@@ -2395,7 +2394,7 @@ class Set_ActualSurfaceWater_V1(modeltools.Method):
 
     Example:
 
-        Note that |Set_ActualSurfaceWater_V1| multiplies the given value with |DT| to
+        Note that |Set_ActualSurfaceWater_V1| multiplies the given value by |DT| to
         adjust it to the numerical substep width:
 
         >>> from hydpy.models.ga import *

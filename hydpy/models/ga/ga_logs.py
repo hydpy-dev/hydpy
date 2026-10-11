@@ -2,9 +2,10 @@
 
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.ga import ga_variables
 
 
-class MoistureChange(sequencetools.LogSequence):
+class MoistureChange(ga_variables.MixinBinsSoils, sequencetools.LogSequence):
     """The (last) change in soil moisture of each bin [-].
 
     Some methods of |ga_garto| take the direction of the last moisture change as a

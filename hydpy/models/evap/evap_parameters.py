@@ -5,9 +5,7 @@ import abc
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.evap import evap_masks
-
-if TYPE_CHECKING:
-    from hydpy.core import variabletools
+from hydpy.models.evap import evap_variables
 
 
 class LandMonthParameter(parametertools.KeywordParameter2D):
@@ -50,7 +48,9 @@ class LandMonthParameter(parametertools.KeywordParameter2D):
     rownames: tuple[str, ...] = ("ANY",)
 
 
-class BaseZipParameter1D(parametertools.ZipParameter, abc.ABC):
+class BaseZipParameter1D(
+    evap_variables.MixinHRUs, parametertools.ZipParameter, abc.ABC
+):
     """Base class for 1-dimensional parameters that provide additional keyword-based
     zipping functionalities."""
 

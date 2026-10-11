@@ -2,41 +2,19 @@
 
 from __future__ import annotations
 
-from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.evap import evap_parameters
+from hydpy.models.evap import evap_variables
 
 
-class NmbHRU(parametertools.Parameter):
+class NmbHRU(parametertools.NmbParameter):
     """The number of separately modelled hydrological response units [-]."""
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (0, None)
 
-    def __call__(self, *args, **kwargs) -> None:
-        nmbhru_old = exceptiontools.getattr_(self, "value", None)
-        super().__call__(*args, **kwargs)
-        nmbhru_new = self.value
-        if nmbhru_new != nmbhru_old:
-            for subpars in self.subpars.pars:
-                for par in subpars:
-                    if (par.NDIM == 1) and not isinstance(
-                        par, parametertools.KeywordParameter1D
-                    ):
-                        par.shape = nmbhru_new
-            seqs = self.subpars.pars.model.sequences
-            for subseqs in seqs:
-                for seq in subseqs:
-                    if seq.NDIM == 1:
-                        seq.shape = nmbhru_new
-            seq_ = getattr(seqs.logs, "loggedpotentialevapotranspiration", None)
-            if seq_ is not None:
-                seq_.shape = self.value
 
-
-class HRUType(parametertools.NameParameter):
+class HRUType(evap_variables.MixinHRUs, parametertools.NameParameter):
     """Hydrological response unit type [-]."""
 
     constants = parametertools.Constants(ANY=0)
@@ -88,7 +66,7 @@ class Conifer(evap_parameters.CompleteZipParameter1D):
     SPAN = (False, True)
 
 
-class HRUArea(parametertools.Parameter):
+class HRUArea(evap_variables.MixinHRUs, parametertools.Parameter):
     """The area of each hydrological response unit [km²]."""
 
     NDIM: Final[Literal[1]] = 1

@@ -13,8 +13,8 @@ from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import radiationinterfaces
 from hydpy.interfaces import tempinterfaces
 from hydpy.interfaces import stateinterfaces
-from hydpy.models.evap import evap_parameters
 from hydpy.models.evap import evap_control
+from hydpy.models.evap import evap_parameters
 from hydpy.models.evap import evap_derived
 from hydpy.models.evap import evap_fixed
 from hydpy.models.evap import evap_sequences

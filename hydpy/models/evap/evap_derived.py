@@ -3,21 +3,20 @@
 import numpy
 
 import hydpy
-from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.evap import evap_parameters
 from hydpy.models.evap import evap_control
 from hydpy.models.evap import evap_fixed
-from hydpy.models.evap import evap_logs
+from hydpy.models.evap import evap_variables
 
 
 class MOY(parametertools.MOYParameter):
     """References the "global" month of the year index array [-]."""
 
 
-class HRUAreaFraction(parametertools.Parameter):
+class HRUAreaFraction(evap_variables.MixinHRUs, parametertools.Parameter):
     """The area fraction of each hydrological response unit [-]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -80,16 +79,15 @@ class Days(parametertools.DaysParameter):
     """The length of the actual simulation step size in days [d]."""
 
 
-class NmbLogEntries(parametertools.Parameter):
+class NmbLogEntries(parametertools.NmbParameter):
     """The number of log entries required for a memory duration of 24 hours [-]."""
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (1, None)
 
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+
     def update(self) -> None:
-        """Calculate the number of entries and adjust the shape of all relevant log
-        sequences.
+        """Calculate the number of entries.
 
         The aimed memory duration is one day.  Hence, the number of required log
         entries depends on the simulation step size:
@@ -98,39 +96,9 @@ class NmbLogEntries(parametertools.Parameter):
         >>> parameterstep()
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "8h"
-        >>> nmbhru(2)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(3)
-        >>> logs.loggedglobalradiation
-        loggedglobalradiation(nan, nan, nan)
-
-        For 1-dimensional logged properties, there is a second axis whose size depends
-        on the selected number of hydrological response units:
-
-        >>> logs.loggedairtemperature
-        loggedairtemperature([[nan, nan],
-                              [nan, nan],
-                              [nan, nan]])
-
-        >>> logs.loggedpotentialevapotranspiration
-        loggedpotentialevapotranspiration(nan, nan, nan)
-
-        To prevent losing information, updating parameter |NmbLogEntries| resets the
-        shape of the relevant log sequences only when necessary:
-
-        >>> logs.loggedglobalradiation = 1.0
-        >>> logs.loggedairtemperature = 2.0
-        >>> logs.loggedpotentialevapotranspiration = 3.0
-        >>> derived.nmblogentries.update()
-        >>> logs.loggedglobalradiation
-        loggedglobalradiation(1.0, 1.0, 1.0)
-        >>> logs.loggedairtemperature
-        loggedairtemperature([[2.0, 2.0],
-                              [2.0, 2.0],
-                              [2.0, 2.0]])
-        >>> logs.loggedpotentialevapotranspiration
-        loggedpotentialevapotranspiration(3.0, 3.0, 3.0)
 
         There is an explicit check for inappropriate simulation step sizes:
 
@@ -150,24 +118,7 @@ determined for a the current simulation step size.  The fraction of the memory p
                 f"the memory period (1d) and the simulation step size "
                 f"({hydpy.pub.timegrids.stepsize}) leaves a remainder."
             )
-        self(nmb)
-        pars = self.subpars.pars
-        for seq in pars.model.sequences.logs:
-            new_shape: int | tuple[int, ...]
-            old_shape: int | tuple[int, ...]
-            if isinstance(seq, evap_logs.LoggedPotentialEvapotranspiration):
-                new_shape = self.value
-                old_shape = exceptiontools.getattr_(seq, "shape", (-1, -1))[1]
-            else:
-                if seq.NDIM == 1:
-                    new_shape = (self.value,)
-                elif seq.NDIM == 2:
-                    new_shape = self.value, pars.control.nmbhru.value
-                else:
-                    assert False
-                old_shape = exceptiontools.getattr_(seq, "shape", (-1,))
-            if new_shape != old_shape:
-                seq.shape = new_shape
+        self(int(nmb))
 
 
 class RoughnessLength(

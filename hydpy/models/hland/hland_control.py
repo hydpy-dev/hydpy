@@ -18,6 +18,7 @@ from hydpy.core.typingtools import *
 from hydpy.models.hland import hland_constants
 from hydpy.models.hland import hland_fixed
 from hydpy.models.hland import hland_parameters
+from hydpy.models.hland import hland_variables
 from hydpy.models.hland.hland_constants import ILAKE
 
 if TYPE_CHECKING:
@@ -36,152 +37,20 @@ class Area(parametertools.Parameter):
     SPAN = (1e-10, None)
 
 
-class NmbZones(parametertools.Parameter):
-    """Number of zones (hydrological response units) in a subbasin [-].
+class NmbZones(parametertools.NmbParameter):
+    """Number of zones (hydrological response units) in a subbasin [-]."""
 
-    |NmbZones| determines the length of most 1-dimensional parameters and sequences.
-    Usually, you should first prepare |NmbZones| and define the values of all
-    1-dimensional parameters and sequences afterwards:
-
-    >>> from hydpy.models.hland import *
-    >>> parameterstep()
-    >>> nmbzones(5)
-    >>> icmax.shape
-    (5,)
-    >>> states.ic.shape
-    (5,)
-
-    Changing the value of |NmbZones| later reshapes the affected parameters and
-    sequences and makes it necessary the reset their values:
-
-    >>> icmax(2.0)
-    >>> icmax
-    icmax(2.0)
-    >>> nmbzones(3)
-    >>> icmax
-    icmax(?)
-
-    Re-defining the same value does not delete the already available data:
-
-    >>> icmax(2.0)
-    >>> nmbzones(3)
-    >>> icmax
-    icmax(2.0)
-
-    The length of both axes of the 2-dimensional sequence |SRed| agree with |NmbZones|:
-
-    >>> sred.shape
-    (3, 3)
-
-    Some 2-dimensional sequences reflect differences in snow accumulation within each
-    zone. |NmbZones| prepares their shapes also, but therefore requires parameter
-    |SClass| to provide the number of snow classes within each zone:
-
-    >>> states.sp
-    Traceback (most recent call last):
-    ...
-    hydpy.core.exceptiontools.AttributeNotReady: Shape information for variable `sp` \
-can only be retrieved after it has been defined.
-
-    >>> sclass.value = 2
-    >>> nmbzones(4)
-    >>> states.sp.shape
-    (2, 4)
-    """
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (1, None)
 
-    def __call__(self, *args, **kwargs) -> None:
-        old_value = exceptiontools.getattr_(self, "value", None)
-        super().__call__(*args, **kwargs)
-        new_value = self.value
-        if new_value != old_value:
-            sclass = exceptiontools.getattr_(self.subpars.sclass, "value", None)
-            for subpars in self.subpars.pars:
-                for par in subpars:
-                    if (par.NDIM == 1) and (par.name not in ("uh", "sfdist")):
-                        par.shape = new_value
-                    if par.NDIM == 2:
-                        par.shape = new_value, new_value
-            for subseqs in self.subpars.pars.model.sequences:
-                for seq in subseqs:
-                    if (seq.NDIM == 1) and (seq.name not in ("quh", "sc")):
-                        seq.shape = new_value
-                    elif seq.NDIM == 2:
-                        if sclass is not None:
-                            seq.shape = sclass, new_value
 
+class SClass(parametertools.NmbParameter):
+    """Number of snow classes in each zone [-]."""
 
-class SClass(parametertools.Parameter):
-    """Number of snow classes in each zone [-].
-
-    |SClass| determines the length of the first axis of those 2-dimensional sequences
-    reflecting differences in snow accumulation within each zone.  Therefore, it
-    requires parameter |NmbZones| to provide the number of zones within the subbasin:
-
-    >>> from hydpy.models.hland import *
-    >>> parameterstep()
-    >>> sclass(1)
-    >>> states.sp
-    Traceback (most recent call last):
-    ...
-    hydpy.core.exceptiontools.AttributeNotReady: Shape information for variable `sp` \
-can only be retrieved after it has been defined.
-
-    >>> nmbzones.value = 2
-    >>> sclass(3)
-    >>> states.sp.shape
-    (3, 2)
-
-    Changing the value of |SClass| later reshapes the affected sequences and makes it
-    necessary to reset their values:
-
-    >>> states.sp = 2.0
-    >>> states.sp
-    sp([[2.0, 2.0],
-        [2.0, 2.0],
-        [2.0, 2.0]])
-    >>> sclass(2)
-    >>> states.sp
-    sp([[nan, nan],
-        [nan, nan]])
-
-    Re-defining the same value does not delete the already available data:
-
-    >>> states.sp = 2.0
-    >>> sclass(2)
-    >>> states.sp
-    sp([[2.0, 2.0],
-        [2.0, 2.0]])
-
-    Additionally, |SClass| determines the shape of the control parameter |SFDist|:
-
-    >>> sfdist.shape
-    (2,)
-    """
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (1, None)
     INIT = 1
 
-    def __call__(self, *args, **kwargs) -> None:
-        old_value = exceptiontools.getattr_(self, "value", None)
-        super().__call__(*args, **kwargs)
-        new_value = self.value
-        if new_value != old_value:
-            self.subpars.sfdist.shape = new_value
-            nmbzones = exceptiontools.getattr_(self.subpars.nmbzones, "value", None)
-            for subseqs in self.subpars.pars.model.sequences:
-                for seq in subseqs:
-                    if seq.NDIM == 2:
-                        if nmbzones is not None:
-                            seq.shape = new_value, nmbzones
 
-
-class ZoneType(parametertools.NameParameter):
+class ZoneType(hland_variables.MixinZones, parametertools.NameParameter):
     """Type of each zone [-].
 
     Parameter |ZoneType| relies on the integer constants defined in module
@@ -326,7 +195,7 @@ class IcMax(hland_parameters.ParameterInterception):
     SPAN = (0.0, None)
 
 
-class SFDist(parametertools.Parameter):
+class SFDist(hland_variables.MixinSnowClasses, parametertools.Parameter):
     """Distribution of snowfall [-].
 
     Parameter |SFDist| handles multiple adjustment factors for snowfall, one for each
@@ -503,7 +372,7 @@ class SMax(hland_parameters.ParameterLand):
     INIT = numpy.inf
 
 
-class SRed(parametertools.Parameter):
+class SRed(hland_variables.MixinZonesZones, parametertools.Parameter):
     """Snow redistribution paths [-].
 
     |SRed| is a 2-dimensional parameter that handles weighting factors for all possible

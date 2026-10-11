@@ -10,12 +10,13 @@ from hydpy.models.hland.hland_constants import CONSTANTS
 
 # from hydpy.models.hland import hland_model  # actual import below
 from hydpy.models.hland import hland_masks
+from hydpy.models.hland import hland_variables
 
 if TYPE_CHECKING:
     from hydpy.models.hland import hland_derived
 
 
-class ParameterBase(parametertools.ZipParameter, abc.ABC):
+class ParameterBase(hland_variables.MixinZones, parametertools.ZipParameter, abc.ABC):
     """Base class for 1-dimensional parameters."""
 
     constants = CONSTANTS

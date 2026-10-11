@@ -164,7 +164,8 @@ class Tester:
          'hland_outlets.py',
          'hland_parameters.py',
          'hland_sequences.py',
-         'hland_states.py']
+         'hland_states.py',
+         'hland_variables.py']
         >>> hland_96.tester.filenames
         ['hland_96.py']
         """
@@ -193,7 +194,8 @@ class Tester:
          'hland_outlets',
          'hland_parameters',
          'hland_sequences',
-         'hland_states']
+         'hland_states',
+         'hland_variables']
         >>> hland_96.tester.modulenames
         ['hland_96']
         """
@@ -251,6 +253,8 @@ class Tester:
                 no failures occurred
             * hland_states:
                 no failures occurred
+            * hland_variables:
+                no failures occurred
 
         >>> hland_96.tester.perform_tests()  # doctest: +ELLIPSIS
         Test module hland_96 in ...ython mode.
@@ -294,6 +298,8 @@ hydpy.models.hland.hland_control.ZoneType
                 no failures occurred
             ...
             * hland_states:
+                no failures occurred
+            * hland_variables:
                 no failures occurred
 
         >>> pub.projectname

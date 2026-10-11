@@ -6,9 +6,10 @@ from hydpy.core.typingtools import *
 from hydpy.core import sequencetools
 from hydpy.models.hland import hland_model
 from hydpy.models.hland import hland_derived
+from hydpy.models.hland import hland_variables
 
 
-class Factor1DSequence(sequencetools.FactorSequence):
+class Factor1DSequence(hland_variables.MixinZones, sequencetools.FactorSequence):
     """Base class for 1-dimensional factor subclasses that support aggregation with
     respect to |RelZoneAreas|.
 
@@ -37,7 +38,9 @@ class Factor1DSequence(sequencetools.FactorSequence):
         return model.parameters.derived.relzoneareas
 
 
-class Factor2DSequence(sequencetools.FactorSequence):
+class Factor2DSequence(
+    hland_variables.MixinSnowClassesZones, sequencetools.FactorSequence
+):
     """Base class for 2-dimensional factor subclasses that support aggregation with
     respect to |RelZoneAreas|.
 
@@ -132,7 +135,7 @@ class Factor2DSequence(sequencetools.FactorSequence):
         return numpy.mean(self.series, axis=1)
 
 
-class Flux1DSequence(sequencetools.FluxSequence):
+class Flux1DSequence(hland_variables.MixinZones, sequencetools.FluxSequence):
     """Base class for 1-dimensional flux subclasses that support aggregation with
     respect to |RelZoneAreas|.
 
@@ -161,7 +164,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
         return model.parameters.derived.relzoneareas
 
 
-class Flux2DSequence(sequencetools.FluxSequence):
+class Flux2DSequence(hland_variables.MixinSnowClassesZones, sequencetools.FluxSequence):
     """Base class for 2-dimensional flux subclasses that support aggregation with
     respect to |RelZoneAreas|.
 
@@ -256,7 +259,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
         return numpy.mean(self.series, axis=1)
 
 
-class State1DSequence(sequencetools.StateSequence):
+class State1DSequence(hland_variables.MixinZones, sequencetools.StateSequence):
     """Base class for 1-dimensional state subclasses that support aggregation with
     respect to |RelZoneAreas|.
 
@@ -286,7 +289,9 @@ class State1DSequence(sequencetools.StateSequence):
         return model.parameters.derived.relzoneareas
 
 
-class State2DSequence(sequencetools.StateSequence):
+class State2DSequence(
+    hland_variables.MixinSnowClassesZones, sequencetools.StateSequence
+):
     """Base class for 2-dimensional state subclasses that support aggregation with
     respect to |RelZoneAreas|.
 

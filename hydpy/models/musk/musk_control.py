@@ -1,6 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
@@ -15,7 +14,7 @@ class CatchmentArea(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class NmbSegments(parametertools.Parameter):
+class NmbSegments(parametertools.NmbParameter):
     """Number of channel segments [-].
 
     You can set the number of segments directly:
@@ -27,16 +26,6 @@ class NmbSegments(parametertools.Parameter):
     >>> nmbsegments
     nmbsegments(2)
 
-    |NmbSegments| prepares the shape of most 1-dimensional parameters and sequences
-    automatically:
-
-    >>> factors.referencewaterdepth.shape
-    (2,)
-    >>> fluxes.referencedischarge.shape
-    (2,)
-    >>> states.discharge.shape
-    (3,)
-
     If you prefer to configure |musk| in the style of HBV96
     :cite:p:`ref-Lindstrom1997HBV96`, use the `lag` argument.  |NmbSegments|
     calculates the number of segments so that one simulation step lag corresponds to
@@ -45,8 +34,8 @@ class NmbSegments(parametertools.Parameter):
     >>> nmbsegments(lag=2.5)
     >>> nmbsegments
     nmbsegments(lag=2.5)
-    >>> states.discharge.shape
-    (6,)
+    >>> nmbsegments.value
+    5
 
     Negative `lag` values are trimmed to zero:
 
@@ -57,8 +46,8 @@ class NmbSegments(parametertools.Parameter):
 `lag` with value `-1.0` needed to be trimmed to `0.0`.
     >>> nmbsegments
     nmbsegments(lag=0.0)
-    >>> states.discharge.shape
-    (1,)
+    >>> nmbsegments.value
+    0
 
     Calculating an integer number of segments from a time lag defined as a
     floating-point number requires rounding:
@@ -66,21 +55,10 @@ class NmbSegments(parametertools.Parameter):
     >>> nmbsegments(lag=0.9)
     >>> nmbsegments
     nmbsegments(lag=0.9)
-    >>> states.discharge.shape
-    (3,)
-
-    |NmbSegments| preserves existing values if the number of segments does not change:
-
-    >>> states.discharge = 1.0, 2.0, 3.0
-    >>> nmbsegments(2)
-    >>> nmbsegments
-    nmbsegments(2)
-    >>> states.discharge
-    discharge(1.0, 2.0, 3.0)
+    >>> nmbsegments.value
+    2
     """
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (0, None)
     KEYWORDS = {"lag": parametertools.Keyword(name="lag", time=False)}
 
@@ -92,31 +70,9 @@ class NmbSegments(parametertools.Parameter):
         else:
             lag = parametertools.trim_kwarg(self, "lag", kwargs["lag"], lower=0.0)
             lag /= self.get_timefactor()
-            self.value = int(round(lag))
+            super().__call__(int(round(lag)))
             self._keywordarguments = parametertools.KeywordArguments(lag=lag)
-
-        shape = self.value
-        model = self.subpars.pars.model
-        model.nmb_segments = shape
-        pars, seqs = model.parameters, model.sequences
-        all_subvars = (
-            pars.control,
-            pars.derived,
-            seqs.factors,
-            seqs.fluxes,
-            seqs.states,
-        )
-        for subvars in all_subvars:
-            for variable in (var for var in subvars if var.NDIM == 1):
-                if variable.name == "coefficients":
-                    continue
-                oldshape = exceptiontools.getattr_(variable, "shape", None)
-                if variable.name == "discharge":
-                    if oldshape != (shape + 1,):
-                        variable.shape = (shape + 1,)
-                else:
-                    if oldshape != (shape,):
-                        variable.shape = (shape,)
+        self.subpars.pars.model.nmb_segments = self.value
 
     def __repr__(self) -> str:
         if self._keywordarguments.valid:

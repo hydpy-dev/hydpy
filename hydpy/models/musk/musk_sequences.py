@@ -9,6 +9,7 @@ from hydpy.core import objecttools
 from hydpy.core import modeltools
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.musk import musk_variables
 
 
 class MixinSequence1D:
@@ -38,7 +39,7 @@ class MixinSequence1D:
 
 
 class StateSequence1D(  # type: ignore[misc]
-    MixinSequence1D, sequencetools.StateSequence
+    MixinSequence1D, musk_variables.MixinSegments, sequencetools.StateSequence
 ):
     """Base class for the 1-dimensional state sequences.
 
@@ -80,10 +81,12 @@ array from shape (2,) into shape (3,)
 
 
 class FactorSequence1D(  # type: ignore[misc]
-    MixinSequence1D, sequencetools.FactorSequence
+    MixinSequence1D, musk_variables.MixinSegments, sequencetools.FactorSequence
 ):
     """Base class for the 1-dimensional factor sequences."""
 
 
-class FluxSequence1D(MixinSequence1D, sequencetools.FluxSequence):  # type: ignore[misc]
+class FluxSequence1D(  # type: ignore[misc]
+    MixinSequence1D, musk_variables.MixinSegments, sequencetools.FluxSequence
+):
     """Base class for the 1-dimensional flux sequences."""

@@ -22,8 +22,15 @@ some limitations.  One example is numerical accuracy, which might be suboptimal 
 solving the interconnected differential equations of different model instances
 sequentially (we might improve this later).
 
-Besides such explanation-requiring models, HydPy-Exch also provides straightforward
-models like |exch_branch_hbv96|, which distributes its inflow to multiple locations.
+Besides such explanation-requiring models, HydPy-Exch also provides more
+straightforward models.  |exch_branch_rules| distributes its inflow to multiple
+locations, |exch_branch_io| withdraws water from or supplies water to a stream, and
+the submodel |exch_water_transfer_io| does the same for lake models like |dam_llake|
+and |dam_lreservoir|.  The latter two exchange models follow requested water transfers (for
+example, read from files) and fall back on interpolation rules where requests are
+missing.  |exch_branch_hbv96| is deprecated and will be removed in HydPy 8.0 (please
+use |exch_branch_rules| instead; you can convert existing models with method
+|exch_branch_hbv96.Model.convert_2_exch_branch_rules|).
 
 Available models:
 

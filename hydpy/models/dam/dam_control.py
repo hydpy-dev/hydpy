@@ -1,7 +1,6 @@
 # pylint: disable=missing-module-docstring
 
 import hydpy
-from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.core import timetools
@@ -24,49 +23,10 @@ class CatchmentArea(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class NmbLogEntries(parametertools.Parameter):
-    """Number of log entries for certain variables [-].
+class NmbLogEntries(parametertools.NmbParameter):
+    """Number of log entries for certain variables [-]."""
 
-    Note that setting a new value by calling the parameter object sets the shapes of
-    all associated log sequences automatically, except those with a predefined default
-    shape:
-
-    >>> from hydpy.models.dam import *
-    >>> parameterstep()
-    >>> nmblogentries(3)
-    >>> for seq in logs:
-    ...     print(seq)
-    loggedtotalremotedischarge(nan, nan, nan)
-    loggedoutflow(nan, nan, nan)
-    loggedadjustedevaporation(nan)
-    loggedrequiredremoterelease(nan)
-    loggedallowedremoterelief(nan)
-    loggedouterwaterlevel(nan)
-    loggedremotewaterlevel(nan)
-
-    To prevent losing information, updating parameter |NmbLogEntries| resets the shape
-    of the relevant log sequences only when necessary:
-
-    >>> logs.loggedtotalremotedischarge = 1.0
-    >>> nmblogentries(3)
-    >>> logs.loggedtotalremotedischarge
-    loggedtotalremotedischarge(1.0, 1.0, 1.0)
-    """
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (1, None)
-
-    def __call__(self, *args, **kwargs) -> None:
-        super().__call__(*args, **kwargs)
-        new_shape = (self.value,)
-        for seq in self.subpars.pars.model.sequences.logs:
-            old_shape = exceptiontools.getattr_(seq, "shape", (None,))
-            if new_shape != old_shape:
-                try:
-                    seq.shape = new_shape
-                except AttributeError:
-                    pass
 
 
 class CorrectionPrecipitation(parametertools.Parameter):

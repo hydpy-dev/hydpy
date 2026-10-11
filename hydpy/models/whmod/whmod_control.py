@@ -1,10 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-import itertools
-
 import numpy
 
-from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
@@ -13,6 +10,7 @@ from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod import whmod_masks
 from hydpy.models.whmod import whmod_parameters
+from hydpy.models.whmod import whmod_variables
 
 
 class Area(parametertools.Parameter):
@@ -23,53 +21,10 @@ class Area(parametertools.Parameter):
     SPAN = (1e-10, None)
 
 
-class NmbZones(parametertools.Parameter):
-    """Number of zones (hydrological response units) in a subbasin [-].
+class NmbZones(parametertools.NmbParameter):
+    """Number of zones (hydrological response units) in a subbasin [-]."""
 
-    |NmbZones| determines the length of most 1-dimensional parameters and sequences.
-    Usually, you should first prepare |NmbZones| and define the values of all
-    1-dimensional parameters and sequences afterwards:
-
-    >>> from hydpy.models.whmod import *
-    >>> parameterstep()
-    >>> nmbzones(5)
-    >>> availablefieldcapacity.shape
-    (5,)
-    >>> states.soilmoisture.shape
-    (5,)
-
-    Changing the value of |NmbZones| later reshapes the affected parameters and
-    sequences and makes it necessary to reset their values:
-
-    >>> availablefieldcapacity(2.0)
-    >>> availablefieldcapacity
-    availablefieldcapacity(2.0)
-    >>> nmbzones(3)
-    >>> availablefieldcapacity
-    availablefieldcapacity(?)
-
-    Re-defining the same value does not delete the already available data:
-
-    >>> availablefieldcapacity(2.0)
-    >>> nmbzones(3)
-    >>> availablefieldcapacity
-    availablefieldcapacity(2.0)
-    """
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (1, None)
-
-    def __call__(self, *args, **kwargs):
-        old = exceptiontools.getattr_(self, "value", None)
-        super().__call__(*args, **kwargs)
-        new = self.value
-        if new != old:
-            model = self.subpars.pars.model
-            for subvars in itertools.chain(model.parameters, model.sequences):
-                for var in subvars:
-                    if var.NDIM == 1:
-                        var.shape = new
 
 
 class ZoneArea(whmod_parameters.LandTypeCompleteParameter):
@@ -79,13 +34,13 @@ class ZoneArea(whmod_parameters.LandTypeCompleteParameter):
     SPAN = (0.0, None)
 
 
-class LandType(parametertools.NameParameter):
+class LandType(whmod_variables.MixinZones, parametertools.NameParameter):
     """Land cover type [-]."""
 
     constants = whmod_constants.LANDTYPE_CONSTANTS
 
 
-class SoilType(parametertools.NameParameter):
+class SoilType(whmod_variables.MixinZones, parametertools.NameParameter):
     """Soil type [-].
 
     >>> from hydpy.models.whmod import *

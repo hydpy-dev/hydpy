@@ -9,12 +9,15 @@ from hydpy.core.typingtools import *
 from hydpy.models.whmod import whmod_model
 from hydpy.models.whmod import whmod_masks
 from hydpy.models.whmod import whmod_constants
+from hydpy.models.whmod import whmod_variables
 
 if TYPE_CHECKING:
     from hydpy.models.whmod import whmod_control
 
 
-class LandTypeBaseParameter(parametertools.ZipParameter, abc.ABC):
+class LandTypeBaseParameter(
+    whmod_variables.MixinZones, parametertools.ZipParameter, abc.ABC
+):
     """Base class for 1-dimensional land type-specific parameters."""
 
     constants = whmod_constants.LANDTYPE_CONSTANTS
@@ -128,7 +131,7 @@ class LandTypeSoilParameter(LandTypeBaseParameter, abc.ABC):
     mask = whmod_masks.LandTypeSoil()
 
 
-class SoilTypeParameter(parametertools.ZipParameter):
+class SoilTypeParameter(whmod_variables.MixinZones, parametertools.ZipParameter):
     """Base class for 1-dimensional soil type-specific parameters.
 
     We take parameter |AvailableFieldCapacity| as an example:

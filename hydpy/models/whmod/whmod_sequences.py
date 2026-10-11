@@ -6,9 +6,10 @@ from hydpy.core.typingtools import *
 from hydpy.models.whmod import whmod_model
 from hydpy.models.whmod import whmod_masks
 from hydpy.models.whmod import whmod_derived
+from hydpy.models.whmod import whmod_variables
 
 
-class Mixin1DSequence(sequencetools.ModelSequence):
+class Mixin1DSequence(whmod_variables.MixinZones, sequencetools.ModelSequence):
     """Mixin class for all 1-dimensional sequences."""
 
     NDIM: Final[Literal[1]] = 1

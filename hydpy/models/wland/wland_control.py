@@ -5,6 +5,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.wland import wland_parameters
+from hydpy.models.wland import wland_variables
 from hydpy.models.wland import wland_constants
 from hydpy.models.wland.wland_constants import *
 
@@ -17,63 +18,13 @@ class AT(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class NU(parametertools.Parameter):
-    """Number of hydrological response units [-].
+class NU(parametertools.NmbParameter):
+    """Number of hydrological response units [-]."""
 
-    Parameter |NU| automatically sets the length of most 1-dimensional parameters and
-    sequences of |wland.DOCNAME.long|:
-
-    >>> from hydpy.models.wland import *
-    >>> parameterstep()
-    >>> nu(3)
-    >>> lt.shape
-    (3,)
-    >>> states.ic.shape
-    (3,)
-
-    Changing the value of parameter |NU| reshapes the related parameters and sequences
-    and eventually deletes predefined values:
-
-    >>> states.ic = 1.0
-    >>> states.ic
-    ic(1.0, 1.0, 1.0)
-    >>> nu(2)
-    >>> states.ic
-    ic(nan, nan)
-
-    Redefining the same value for parameter |NU| does not affect any related parameter
-    and sequence object:
-
-    >>> states.ic = 1.0
-    >>> states.ic
-    ic(1.0, 1.0)
-    >>> nu(2)
-    >>> states.ic
-    ic(1.0, 1.0)
-    """
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (1, None)
 
-    def __call__(self, *args, **kwargs) -> None:
-        old = exceptiontools.getattr_(self, "value", None)
-        super().__call__(*args, **kwargs)
-        new = self.value
-        if new != old:
-            for subpars in self.subpars.pars.model.parameters:
-                for par in subpars:
-                    if (par.NDIM == 1) and (
-                        not isinstance(par, parametertools.MonthParameter)
-                    ):
-                        par.shape = new
-            for subseqs in self.subpars.pars.model.sequences:
-                for seq in subseqs:
-                    if seq.NDIM == 1:
-                        seq.shape = new
 
-
-class LT(parametertools.NameParameter):
+class LT(wland_variables.MixinHRUs, parametertools.NameParameter):
     """Landuse type [-].
 
     For better readability, use the land-use-related constants defined in module
@@ -142,7 +93,7 @@ class ER(wland_parameters.LanduseParameterLand):
     INIT = False
 
 
-class AUR(parametertools.Parameter):
+class AUR(wland_variables.MixinHRUs, parametertools.Parameter):
     """Relative area of each hydrological response unit [-]."""
 
     NDIM: Final[Literal[1]] = 1

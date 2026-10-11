@@ -3,7 +3,9 @@
 import numpy
 
 from hydpy import config
+from hydpy.core import parametertools
 from hydpy.core.typingtools import *
+from hydpy.models.musk import musk_control
 from hydpy.models.musk import musk_sequences
 
 
@@ -16,9 +18,23 @@ class ReynoldsNumber(musk_sequences.StateSequence1D):
 
 
 class Discharge(musk_sequences.StateSequence1D):
-    """Current discharge at the segment endpoints [m³/s]."""
+    """Current discharge at the segment endpoints [m³/s].
+
+    The length of |Discharge| exceeds the value of parameter |musk_control.NmbSegments|
+    by one:
+
+    >>> from hydpy.models.musk import *
+    >>> parameterstep()
+    >>> nmbsegments(2)
+    >>> states.discharge.shape
+    (3,)
+    """
 
     SPAN = (0.0, None)
+
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        if isinstance(p, musk_control.NmbSegments):
+            self.__hydpy__change_shape_if_necessary__((p.value + 1,))
 
     @property
     def refweights(self) -> NDArrayFloat:

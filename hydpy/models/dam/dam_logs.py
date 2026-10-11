@@ -2,15 +2,18 @@
 
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.dam import dam_variables
 
 
-class LoggedTotalRemoteDischarge(sequencetools.LogSequence):
+class LoggedTotalRemoteDischarge(
+    dam_variables.MixinLogEntries, sequencetools.LogSequence
+):
     """Logged discharge values from somewhere else [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class LoggedOutflow(sequencetools.LogSequence):
+class LoggedOutflow(dam_variables.MixinLogEntries, sequencetools.LogSequence):
     """Logged discharge values from the dam itself [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1

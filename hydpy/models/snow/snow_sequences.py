@@ -3,15 +3,13 @@
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.snow import snow_variables
 
 
-class Sequence1DNLayers(sequencetools.ModelSequence):
+class Sequence1DNLayers(snow_variables.MixinLayers, sequencetools.ModelSequence):
     """Base class for sequences with different values for individual layers."""
 
     NDIM: Final[Literal[1]] = 1
-
-    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
-        self.__hydpy__change_shape_if_necessary__((p.value,))
 
     @property
     def refweights(self) -> parametertools.Parameter:

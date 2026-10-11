@@ -4,9 +4,10 @@ import abc
 
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
+from hydpy.models.snow import snow_variables
 
 
-class Parameter1DLayers(parametertools.Parameter):
+class Parameter1DLayers(snow_variables.MixinLayers, parametertools.Parameter):
     """Base class for parameters with different values for individual layers.
 
     The following example shows that the shape of parameter |MeanAnSolidPrecip| is set
@@ -25,9 +26,6 @@ class Parameter1DLayers(parametertools.Parameter):
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
 
-    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
-        self.__hydpy__change_shape_if_necessary__((p.value,))
-
     @property
     def refweights(self) -> parametertools.Parameter:
         """Alias for the associated instance of |LayerArea| for calculating aggregated
@@ -35,10 +33,7 @@ class Parameter1DLayers(parametertools.Parameter):
         return self.subpars.pars.control.layerarea
 
 
-class Parameter1D366(parametertools.Parameter, abc.ABC):
+class Parameter1D366(snow_variables.Mixin366, parametertools.Parameter, abc.ABC):
     """Base class for parameters with 366 values (days of the year)."""
 
     NDIM: Final[Literal[1]] = 1
-
-    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
-        self.__hydpy__change_shape_if_necessary__((366,))

@@ -8,9 +8,9 @@ from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
+from hydpy.models.meteo import meteo_control
 from hydpy.models.meteo import meteo_parameters
 from hydpy.models.meteo import meteo_fixed
-from hydpy.models.meteo import meteo_control
 from hydpy.models.meteo import meteo_derived
 from hydpy.models.meteo import meteo_sequences
 from hydpy.models.meteo import meteo_inputs

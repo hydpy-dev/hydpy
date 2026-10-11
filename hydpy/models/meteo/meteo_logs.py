@@ -2,27 +2,34 @@
 
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.meteo import meteo_variables
 
 
-class LoggedSunshineDuration(sequencetools.LogSequence):
+class LoggedSunshineDuration(
+    meteo_variables.MixinLogEntries, sequencetools.LogSequence
+):
     """Logged sunshine duration [h]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class LoggedGlobalRadiation(sequencetools.LogSequence):
+class LoggedGlobalRadiation(meteo_variables.MixinLogEntries, sequencetools.LogSequence):
     """Logged global radiation [W/m²]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class LoggedUnadjustedSunshineDuration(sequencetools.LogSequence):
+class LoggedUnadjustedSunshineDuration(
+    meteo_variables.MixinLogEntries, sequencetools.LogSequence
+):
     """Logged unadjusted sunshine duration [h]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class LoggedUnadjustedGlobalRadiation(sequencetools.LogSequence):
+class LoggedUnadjustedGlobalRadiation(
+    meteo_variables.MixinLogEntries, sequencetools.LogSequence
+):
     """Logged unadjusted global radiation [W/m²]."""
 
     NDIM: Final[Literal[1]] = 1

@@ -3,12 +3,12 @@
 import numpy
 
 import hydpy
-from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.meteo import meteo_fixed
 from hydpy.models.meteo import meteo_control
+from hydpy.models.meteo import meteo_variables
 
 
 class DOY(parametertools.DOYParameter):
@@ -35,7 +35,7 @@ class SCT(parametertools.SCTParameter):
     """References the "global" standard clock time array [h]."""
 
 
-class HRUAreaFraction(parametertools.Parameter):
+class HRUAreaFraction(meteo_variables.MixinHRUs, parametertools.Parameter):
     """The area fraction of each hydrological response unit [-]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -60,16 +60,13 @@ class HRUAreaFraction(parametertools.Parameter):
         self.values = hruarea / numpy.sum(hruarea)
 
 
-class NmbLogEntries(parametertools.Parameter):
+class NmbLogEntries(parametertools.NmbParameter):
     """The number of log entries required for memorising one day's data [-]."""
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (1, None)
 
     def update(self) -> None:
-        """Calculate the number of entries and adjust the shape of all relevant log
-        sequences.
+        """Calculate the number of entries.
 
         The aimed memory duration is always one day.  Hence, the number of the required
         log entries depends on the simulation step size:
@@ -81,22 +78,6 @@ class NmbLogEntries(parametertools.Parameter):
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(24)
-        >>> logs  # doctest: +ELLIPSIS
-        loggedsunshineduration(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                               nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                               nan, nan, nan, nan)
-        ...
-
-        To prevent losing information, updating parameter |NmbLogEntries| resets the
-        shape of the relevant log sequences only when necessary:
-
-        >>> logs.loggedsunshineduration = 1.0
-        >>> derived.nmblogentries(24)
-        >>> logs  # doctest: +ELLIPSIS
-        loggedsunshineduration(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                               1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                               1.0, 1.0, 1.0, 1.0)
-        ...
 
         There is an explicit check for inappropriate simulation step sizes:
 
@@ -120,12 +101,7 @@ determined for a the current simulation step size.  The fraction of the memory p
                 f"the memory period (1d) and the simulation step size "
                 f"({hydpy.pub.timegrids.stepsize}) leaves a remainder."
             )
-        self(nmb)
-        nmb = int(nmb)
-        for seq in self.subpars.pars.model.sequences.logs:
-            shape = exceptiontools.getattr_(seq, "shape", (None,))
-            if nmb != shape[-1]:
-                seq.shape = nmb
+        self(int(nmb))
 
 
 class UTCLongitude(parametertools.UTCLongitudeParameter):

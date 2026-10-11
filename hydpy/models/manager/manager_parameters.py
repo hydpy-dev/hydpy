@@ -9,10 +9,12 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.manager import manager_model
-from hydpy.models.manager import manager_control
+from hydpy.models.manager import manager_variables
 
 
-class ParameterSource(parametertools.Parameter, abc.ABC):
+class ParameterSource(
+    manager_variables.MixinSources, parametertools.Parameter, abc.ABC
+):
     """Base class for parameters that handle individual values for all sources.
 
     We take the parameter |Active| as an example, which requires (as all subclasses of
@@ -106,12 +108,6 @@ the following error occurred: The following source is unknown: d
     ValueError: While trying to set the values of parameter `active` of element `?`, \
 the following error occurred: The following sources are unknown: d and e
     """
-
-    NDIM: Final[Literal[1]] = 1
-
-    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
-        if isinstance(p, manager_control.Sources):
-            self.__hydpy__change_shape_if_necessary__((p.value,))
 
     def __call__(self, *args, **kwargs) -> None:
         try:

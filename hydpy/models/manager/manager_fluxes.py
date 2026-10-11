@@ -2,7 +2,7 @@
 
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
-from hydpy.models.manager import manager_sequences
+from hydpy.models.manager import manager_variables
 
 
 class DemandTarget(sequencetools.FluxSequence):
@@ -18,14 +18,16 @@ class FreeDischarge(sequencetools.FluxSequence):
     NDIM: Final[Literal[0]] = 0
 
 
-class DemandSources(manager_sequences.MixinSource, sequencetools.FluxSequence):
+class DemandSources(manager_variables.MixinSourceSequence, sequencetools.FluxSequence):
     """The demand for additional water release at the individual sources [m³/s]."""
 
 
-class PossibleRelease(manager_sequences.MixinSource, sequencetools.FluxSequence):
+class PossibleRelease(
+    manager_variables.MixinSourceSequence, sequencetools.FluxSequence
+):
     """The possible additional water releases of the individual sources [m³/s]."""
 
 
-class Request(manager_sequences.MixinSource, sequencetools.FluxSequence):
+class Request(manager_variables.MixinSourceSequence, sequencetools.FluxSequence):
     """The actual additional water release requested from the individual sources
     [m³/s]."""

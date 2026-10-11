@@ -1,7 +1,9 @@
 # pylint: disable=missing-module-docstring
 
+from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.sw1d import sw1d_control
 
 
 class MaxTimeStep(sequencetools.FactorSequence):
@@ -39,9 +41,35 @@ class WaterLevel(sequencetools.FactorSequence):
 
 
 class WaterLevels(sequencetools.FactorSequence):
-    """The water level within all segments of a channel [m]."""
+    """The water level within all segments of a channel [m].
+
+    Parameter |NmbSegments| determines the length of |WaterLevels|:
+
+    >>> from hydpy.models.sw1d_channel import *
+    >>> parameterstep()
+    >>> nmbsegments(2)
+    >>> factors.waterlevels.shape
+    (2,)
+
+    |NmbSegments| preserves existing values if the number of segments does not change:
+
+    >>> factors.waterlevels = 1.0, 2.0
+    >>> nmbsegments(2)
+    >>> factors.waterlevels
+    waterlevels(1.0, 2.0)
+
+    Changing the number of segments resets the values:
+
+    >>> nmbsegments(1)
+    >>> factors.waterlevels
+    waterlevels(nan)
+    """
 
     NDIM: Final[Literal[1]] = 1
+
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        if isinstance(p, sw1d_control.NmbSegments):
+            self.__hydpy__change_shape_if_necessary__((p.value,))
 
 
 class WaterLevelUpstream(sequencetools.FactorSequence):

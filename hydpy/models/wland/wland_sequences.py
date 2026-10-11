@@ -6,9 +6,10 @@ from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 from hydpy.models.wland import wland_control
 from hydpy.models.wland import wland_masks
+from hydpy.models.wland import wland_variables
 
 
-class BaseFluxSequence1D(sequencetools.FluxSequence):
+class BaseFluxSequence1D(wland_variables.MixinHRUs, sequencetools.FluxSequence):
     """Base class for |FluxSequence1DComplete| and |FluxSequence1DLand| that supports
     aggregation with respect to |AUR|."""
 
@@ -81,7 +82,9 @@ class FluxSequence1DSoil(BaseFluxSequence1D):
     mask = wland_masks.Soil()
 
 
-class StateSequence1DLand(sequencetools.StateSequence, abc.ABC):
+class StateSequence1DLand(
+    wland_variables.MixinHRUs, sequencetools.StateSequence, abc.ABC
+):
     """Base class for 1-dimensional state sequences that support aggregation with
     respect to |AUR| for all land-related hydrological response units.
 

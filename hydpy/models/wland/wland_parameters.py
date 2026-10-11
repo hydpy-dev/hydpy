@@ -12,6 +12,7 @@ from hydpy.models.wland import wland_constants
 
 # from hydpy.models.wland import wland_model  # actual import below
 from hydpy.models.wland import wland_masks
+from hydpy.models.wland import wland_variables
 
 if TYPE_CHECKING:
     from hydpy.core import variabletools
@@ -142,7 +143,9 @@ not be set based on the given keyword arguments.
         return f"{self.name}({objecttools.repr_(value)})"
 
 
-class LanduseParameterLand(parametertools.ZipParameter, abc.ABC):
+class LanduseParameterLand(
+    wland_variables.MixinHRUs, parametertools.ZipParameter, abc.ABC
+):
     """Base class for 1-dimensional parameters relevant for all land-related units.
 
     We take the parameter |DDT| as an example.  You can define its values by using the

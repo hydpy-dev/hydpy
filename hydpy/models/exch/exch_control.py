@@ -192,14 +192,25 @@ of element `?`, 2 values are provided.
 `ypoints` of element `?`, the following error occurred: could not convert string to \
 float: 'xy'
 
-    Changing the number of branches during runtime might result in erroneous
-    connections to the |Node| objects:
+    Changing the number of branches during runtime might result in erroneous connections
+    to the |Node| objects:
 
     >>> ypoints(branch1=[1.0, 2.0],
     ...         branch2=[2.0, 4.0])
     >>> ypoints
     ypoints(branch1=[1.0, 2.0],
             branch2=[2.0, 4.0])
+
+    Redefining the supporting points without changing the number of branches does not
+    affect existing values:
+
+    >>> fluxes.outputs = 1.0, 2.0
+    >>> ypoints(branch1=[1.0, 3.0],
+    ...         branch2=[2.0, 5.0])
+    >>> fluxes.outputs
+    outputs(branch1=1.0,
+            branch2=2.0)
+
     >>> ypoints(branch1=[1.0, 2.0])
     Traceback (most recent call last):
     ...
@@ -259,7 +270,8 @@ sequence and connect it to the respective outlet nodes properly.
                 )
         if not exceptiontools.attrready(branched, "shape"):
             branched.shape = shape[0]
-        self.subpars.pars.model.sequences.fluxes.outputs.shape = shape[0]
+        outputs = self.subpars.pars.model.sequences.fluxes.outputs
+        outputs.__hydpy__change_shape_if_necessary__((shape[0],))
         self.subpars.pars.model.nodenames.clear()
         for idx, key in enumerate(sorted(kwargs.keys())):
             setattr(self, key, self.values[idx])
@@ -868,7 +880,7 @@ the given one has one input and two outputs.
             )
 
 
-class ObserverNodes(parametertools.Parameter):
+class ObserverNodes(parametertools.NmbParameter):
     """The number of the considered observer nodes [-].
 
     Parameter |ObserverNodes| requires the names of all observer nodes that need
@@ -889,8 +901,6 @@ relevant observation nodes, but the first given value is of type `int`.
     |exch_observers.X|:
 
     >>> observernodes("node_1", "node_2")
-    >>> observers.x.shape
-    (2,)
     >>> observers.x.observernodes
     ('node_1', 'node_2')
 
@@ -900,8 +910,6 @@ relevant observation nodes, but the first given value is of type `int`.
     2
     """
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (0, None)
 
     def __call__(self, *observernodes: str) -> None:
@@ -914,10 +922,8 @@ relevant observation nodes, but the first given value is of type `int`.
                     f"{p.number_to_words(p.ordinal(i + 1))} given value is of type "
                     f"`{type(node).__name__}`."
                 )
-        self.value = len(observernodes)
-        x = self.subpars.pars.model.sequences.observers.x
-        x.shape = self.value
-        x.observernodes = observernodes
+        super().__call__(len(observernodes))
+        self.subpars.pars.model.sequences.observers.x.observernodes = observernodes
 
     def __repr__(self) -> str:
         if self._valueready:

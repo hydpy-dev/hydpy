@@ -229,7 +229,7 @@ class FastAccessOutputSequence(FastAccessIOSequence):
 class FastAccessLinkSequence(FastAccessIOSequence):
     """|FastAccessIOSequence| subclass specialised for link sequences."""
 
-    def alloc_pointer(self, name: str, shape: int | tuple[int, ...]) -> None:
+    def alloc_pointer(self, name: str, shape: int) -> None:
         """Allocate enough memory for the given vector length of the |LinkSequence|
         object's pointer with the given name.
 
@@ -4023,6 +4023,9 @@ requested, but not prepared yet via `set_pointer`.
             proxy = super(__class__, type(self))  # type: ignore[name-defined]
             proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
             if (shape != old_shape) and (self.NDIM == 1):
+                if isinstance(shape, tuple):
+                    assert len(shape) == 1
+                    shape = shape[0]
                 self.fastaccess.dealloc_pointer(self.name)
                 self.fastaccess.alloc_pointer(self.name, shape)
                 setattr(self.fastaccess, "len_" + self.name, shape)

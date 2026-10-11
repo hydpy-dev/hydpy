@@ -186,6 +186,26 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
     >>> uh("gr_uh2", x4=1.5)
     >>> print_vector(uh.values)
     0.181444, 0.637113, 0.181444
+
+    |UH| adjusts the shape of the log sequence |QUH| to the number of ordinates.  To
+    prevent losing information, it does so only when necessary:
+
+    >>> logs.quh = 1.0, 2.0, 0.0
+    >>> uh([0.2, 0.5, 0.3])
+    >>> logs.quh
+    quh(1.0, 2.0, 0.0)
+    >>> uh("triangle", tb=3.0)
+    >>> logs.quh
+    quh(1.0, 2.0, 0.0)
+    >>> uh("gr_uh2", x4=1.5)
+    >>> logs.quh
+    quh(1.0, 2.0, 0.0)
+
+    Changing the number of ordinates resets the logged values:
+
+    >>> uh("gr_uh1", x4=0.8)
+    >>> logs.quh
+    quh(nan)
     """
 
     NDIM: Final[Literal[1]] = 1
@@ -237,7 +257,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
             else:
                 try:
                     self.shape = len(args[0])
-                    self.subpars.pars.model.sequences.logs.quh.shape = self.shape
+                    self._adjust_quh_shape()
                 except TypeError:
                     raise TypeError(
                         f"The expected type of the positional argument is a "
@@ -332,14 +352,20 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
             return f"{self.name}({', '.join(strings)})"
         return super().__repr__()
 
+    def _adjust_quh_shape(self) -> None:
+        """Adjust the shape of log sequence |QUH| to the current shape of |UH| if
+        necessary."""
+        quh = self.subpars.pars.model.sequences.logs.quh
+        quh.__hydpy__change_shape_if_necessary__(self.shape)
+
     def _set_triangle_uh(self, tb: float, tp: float | None = None) -> None:
         """Calculate and set the ordinates of a triangle unit hydrograph."""
 
-        quh = self.subpars.pars.model.sequences.logs.quh
         # Determine UH parameters...
         if tb <= 1.0:
             # ...when Tb smaller than or equal to the simulation time step.
-            self.shape = quh.shape = 1
+            self.shape = 1
+            self._adjust_quh_shape()
             self.values = 1.0
         else:
             full = tb
@@ -361,7 +387,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
             # Calculate the triangle ordinate(s)...
             self.shape = full_c
             uh = self.values.copy()
-            quh.shape = full_c
+            self._adjust_quh_shape()
             slope1 = 1 / peak
             slope2 = -1 / (full - peak)
             # ...of the rising limb.
@@ -394,7 +420,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
         modifying base flow.
         """
         self.shape, self.values = self._det_gr_uh(x4=x4, beta=beta, left=True)
-        self.subpars.pars.model.sequences.logs.quh.shape = self.shape
+        self._adjust_quh_shape()
 
     def set_gr_uh2(self, x4: float, beta: float = 2.5) -> None:
         """Calculate and set the ordinates of a unit hydrograph as done by GR4J for
@@ -402,7 +428,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
         shape_left, values_left = self._det_gr_uh(x4=x4, beta=beta, left=True)
         shape_right, values_right = self._det_gr_uh(x4=x4, beta=beta, left=False)
         self.shape = shape_left + shape_right - 1
-        self.subpars.pars.model.sequences.logs.quh.shape = self.shape
+        self._adjust_quh_shape()
         self.values[:] = 0.0
         self.values[:shape_left] = values_left / 2.0
         self.values[-shape_right:] += values_right / 2.0
@@ -439,26 +465,10 @@ class RetentionTime(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class NmbStorages(parametertools.Parameter):
-    """Number of storages of the linear storage cascade [-].
+class NmbStorages(parametertools.NmbParameter):
+    """Number of storages of the linear storage cascade [-]."""
 
-    Defining a value for parameter |NmbStorages| automatically sets the shape of state
-    sequence |SC|:
-
-    >>> from hydpy.models.rconc import *
-    >>> parameterstep()
-    >>> nmbstorages(5)
-    >>> states.sc.shape
-    (5,)
-    """
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (0, None)
-
-    def __call__(self, *args, **kwargs) -> None:
-        super().__call__(*args, **kwargs)
-        self.subpars.pars.model.sequences.states.sc.shape = self.value
 
 
 class NmbSteps(parametertools.Parameter):

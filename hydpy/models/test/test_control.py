@@ -17,15 +17,7 @@ class K(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class N(parametertools.Parameter):
+class N(parametertools.NmbParameter):
     """Number of storages [-]."""
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (1, None)
-
-    def __call__(self, *args, **kwargs) -> None:
-        super().__call__(*args, **kwargs)
-        seqs = self.subpars.pars.model.sequences
-        seqs.states.sv.shape = self.value
-        seqs.fluxes.qv.shape = self.value

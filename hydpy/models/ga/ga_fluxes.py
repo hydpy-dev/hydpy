@@ -2,51 +2,52 @@
 
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.ga import ga_variables
 
 
-class SurfaceWaterSupply(sequencetools.FluxSequence):
+class SurfaceWaterSupply(ga_variables.MixinSoils, sequencetools.FluxSequence):
     """Water supply to the soil's surface [mm/T]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class SoilWaterSupply(sequencetools.FluxSequence):
+class SoilWaterSupply(ga_variables.MixinSoils, sequencetools.FluxSequence):
     """Water supply to the soil's body (e.g., capillary rise) [mm/T]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class Demand(sequencetools.FluxSequence):
+class Demand(ga_variables.MixinSoils, sequencetools.FluxSequence):
     """(Potential) water withdrawal from the soil's surface and body [mm/T]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class Infiltration(sequencetools.FluxSequence):
+class Infiltration(ga_variables.MixinSoils, sequencetools.FluxSequence):
     """Infiltration through the soil's surface [mm/T]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class Percolation(sequencetools.FluxSequence):
+class Percolation(ga_variables.MixinSoils, sequencetools.FluxSequence):
     """Percolation through the soil's bottom [mm/T]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class SoilWaterAddition(sequencetools.FluxSequence):
+class SoilWaterAddition(ga_variables.MixinSoils, sequencetools.FluxSequence):
     """Actual addition of soil water due to processes like capillary rise [mm/T]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class Withdrawal(sequencetools.FluxSequence):
+class Withdrawal(ga_variables.MixinSoils, sequencetools.FluxSequence):
     """Withdrawal from the soil's surface or body (e.g. due to evaporation) [mm/T]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class SurfaceRunoff(sequencetools.FluxSequence):
+class SurfaceRunoff(ga_variables.MixinSoils, sequencetools.FluxSequence):
     """Surface runoff [mm/T]."""
 
     NDIM: Final[Literal[1]] = 1

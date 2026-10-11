@@ -4,16 +4,42 @@ import inflect
 
 from hydpy.core import devicetools
 from hydpy.core import objecttools
+from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.exch import exch_control
 
 
 class X(sequencetools.ObserverSequence):
-    """Arbitrary kind of input data [?]."""
+    """Arbitrary kind of input data [?].
+
+    Parameter |ObserverNodes| determines the length of |exch_observers.X|:
+
+    >>> from hydpy.models.exch_interp import *
+    >>> parameterstep()
+    >>> observernodes("node_1", "node_2")
+    >>> observers.x.shape
+    (2,)
+
+    To prevent losing information, |ObserverNodes| changes the shape of
+    |exch_observers.X| only when necessary:
+
+    >>> observers.x = 1.0, 2.0
+    >>> observernodes("node_3", "node_4")
+    >>> observers.x
+    x(1.0, 2.0)
+    >>> observernodes("node_1")
+    >>> observers.x
+    x(nan)
+    """
 
     NDIM: Final[Literal[1]] = 1
 
     _observernodes: tuple[str, ...] | None = None
+
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        if isinstance(p, exch_control.ObserverNodes):
+            self.__hydpy__change_shape_if_necessary__((p.value,))
 
     @property
     def observernodes(self) -> tuple[str, ...]:

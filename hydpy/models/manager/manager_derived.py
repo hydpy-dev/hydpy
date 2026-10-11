@@ -13,6 +13,7 @@ from hydpy.core.typingtools import *
 from hydpy.auxs import smoothtools
 from hydpy.models.manager import manager_parameters
 from hydpy.models.manager import manager_control
+from hydpy.models.manager import manager_variables
 
 # from hydpy.models import manager_lwc   actual import below
 
@@ -120,6 +121,16 @@ class Adjacency(parametertools.Parameter):
     """An (incomplete) adjacency matrix of the target node and all source elements [-].
 
     See method |Adjacency.update| for more information.
+
+    Parameter |Sources| determines the shape of |Adjacency|.  The number of rows equals
+    the number of sources, and the number of columns equals the number of sources plus
+    one (for the target node):
+
+    >>> from hydpy.models.manager import *
+    >>> parameterstep()
+    >>> sources("a", "b")
+    >>> derived.adjacency.shape
+    (2, 3)
     """
 
     NDIM: Final[Literal[2]] = 2
@@ -299,19 +310,14 @@ and the target node `t`, but there must be exactly one.
         return potential_targets[0]
 
 
-class Order(parametertools.Parameter):
+class Order(manager_variables.MixinSources, parametertools.Parameter):
     """The processing order of all source elements [-].
 
     See method |Order.update| for more information.
     """
 
-    NDIM: Final[Literal[1]] = 1
     TYPE: Final = int
     SPAN = (0, None)
-
-    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
-        if isinstance(p, manager_control.Sources):
-            self.__hydpy__change_shape_if_necessary__((p.value,))
 
     def update(self) -> None:
         """Determine the processing order based on a (reversed) topological sort.

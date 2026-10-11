@@ -148,17 +148,25 @@ Our `exchange models` enable flexible (material and informational) data exchange
 between model instances of other types and are often helpful to simulate water
 management measures.
 
-:ref:`HydPy-Exch` implements all available `exchange models`.  |exch_branch_hbv96| and
-|exch_weir_hbv96| both closely emulate functionalities of HBV96
-:cite:p:`ref-Lindstrom1997HBV96`.  |exch_branch_hbv96| takes inflow (for example, from
-a single upstream `stream model` instance) and distributes it to multiple locations
-downstream (for example, to two downstream `stream model` instances).
-|exch_weir_hbv96| is a highly specialised model which allows for bidirectional flow
-between two other model instances (usually lake model instances) depending on the
-current water level gradient.
+:ref:`HydPy-Exch` implements all available `exchange models`.
 
-Note that :ref:`HydPy-Exch` also provides submodels like
-|exch_waterlevel| (see below).
+|exch_branch_rules| takes the summed input of one or more inlet nodes (for example, the
+inflow from upstream `stream model` instances) and distributes it to an arbitrary
+number of locations (for example, to multiple downstream `stream model` instances)
+based on seasonally varying interpolation rules.  |exch_branch_io| modifies the flow
+through a stream by withdrawing or supplying water as externally requested (or, where
+requests are missing, as estimated by seasonal interpolation rules), in agreement with
+the LARSIM options "VERZ" and "ERWV" :cite:p:`ref-LARSIM`.  |exch_weir_hbv96| closely
+emulates the corresponding functionality of HBV96 :cite:p:`ref-Lindstrom1997HBV96`.  It
+is a highly specialised model that allows bidirectional flow between two other model
+instances (usually lake model instances), depending on the current water-level
+gradient.  |exch_branch_hbv96|, which emulates the branching functionality of HBV96, is
+deprecated and will be removed in HydPy 8.0 (replaced by |exch_branch_rules|).
+
+:ref:`HydPy-Exch` also provides submodels like |exch_waterlevel| (see below) and
+|exch_water_transfer_io|.  The latter lets lake models like |dam_llake| and
+|dam_lreservoir| withdraw or receive water as externally requested (or, where requests
+are missing, as estimated by volume-dependent rules).
 
 .. _managing_models:
 

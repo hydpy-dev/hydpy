@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-import itertools
-
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
@@ -33,64 +31,14 @@ class Gef(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class GTS(parametertools.Parameter):
-    """Anzahl Gewässerteilstrecken (number of channel subsections) [-].
+class GTS(parametertools.NmbParameter):
+    """Anzahl Gewässerteilstrecken (number of channel subsections) [-]."""
 
-    Calling the parameter |GTS| prepares the shape of all 1-dimensional
-    sequences for which each entry corresponds to an individual channel
-    subsection:
-
-    >>> from hydpy.models.kinw import *
-    >>> parameterstep()
-    >>> gts(3)
-    >>> states.h
-    h(nan, nan, nan)
-    """
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (0, None)
-
-    def __call__(self, *args, **kwargs) -> None:
-        super().__call__(*args, **kwargs)
-        seqs = self.subpars.pars.model.sequences
-        for seq in itertools.chain(seqs.fluxes, seqs.states, seqs.aides):
-            if seq.NDIM:
-                seq.shape = self.value
 
 
 class NmbSegments(parametertools.NmbParameter):
-    """Number of channel segments [-].
-
-    |NmbSegments| prepares the shape of some 1-dimensional sequences automatically:
-
-    >>> from hydpy.models.kinw import *
-    >>> parameterstep()
-    >>> nmbsegments(2)
-    >>> nmbsegments
-    nmbsegments(2)
-    >>> states.watervolume.shape
-    (2,)
-    >>> factors.waterdepth.shape
-    (2,)
-    >>> fluxes.internalflow.shape
-    (1,)
-
-    |NmbSegments| preserves existing values if the number of segments does not change:
-
-    >>> states.watervolume = 1.0, 2.0
-    >>> nmbsegments(2)
-    >>> states.watervolume
-    watervolume(1.0, 2.0)
-
-    Setting its value to zero is allowed:
-
-    >>> nmbsegments(0)
-    >>> states.watervolume.shape
-    (0,)
-    >>> fluxes.internalflow.shape
-    (0,)
-    """
+    """Number of channel segments [-]."""
 
     SPAN = (0, None)
 

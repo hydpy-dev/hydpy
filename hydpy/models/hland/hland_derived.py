@@ -11,6 +11,7 @@ from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.hland import hland_parameters
 from hydpy.models.hland import hland_control
+from hydpy.models.hland import hland_variables
 from hydpy.models.hland.hland_constants import ILAKE, GLACIER, SEALED
 
 _ZERO_DIVISION_MESSAGE = "divide by zero encountered in"
@@ -226,7 +227,7 @@ class RelLowerZoneArea(parametertools.Parameter):
         self(numpy.sum(temp))
 
 
-class ZoneAreaRatios(parametertools.Parameter):
+class ZoneAreaRatios(hland_variables.MixinZonesZones, parametertools.Parameter):
     """Ratios of all zone combinations [-]."""
 
     NDIM: Final[Literal[2]] = 2
@@ -252,7 +253,7 @@ class ZoneAreaRatios(parametertools.Parameter):
         self.values = relzoneareas[:, numpy.newaxis] / relzoneareas
 
 
-class IndicesZoneZ(parametertools.Parameter):
+class IndicesZoneZ(hland_variables.MixinZones, parametertools.Parameter):
     """Indices of the zones sorted by altitude [-]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -400,7 +401,7 @@ at least one cycle: (1, 4), (4, 5), and (5, 1).
             self.values = 0
 
 
-class SRedEnd(parametertools.Parameter):
+class SRedEnd(hland_variables.MixinZones, parametertools.Parameter):
     """Flags that indicate the "dead ends" of snow redistribution within a subbasin."""
 
     NDIM: Final[Literal[1]] = 1
@@ -516,7 +517,7 @@ class DT(parametertools.Parameter):
         self(1.0 / self.subpars.pars.control.recstep)
 
 
-class W0(parametertools.Parameter):
+class W0(hland_variables.MixinZones, parametertools.Parameter):
     """Weight for calculating surface runoff [-]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -545,7 +546,7 @@ class W0(parametertools.Parameter):
             self.values = numpy.exp(-1.0 / self.subpars.pars.control.k0.values)
 
 
-class W1(parametertools.Parameter):
+class W1(hland_variables.MixinZones, parametertools.Parameter):
     """Weight for calculating interflow [-]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -574,7 +575,7 @@ class W1(parametertools.Parameter):
             self.values = numpy.exp(-1.0 / self.subpars.pars.control.k1.values)
 
 
-class W2(parametertools.Parameter):
+class W2(hland_variables.MixinZones, parametertools.Parameter):
     """Weight for calculating the quick response base flow [-]."""
 
     NDIM: Final[Literal[1]] = 1

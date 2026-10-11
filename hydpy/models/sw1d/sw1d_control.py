@@ -5,14 +5,22 @@ from hydpy.core import parametertools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 from hydpy.auxs import interptools
-from hydpy.models.sw1d import sw1d_fluxes
 
 
-class NmbSegments(parametertools.Parameter):
-    """The number of channel segments [-]."""
+class NmbSegments(parametertools.NmbParameter):
+    """The number of channel segments [-].
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
+    |NmbSegments| sets the number of storage and routing submodels:
+
+    >>> from hydpy.models.sw1d_channel import *
+    >>> parameterstep()
+    >>> nmbsegments(2)
+    >>> model.storagemodels.number
+    2
+    >>> model.routingmodels.number
+    3
+    """
+
     SPAN = (0, None)
 
     def __call__(self, *args, **kwargs) -> None:
@@ -20,9 +28,6 @@ class NmbSegments(parametertools.Parameter):
         model = self.subpars.pars.model
         model.storagemodels.number = self.value
         model.routingmodels.number = self.value + 1
-        for subseqs in self.subpars.pars.model.sequences:
-            for seq in (s for s in subseqs if s.NDIM == 1):
-                seq.shape = self.value + isinstance(seq, sw1d_fluxes.Discharges)
 
 
 class Length(parametertools.Parameter):

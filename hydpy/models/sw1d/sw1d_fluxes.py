@@ -1,7 +1,9 @@
 # pylint: disable=missing-module-docstring
 
+from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.sw1d import sw1d_control
 
 
 class Inflow(sequencetools.FluxSequence):
@@ -48,7 +50,20 @@ class DischargeVolume(sequencetools.FluxSequence):
 
 class Discharges(sequencetools.FluxSequence):
     """The discharges between all channel segments, including the flow into the first
-    and out of the last one [m³/s]."""
+    and out of the last one [m³/s].
+
+    The length of |Discharges| exceeds the value of parameter |NmbSegments| by one:
+
+    >>> from hydpy.models.sw1d_channel import *
+    >>> parameterstep()
+    >>> nmbsegments(2)
+    >>> fluxes.discharges.shape
+    (3,)
+    """
 
     NDIM: Final[Literal[1]] = 1
     PLUS = 1
+
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        if isinstance(p, sw1d_control.NmbSegments):
+            self.__hydpy__change_shape_if_necessary__((p.value + 1,))

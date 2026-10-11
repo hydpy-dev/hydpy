@@ -6,36 +6,18 @@ from hydpy import config
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.conv import conv_control
-from hydpy.models.conv import conv_fluxes
 
 
-class NmbInputs(parametertools.Parameter):
+class NmbInputs(parametertools.NmbParameter):
     """The number of inlet nodes [-]"""
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (1, None)
 
     CONTROLPARAMETERS = (conv_control.InputCoordinates,)
 
-    _DEPENDENT_SEQUENCES = (
-        conv_fluxes.Inputs,
-        conv_fluxes.InputPredictions,
-        conv_fluxes.InputResiduals,
-    )
-
-    def __call__(self, *args, **kwargs) -> None:
-        super().__call__(*args, **kwargs)
-        for sequence in self.subpars.pars.model.sequences.fluxes:
-            if isinstance(sequence, self._DEPENDENT_SEQUENCES):
-                sequence.shape = self.value
-
     def update(self) -> None:
         """Determine the number of inlet nodes via inspecting control parameter
         |InputCoordinates|.
-
-        Note that invoking method |NmbInputs.update| like calling the parameter
-        directly also sets the shape of flux sequence |conv_fluxes.Inputs|:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -45,45 +27,20 @@ class NmbInputs(parametertools.Parameter):
         >>> derived.nmbinputs.update()
         >>> derived.nmbinputs
         nmbinputs(2)
-        >>> fluxes.inputs.shape
-        (2,)
-
-        >>> derived.nmbinputs(3)
-        >>> derived.nmbinputs
-        nmbinputs(3)
-        >>> fluxes.inputs.shape
-        (3,)
         """
         self(self.subpars.pars.control.inputcoordinates.shape[0])
 
 
-class NmbOutputs(parametertools.Parameter):
+class NmbOutputs(parametertools.NmbParameter):
     """The number of outlet nodes [-]"""
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (1, None)
 
     CONTROLPARAMETERS = (conv_control.OutputCoordinates,)
 
-    _DEPENDENT_SEQUENCES = (
-        conv_fluxes.Outputs,
-        conv_fluxes.OutputPredictions,
-        conv_fluxes.OutputResiduals,
-    )
-
-    def __call__(self, *args, **kwargs) -> None:
-        super().__call__(*args, **kwargs)
-        for sequence in self.subpars.pars.model.sequences.fluxes:
-            if isinstance(sequence, self._DEPENDENT_SEQUENCES):
-                sequence.shape = self.value
-
     def update(self) -> None:
         """Determine the number of inlet nodes via inspecting control parameter
         |OutputCoordinates|.
-
-        Note that invoking method |NmbOutputs.update| like calling the parameter
-        directly also sets the shape of flux sequence |conv_fluxes.Outputs|:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -93,14 +50,6 @@ class NmbOutputs(parametertools.Parameter):
         >>> derived.nmboutputs.update()
         >>> derived.nmboutputs
         nmboutputs(2)
-        >>> fluxes.outputs.shape
-        (2,)
-
-        >>> derived.nmboutputs(3)
-        >>> derived.nmboutputs
-        nmboutputs(3)
-        >>> fluxes.outputs.shape
-        (3,)
         """
         self(self.subpars.pars.control.outputcoordinates.shape[0])
 

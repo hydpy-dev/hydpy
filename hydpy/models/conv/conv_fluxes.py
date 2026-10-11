@@ -2,9 +2,10 @@
 
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
+from hydpy.models.conv import conv_variables
 
 
-class Inputs(sequencetools.FluxSequence):
+class Inputs(conv_variables.MixinInputs, sequencetools.FluxSequence):
     """The (unmodified) values supplied by the input nodes [?]."""
 
     NDIM: Final[Literal[1]] = 1
@@ -22,32 +23,32 @@ class ActualFactor(sequencetools.FluxSequence):
     NDIM: Final[Literal[0]] = 0
 
 
-class InputPredictions(sequencetools.FluxSequence):
+class InputPredictions(conv_variables.MixinInputs, sequencetools.FluxSequence):
     """The values of the input nodes predicted by a regression model [?]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class OutputPredictions(sequencetools.FluxSequence):
+class OutputPredictions(conv_variables.MixinOutputs, sequencetools.FluxSequence):
     """The values of the output nodes predicted by a regression model [?]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class InputResiduals(sequencetools.FluxSequence):
+class InputResiduals(conv_variables.MixinInputs, sequencetools.FluxSequence):
     """The exact residuals of a regression model calculated for the input nodes [?]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class OutputResiduals(sequencetools.FluxSequence):
+class OutputResiduals(conv_variables.MixinOutputs, sequencetools.FluxSequence):
     """The guessed residuals of a regression model interpolated for the input nodes
     [?]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class Outputs(sequencetools.FluxSequence):
+class Outputs(conv_variables.MixinOutputs, sequencetools.FluxSequence):
     """The final interpolation results estimated for the output nodes [?]."""
 
     NDIM: Final[Literal[1]] = 1

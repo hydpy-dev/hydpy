@@ -10,12 +10,15 @@ from hydpy.core.typingtools import *
 from hydpy.models.lland.lland_constants import CONSTANTS
 from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_masks
+from hydpy.models.lland import lland_variables
 
 if TYPE_CHECKING:
     from hydpy.models.lland import lland_derived
 
 
-class ParameterComplete(parametertools.ZipParameter, abc.ABC):
+class ParameterComplete(
+    lland_variables.MixinHRUs, parametertools.ZipParameter, abc.ABC
+):
     """Base class for 1-dimensional parameters relevant for all types
     of landuse.
 

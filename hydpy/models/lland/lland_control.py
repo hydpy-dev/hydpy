@@ -13,11 +13,11 @@ from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
-from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
 from hydpy.models.lland.lland_constants import CONSTANTS as CONSTANTS_
 from hydpy.models.lland import lland_parameters
+from hydpy.models.lland import lland_variables
 
 # spatial information
 
@@ -30,54 +30,13 @@ class FT(parametertools.Parameter):
     SPAN = (1e-10, None)
 
 
-class NHRU(parametertools.Parameter):
-    """Anzahl der Hydrotope (number of hydrological response units) [-].
+class NHRU(parametertools.NmbParameter):
+    """Anzahl der Hydrotope (number of hydrological response units) [-]."""
 
-    Note that |NHRU| determines the length of most 1-dimensional |lland.DOCNAME.long|
-    parameters and sequences.  This requires that the value of the respective |NHRU|
-    instance is set before any of the values of these 1-dimensional parameters or
-    sequences are set.  Changing the value of the |NHRU| instance necessitates setting
-    their values again:
-
-    Examples:
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep("1d")
-        >>> nhru(5)
-        >>> control.kg.shape
-        (5,)
-        >>> control.kapgrenz.shape
-        (5, 2)
-        >>> fluxes.tkor.shape
-        (5,)
-        >>> control.wg2z.shape
-        (12,)
-    """
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (1, None)
 
-    def __call__(self, *args, **kwargs) -> None:
-        super().__call__(*args, **kwargs)
 
-        skippars = (parametertools.MonthParameter, parametertools.MOYParameter)
-        for subpars in self.subpars.pars.model.parameters:
-            for par in subpars:
-                if (par.NDIM == 1) and not isinstance(par, skippars):
-                    par.shape = self.value
-        self.subpars.kapgrenz.shape = self.value, 2
-
-        skipseqs = (sequencetools.LogSequences, sequencetools.LinkSequences)
-        sequences = self.subpars.pars.model.sequences
-        for subseqs in sequences:
-            if not isinstance(subseqs, skipseqs):
-                for seq in subseqs:
-                    if seq.NDIM == 1:
-                        seq.shape = self.value
-
-
-class Lnk(parametertools.NameParameter):
+class Lnk(lland_variables.MixinHRUs, parametertools.NameParameter):
     """Landnutzungsklasse (land use class) [-].
 
     For increasing legibility, |lland.DOCNAME.long| constants are used for string
@@ -1204,6 +1163,21 @@ could not be set based on the given keyword arguments.
     ...
     ValueError: Parameter `kapgrenz` of element `?` supports the options \
 `FK`, `0_WMax/10`, and `FK/2_FK`, but `NFk` is given.
+
+    Parameter |NHRU| determines the length of the first axis of |KapGrenz|.  Changing
+    the number of hydrological response units requires resetting its values:
+
+    >>> nhru(2)
+    >>> kapgrenz.shape
+    (2, 2)
+    >>> kapgrenz(10.0, 40.0)
+    >>> nhru(2)
+    >>> kapgrenz
+    kapgrenz([[10.0, 40.0],
+              [10.0, 40.0]])
+    >>> nhru(1)
+    >>> kapgrenz
+    kapgrenz(?)
     """
 
     CONTROLPARAMETERS = (WMax, FK)
@@ -1211,6 +1185,10 @@ could not be set based on the given keyword arguments.
     TYPE: Final = float
     INIT = 0.0
     KEYWORDS = {"option": parametertools.Keyword(name="option")}
+
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        if isinstance(p, NHRU):
+            self.__hydpy__change_shape_if_necessary__((p.value, 2))
 
     def __call__(self, *args, **kwargs) -> None:
         self._keywordarguments = parametertools.KeywordArguments(False)

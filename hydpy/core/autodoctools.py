@@ -350,7 +350,6 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
     moduledoc = namespace.get("__doc__")
     assert isinstance(moduledoc, str)
     basemodulename = namespace["__name__"].split(".")[-1]
-    member2applicationmodels = _get_member2applicationmodels(basemodulename)
     modules = {
         key: value
         for key, value in namespace.items()
@@ -358,6 +357,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
             isinstance(value, types.ModuleType) and key.startswith(basemodulename + "_")
         )
     }
+    member2applicationmodels = _get_member2applicationmodels(basemodulename)
     substituter = Substituter(hydpy.substituter)
     lines = []
     specification = "model"

@@ -1111,15 +1111,15 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P_]):
         args = copy.deepcopy(args)
         kwargs = copy.deepcopy(kwargs)
         model.preparemethod2arguments[self._wrapped.__name__] = args, kwargs
-        control = model.parameters.control
+        regular = model.parameters.control.regular
         if self.testmode:
-            if (name := self.targetparameter.name) in control.names:
-                par = control[name]
+            if (name := self.targetparameter.name) in regular.names:
+                par = regular[name]
                 self.values_test[model] = ((args, kwargs), copy.deepcopy(par.value))
         else:
-            if (name := self.targetparameter.name) in control.names:
+            if (name := self.targetparameter.name) in regular.names:
                 self._wrapped(model, *args, **kwargs)
-                par = control[name]
+                par = regular[name]
                 self.values_orig[model] = ((args, kwargs), copy.deepcopy(par.value))
 
 

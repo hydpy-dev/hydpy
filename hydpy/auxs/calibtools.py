@@ -32,7 +32,7 @@ from hydpy.core.typingtools import *
 if TYPE_CHECKING:
     from hydpy.models.arma import arma_control
 
-TypeParameter = TypeVar("TypeParameter", bound=parametertools.Parameter)
+TypeParameter = TypeVar("TypeParameter", bound=parametertools.AnyParameter)
 TypeRule1 = TypeVar(
     "TypeRule1", bound=Union["Replace", "Add", "Multiply", "ReplaceIUH", "MultiplyIUH"]
 )
@@ -275,7 +275,7 @@ class FactorAdaptor(Adaptor):
         self._mask = mask if ((mask is None) or isinstance(mask, str)) else mask.name
 
     def __call__(self, target: parametertools.Parameter) -> None:
-        ref = target.subpars[self._reference]
+        ref = target.subpars.regular[self._reference]
         if self._mask:
             mask = ref.get_submask(self._mask)
             values = ref.values[mask] if ref.NDIM else ref.value
@@ -548,6 +548,26 @@ define a control parameter named `fc`.
 following error occurred: Parameter types are inconsistent: \
 `hydpy.models.hland.hland_control.FC` vs \
 `hydpy.models.evap.evap_control.SoilMoistureLimit`.
+
+    Method |Rule.check_parameter| validates all found parameters.  By default, it
+    accepts only regular parameters, not special parameters (see |SpecialParameter|)
+    like |arma_control.Responses| of application model |arma_rimorido|:
+
+    Most rule types shipped with HydPy support only regular parameters, not special
+    parameters:.
+
+    >>> from hydpy import Element, prepare_model, Selection
+    >>> element = Element("arma", inlets="arma_in", outlets="arma_out")
+    >>> element.model = prepare_model("arma_rimorido")
+    >>> rule = Replace(name="?",
+    ...                parameter="responses",
+    ...                value=1.0,
+    ...                selections=[Selection("arma", elements=element)])
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to initialise the `Replace` rule object `?`, the \
+following error occurred: Rule type `Replace` supports only regular parameters, but \
+`responses` is a special parameter.
     """
 
     name: str
@@ -601,6 +621,7 @@ following error occurred: Parameter types are inconsistent: \
     ) -> None:
 
         def _add_parameter(element: hydpy.Element, parameter: TypeParameter, /) -> None:
+            self.check_parameter(parameter)
             if hasattr(self, "parametertype"):
                 if not isinstance(parameter, self.parametertype):
                     type1 = type(parameter)
@@ -691,6 +712,43 @@ following error occurred: Parameter types are inconsistent: \
                 f"`{name}`"
             )
 
+    def check_parameter(self, parameter: parametertools.AnyParameter, /) -> None:
+        """Raise an error if the rule type cannot handle the given parameter.
+
+        Each |Rule| object calls |Rule.check_parameter| for all parameters it finds
+        during initialisation.  By default, |Rule.check_parameter| accepts all regular
+        parameters (|Parameter| instances) but no special parameters (|SpecialParameter|
+        instances).  See the documentation on class |Rule| for an example.
+
+        Subclasses addressing other parameters (like |RuleIUH|) or requiring additional
+        properties of the given parameters can override |Rule.check_parameter|
+        accordingly.
+        """
+        if not isinstance(parameter, parametertools.Parameter):
+            raise TypeError(
+                f"Rule type `{type(self).__name__}` supports only regular parameters, "
+                f"but `{parameter.name}` is a special parameter."
+            )
+
+    @property
+    def targetattribute(self) -> Target:
+        """The name of the attribute of another object (like an |IUH| object) that
+        the rule addresses instead of the parameter values, or |None| if the rule
+        addresses the parameter values directly.
+
+        |Rule.targetattribute| is always |None| for "normal" rules (Subclasses like
+        |RuleIUH| that calibrate the attributes of other objects to determine the
+        parameter values indirectly must override it):
+
+        >>> from hydpy import Replace
+        >>> from hydpy.core.testtools import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> rule = Replace(name="fc", parameter="fc", value=100.0, model="hland_96")
+        >>> print(rule.targetattribute)
+        None
+        """
+        return None
+
     @property
     def lower_transformed(self) -> float:
         """Reference to |Rule.lower| to be overridden by subclasses that implement some
@@ -709,11 +767,17 @@ following error occurred: Parameter types are inconsistent: \
         instances."""
         return hydpy.Elements(self.element2parameters)
 
+    def _iter_regular_parameters(self) -> Iterator[parametertools.Parameter]:
+        for parameter in self:
+            assert isinstance(parameter, parametertools.Parameter)
+            yield parameter
+
     def _get_original_parameter_values(self) -> tuple[Any, ...]:
+        pars = self._iter_regular_parameters()
         with hydpy.pub.options.parameterstep(self.parameterstep):
             if self.keyword is None:
-                return tuple(par.revert_timefactor(par.value) for par in self)
-            return tuple(par.keywordarguments[self.keyword] for par in self)
+                return tuple(par.revert_timefactor(par.value) for par in pars)
+            return tuple(par.keywordarguments[self.keyword] for par in pars)
 
     @property
     def value(self) -> float:
@@ -816,7 +880,9 @@ value `200.0` instead.
         fc(206.0)
         """
         with hydpy.pub.options.parameterstep(self.parameterstep):
-            for parameter, orig in zip(self, self._original_parameter_values):
+            for parameter, orig in zip(
+                self._iter_regular_parameters(), self._original_parameter_values
+            ):
                 self._update_parameter(parameter, orig)
 
     def _get_parameterstep(self) -> timetools.Period | None:
@@ -828,7 +894,10 @@ value `200.0` instead.
         return self._parameterstep
 
     def _set_parameterstep(self, value: timetools.PeriodConstrArg | None) -> None:
-        if self.keyword is None:
+        time_: bool | None
+        if issubclass(self.parametertype, parametertools.SpecialParameter):
+            time_ = None
+        elif self.keyword is None:
             time_ = self.parametertype.TIME
         else:
             keyword = self.parametertype.KEYWORDS.get(self.keyword, None)
@@ -2099,18 +2168,15 @@ object named `fc`.
     @property
     def parametertypes(
         self,
-    ) -> tuple[tuple[type[parametertools.Parameter], Target], ...]:
-        """The types of all |Parameter| objects addressed by at least one of the
-        handled |Rule| objects.
+    ) -> tuple[tuple[type[parametertools.AnyParameter], Target], ...]:
+        """The types of all |Parameter| and |SpecialParameter| objects addressed by
+        at least one of the handled |Rule| objects.
 
         See the documentation on function |make_rules| for further information.
         """
-        parametertypes: list[tuple[type[parametertools.Parameter], Target]] = []
+        parametertypes: list[tuple[type[parametertools.AnyParameter], Target]] = []
         for rule in self:
-            if isinstance(rule, RuleIUH):
-                parametertypes.append((rule.parametertype, rule.target))
-            else:
-                parametertypes.append((rule.parametertype, None))
+            parametertypes.append((rule.parametertype, rule.targetattribute))
         return variabletools.sort_variables(set(parametertypes))
 
     def _update_values(self, values: Iterable[float], transformed: bool) -> None:
@@ -2195,8 +2261,8 @@ object named `fc`.
         parametertypes: (
             Sequence[
                 (
-                    type[parametertools.Parameter]
-                    | tuple[type[parametertools.Parameter], Target]
+                    type[parametertools.AnyParameter]
+                    | tuple[type[parametertools.AnyParameter], Target]
                 )
             ]
         ) | None = None,
@@ -2369,10 +2435,7 @@ parameterstep="1d"))
         par2idx = {par: idx + 1 for idx, par in enumerate(parametertypes_)}
         sel2jdx = {sel: jdx + delta for jdx, sel in enumerate(selections)}
         for rule in self:
-            if isinstance(rule, RuleIUH):
-                idx = par2idx.get((rule.parametertype, rule.target))
-            else:
-                idx = par2idx.get((rule.parametertype, None))
+            idx = par2idx.get((rule.parametertype, rule.targetattribute))
             if idx is not None:
                 if bounds:
                     if table[idx, 1] in (fillvalue, rule.lower):
@@ -2452,9 +2515,6 @@ class RuleIUH(Rule["arma_control.Responses"], abc.ABC):
     |ReplaceIUH| for further information.
     """
 
-    target: str
-    """Name of the addressed property of the relevant |IUH| subclass."""
-
     update_parameters: bool = True
     """Flag indicating whether method |ReplaceIUH.apply_value| should calculate the 
     |ARMA.coefs| and pass them to the relevant model parameter or not.
@@ -2462,6 +2522,8 @@ class RuleIUH(Rule["arma_control.Responses"], abc.ABC):
     Set this flag to |False| for the first |ReplaceIUH| object when another handles the 
     same elements and is applied afterwards.
     """
+
+    _targetattribute: str
     _element2iuh: dict[str, iuhtools.IUH] | None = None
 
     def __init__(
@@ -2487,7 +2549,53 @@ class RuleIUH(Rule["arma_control.Responses"], abc.ABC):
             selections=selections,
             model=model,
         )
-        self.target = target
+        self._targetattribute = target
+
+    @property
+    def targetattribute(self) -> str:
+        """The name of the addressed property of the relevant |IUH| subclass.
+
+        >>> from hydpy import Element, prepare_model, ReplaceIUH, Selection
+        >>> element = Element("arma", inlets="in", outlets="out")
+        >>> element.model = prepare_model("arma_rimorido")
+        >>> element.model.parameters.control.responses(((), (1.0,)))
+        >>> rule = ReplaceIUH(name="u",
+        ...                   target="u",
+        ...                   parameter="responses",
+        ...                   value=1.0,
+        ...                   selections=[Selection("arma", elements=element)])
+        >>> rule.targetattribute
+        'u'
+        """
+        return self._targetattribute
+
+    def check_parameter(self, parameter: parametertools.AnyParameter, /) -> None:
+        """Raise an error if the given parameter is not an |arma_control.Responses|
+        instance.
+
+        >>> from hydpy import Element, prepare_model, ReplaceIUH, Selection
+        >>> element = Element("land", outlets="out")
+        >>> element.model = prepare_model("hland_96")
+        >>> ReplaceIUH(name="?",
+        ...            target="u",
+        ...            parameter="fc",
+        ...            value=1.0,
+        ...            selections=[Selection("land", elements=element)])
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to initialise the `ReplaceIUH` rule object `?`, the \
+following error occurred: Rule type `ReplaceIUH` supports only parameters of type \
+`Responses`, but `fc` is of type `FC`.
+        """
+        # pylint: disable=import-outside-toplevel
+        from hydpy.models.arma.arma_control import Responses
+
+        if not isinstance(parameter, Responses):
+            raise TypeError(
+                f"Rule type `{type(self).__name__}` supports only parameters of type "
+                f"`{Responses.__name__}`, but `{parameter.name}` is of type "
+                f"`{type(parameter).__name__}`."
+            )
 
     def _get_original_parameter_values(self) -> tuple[Any, ...]:
         return tuple(
@@ -2673,7 +2781,7 @@ complete set of relevant elements (element1 and element2).
         See the main documentation on class |ReplaceIUH| for further information.
         """
         for parameter, iuh in zip(self, self._iuhs):
-            setattr(iuh, self.target, self.value)
+            setattr(iuh, self.targetattribute, self.value)
             if self.update_parameters:
                 parameter(iuh.arma.coefs)
 
@@ -2771,7 +2879,7 @@ class MultiplyIUH(RuleIUH):
         See the main documentation on class |ReplaceIUH| for further information.
         """
         super().add_iuhs(**iuhs)
-        target = self.target
+        target = self.targetattribute
         original_iuh_values: list[float] = []
         assert self._element2iuh is not None  # ensured by `RuleIUH.add_iuhs`
         for iuh in self._element2iuh.values():
@@ -2784,7 +2892,7 @@ class MultiplyIUH(RuleIUH):
 
         See the main documentation on class |MultiplyIUH| for further information.
         """
-        target = self.target
+        target = self.targetattribute
         for parameter, iuh, orig in zip(self, self._iuhs, self._original_iuh_values):
             setattr(iuh, target, self.value * orig)
             if self.update_parameters:

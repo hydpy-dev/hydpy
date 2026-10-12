@@ -6,6 +6,7 @@ if __name__ == "__main__":
 
     from hydpy.core import parametertools
     from hydpy.core import sequencetools
+    from hydpy.models import exch_branch_io
     from hydpy.models import hland_96
     from hydpy.models.dam import (
         dam_model,
@@ -17,6 +18,7 @@ if __name__ == "__main__":
         dam_observers,
         dam_senders,
     )
+    from hydpy.models.exch import exch_control, exch_model
     from hydpy.models.hland import (
         hland_control,
         hland_derived,
@@ -30,6 +32,8 @@ if __name__ == "__main__":
     control: parametertools.ControlParameters[hland_96.Model]
     assert_type(control.beta, hland_control.Beta)
     assert_type(control.name, str)
+    assert_type(control.names, frozenset[str])
+    assert_type(control.fastaccess, parametertools.FastAccessParameter)
     assert_type(control.k3, Any)  # type: ignore[attr-defined]
     assert_type(control.asdf, Any)  # type: ignore[attr-defined]
     derived: parametertools.DerivedParameters[hland_96.Model]
@@ -40,6 +44,15 @@ if __name__ == "__main__":
     assert_type(fixed.pi, hland_fixed.Pi)
     assert_type(fixed.name, str)
     assert_type(fixed.asdf, Any)  # type: ignore[attr-defined]
+    control_exch: parametertools.ControlParameters[exch_branch_io.Model]
+    assert_type(control_exch.targets, exch_control.Targets)
+    assert_type(control_exch.flowtransferrules, exch_control.FlowTransferRules)
+    assert_type(
+        control_exch.targets.subpars, parametertools.ControlParameters[exch_model.Model]
+    )
+    control_any: parametertools.ControlParameters[Any]
+    assert_type(control_any.beta, parametertools.Parameter)
+    assert_type(control_any.targets, parametertools.Parameter)
     solver: parametertools.SolverParameters[dam_model.Model]
     assert_type(solver.abserrormax, dam_solver.AbsErrorMax)
     assert_type(solver.name, str)

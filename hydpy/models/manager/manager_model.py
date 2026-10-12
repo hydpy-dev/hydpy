@@ -57,16 +57,16 @@ class Pick_LoggedWaterVolume_V1(modeltools.Method):
         loggedwatervolume(a=1.0, b=3.0, c=2.0)
     """
 
-    CONTROLPARAMETERS = (manager_control.Sources,)
+    DERIVEDPARAMETERS = (manager_derived.NmbSources,)
     REQUIREDSEQUENCES = (manager_receivers.WaterVolume,)
     RESULTSEQUENCES = (manager_logs.LoggedWaterVolume,)
 
     @staticmethod
     def __call__(model: modeltools.Model, /) -> None:
-        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
-        for i in range(con.sources):
+        for i in range(der.nmbsources):
             log.loggedwatervolume[i] = rec.watervolume[i]
 
 
@@ -343,12 +343,12 @@ class Calc_DemandSources_V1(modeltools.Method):
                       f=0.01, g=0.000349, h=0.000012, i=0.0, j=0.0)
     """
 
-    CONTROLPARAMETERS = (
-        manager_control.Sources,
-        manager_control.Active,
-        manager_control.VolumeThreshold,
+    CONTROLPARAMETERS = (manager_control.Active, manager_control.VolumeThreshold)
+    DERIVEDPARAMETERS = (
+        manager_derived.NmbSources,
+        manager_derived.Seconds,
+        manager_derived.VolumeSmoothPar,
     )
-    DERIVEDPARAMETERS = (manager_derived.Seconds, manager_derived.VolumeSmoothPar)
     REQUIREDSEQUENCES = (manager_factors.Alertness, manager_logs.LoggedWaterVolume)
     RESULTSEQUENCES = (manager_fluxes.DemandSources,)
 
@@ -361,7 +361,7 @@ class Calc_DemandSources_V1(modeltools.Method):
         log = model.sequences.logs.fastaccess
 
         v2q: float = 1e6 / der.seconds
-        for i in range(con.sources):
+        for i in range(der.nmbsources):
             if con.active[i]:
                 flu.demandsources[i] = (
                     fac.alertness
@@ -411,12 +411,11 @@ class Calc_PossibleRelease_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (
-        manager_control.Sources,
         manager_control.Active,
         manager_control.VolumeThreshold,
         manager_control.ReleaseMax,
     )
-    DERIVEDPARAMETERS = (manager_derived.Seconds,)
+    DERIVEDPARAMETERS = (manager_derived.NmbSources, manager_derived.Seconds)
     REQUIREDSEQUENCES = (manager_logs.LoggedWaterVolume,)
     RESULTSEQUENCES = (manager_fluxes.PossibleRelease,)
 
@@ -428,7 +427,7 @@ class Calc_PossibleRelease_V1(modeltools.Method):
         log = model.sequences.logs.fastaccess
 
         v2q: float = 1e6 / der.seconds
-        for i in range(con.sources):
+        for i in range(der.nmbsources):
             if con.active[i]:
                 flu.possiblerelease[i] = min(
                     v2q * max(log.loggedwatervolume[i] - con.volumethreshold[i], 0.0),
@@ -513,8 +512,12 @@ class Calc_Request_V1(modeltools.Method):
         request(d_1=0.0, d_1a=0.0, d_2=0.0, d_2a=0.0, d_2b=0.0, d_2b1=0.0)
     """
 
-    CONTROLPARAMETERS = (manager_control.Commission, manager_control.Sources)
-    DERIVEDPARAMETERS = (manager_derived.Adjacency, manager_derived.Order)
+    CONTROLPARAMETERS = (manager_control.Commission,)
+    DERIVEDPARAMETERS = (
+        manager_derived.NmbSources,
+        manager_derived.Adjacency,
+        manager_derived.Order,
+    )
     REQUIREDSEQUENCES = (
         manager_fluxes.DemandTarget,
         manager_fluxes.DemandSources,
@@ -530,32 +533,32 @@ class Calc_Request_V1(modeltools.Method):
 
         if model.idx_sim < con.commission:
 
-            for i in range(con.sources):
+            for i in range(der.nmbsources):
                 flu.request[i] = 0.0
 
         else:
 
             available: float = 0.0
-            for i in range(con.sources):
+            for i in range(der.nmbsources):
                 if der.adjacency[i, 0]:
                     available += flu.possiblerelease[i]
             f: float = 0.0 if available <= 0 else min(flu.demandtarget / available, 1.0)
-            for i in range(con.sources):
+            for i in range(der.nmbsources):
                 if der.adjacency[i, 0]:
                     flu.request[i] = f * flu.possiblerelease[i]
 
-            for jj in range(con.sources):
+            for jj in range(der.nmbsources):
                 j = der.order[jj]
                 demand: float = flu.request[j] + flu.demandsources[j]
                 if demand <= 0.0:
                     f = 0.0
                 else:
                     available = 0.0
-                    for i in range(con.sources):
+                    for i in range(der.nmbsources):
                         if der.adjacency[i, j + 1]:
                             available += flu.possiblerelease[i]
                     f = 0.0 if available <= 0.0 else min(demand / available, 1.0)
-                for i in range(con.sources):
+                for i in range(der.nmbsources):
                     if der.adjacency[i, j + 1]:
                         flu.request[i] = f * flu.possiblerelease[i]
 
@@ -581,14 +584,16 @@ class Update_LoggedRequest_V1(modeltools.Method):
         loggedrequest(3.0, 2.0, 4.0)
     """
 
-    CONTROLPARAMETERS = (manager_control.Sources,)
-    DERIVEDPARAMETERS = (manager_derived.MemoryLength, manager_derived.Adjacency)
+    DERIVEDPARAMETERS = (
+        manager_derived.NmbSources,
+        manager_derived.MemoryLength,
+        manager_derived.Adjacency,
+    )
     REQUIREDSEQUENCES = (manager_fluxes.Request,)
     UPDATEDSEQUENCES = (manager_logs.LoggedRequest,)
 
     @staticmethod
     def __call__(model: modeltools.Model, /) -> None:
-        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -597,7 +602,7 @@ class Update_LoggedRequest_V1(modeltools.Method):
             log.loggedrequest[i] = log.loggedrequest[i - 1]
 
         log.loggedrequest[0] = 0.0
-        for i in range(con.sources):
+        for i in range(der.nmbsources):
             if der.adjacency[i, 0]:
                 log.loggedrequest[0] += flu.request[i]
 
@@ -617,16 +622,16 @@ class Pass_Request_V1(modeltools.Method):
         request(3.0, 1.0, 2.0)
     """
 
-    CONTROLPARAMETERS = (manager_control.Sources,)
+    DERIVEDPARAMETERS = (manager_derived.NmbSources,)
     REQUIREDSEQUENCES = (manager_fluxes.Request,)
     RESULTSEQUENCES = (manager_senders.Request,)
 
     @staticmethod
     def __call__(model: modeltools.Model, /) -> None:
-        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sen = model.sequences.senders.fastaccess
-        for i in range(con.sources):
+        for i in range(der.nmbsources):
             sen.request[i] = flu.request[i]
 
 

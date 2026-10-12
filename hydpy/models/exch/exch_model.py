@@ -89,18 +89,18 @@ class Pick_X_V1(modeltools.Method):
         x(3.0)
     """
 
-    CONTROLPARAMETERS = (exch_control.ObserverNodes,)
+    DERIVEDPARAMETERS = (exch_derived.NmbObserverNodes,)
     REQUIREDSEQUENCES = (exch_observers.X,)
     RESULTSEQUENCES = (exch_factors.X,)
 
     @staticmethod
     def __call__(model: modeltools.Model, /) -> None:
-        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         obs = model.sequences.observers.fastaccess
         fac = model.sequences.factors.fastaccess
 
         fac.x = 0.0
-        for i in range(con.observernodes):
+        for i in range(der.nmbobservernodes):
             fac.x += obs.x[i]
 
 
@@ -1455,7 +1455,8 @@ class Determine_Y_V1(modeltools.AutoMethod):
     """Interface method for determining the result."""
 
     SUBMETHODS = (Pick_X_V1, Calc_Y_V1)
-    CONTROLPARAMETERS = (exch_control.ObserverNodes, exch_control.X2Y)
+    CONTROLPARAMETERS = (exch_control.X2Y,)
+    DERIVEDPARAMETERS = (exch_derived.NmbObserverNodes,)
     REQUIREDSEQUENCES = (exch_observers.X,)
     RESULTSEQUENCES = (exch_factors.X, exch_factors.Y)
 
@@ -1487,6 +1488,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
 
     nodenames: list[str] = []
     targetnames: tuple[str, ...] = ()
+    __hydpy__targetnames__: tuple[str, ...] | None = None
 
     INLET_METHODS = (Pick_OriginalInput_V1, Pick_Input_V1, Pick_Inflow_V1)
     OBSERVER_METHODS = (Pick_X_V1,)

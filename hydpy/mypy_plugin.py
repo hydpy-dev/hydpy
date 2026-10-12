@@ -6,7 +6,7 @@ potential problems in situations where HydPy relies on runtime behaviour that is
 from configparser import ConfigParser
 from os.path import join, split
 from pickle import load
-from typing import Callable, cast, Final
+from typing import Callable, cast, Final, Literal
 from warnings import warn
 
 from mypy.checker import TypeChecker
@@ -71,6 +71,8 @@ SUBVARS2 = set(
         "hydpy.core.variabletools.Variable.subvars",
         "hydpy.core.parametertools.Parameter.subvars",
         "hydpy.core.parametertools.Parameter.subpars",
+        "hydpy.core.parametertools.SpecialParameter.subvars",
+        "hydpy.core.parametertools.SpecialParameter.subpars",
         "hydpy.core.sequencetools.InputSequence.subvars",
         "hydpy.core.sequencetools.InputSequence.subseqs",
         "hydpy.core.sequencetools.FactorSequence.subvars",
@@ -365,13 +367,57 @@ def variable_hook(context: AttributeContext) -> Type:
     -->
     `ControlParameters[ModelX, ...].__getattr__("par") -> modelx.modelx_control.Par`
     """
+    var_type = _get_variable_type(context=context, subvars_type=context.type, kind=None)
+    if var_type is None:
+        return _get_regular_parameter_type(context.default_attr_type)
+    return var_type
+
+
+def parametersubset_hook(context: AttributeContext) -> Type:
+    """
+    `RegularParameters[ControlParameters[ModelX, ...]].__getattr__("par")
+    -> parametertools.Parameter`
+    -->
+    `RegularParameters[ControlParameters[ModelX, ...]].__getattr__("par")
+    -> modelx.modelx_control.Par`
+
+    `SpecialParameters[ControlParameters[ModelX, ...]].__getattr__("par")
+    -> parametertools.SpecialParameter`
+    -->
+    `SpecialParameters[ControlParameters[ModelX, ...]].__getattr__("par")
+    -> modelx.modelx_control.Par`
+    """
+    if isinstance(subset_inst := context.type, Instance) and (
+        len(args := subset_inst.args) > 0
+    ):
+        kind: Literal["regular", "special"] | None = None
+        if subset_inst.type.has_base("hydpy.core.parametertools.RegularParameters"):
+            kind = "regular"
+        elif subset_inst.type.has_base("hydpy.core.parametertools.SpecialParameters"):
+            kind = "special"
+        var_type = _get_variable_type(context=context, subvars_type=args[0], kind=kind)
+        if var_type is not None:
+            return var_type
+    return context.default_attr_type
+
+
+def _get_variable_type(
+    context: AttributeContext,
+    subvars_type: Type,
+    kind: Literal["regular", "special"] | None,
+) -> Type | None:
+    """Return the type of the variable addressed via the given subgroup type (and of the
+    given kind) or None if the model or the attribute name is unknown or if the
+    attribute is a real member of the accessed object."""
     if (
         isinstance(api := context.api, TypeChecker)
-        and isinstance(subvars_inst := context.type, Instance)
+        and isinstance(owner_inst := context.type, Instance)
+        and isinstance(subvars_inst := get_proper_type(subvars_type), Instance)
         and (len(args := subvars_inst.args) > 0)
         and isinstance(model_inst := get_proper_type(args[0]), Instance)
         and (model_map := VAR_MAP_1.get(model_inst.type.fullname))
         and isinstance(member_expr := context.context, MemberExpr)
+        and (owner_inst.type.get(member_expr.name) is None)
     ):
         attr_name = member_expr.name
         if (subvars_map := model_map.get(subvars_inst.type.fullname)) and (
@@ -382,13 +428,17 @@ def variable_hook(context: AttributeContext) -> Type:
                 return context.default_attr_type
             var_info = module_type.names[var_name].node
             assert isinstance(var_info, TypeInfo)
-            return Instance(typ=var_info, args=[])
+            special = var_info.has_base("hydpy.core.parametertools.SpecialParameter")
+            if (kind is None) or ((kind == "special") == special):
+                return Instance(typ=var_info, args=[])
         var_type = (
             subvars_inst.type.fullname.rpartition(".")[-1]
             .replace("Parameters", " parameter")
             .replace("Sequences", " sequence")
             .lower()
         )
+        if kind is not None:
+            var_type = f"{kind} {var_type}"
         context.api.msg.report(
             msg=f"Model `{model_inst.type.fullname}` has no {var_type} `{attr_name}`.",
             context=member_expr,
@@ -397,7 +447,26 @@ def variable_hook(context: AttributeContext) -> Type:
             origin_context=None,
         )
         return AnyType(type_of_any=TypeOfAny.from_error)
-    return context.default_attr_type
+    return None
+
+
+def _get_regular_parameter_type(type_: Type) -> Type:
+    """
+    `SubParameters[Any, ...].__getattr__("par") -> Parameter | SpecialParameter`
+    -->
+    `SubParameters[Any, ...].__getattr__("par") -> Parameter`
+
+    For convenience, we treat parameters accessed via attribute names as regular
+    parameters if the actual model type is unknown.
+    """
+    if isinstance(union := get_proper_type(type_), UnionType):
+        for item in union.items:
+            if (
+                isinstance(item := get_proper_type(item), Instance)
+                and item.type.fullname == "hydpy.core.parametertools.Parameter"
+            ):
+                return item
+    return type_
 
 
 def _get_ndim_and_type(
@@ -599,11 +668,11 @@ class MypyPlugin(Plugin):
             return subvariables_hook1
         if fullname in SUBVARS2:
             return subvariables_hook2
-        if fullname.rpartition(".")[0] == "hydpy.core.variabletools.SubVariables":
-            return variable_hook
-        if fullname.rpartition(".")[0] == "hydpy.core.modeltools.Model":
-            return method_hook
-        return None
+        return {
+            "hydpy.core.variabletools.SubVariables": variable_hook,
+            "hydpy.core.parametertools.ParameterSubset": parametersubset_hook,
+            "hydpy.core.modeltools.Model": method_hook,
+        }.get(fullname.rpartition(".")[0])
 
 
 def plugin(version: str) -> type[MypyPlugin]:  # pylint: disable=unused-argument

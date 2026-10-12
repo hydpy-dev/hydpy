@@ -7,7 +7,6 @@ from hydpy.core import parametertools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 from hydpy.models.manager import manager_model
-from hydpy.models.manager import manager_control
 
 # from hydpy.models.manager import manager_derived  actual import below
 
@@ -39,7 +38,10 @@ class MixinSources(variabletools.Variable, abc.ABC):
     NDIM: Final[Literal[1]] = 1
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
-        if isinstance(p, manager_control.Sources):
+        # pylint: disable=import-outside-toplevel
+        from hydpy.models.manager import manager_derived
+
+        if isinstance(p, manager_derived.NmbSources):
             self.__hydpy__change_shape_if_necessary__((p.value,))
 
 

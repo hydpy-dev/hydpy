@@ -16,6 +16,7 @@ if __name__ == "__main__":
         dam_observers,
         dam_senders,
     )
+    from hydpy.models.exch import exch_control, exch_model
     from hydpy.models.hland import (
         hland_model,
         hland_control,
@@ -43,6 +44,10 @@ if __name__ == "__main__":
     assert_type(abserrormax.subvars, parametertools.SolverParameters[dam_model.Model])
     assert_type(abserrormax.subpars, parametertools.SolverParameters[dam_model.Model])
     assert_type(abserrormax.subseqs, Any)  # type: ignore[attr-defined]
+    targets: exch_control.Targets
+    assert_type(targets.subvars, parametertools.ControlParameters[exch_model.Model])
+    assert_type(targets.subpars, parametertools.ControlParameters[exch_model.Model])
+    assert_type(targets.subseqs, Any)  # type: ignore[attr-defined]
 
     p: hland_inputs.P
     assert_type(p.subvars, sequencetools.InputSequences[hland_model.Model])

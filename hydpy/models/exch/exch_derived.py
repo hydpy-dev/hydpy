@@ -7,12 +7,37 @@ from hydpy.models.exch import exch_control
 
 
 class TOY(parametertools.TOYParameter):
-    """References the |Indexer.timeofyear| index array provided by the instance of
-    class |Indexer| available in module |pub| [-]."""
+    """References the |Indexer.timeofyear| index array provided by the instance of class
+    |Indexer| available in module |pub| [-]."""
 
 
 class MOY(parametertools.MOYParameter):
     """References the "global" month of the year index array [-]."""
+
+
+class NmbObserverNodes(parametertools.NmbParameter):
+    """The number of observer nodes [-].
+
+    Calling the control parameter |ObserverNodes| sets |NmbObserverNodes| immediately.
+    Method |NmbObserverNodes.update| determines the same value:
+
+    >>> from hydpy.models.exch_interp import *
+    >>> parameterstep()
+    >>> observernodes("node_1", "node_2", "node_3")
+    >>> derived.nmbobservernodes(1)
+    >>> derived.nmbobservernodes.update()
+    >>> derived.nmbobservernodes
+    nmbobservernodes(3)
+    """
+
+    SPAN = (0, None)
+
+    CONTROLPARAMETERS = (exch_control.ObserverNodes,)
+
+    def update(self) -> None:
+        """Determine the number of observer nodes."""
+        x = self.subpars.pars.model.sequences.observers.x
+        self(len(x.observernodes))
 
 
 class NmbBranches(parametertools.Parameter):

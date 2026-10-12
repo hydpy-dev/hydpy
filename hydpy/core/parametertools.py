@@ -1,5 +1,5 @@
 """This module provides tools for defining and handling different kinds of parameters
-of hydrological models."""
+for hydrological models."""
 
 from __future__ import annotations
 import abc
@@ -28,7 +28,6 @@ from hydpy.core.typingtools import *
 # from hydpy.cythons import modelutils  # actual download below
 
 if TYPE_CHECKING:
-    from hydpy.core import auxfiletools
     from hydpy.core import devicetools
     from hydpy.core import modeltools
 
@@ -36,6 +35,9 @@ if TYPE_CHECKING:
 TypeSubParameters = TypeVar(
     "TypeSubParameters", bound="SubParameters[modeltools.Model]"
 )
+
+AnyParameter: TypeAlias = "Parameter | SpecialParameter"
+"""Type alias for regular (|Parameter|) and special (|SpecialParameter|) parameters."""
 
 
 def trim_kwarg(
@@ -358,7 +360,8 @@ For variable `latitude`, no value has been defined so far.
                         )
 
     def verify(self) -> None:
-        """Call method |Variable.verify| of all |Parameter| objects handled by the
+        """Call method |Variable.verify| of all |Parameter| objects and method
+        |SpecialParameter.verify| of all |SpecialParameter| objects handled by the
         actual model.
 
         When calling method |Parameters.verify| directly after initialising model
@@ -459,19 +462,18 @@ class FastAccessParameter(variabletools.FastAccess):
 
 class SubParameters(
     variabletools.SubVariables[
-        TM_co, Parameters["modeltools.Model"], "Parameter", FastAccessParameter
+        TM_co, Parameters["modeltools.Model"], AnyParameter, FastAccessParameter
     ]
 ):
     '''Base class for handling subgroups of model parameters.
 
-    When trying to implement a new model, one has to define its
-    specific |Parameter| subclasses. Currently, the HydPy framework
-    distinguishes between control parameters, derived parameters,
-    fixed parameters, and solver parameters. Each |Parameter| subclass is
-    a member of a collection class derived from |SubParameters|, called
-    "ControlParameters", "DerivedParameters", "FixedParameters", or
-    "SolverParameters", respectively.  Indicate membership by putting the
-    parameter subclasses into the |tuple| "CLASSES":
+    When trying to implement a new model, one has to define its specific |Parameter|
+    subclasses. Currently, the HydPy framework distinguishes between control parameters,
+    derived parameters, fixed parameters, and solver parameters. Each |Parameter|
+    subclass is a member of a collection class derived from |SubParameters|, called
+    "ControlParameters", "DerivedParameters", "FixedParameters", or "SolverParameters",
+    respectively.  Indicate membership by putting the parameter subclasses into the
+    |tuple| "CLASSES":
 
     >>> from hydpy.core.parametertools import Parameter, SubParameters
     >>> class Par2(Parameter):
@@ -494,9 +496,8 @@ class SubParameters(
     par2(?)
     par1(?)
 
-    Each |SubParameters| object has a `fastaccess` attribute.  When
-    working in pure Python mode, this is an instance of class
-    |FastAccessParameter|:
+    Each |SubParameters| object has a `fastaccess` attribute.  When working in pure
+    Python mode, this is an instance of class |FastAccessParameter|:
 
     >>> from hydpy import classname, prepare_model, pub
     >>> with pub.options.usecython(False):
@@ -504,9 +505,9 @@ class SubParameters(
     >>> classname(model.parameters.control.fastaccess)
     'FastAccessParameter'
 
-    When working in Cython mode (which is the default mode and much
-    faster), `fastaccess` is an object of a Cython extension class
-    specialised for the respective model and sequence group:
+    When working in Cython mode (which is the default mode and much faster),
+    `fastaccess` is an object of a Cython extension class specialised for the respective
+    model and sequence group:
 
     >>> with pub.options.usecython(True):
     ...     model = prepare_model("lland_dd")
@@ -516,6 +517,8 @@ class SubParameters(
 
     pars: Parameters[TM_co]
     _cymodel: CyModelProtocol | None
+    _regular: RegularParameters[Self]
+    _special: SpecialParameters[Self]
     _CLS_FASTACCESS_PYTHON = FastAccessParameter
 
     def __init__(
@@ -527,6 +530,34 @@ class SubParameters(
         self.pars = master
         self._cymodel = cymodel
         super().__init__(master=master, cls_fastaccess=cls_fastaccess)
+        regular: list[Parameter] = []
+        special: list[SpecialParameter] = []
+        for par in self:
+            if isinstance(par, SpecialParameter):
+                special.append(par)
+            else:
+                regular.append(par)
+        self_ = cast(Self, self)
+        self._regular = RegularParameters(self_, regular)
+        self._special = SpecialParameters(self_, special)
+
+    @property
+    def regular(self) -> RegularParameters[Self]:
+        """The subset of all regular parameters (|Parameter| instances) of the
+        current subgroup.
+
+        See the documentation on class |ParameterSubset| for further information.
+        """
+        return self._regular
+
+    @property
+    def special(self) -> SpecialParameters[Self]:
+        """The subset of all special parameters (|SpecialParameter| instances) of
+        the current subgroup.
+
+        See the documentation on class |ParameterSubset| for further information.
+        """
+        return self._special
 
     def _init_fastaccess(self) -> None:
         super()._init_fastaccess()
@@ -561,6 +592,202 @@ class FixedParameters(SubParameters[TM_co]):
 
 class SolverParameters(SubParameters[TM_co]):
     """Base class for handling solver parameters."""
+
+
+TypeSubParameters_co = TypeVar(
+    "TypeSubParameters_co", bound=SubParameters[Any], covariant=True
+)
+TypeParameter_co = TypeVar("TypeParameter_co", bound=AnyParameter, covariant=True)
+
+
+class ParameterSubset(Generic[TypeSubParameters_co, TypeParameter_co]):
+    """Base class for selecting a subset of the parameters of a |SubParameters|
+    object.
+
+    |SubParameters| objects can handle regular parameters (|Parameter| instances, whose
+    values are available via the attributes |Variable.value| and |Variable.values|) and
+    special parameters (|SpecialParameter| instances, which handle more complex data).
+    Model users usually access both directly via their |SubParameters| object.  If you
+    need to distinguish between them, the |ParameterSubset| subclasses
+    |RegularParameters| and |SpecialParameters| help, which are available via the
+    properties |SubParameters.regular| and |SubParameters.special|.  They provide
+    references to the |Parameter| or |SpecialParameter| objects held by the
+    corresponding |SubParameters| object.
+
+    We take the control parameters of application model |exch_branch_io| as an
+    example, which handles three regular and two special parameters:
+
+    >>> from hydpy.models.exch_branch_io import *
+    >>> parameterstep()
+    >>> regular, special = control.regular, control.special
+
+    |SubParameters| objects prepare their subsets once, during initialisation:
+
+    >>> assert control.regular is regular
+
+    The string representation lists all selected parameters in the order of their
+    subgroup:
+
+    >>> regular
+    minstream(?)
+    maxstream(?)
+    keepwaterbalance(?)
+
+    >>> special
+    targets(?)
+    flowtransferrules(?)
+
+    >>> targets(stream="river", transfer="diversion")
+    >>> special
+    targets(stream="river", transfer="diversion")
+    flowtransferrules()
+
+    |ParameterSubset| supports iteration, the |len| operator, and attribute and item
+    access:
+
+    >>> for par in regular:
+    ...     print(par.name)
+    minstream
+    maxstream
+    keepwaterbalance
+
+    >>> len(regular), len(special)
+    (3, 2)
+
+    >>> regular.names, special.names
+    (('minstream', 'maxstream', 'keepwaterbalance'), ('targets', 'flowtransferrules'))
+
+    >>> assert regular.minstream is regular["minstream"] is control.minstream
+    >>> assert special.targets is special["targets"] is control.targets
+
+    Subgroups without parameters of the respective kind result in empty subsets:
+
+    >>> len(derived.special)
+    0
+
+    Trying to access parameters of the other kind (or non-existing parameters) results
+    in the following errors:
+
+    >>> regular.targets
+    Traceback (most recent call last):
+    ...
+    AttributeError: Collection object `control` of model `exch_branch_io` of element \
+`?` does not handle a regular parameter named `targets`.
+
+    >>> special["minstream"]
+    Traceback (most recent call last):
+    ...
+    AttributeError: Collection object `control` of model `exch_branch_io` of element \
+`?` does not handle a special parameter named `minstream`.
+
+    Attribute assignments work as for |SubParameters| objects, which means one can use
+    them to set the values of regular parameters (but not of special parameters, of
+    course):
+
+    >>> regular.minstream = 1.0
+    >>> control.minstream
+    minstream(1.0)
+
+    >>> special.targets = "river"
+    Traceback (most recent call last):
+    ...
+    AttributeError: Special parameter `targets` of element `?` does not support \
+direct value assignments.  Please call it instead.
+
+    Assigning values to parameters of the other kind (or non-existing parameters)
+    results in the following error:
+
+    >>> regular.targets = "river"
+    Traceback (most recent call last):
+    ...
+    AttributeError: Collection object `control` of model `exch_branch_io` of element \
+`?` does not handle a regular parameter named `targets`.
+
+    Names starting with an underscore are never interpreted as parameter names:
+
+    >>> regular._wrong
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'RegularParameters' object has no attribute '_wrong'
+
+    The names of the selected parameters are available to function |dir|:
+
+    >>> "minstream" in dir(regular)
+    True
+    """
+
+    _subpars: TypeSubParameters_co
+    _pars: tuple[TypeParameter_co, ...]
+    _name2par: dict[str, TypeParameter_co]
+    _kind: ClassVar[Literal["regular", "special"]]
+
+    def __init__(
+        self, subpars: TypeSubParameters_co, pars: Iterable[TypeParameter_co]
+    ) -> None:
+        self._subpars = subpars
+        self._pars = tuple(pars)
+        self._name2par = {par.name: par for par in self._pars}
+
+    @property
+    def names(self) -> tuple[str, ...]:
+        """The names of all selected parameters in the order of their subgroup."""
+        return tuple(self._name2par)
+
+    def __iter__(self) -> Iterator[TypeParameter_co]:
+        return iter(self._pars)
+
+    def __getitem__(self, name: str) -> TypeParameter_co:
+        try:
+            return self._name2par[name]
+        except KeyError:
+            phrases = objecttools.elementphrase(self._subpars).split()
+            phrases.insert(1, f"of model `{self._subpars.pars.model.name}`")
+            raise AttributeError(
+                f"Collection object {' '.join(phrases)} does not handle a {self._kind} "
+                f"parameter named `{name}`."
+            ) from None
+
+    def __getattr__(self, name: str) -> TypeParameter_co:
+        if name.startswith("_"):
+            raise AttributeError(
+                f"'{type(self).__name__}' object has no attribute '{name}'"
+            )
+        return self[name]
+
+    def __setattr__(self, name: str, value: object) -> None:
+        if name.startswith("_"):
+            super().__setattr__(name, value)
+        else:
+            setattr(self._subpars, self[name].name, value)
+
+    def __len__(self) -> int:
+        return len(self._pars)
+
+    def __repr__(self) -> str:
+        return "\n".join(repr(par) for par in self)
+
+    def __dir__(self) -> list[str]:
+        return cast(list[str], super().__dir__()) + list(self.names)
+
+
+class RegularParameters(ParameterSubset[TypeSubParameters_co, "Parameter"]):
+    """The subset of all regular parameters (|Parameter| instances) of a
+    |SubParameters| object.
+
+    See the documentation on class |ParameterSubset| for further information.
+    """
+
+    _kind = "regular"
+
+
+class SpecialParameters(ParameterSubset[TypeSubParameters_co, "SpecialParameter"]):
+    """The subset of all special parameters (|SpecialParameter| instances) of a
+    |SubParameters| object.
+
+    See the documentation on class |ParameterSubset| for further information.
+    """
+
+    _kind = "special"
 
 
 class Keyword(NamedTuple):
@@ -936,7 +1163,7 @@ raise_exception=False)
             for element in elements:
                 try:
                     control = element.model.parameters.control
-                    other = control[name_parameter].keywordarguments
+                    other = control.regular[name_parameter].keywordarguments
                     for name_keyword, value in other:
                         self.add(name_keyword, value)
                 except KeywordArgumentsError:
@@ -1444,8 +1671,8 @@ broadcast input array from shape (2,) into shape (2,3)
         Enable it through setting |Options.usedefaultvalues| to |True|:
 
         >>> from hydpy import pub
-        >>> pub.options.usedefaultvalues = True
-        >>> test = prepare()
+        >>> with pub.options.usedefaultvalues(True):
+        ...     test = prepare()
         >>> test
         test(2.0)
 
@@ -1453,7 +1680,8 @@ broadcast input array from shape (2,) into shape (2,3)
         |Options.usedefaultvalues| has no effect, of course:
 
         >>> Test.INIT = None
-        >>> test = prepare()
+        >>> with pub.options.usedefaultvalues(True):
+        ...     test = prepare()
         >>> test
         test(?)
 
@@ -1464,7 +1692,8 @@ broadcast input array from shape (2,) into shape (2,3)
         >>> pub.options.simulationstep = "12h"
         >>> Test.INIT = 2.0
         >>> Test.TIME = True
-        >>> test = prepare()
+        >>> with pub.options.usedefaultvalues(True):
+        ...     test = prepare()
         >>> test
         test(4.0)
         >>> test.value
@@ -1898,10 +2127,12 @@ class NmbParameter(Parameter):
     def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
         parameters = self.subpars.pars
-        for vars_ in (parameters, parameters.model.sequences):
-            for subvars in vars_:
-                for var in subvars:
-                    var.__hydpy__let_par_set_shape__(self)
+        for subpars in parameters:
+            for par in subpars.regular:
+                par.__hydpy__let_par_set_shape__(self)
+        for subseqs in parameters.model.sequences:
+            for seq in subseqs:
+                seq.__hydpy__let_par_set_shape__(self)
 
 
 class _MixinModifiableParameter(Parameter, abc.ABC):
@@ -4937,3 +5168,120 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
             varrepr = f"{self.name}(callback={funcname})"
             return "\n".join((pycode, varrepr))
         return super().__repr__()
+
+
+class SpecialParameter(variabletools.MixinVariable, abc.ABC):
+    """Base class for parameters handling complex data.
+
+    Most parameters handle simple floating-point, integer, or boolean values (or arrays
+    of such values), which are available via the attributes |Variable.value| and
+    |Variable.values|.  These have |Parameter| as their (indirect) base class.  Some
+    other parameters handle more complex data (like interpolation algorithms or names of
+    other objects) for which |Variable.value| and |Variable.values| make no sense.  Such
+    "special parameters" derive from |SpecialParameter|, which does not derive from
+    |Parameter| (and not even from |Variable|).
+
+    Model developers define special parameters in the same modules as regular parameters
+    (for example, in control parameter modules), and model users access them in the same
+    way.  Function |sort_variables| sorts them together with the regular parameters, so
+    that the order of definition determines their position within the respective
+    |SubParameters| object.  The subsets |SubParameters.regular| and
+    |SubParameters.special| allow distinguishing both parameter types (see the
+    documentation on class |ParameterSubset|).
+
+    We take the parameters |exch_control.Targets| and |exch_control.FlowTransferRules|
+    of application model |exch_branch_io| as examples, which define the target nodes'
+    names and the transfer function:
+
+    >>> from hydpy.models.exch_branch_io import *
+    >>> parameterstep()
+    >>> control
+    targets(?)
+    minstream(?)
+    maxstream(?)
+    keepwaterbalance(?)
+    flowtransferrules(?)
+
+    Special parameters do not support assigning values directly; you need to call them
+    instead:
+
+    >>> control.targets = "river", "diversion"
+    Traceback (most recent call last):
+    ...
+    AttributeError: Special parameter `targets` of element `?` does not support \
+direct value assignments.  Please call it instead.
+
+    >>> targets(stream="river", transfer="diversion")
+    >>> targets
+    targets(stream="river", transfer="diversion")
+
+    Each subclass must implement the methods `__call__`, `__repr__`, and `verify`.  Like
+    |Parameter| objects, special parameters whose data is not ready yet must indicate
+    this by question marks instead of raising errors when converted to strings (see the
+    string representation of |exch_control.FlowTransferRules| above).  Method
+    |SpecialParameter.update| does nothing by default:
+
+    >>> targets.update()
+
+    Like regular parameters, special parameters reference the `fastaccess` object of
+    their subgroup, which handles them under their names.  This is necessary for those
+    (like |exch_control.FlowTransferRules|) used by model methods.  By default, they are
+    declared as Python objects at the Cython level (see |SpecialParameter.CTYPE|) and
+    store |None| in the `fastaccess` object:
+
+    >>> SpecialParameter.CTYPE
+    'object'
+    >>> assert targets.fastaccess is control.fastaccess
+    >>> print(control.fastaccess.targets)
+    None
+    """
+
+    CTYPE: ClassVar[str] = "object"
+    """The Cython type for declaring the parameter in the cythonized model's
+    parameter classes.
+
+    Subclasses that hand Cython extension objects over to model methods must override
+    `CTYPE`.
+    """
+
+    subvars: SubParameters[Any]
+    """The subgroup to which the parameter belongs."""
+    subpars: SubParameters[Any]
+    """The subgroup to which the parameter belongs."""
+    fastaccess: FastAccessParameter
+    """Object for accessing the parameter's data at the Cython level."""
+
+    def __init__(self, subvars: variabletools.SubVariables[Any, Any, Any, Any]) -> None:
+        self.subvars = self.subpars = cast(SubParameters[Any], subvars)
+        self.fastaccess = FastAccessParameter()
+
+    def __hydpy__connect_variable2subgroup__(self) -> None:
+        """Connect the special parameter to the `fastaccess` object of its subgroup and
+        store |None| there under the parameter's name.
+
+        Subclasses that need to hand something other than |None| to the Cython level
+        must override this method.
+        """
+        self.fastaccess = self.subpars.fastaccess
+        setattr(self.fastaccess, self.name, None)
+
+    @abc.abstractmethod
+    def __call__(self, *args: Any, **kwargs: Any) -> None:
+        """Define the parameter's data."""
+
+    @abc.abstractmethod
+    def __repr__(self) -> str:
+        """Return a string representation that allows for redefining the parameter's
+        data (e.g., in control files).
+
+        If the data is not ready yet, return the parameter's name followed by `(?)`
+        instead of raising an error.
+        """
+
+    @abc.abstractmethod
+    def verify(self) -> None:
+        """Raise a |RuntimeError| if the parameter's data is not (properly) defined."""
+
+    def update(self) -> None:
+        """To be overridden by those special parameters which need to update their
+        data."""

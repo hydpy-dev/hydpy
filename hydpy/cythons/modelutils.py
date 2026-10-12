@@ -942,10 +942,10 @@ class PyxWriter:
                 both(0, "@cython.final")
                 both(0, f"cdef class {type(subpars).__name__}:")
                 for par in subpars:
-                    try:
-                        ctype = TYPE2STR[par.TYPE] + NDIM2STR[par.NDIM]
-                    except KeyError:
-                        ctype = par.TYPE + NDIM2STR[par.NDIM]  # type: ignore[operator]
+                    if isinstance(par, pt.SpecialParameter):
+                        pxd(1, f"cdef public {par.CTYPE} {par.name}")
+                        continue
+                    ctype = TYPE2STR[par.TYPE] + NDIM2STR[par.NDIM]
                     pxd(1, f"cdef public {ctype} {par.name}")
                     if isinstance(par, pt.KeywordParameter1D):
                         pxd(1, f"cdef public {TYPE2STR[int]} _{par.name}_entrymin")

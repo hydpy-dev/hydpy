@@ -10,21 +10,21 @@ from hydpy.core.typingtools import *
 from hydpy.auxs import iuhtools
 
 
-class Responses(parametertools.Parameter):
+class Responses(parametertools.SpecialParameter):
     """Assigns different ARMA models to different discharge thresholds.
 
     Parameter |Responses| is not involved in the actual calculations during the
     simulation run.  Instead, it is thought for the intuitive handling of different
     ARMA models.  It can be applied as follows.
 
-    Initially, each new `responses` object is emtpy:
+    Initially, each new `responses` object is empty:
 
     >>> from hydpy.models.arma import *
     >>> parameterstep()
     >>> responses
     responses()
 
-    One can assign ARMA models as attributes to it:
+    You can assign ARMA models via attribute assignments:
 
     >>> responses.th_0_0 = ((1.0, 2.0), (3.0, 4.0, 6.0))
 
@@ -191,6 +191,17 @@ the same threshold value(s) twice.
     | 3.0, 4.0, 6.0 |
     | 7.0, nan, nan |
 
+    Method |Responses.verify| raises the following error if no response function is
+    defined:
+
+    >>> responses.verify()
+    >>> responses()
+    >>> responses.verify()
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Parameter `responses` of element `?` does not handle any response \
+functions.
+
     Technical notes:
 
     The implementation of this class is much to tricky for subpackage `models`.  It
@@ -203,17 +214,10 @@ the same threshold value(s) twice.
 
     _coefs: dict[str, tuple[tuple[float, ...], tuple[float, ...]]]
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = float
-
     def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]) -> None:
         with objecttools.ResetAttrFuncs(self):
             super().__init__(subvars)
             self._coefs = {}
-
-    def __hydpy__connect_variable2subgroup__(self) -> None:
-        """Do nothing due to the reasons explained in the main documentation on class
-        |Responses|."""
 
     def __call__(self, *args, **kwargs) -> None:
         self._coefs.clear()
@@ -233,6 +237,14 @@ the same threshold value(s) twice.
                 f"arguments have been given but only `{len(self)}` response functions "
                 f"could be prepared.  Most probably, you defined the same threshold "
                 f"value(s) twice."
+            )
+
+    def verify(self) -> None:
+        """Raise a |RuntimeError| if no response function is defined."""
+        if not self:
+            raise RuntimeError(
+                f"Parameter {objecttools.elementphrase(self)} does not handle any "
+                f"response functions."
             )
 
     def __getattr__(self, key: str) -> tuple[tuple[float, ...], tuple[float, ...]]:

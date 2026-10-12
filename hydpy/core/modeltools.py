@@ -34,7 +34,6 @@ from hydpy.cythons import modelutils
 if TYPE_CHECKING:
     from hydpy.core import masktools
     from hydpy.core import selectiontools
-    from hydpy.auxs import interptools
     from hydpy.cythons import interfaceutils
 
 
@@ -55,12 +54,10 @@ class Method:
 
     SUBMODELINTERFACES: ClassVar[tuple[type[SubmodelInterface], ...]]
     SUBMETHODS: tuple[type[Method], ...] = ()
-    CONTROLPARAMETERS: tuple[
-        type[parametertools.Parameter | interptools.BaseInterpolator], ...
-    ] = ()
-    DERIVEDPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
-    FIXEDPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
-    SOLVERPARAMETERS: tuple[type[parametertools.Parameter], ...] = ()
+    CONTROLPARAMETERS: tuple[type[parametertools.AnyParameter], ...] = ()
+    DERIVEDPARAMETERS: tuple[type[parametertools.AnyParameter], ...] = ()
+    FIXEDPARAMETERS: tuple[type[parametertools.AnyParameter], ...] = ()
+    SOLVERPARAMETERS: tuple[type[parametertools.AnyParameter], ...] = ()
     REQUIREDSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
     UPDATEDSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
     RESULTSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
@@ -1860,7 +1857,9 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         with opts.parameterstep(parameterstep), opts.simulationstep(simulationstep):
             for par in self.parameters.control:
                 if (ignore is None) or not isinstance(par, ignore):
-                    if parameter2auxfile is not None:
+                    if (parameter2auxfile is not None) and isinstance(
+                        par, parametertools.Parameter
+                    ):
                         auxfilename = parameter2auxfile.get_filename(par)
                         if auxfilename:
                             lines.append(f'{par.name}(auxfile="{auxfilename}")')

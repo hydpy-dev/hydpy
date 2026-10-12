@@ -43,11 +43,11 @@ from hydpy import interfaces
 from hydpy import models
 from hydpy.core import modeltools
 from hydpy.core import objecttools
+from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import typingtools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
-from hydpy.auxs import interptools
 
 if TYPE_CHECKING:
     from hydpy.cythons import annutils
@@ -69,7 +69,7 @@ else:
 
 Member: TypeAlias = type[
     variabletools.Variable
-    | interptools.BaseInterpolator
+    | parametertools.SpecialParameter
     | modeltools.Method
     | modeltools.Submodel
 ]
@@ -539,7 +539,7 @@ def _gain_and_insert_additional_information_into_docstrings(
                 c in value.__mro__  # for efficiency
                 for c in (
                     variabletools.Variable,
-                    interptools.BaseInterpolator,
+                    parametertools.SpecialParameter,
                     modeltools.Method,
                     modeltools.Submodel,
                 )

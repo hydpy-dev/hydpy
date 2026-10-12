@@ -21,6 +21,29 @@ class Seconds(parametertools.SecondsParameter):
     """Length of the actual simulation step size [s]."""
 
 
+class NmbSources(parametertools.NmbParameter):
+    """The number of sources [-].
+
+    Calling the control parameter |Sources| sets |NmbSources| immediately.  Method
+    |NmbSources.update| determines the same value:
+
+    >>> from hydpy.models.manager import *
+    >>> parameterstep()
+    >>> sources("a", "b", "c")
+    >>> derived.nmbsources.update()
+    >>> derived.nmbsources
+    nmbsources(3)
+    """
+
+    SPAN = (1, None)
+
+    CONTROLPARAMETERS = (manager_control.Sources,)
+
+    def update(self) -> None:
+        """Determine the number of sources."""
+        self(len(self.subpars.pars.control.sources.sourcenames))
+
+
 class DischargeSmoothPar(parametertools.Parameter):
     """Smoothing parameter related to |DischargeTolerance| [m³/s]."""
 
@@ -121,9 +144,9 @@ class Adjacency(parametertools.Parameter):
 
     See method |Adjacency.update| for more information.
 
-    Parameter |Sources| determines the shape of |Adjacency|.  The number of rows equals
-    the number of sources, and the number of columns equals the number of sources plus
-    one (for the target node):
+    Parameter |Sources| determines the shape of |Adjacency| (via the derived parameter
+    |NmbSources|).  The number of rows equals the number of sources, and the number of
+    columns equals the number of sources plus one (for the target node):
 
     >>> from hydpy.models.manager import *
     >>> parameterstep()
@@ -137,7 +160,7 @@ class Adjacency(parametertools.Parameter):
     SPAN = (False, True)
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
-        if isinstance(p, manager_control.Sources):
+        if isinstance(p, NmbSources):
             self.__hydpy__change_shape_if_necessary__((p.value, p.value + 1))
 
     def update(self) -> None:

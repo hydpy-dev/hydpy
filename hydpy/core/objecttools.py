@@ -80,7 +80,9 @@ def _search_device(self: object) -> devicetools.Node | devicetools.Element | Non
     from hydpy.core import parametertools as pt
     from hydpy.core import sequencetools as st
 
-    if isinstance(self, (pt.Parameter, st.ModelSequence, st.NodeSequence)):
+    if isinstance(
+        self, (pt.Parameter, pt.SpecialParameter, st.ModelSequence, st.NodeSequence)
+    ):
         self = self.subvars
     if isinstance(self, (pt.SubParameters, st.ModelSequences)):
         self = self.vars

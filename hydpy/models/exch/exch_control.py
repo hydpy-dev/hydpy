@@ -292,11 +292,11 @@ sequence and connect it to the respective outlet nodes properly.
             return "ypoints(?)"
 
 
-class Targets(parametertools.NmbParameter):
+class Targets(parametertools.SpecialParameter):
     """Target nodes.
 
-    |Targets| is an integer parameter with the only allowed value of two.  It serves to
-    define the names of both target nodes, which is necessary for creating the required
+    |Targets| is a special parameter (see |SpecialParameter|) that serves to define the
+    names of both target nodes, which is necessary for creating the required
     connections.  "stream" refers to the node reflecting the main riverbed; "transfer"
     refers to the node to which some of the water is branched (or supplied from):
 
@@ -304,11 +304,17 @@ class Targets(parametertools.NmbParameter):
     >>> parameterstep()
     >>> targets
     targets(?)
+
+    >>> targets.verify()
+    Traceback (most recent call last):
+    ...
+    RuntimeError: For parameter `targets` of element `?`, the names of the target \
+nodes are still unknown.
+
     >>> targets(stream="river", transfer="diversion")
     >>> targets
     targets(stream="river", transfer="diversion")
-    >>> targets.value
-    2
+    >>> targets.verify()
 
     Both target nodes must have different names:
 
@@ -323,8 +329,6 @@ keyword arguments `stream` and `transfer` of parameter `targets` of element `?` 
     targets(stream="river", transfer="diversion")
     """
 
-    SPAN = (2, 2)
-
     def __call__(  # pylint: disable=arguments-differ
         self, stream: str, transfer: str
     ) -> None:
@@ -335,7 +339,6 @@ keyword arguments `stream` and `transfer` of parameter `targets` of element `?` 
                 f"{objecttools.elementphrase(self)} (remember that node names serve "
                 f"as unique identifiers)."
             )
-        super().__call__(2)
         self.subpars.pars.model.__hydpy__targetnames__ = (stream, transfer)
 
     def __repr__(self) -> str:
@@ -344,6 +347,14 @@ keyword arguments `stream` and `transfer` of parameter `targets` of element `?` 
         except RuntimeError:
             return f"{self.name}(?)"
         return f'{self.name}(stream="{ns[0]}", transfer="{ns[1]}")'
+
+    def verify(self) -> None:
+        """Raise a |RuntimeError| if the names of the target nodes are unknown."""
+        if getattr(self.subpars.pars.model, "__hydpy__targetnames__", None) is None:
+            raise RuntimeError(
+                f"For parameter {objecttools.elementphrase(self)}, the names of the "
+                f"target nodes are still unknown."
+            )
 
 
 class MinStream(parametertools.Parameter):
@@ -450,13 +461,15 @@ class FlowTransferRules(interptools.SeasonalInterpolator):
     |FlowTransferRules| is a fallback parameter that is only relevant for periods
     without available |RequestedTransfer| time series data.
 
-    Please prepare parameter |Targets| before configuring parameter
-    |FlowTransferRules|:
+    Please prepare parameter |Targets| before configuring parameter |FlowTransferRules|:
 
     >>> from hydpy import ANN, PPoly, PPolys, pub
     >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
     >>> from hydpy.models.exch_branch_io import *
     >>> parameterstep()
+    >>> flowtransferrules
+    flowtransferrules(?)
+
     >>> flowtransferrules(PPoly(xs=[0.0, 1.0], ys=[0.0, 2.0]))
     Traceback (most recent call last):
     ...
@@ -622,9 +635,9 @@ documentation).
     ) -> str:
 
         class _Simplify:
-            _names: list[str]
+            _names: Sequence[str]
 
-            def __init__(self, names: list[str], /) -> None:
+            def __init__(self, names: Sequence[str], /) -> None:
                 self._names = names
 
             def __call__(
@@ -640,7 +653,9 @@ documentation).
                     return transfer
                 return algorithm
 
-        return super().__repr__(_Simplify(self.subpars.pars.model.targetnames))
+        if (names := self.subpars.pars.model.__hydpy__targetnames__) is None:
+            return f"{self.name}(?)"
+        return super().__repr__(_Simplify(names))
 
 
 class Rules(interptools.SeasonalInterpolator):
@@ -878,14 +893,22 @@ the given one has one input and two outputs.
             )
 
 
-class ObserverNodes(parametertools.NmbParameter):
-    """The number of the considered observer nodes [-].
+class ObserverNodes(parametertools.SpecialParameter):
+    """The names of the considered observer nodes.
 
-    Parameter |ObserverNodes| requires the names of all observer nodes that need
-    consideration:
+    |ObserverNodes| is a special parameter (see |SpecialParameter|) that requires the
+    names of all observer nodes that need consideration:
 
     >>> from hydpy.models.exch_interp import *
     >>> parameterstep()
+    >>> observernodes
+    observernodes(?)
+    >>> observernodes.verify()
+    Traceback (most recent call last):
+    ...
+    RuntimeError: For parameter `observernodes` of element `?`, the names of the \
+observer nodes are still unknown.
+
     >>> observernodes(2)
     Traceback (most recent call last):
     ...
@@ -896,19 +919,18 @@ relevant observation nodes, but the first given value is of type `int`.
     observernodes(?)
 
     When receiving this information, it automatically prepares the observer sequence
-    |exch_observers.X|:
+    |exch_observers.X| and the derived parameter |NmbObserverNodes|:
 
     >>> observernodes("node_1", "node_2")
     >>> observers.x.observernodes
     ('node_1', 'node_2')
+    >>> derived.nmbobservernodes
+    nmbobservernodes(2)
 
     >>> observernodes
     observernodes("node_1", "node_2")
-    >>> observernodes.value
-    2
+    >>> observernodes.verify()
     """
-
-    SPAN = (0, None)
 
     def __call__(self, *observernodes: str) -> None:
         for i, node in enumerate(observernodes):
@@ -920,15 +942,27 @@ relevant observation nodes, but the first given value is of type `int`.
                     f"{i_.number_to_words(i_.ordinal(i + 1))} given value is of type "
                     f"`{type(node).__name__}`."
                 )
-        super().__call__(len(observernodes))
-        self.subpars.pars.model.sequences.observers.x.observernodes = observernodes
+        pars = self.subpars.pars
+        pars.derived.nmbobservernodes(len(observernodes))
+        pars.model.sequences.observers.x.observernodes = observernodes
 
     def __repr__(self) -> str:
-        if self._valueready:
+        try:
             x = self.subpars.pars.model.sequences.observers.x
             names = tuple(f'"{name}"' for name in x.observernodes)
-            return objecttools.assignrepr_tuple(names, self.name, 84)
-        return super().__repr__()
+        except RuntimeError:
+            return f"{self.name}(?)"
+        return objecttools.assignrepr_tuple(names, self.name, 84)
+
+    def verify(self) -> None:
+        """Raise a |RuntimeError| if the names of the observer nodes are unknown."""
+        try:
+            _ = self.subpars.pars.model.sequences.observers.x.observernodes
+        except RuntimeError:
+            raise RuntimeError(
+                f"For parameter {objecttools.elementphrase(self)}, the names of the "
+                f"observer nodes are still unknown."
+            ) from None
 
 
 class X2Y(interptools.SimpleInterpolator):

@@ -86,26 +86,24 @@ class _OriginalData(NamedTuple):
 
 
 def _get_splineclass(
-    name: MethodNames, /
-) -> type[interpolate.CubicHermiteSpline] | None:
+    name: Literal["cubic", "akima", "pchip"], /
+) -> type[interpolate.CubicHermiteSpline]:
     if name == "cubic":
         return interpolate.CubicSpline
     if name == "akima":
         return interpolate.Akima1DInterpolator
     if name == "pchip":
         return interpolate.PchipInterpolator
-    return None
+    assert_never(name)
 
 
 def _get_splinename(
     class_: type[interpolate.CubicHermiteSpline], /
 ) -> Literal["cubic", "akima", "pchip"] | None:
-    if class_ is interpolate.CubicSpline:
-        return "cubic"
-    if class_ is interpolate.Akima1DInterpolator:
-        return "akima"
-    if class_ is interpolate.PchipInterpolator:
-        return "pchip"
+    names: tuple[Literal["cubic", "akima", "pchip"], ...] = ("cubic", "akima", "pchip")
+    for name in names:
+        if class_ is _get_splineclass(name):
+            return name
     return None
 
 
@@ -670,7 +668,7 @@ vectors `x` (2) and `y` (3) must be identical.
                 if method not in ("linear", "cubic", "akima", "pchip"):
                     raise ValueError(_make_error_message(method))
                 name = method
-                spline = _get_splineclass(name)
+                spline = None if name == "linear" else _get_splineclass(name)
             else:
                 if not (
                     inspect.isclass(method)
@@ -1397,6 +1395,14 @@ class PPolys(interptools.InterpAlgorithm):
     ...
     KeyError: 'The selected `PPolys` instance does not handle an interpolator named \
 `branch4`.'
+
+    Calling |PPolys| objects without any arguments results in the following error:
+
+    >>> ppolys()
+    Traceback (most recent call last):
+    ...
+    ValueError: When calling a `PPolys` object, you need to define at least one \
+piecewise polynomial function by passing at least one `PPoly` object.
     """
 
     REST = PPolysOptions.REST
@@ -1413,7 +1419,7 @@ class PPolys(interptools.InterpAlgorithm):
     def __call__(self, **ppolys: PPoly | PPolysOptions) -> None:
         if not ppolys:
             raise ValueError(
-                "When calling an `PPolys` object, you need to define at least one "
+                "When calling a `PPolys` object, you need to define at least one "
                 "piecewise polynomial function by passing at least one `PPoly` object."
             )
         self._ppolys = dict(sorted(ppolys.items()))

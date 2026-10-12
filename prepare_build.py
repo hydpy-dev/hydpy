@@ -207,7 +207,6 @@ def _write_mypy_plugin_data() -> None:
     from hydpy.core.autodoctools import autodoc_complete
     from hydpy.core.importtools import prepare_model
     from hydpy.core.variabletools import Variable
-    from hydpy.auxs.interptools import BaseInterpolator
 
     autodoc_complete()
 
@@ -259,14 +258,15 @@ def _write_mypy_plugin_data() -> None:
                                 prefix,
                                 type(subvars).__name__,
                             )
-                            var2ndim_type[fullname] = var.NDIM, var.TYPE
+                            if isinstance(var, Variable):
+                                var2ndim_type[fullname] = var.NDIM, var.TYPE
                     subdict_[f"{prefix}.{type(subvars).__name__}"] = subsubdict
             model2subgroup2attr2module_var[f"{modelmodule}.Model"] = subdict_
 
     vars_with_shape: set[str] = set()
 
     def _search_variables_with_specific_members(
-        v: type[Variable | BaseInterpolator], seen: set[str]
+        v: type[object], seen: set[str]
     ) -> None:
         fullname_ = f"{v.__module__}.{v.__name__}"
         if (fullname_ in seen) or not fullname_.startswith("hydpy."):
@@ -279,8 +279,9 @@ def _write_mypy_plugin_data() -> None:
         for w in v.__bases__:
             _search_variables_with_specific_members(w, seen)
 
+    # Calling this function also with `SpecialParameter` as a starting point is not
+    # necessary, as it is included indirectly through the walk through the base classes:
     _search_variables_with_specific_members(Variable, set())
-    _search_variables_with_specific_members(BaseInterpolator, set())
 
     filepath = os.path.join(conf.__path__[0], "mypy_plugin_data.pickle")
     with open(filepath, "wb") as file_:

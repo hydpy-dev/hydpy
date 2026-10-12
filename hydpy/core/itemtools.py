@@ -25,6 +25,18 @@ Selection2Targets: TypeAlias = dict[str, tuple[variabletools.Variable, ...]]
 LevelType: TypeAlias = Literal["global", "selection", "device", "subunit"]
 
 
+def _check_variable(
+    variable: variabletools.Variable | parametertools.SpecialParameter,
+    role: Literal["target", "base"],
+) -> variabletools.Variable:
+    if isinstance(variable, variabletools.Variable):
+        return variable
+    raise RuntimeError(
+        f"Parameter {objecttools.elementphrase(variable)} is a special parameter, "
+        f"which cannot serve as the {role} of an exchange item."
+    )
+
+
 class ExchangeSpecification:
     """Specification of a concrete |Parameter| or |Sequence_| type.
 
@@ -175,8 +187,7 @@ class ExchangeItem:
                     and ((subgroup := getattr(group, subgroupname, None)) is not None)
                     and ((variable := getattr(subgroup, p.variable, None)) is not None)
                 ):
-                    assert isinstance(variable, variabletools.Variable)
-                    return variable
+                    return _check_variable(variable, "target")
         raise RuntimeError(
             f"No model of element `{element.name}` handles a parameter or sequence "
             f"named `{p.variable}` in subgroup `{p.subgroup}`."
@@ -273,10 +284,7 @@ sequence named `ic` in subgroup `wrong_group`.
 
         Collecting the |Sim| or |Obs| sequences of |Node| objects works similarly:
 
-        >>> item.targetspecs.master = "node"
-        >>> item.targetspecs.variable = "sim"
-        >>> item.targetspecs.subgroup = None
-        >>> item.targetspecs.series = False
+        >>> item.targetspecs = ExchangeSpecification(master="node", variable="sim")
         >>> item.device2target.clear()
         >>> item.collect_variables(pub.selections)
         >>> dill_assl = hp.nodes.dill_assl
@@ -288,6 +296,20 @@ sequence named `ic` in subgroup `wrong_group`.
         lahn_marb
         >>> item.device2target[dill_assl] is dill_assl.sequences.sim
         True
+
+        Special parameters (see |SpecialParameter|), like |arma_control.Responses| of
+        application model |arma_rimorido|, cannot serve as exchange item targets:
+
+        >>> from hydpy import Element, prepare_model, Selection, Selections
+        >>> element = Element("arma", inlets="arma_in", outlets="arma_out")
+        >>> element.model = prepare_model("arma_rimorido")
+        >>> item.targetspecs = ExchangeSpecification(master="arma_rimorido",
+        ...                                          variable="control.responses")
+        >>> item.collect_variables(Selections(Selection("arma", elements=element)))
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Parameter `responses` of element `arma` is a special parameter, \
+which cannot serve as the target of an exchange item.
         """
         variable: variabletools.Variable
         variables: list[variabletools.Variable]
@@ -1426,6 +1448,23 @@ base="control.rfcf", level="global")
         True
         >>> len(item.target2base)
         4
+
+        Special parameters (see |SpecialParameter|) like |exch_control.Targets| of
+        application model |exch_branch_io| cannot serve as base variables:
+
+        >>> from hydpy import Element, prepare_model, Selection, Selections
+        >>> model = prepare_model("exch_branch_io")
+        >>> model.parameters.control.targets(stream="river", transfer="diversion")
+        >>> branch = Element("branch", inlets="inflow", outlets=["river", "diversion"])
+        >>> branch.model = model
+        >>> item = AddItem(name="beta", master="exch_branch_io",
+        ...                target="control.minstream", base="control.targets",
+        ...                level="global")
+        >>> item.collect_variables(Selections(Selection("branch", elements=branch)))
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Parameter `targets` of element `branch` is a special parameter, \
+which cannot serve as the base of an exchange item.
         """
         super().collect_variables(selections)
         basename = self.basespecs.variable
@@ -1435,7 +1474,8 @@ base="control.rfcf", level="global")
         for target in self.device2target.values():
             vars_ = target.subvars.vars
             assert isinstance(vars_, allowed_bases)
-            self.target2base[target] = vars_[basegroup][basename]
+            base = vars_[basegroup][basename]
+            self.target2base[target] = _check_variable(base, "base")
 
     def __repr__(self) -> str:
         return (

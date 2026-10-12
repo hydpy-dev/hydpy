@@ -60,18 +60,17 @@ its base classes.  One can understand this concept intuitively by considering
 `Table` could share common properties such as `colour` defined by their common base
 class.  However, only class `Chair` would need a property like `backrest`.
 
-From the development perspective, the concept of subclassing prevents code
-duplications.  In the given example, one must add the property `colour` only to the
-single base class `Furniture`, not its two subclasses `Chair` and `Table`.  But
-remembering that HydPy relies heavily on subclassing also eases its understanding a
-lot.  For example, the mentioned class |hland_control.Area| is a subclass of the base
-class |Parameter| (noted in the first documentation line).  Hence, you can expect
-|hland_control.Area| to work like all other |Parameter| subclasses, but it might
-provide additional features.  One example of a shared property is the general class
-attribute |Variable.TYPE|, which tells if a parameter handles, for example, integer or
-floating-point values.  As you can see in the documentation on |hland_control.Area|,
-:ref:`HydPy-H` (unsurprisingly) expects the subbasin area to be defined by
-floating-point values.
+From the development perspective, the concept of subclassing prevents code duplication.
+In the given example, one must add the property `colour` only to the single base class
+`Furniture`, not its two subclasses `Chair` and `Table`.  But remembering that HydPy
+relies heavily on subclassing also eases its understanding a lot.  For example, the
+mentioned class |hland_control.Area| is a subclass of the base class |Parameter| (noted
+in the first documentation line).  Hence, you can expect |hland_control.Area| to work
+like all other |Parameter| subclasses, but it might provide additional features.  One
+example of a shared property is the general class attribute |Variable.TYPE|, which tells
+if a parameter handles, for example, integer or floating-point values.  As you can see
+in the documentation on |hland_control.Area|, :ref:`HydPy-H` (unsurprisingly) expects
+the subbasin area to be defined by floating-point values.
 
 .. _instance:
 
@@ -119,12 +118,12 @@ ____________
 Each `model family` targets certain hydrologcial processes or more technical purposes
 and consists of one :ref:`base_model` and several :ref:`application models
 <application_model>`.  Some model families are the only ones that fulfil a specific
-task, while others share their tasks but accomplish it with different means.  For
+task, while others share their tasks but accomplish them with different means.  For
 example, :ref:`HydPy-Evap` is the only model family with :ref:`submodels <submodel>`
 suitable for calculating evapotranspiration.  In contrast, :ref:`HydPy-Musk` and
 :ref:`HydPy-SW1D` share the same target (flood routing) but achieve it with very
-different approaches ("hydrological" Muskingum routing vs "hydrodynamical"
-Saint-Vernaint routing).
+different approaches ("hydrological" Muskingum routing vs "hydrodynamical" Saint-Venant
+routing).
 
 .. _base_model:
 
@@ -167,7 +166,7 @@ __________
 Essentially, HydPy :ref:`projects <project>` are structured via :ref:`elements
 <element>` and :ref:`nodes <node>`.  Each element instance directly handles one `main
 model` instance (and indirectly, eventually, some :ref:`submodel` instances).  The
-`main model` defines the general considered processes and executes them or delegates
+`main model` defines the general processes considered and executes them or delegates
 this task to its submodels.  For example, by selecting |hland_96| as the `main model`,
 one determines that a subbasin's runoff generation and concentration processes are
 represented in the style of HBV96 :cite:p:`ref-Lindstrom1997HBV96`.
@@ -180,8 +179,8 @@ ________
 `Submodels` are selectable (and sometimes optional) members of :ref:`main models
 <main_model>` that serve more specific tasks.  For example, |evap_pet_hbv96| and
 |evap_aet_hbv96| calculate potential and actual evapotranspiration following HBV96
-:cite:p:`ref-Lindstrom1997HBV96`.  One can "plug them" to |hland_96| to get a
-consistent HBV96 model but also to other application models of :ref:`HydPy-H` and
+:cite:p:`ref-Lindstrom1997HBV96`.  One can "plug them" into |hland_96| to get a
+consistent HBV96 model, but also into other application models of :ref:`HydPy-H` and
 different model families.
 
 Note that we sometimes use the term `sub-submodel` when submodels can themselves use
@@ -203,7 +202,7 @@ The :ref:`subpackage` `interfaces` provides multiple abstract descriptions for
 submodels.  Users do not need to be aware of all details but should understand that if
 an :ref:`application_model` like |hland_96| claims it can consider additional runoff
 concentration processes by using a submodel that follows the |RConcModel_V1| interface,
-they can use, for example, |rconc_uh| for this purpose, as it one of the submodels
+they can use, for example, |rconc_uh| for this purpose, as it is one of the submodels
 following the |RConcModel_V1| interface.
 
 .. _submodel_port:
@@ -373,8 +372,7 @@ _________
 The programming and hydrological communities use the term `parameter` differently.  In
 Python, `parameter` means a variable of a function that receives its data when the
 function is called (in `def f(x):`, `x` is the variable).  To avoid confusion, we try
-to avoid the term `parameter` in this context and instead speak of (function)
-arguments.
+to avoid the term `parameter` in this context and instead speak of (function) arguments.
 
 In hydrological modelling, `parameters` represent properties (described by numbers)
 that often depend on the spatial characteristics of a catchment but are not changed by
@@ -383,8 +381,17 @@ simulation run (for example, a soil's field capacity).  In other cases, the `par
 values vary in a predefined, often daily or annual pattern (for example, a deciduous
 tree's leaf area index).
 
-All implemented `parameter` types are subclasses of the base class |Parameter|.  We
-differentiate them into the following groups.
+Nearly all implemented `parameter` types are subclasses of the base class |Parameter|.
+Their values are numbers (or arrays of numbers) available via the attributes
+|Variable.value| and |Variable.values|.  Some `parameters` handle more complex data,
+like interpolation algorithms (for example, |dam_control.WaterVolume2WaterLevel|) or
+the names of other objects (for example, |exch_control.Targets|).  These "special
+parameters" derive from the base class |SpecialParameter| instead.  Users define them
+in the same way and at the same places as the "regular" `parameters`.  If necessary,
+one can access both types separately (see the subsets |SubParameters.regular| and
+|SubParameters.special|).
+
+We differentiate all `parameters` into the following groups.
 
 From the user's perspective, the `control parameters` are most important.  One must set
 the values of these `parameters`, which is typically done within "control files", to
@@ -394,13 +401,13 @@ Note that many `control parameters` offer individual functionalities that often 
 to reduce configuration efforts.
 
 One often encounters `derived parameters` when reading the basic equations and
-explanations of individual :ref:`methods <method>`, but users must seldom configure
-them directly.  In applications, `derived parameters` usually query information from
-`control parameters` to calculate their values automatically.  If ever, users should
-modify these values for testing purposes.  One example is |hland_derived.QFactor|,
-which uses the user-defined subcatchment area (defined by `control parameter`
-|hland_control.Area|) to determine the factor for converting the units of fluxes from
-mm/T to m³/s (with `T` being the simulation step size).
+explanations of individual :ref:`methods <method>`, but users seldom configure them
+directly.  In applications, `derived parameters` usually query information from `control
+parameters` to calculate their values automatically.  If ever, users should modify these
+values for testing purposes.  One example is |hland_derived.QFactor|, which uses the
+user-defined subcatchment area (defined by `control parameter` |hland_control.Area|) to
+determine the factor for converting the units of fluxes from mm/T to m³/s (with `T`
+being the simulation step size).
 
 `Fixed parameters` represent mathematical or physical properties with unambiguous
 values.  Principally, users can modify them, but this is more a feature for testing
@@ -431,13 +438,13 @@ collection type `Sequence`.  (To a function argument annotated with `Sequence[st
 you can pass a string, a list of strings, or any other indexable, ordered collection
 that only contains strings.)
 
-In HydPy, we understand the term `sequence` similar to the term :ref:`parameter`, with
+In HydPy, we understand the term `sequence` similarly to the term :ref:`parameter`, with
 the difference that `sequence` addresses properties that change during a simulation
 run.   These properties can be external forcings like precipitation or calculation
 results like discharge.  To limit confusion and prevent class name clashes, we added an
 underscore to the general `sequence` base class |Sequence_|.
 
-The terms `sequence` and "time series" are closely related but not interchangable.  By
+The terms `sequence` and "time series" are closely related but not interchangeable.  By
 default, `sequence` instances only handle the current value (or, in some cases, the
 recent values) of the properties they represent.  Yet, most `sequences` have the
 |IOSequence.series| attribute, allowing them to keep the time series of a complete
@@ -485,7 +492,7 @@ of transferring information with a delay of one simulation step.  So, for exampl
 downstream routing model could use a `sender sequence` (derived from |SenderSequence|)
 to pass its water level to a "remote node", and an upstream pumping station model could
 query this information in the next simulation step from the "remote node" via a
-`receiver sequence` (derived from |ReceiverSequence|) to stop its pumping as soon the
+`receiver sequence` (derived from |ReceiverSequence|) to stop its pumping as soon as the
 actual water level exceeds a critical threshold.  In contrast, a typical use case for
 the `observer` mechanism is to control a detention basin based on the currently
 simulated inflows of tributaries that route their water into a river that needs
@@ -522,8 +529,8 @@ which are handled by an instance of class |Timegrids|:
    allocates just enough RAM as indicated by |Timegrids.init|.
  * The `simulation time grid` (|Timegrids.sim|) defines the period of the next
    simulation run.  By default, it equals |Timegrids.init|), but one can truncate it to
-   a subperiod of the initialisation period, which helps, for example, implementing
-   data assimilation methods efficiently.
+   a subperiod of the initialisation period, which helps, for example, implement data
+   assimilation methods efficiently.
  * The `evaluation time grid` (|Timegrids.eval_|) defines the period of the next
    statistical or graphical evaluation of simulation results.  Functions like |nse|
    respect |Timegrids.eval_| automatically if not instructed otherwise.

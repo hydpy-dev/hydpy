@@ -37,8 +37,14 @@ TypeGroup_co = TypeVar(
     "devicetools.Node",
     covariant=True,
 )
-TypeVariable = TypeVar("TypeVariable", bound="Variable")
-TypeVariable_co = TypeVar("TypeVariable_co", bound="Variable", covariant=True)
+TypeVariable = TypeVar(
+    "TypeVariable", bound="Variable | parametertools.SpecialParameter"
+)
+TypeVariable_co = TypeVar(
+    "TypeVariable_co",
+    bound="Variable | parametertools.SpecialParameter",
+    covariant=True,
+)
 TypeFastAccess_co = TypeVar("TypeFastAccess_co", bound="FastAccess", covariant=True)
 
 INT_NAN: int = -999999
@@ -539,7 +545,44 @@ class FastAccess:
     del __setattr__
 
 
-class Variable(abc.ABC):
+class MixinVariable:
+    """Mixin class providing the features common to all kinds of variables (like
+    |Sequence_|, |Parameter| and |SpecialParameter| subclasses).
+
+    |MixinVariable| numbers all its subclasses in the order of their definition, which
+    allows function |sort_variables| to sort different kinds of variables accordingly.
+    Therefore, all subclasses of |MixinVariable| share the same counter:
+
+    >>> from hydpy.core.variabletools import MixinVariable, Variable
+    >>> class Var1(Variable): ...
+    >>> class Var2(MixinVariable): ...
+    >>> class Var3(Variable): ...
+    >>> Var2.__hydpy__subclasscounter__ - Var1.__hydpy__subclasscounter__
+    1
+    >>> Var3.__hydpy__subclasscounter__ - Var1.__hydpy__subclasscounter__
+    2
+
+    Additionally, |MixinVariable| sets the `name` attribute of all its subclasses to
+    their class names in lowercase letters:
+
+    >>> Var2.name
+    'var2'
+    """
+
+    __hydpy__subclasscounter__: ClassVar[int] = 1
+
+    name: str
+    """Name of the variable in lowercase letters."""
+
+    def __init_subclass__(cls) -> None:
+        super().__init_subclass__()
+        subclasscounter = MixinVariable.__hydpy__subclasscounter__ + 1
+        MixinVariable.__hydpy__subclasscounter__ = subclasscounter
+        cls.__hydpy__subclasscounter__ = subclasscounter
+        cls.name = cls.__name__.lower()
+
+
+class Variable(MixinVariable, abc.ABC):
     """Base class for |Parameter| and |Sequence_|.
 
     The subclasses are required to provide the class attributes `NDIM`
@@ -1042,10 +1085,6 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     strict_valuehandling: bool = True
 
-    __hydpy__subclasscounter__ = 1
-
-    name: str
-    """Name of the variable in lowercase letters."""
     unit: str
     """Unit of the variable."""
     fastaccess: FastAccess
@@ -1126,11 +1165,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
-        cls.name = cls.__name__.lower()
         cls.unit = cls._get_unit()
-        subclasscounter = Variable.__hydpy__subclasscounter__ + 1
-        Variable.__hydpy__subclasscounter__ = subclasscounter
-        cls.__hydpy__subclasscounter__ = subclasscounter
 
     @classmethod
     def _get_unit(cls) -> str:
@@ -2320,7 +2355,8 @@ def sort_variables(
 def sort_variables(
     values: Iterable[type[TypeVariable] | tuple[type[TypeVariable], T_inv]],
 ) -> tuple[type[TypeVariable] | tuple[type[TypeVariable], T_inv], ...]:
-    """Sort the given |Variable| subclasses by their initialisation order.
+    """Sort the given |Variable| and |SpecialParameter| subclasses by their
+    initialisation order.
 
     When defined in one module, the initialisation order corresponds to the order
     within the file:
@@ -2347,7 +2383,7 @@ def sort_variables(
     ZoneType
 
     Function |sort_variables| also supports sorting tuples.  Each first entry must be
-    a |Variable| subclass:
+    a |Variable| or |SpecialParameter| subclass:
 
     >>> for var, i in sort_variables([(NmbZones, 1), (ZoneType, 2), (Area, 3)]):
     ...     print(classname(var), i)
@@ -2438,7 +2474,7 @@ class SubVariables(Generic[TOM_co, TypeGroup_co, TypeVariable_co, TypeFastAccess
 variable nor another attribute named wrong.
 
     Class |SubVariables| protects only the handled |Variable| objects from overwriting
-    with unplausible data:
+    with implausible data:
 
     >>> subvars.vars = "wrong"
     >>> subvars.vars
@@ -2468,6 +2504,11 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
     testvar
     >>> len(subvars)
     1
+
+    Property |SubVariables.names| returns the names of all handled variables:
+
+    >>> subvars.names
+    frozenset({'testvar'})
     """
 
     CLASSES: tuple[type[TypeVariable_co], ...] = ()
@@ -2532,8 +2573,13 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
         variable = self._name2variable.get(name)
         if variable is None:
             super().__setattr__(name, value)
-        else:
+        elif isinstance(variable, Variable):
             variable.value = value
+        else:
+            raise AttributeError(
+                f"Special parameter {objecttools.elementphrase(variable)} does not "
+                f"support direct value assignments.  Please call it instead."
+            )
 
     def __iter__(self) -> Iterator[TypeVariable_co]:
         yield from self._name2variable.values()

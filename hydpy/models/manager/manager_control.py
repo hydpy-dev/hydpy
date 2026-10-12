@@ -45,13 +45,21 @@ class TimeWindow(parametertools.Parameter):
     SPAN = (1, None)
 
 
-class Sources(parametertools.NmbParameter):
-    """The sources (e.g. dams) that are instructible to release additional water [-].
+class Sources(parametertools.SpecialParameter):
+    """The sources (e.g. dams) that are instructible to release additional water.
+
+    |Sources| is a special parameter (see |SpecialParameter|) that handles the names
+    of the elements that handle the relevant source models:
 
     >>> from hydpy.models.manager import *
     >>> parameterstep()
     >>> sources
     sources(?)
+    >>> sources.verify()
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Parameter `sources` of element `?` does not know the names of the \
+relevant sources so far.
 
     |Sources| expects the names of the elements which handle the relevant source models
     and sorts them alphabetically, if necessary:
@@ -59,17 +67,28 @@ class Sources(parametertools.NmbParameter):
     >>> sources("c", "a", "b")
     >>> sources
     sources("a", "b", "c")
+    >>> sources.verify()
 
-    |Sources| provides the number of sources as its property |Variable.value| and the
-    names of the individual sources by its property |Sources.sourcenames|:
+    |Sources| provides the names of the individual sources by its property
+    |Sources.sourcenames| and passes their number to the derived parameter |NmbSources|,
+    which determines the shape of many other parameters and sequences:
 
-    >>> sources.value
-    3
     >>> sources.sourcenames
     ('a', 'b', 'c')
+    >>> derived.nmbsources
+    nmbsources(3)
+    >>> active.shape
+    (3,)
 
-    |Sources| raises the following errors if the user gives invalid element names or
-    tries to pass information via keyword arguments:
+    |Sources| raises the following errors if the user gives no or invalid element
+    names:
+
+    >>> sources()
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to define the sources to be controlled by the model \
+`manager` of element `?`, the following error occurred: Parameter `sources` requires \
+the name of at least one element, but none is given.
 
     >>> sources(3)
     Traceback (most recent call last):
@@ -87,15 +106,11 @@ following argument is not a valid element name: `3`
 a list of the names of the elements which handle the relevant source models, but the \
 following arguments are not some valid element names: `not valid` and ` invalid`
 
-    >>> sources("valid", invalid=1)
-    Traceback (most recent call last):
-    ...
-    ValueError: While trying to define the sources to be controlled by the model \
-`manager` of element `?`, the following error occurred: Parameter `sources` cannot \
-handle keyword arguments.
-    """
+    In case of errors, the previous definitions remain unchanged:
 
-    SPAN = (1, None)
+    >>> sources
+    sources("a", "b", "c")
+    """
 
     _sourcenames: tuple[str, ...] | None = None
 
@@ -122,10 +137,15 @@ the relevant sources so far.
             )
         return self._sourcenames
 
-    def __call__(self, *args, **kwargs) -> None:
+    def __call__(self, *sourcenames: str) -> None:
         try:
+            if not sourcenames:
+                raise ValueError(
+                    f"Parameter `{self.name}` requires the name of at least one "
+                    f"element, but none is given."
+                )
             ivvi = objecttools.is_valid_variable_identifier
-            if wrong := tuple(a for a in args if not ivvi(a)):
+            if wrong := tuple(a for a in sourcenames if not ivvi(a)):
                 p = objecttools.Inflect.plural
                 n = len(wrong)
                 wrong = tuple(f"`{w}`" for w in wrong)
@@ -135,12 +155,8 @@ the relevant sources so far.
                     f"following {p('argument', n)} {p('is', n)} not {p('a', n)} valid "
                     f"element {p('name', n)}: {objecttools.enumeration(wrong)}"
                 )
-            if kwargs:
-                raise ValueError(
-                    f"Parameter `{self.name}` cannot handle keyword arguments."
-                )
-            sourcenames = tuple(sorted(args))
-            super().__call__(len(sourcenames))
+            sourcenames = tuple(sorted(sourcenames))
+            self.subpars.pars.derived.nmbsources(len(sourcenames))
             self._sourcenames = sourcenames
         except BaseException:
             objecttools.augment_excmessage(
@@ -153,6 +169,10 @@ the relevant sources so far.
             return f"{self.name}(?)"
         sourcenames = tuple(f'"{sn}"' for sn in self._sourcenames)
         return objecttools.assignrepr_values(sourcenames, f"{self.name}(") + ")"
+
+    def verify(self) -> None:
+        """Raise a |RuntimeError| if the names of the sources are unknown."""
+        _ = self.sourcenames
 
 
 class VolumeThreshold(manager_parameters.ParameterSource):

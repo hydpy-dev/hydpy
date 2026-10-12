@@ -147,10 +147,15 @@ class VG2FG(interptools.SimpleInterpolator):
     individual channel subsections) [m/s].
 
     You can configure the velocity-storage relationship with all functionalities
-    provided by classes |ANN| and |PPoly|.  Here, we define a small neural network:
+    provided by classes |ANN| and |PPoly|.  Initially, no relationship is defined:
 
     >>> from hydpy.models.kinw import *
     >>> parameterstep()
+    >>> vg2fg
+    vg2fg(?)
+
+    Here, we define a small neural network:
+
     >>> vg2fg(ANN(weights_input=-1.0, weights_output=0.4,
     ...           intercepts_hidden=0.0, intercepts_output=0.2))
     >>> vg2fg
@@ -273,6 +278,8 @@ class VG2FG(interptools.SimpleInterpolator):
     def __repr__(  # pylint: disable=arguments-differ
         self, simplify: interptools.SimplifyInterpAlgorithm = None
     ) -> str:
+        if self._algorithm is None:
+            return super().__repr__()
         algorithm = self.algorithm
         if (self.nmb_outputs == 1) and isinstance(algorithm, anntools.ANN):
             self._simple_ann.intercepts_output = algorithm.intercepts_output

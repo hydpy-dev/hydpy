@@ -4,41 +4,52 @@ import numpy
 
 from hydpy import config
 from hydpy.core import devicetools
+from hydpy.core import exceptiontools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
 
-class Coordinates(parametertools.Parameter):
+class Coordinates(parametertools.SpecialParameter):
     """Base class for |InputCoordinates| and |OutputCoordinates| [?].
 
-    We use the derived class |InputCoordinates| as an example:
+    |Coordinates| is a special parameter (see |SpecialParameter|) that handles the
+    names of the relevant input or output nodes together with their coordinates.  We
+    use the derived class |InputCoordinates| as an example:
 
     >>> from hydpy.models.conv import *
     >>> parameterstep()
 
-    |Coordinates| subclasses define 2-dimensional sequences.  Hence, we
-    must define their shape first:
+    Initially, neither the nodes nor their coordinates are known:
 
     >>> inputcoordinates
     inputcoordinates(?)
-    >>> inputcoordinates.values
+    >>> inputcoordinates.nodes
+    ()
+    >>> len(inputcoordinates)
+    0
+    >>> inputcoordinates.coordinates
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Shape information for \
-variable `inputcoordinates` can only be retrieved after it has been defined.
+    hydpy.core.exceptiontools.AttributeNotReady: The coordinates of parameter \
+`inputcoordinates` of element `?` have not been defined so far.
+    >>> inputcoordinates.verify()
+    Traceback (most recent call last):
+    ...
+    hydpy.core.exceptiontools.AttributeNotReady: The coordinates of parameter \
+`inputcoordinates` of element `?` have not been defined so far.
 
-    However, you usually do this automatically when assigning new
-    values.  Use keyword arguments to define the names of the relevant
-    input nodes as well as their coordinates:
+    Use keyword arguments to define the names of the relevant input nodes as well as
+    their coordinates:
 
-    >>> from hydpy import print_matrix
     >>> inputcoordinates(in1=(1.0, 3.0))
     >>> inputcoordinates
     inputcoordinates(in1=(1.0, 3.0))
-    >>> print_matrix(inputcoordinates.values)
+    >>> from hydpy import print_matrix
+    >>> print_matrix(inputcoordinates.coordinates)
     | 1.0, 3.0 |
+    >>> inputcoordinates.verify()
 
     Defining new coordinates removes the old ones:
 
@@ -49,16 +60,18 @@ variable `inputcoordinates` can only be retrieved after it has been defined.
     inputcoordinates(in2=(2.0, 4.0),
                      in0=(3.0, 5.0),
                      in3=(4.0, 6.0))
-    >>> print_matrix(inputcoordinates.values)
+    >>> print_matrix(inputcoordinates.coordinates)
     | 2.0, 4.0 |
     | 3.0, 5.0 |
     | 4.0, 6.0 |
+    >>> len(inputcoordinates)
+    3
 
-    You are free to change individual coordinate values (the rows of the
-    data array contain the different value pairs; the row order
-    corresponds to the definition order when "calling" the parameter):
+    You are free to change individual coordinate values (the rows of the matrix contain
+    the different value pairs; the row order corresponds to the definition order when
+    "calling" the parameter):
 
-    >>> inputcoordinates.values[1, 0] = 9.0
+    >>> inputcoordinates.coordinates[1, 0] = 9.0
     >>> inputcoordinates
     inputcoordinates(in2=(2.0, 4.0),
                      in0=(9.0, 5.0),
@@ -69,45 +82,100 @@ variable `inputcoordinates` can only be retrieved after it has been defined.
     >>> inputcoordinates.nodes
     (Node("in2", variable="Q"), Node("in0", variable="Q"), \
 Node("in3", variable="Q"))
-    """
 
-    NDIM: Final[Literal[2]] = 2
-    TYPE: Final = float
+    You must define the coordinates of at least one node, and each node requires exactly
+    two coordinates.  In case of errors, the previous definitions remain unchanged:
+
+    >>> inputcoordinates()
+    Traceback (most recent call last):
+    ...
+    ValueError: Parameter `inputcoordinates` of element `?` requires the coordinates \
+of at least one node, but none are given.
+
+    >>> inputcoordinates(in1=(1.0, 3.0), in2=(1.0, 2.0, 3.0))
+    Traceback (most recent call last):
+    ...
+    ValueError: Parameter `inputcoordinates` of element `?` requires exactly two \
+coordinates for each node, but for node `in2`, the following values are given: \
+(1.0, 2.0, 3.0).
+
+    >>> inputcoordinates(in1="wrong")
+    Traceback (most recent call last):
+    ...
+    ValueError: Parameter `inputcoordinates` of element `?` requires exactly two \
+coordinates for each node, but for node `in1`, the following values are given: wrong.
+
+    >>> inputcoordinates
+    inputcoordinates(in2=(2.0, 4.0),
+                     in0=(9.0, 5.0),
+                     in3=(4.0, 6.0))
+
+    Positional arguments are not supported:
+
+    >>> inputcoordinates((1.0, 3.0))
+    Traceback (most recent call last):
+    ...
+    TypeError: Coordinates.__call__() takes 1 positional argument but 2 were given
+    """
 
     nodes: tuple[devicetools.Node, ...]
     """The relevant input or output nodes."""
 
+    _coordinates: MatrixFloat | None
+
     def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]):
         super().__init__(subvars)
         self.nodes = ()
+        self._coordinates = None
 
-    def __call__(self, *args, **kwargs) -> None:
-        nodes = []
-        coordinates = numpy.empty((len(kwargs), 2), dtype=config.NP_FLOAT)
-        for idx, (name, values) in enumerate(kwargs.items()):
-            nodes.append(devicetools.Node(name))
-            coordinates[idx, :] = values
-        self.nodes = tuple(nodes)
-        self.shape = (len(nodes), 2)
-        self.value = coordinates
+    def __call__(self, **coordinates: tuple[float, float]) -> None:
+        if not coordinates:
+            raise ValueError(
+                f"Parameter {objecttools.elementphrase(self)} requires the coordinates "
+                f"of at least one node, but none are given."
+            )
+        matrix = numpy.empty((len(coordinates), 2), dtype=config.NP_FLOAT)
+        for idx, (name, values) in enumerate(coordinates.items()):
+            try:
+                matrix[idx, :] = values
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"Parameter {objecttools.elementphrase(self)} requires exactly "
+                    f"two coordinates for each node, but for node `{name}`, the "
+                    f"following values are given: {objecttools.repr_(values)}."
+                ) from None
+        self.nodes = tuple(devicetools.Node(name) for name in coordinates)
+        self._coordinates = matrix
+
+    @property
+    def coordinates(self) -> MatrixFloat:
+        """The coordinates of all nodes (one row per node, in the order of
+        |Coordinates.nodes|)."""
+        if (coordinates := self._coordinates) is None:
+            raise exceptiontools.AttributeNotReady(
+                f"The coordinates of parameter {objecttools.elementphrase(self)} have "
+                f"not been defined so far."
+            )
+        return coordinates
+
+    def __len__(self) -> int:
+        return len(self.nodes)
 
     def __repr__(self) -> str:
         prefix = f"{self.name}("
+        if (coordinates := self._coordinates) is None:
+            return f"{prefix}?)"
         blanks = " " * len(prefix)
         lines = []
-        if self.nodes:
-            for idx, node in enumerate(self.nodes):
-                entry = f"{node.name}={objecttools.repr_tuple(self.values[idx, :])}"
-                if not idx:
-                    lines.append(f"{prefix}{entry}")
-                else:
-                    lines.append(f"{blanks}{entry}")
-                if idx < len(self.nodes) - 1:
-                    lines[-1] += ","
-                else:
-                    lines[-1] += ")"
-            return "\n".join(lines)
-        return f"{prefix}?)"
+        for idx, node in enumerate(self.nodes):
+            entry = f"{node.name}={objecttools.repr_tuple(coordinates[idx, :])}"
+            lines.append(f"{blanks if idx else prefix}{entry}")
+            lines[-1] += "," if idx < len(self.nodes) - 1 else ")"
+        return "\n".join(lines)
+
+    def verify(self) -> None:
+        """Raise an |AttributeNotReady| error if the coordinates are still undefined."""
+        _ = self.coordinates
 
 
 class InputCoordinates(Coordinates):
@@ -252,7 +320,7 @@ class MaxNmbInputs(parametertools.Parameter):
 
     def __call__(self, *args, **kwargs) -> None:
         if not args and not kwargs:
-            super().__call__(self.subpars.inputcoordinates.shape[0])
+            super().__call__(len(self.subpars.inputcoordinates.coordinates))
         else:
             super().__call__(*args, **kwargs)
 
@@ -277,7 +345,7 @@ element `?` is not valid.
 element `?` is not valid.
         """
         if upper is None:
-            upper = self.subpars.inputcoordinates.shape[0]
+            upper = len(self.subpars.inputcoordinates.coordinates)
         return super().trim(lower, upper)
 
 

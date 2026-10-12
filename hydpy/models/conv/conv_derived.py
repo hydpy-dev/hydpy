@@ -28,7 +28,7 @@ class NmbInputs(parametertools.NmbParameter):
         >>> derived.nmbinputs
         nmbinputs(2)
         """
-        self(self.subpars.pars.control.inputcoordinates.shape[0])
+        self(len(self.subpars.pars.control.inputcoordinates.coordinates))
 
 
 class NmbOutputs(parametertools.NmbParameter):
@@ -51,7 +51,7 @@ class NmbOutputs(parametertools.NmbParameter):
         >>> derived.nmboutputs
         nmboutputs(2)
         """
-        self(self.subpars.pars.control.outputcoordinates.shape[0])
+        self(len(self.subpars.pars.control.outputcoordinates.coordinates))
 
 
 class Distances(parametertools.Parameter):
@@ -84,8 +84,8 @@ class Distances(parametertools.Parameter):
                    [1.414214, 3.162278]])
         """
         control = self.subpars.pars.control
-        incoords = control.inputcoordinates.values
-        outcoords = control.outputcoordinates.values
+        incoords = control.inputcoordinates.coordinates
+        outcoords = control.outputcoordinates.coordinates
         distances = numpy.empty((len(outcoords), len(incoords)), dtype=config.NP_FLOAT)
         for idx, outcoord in enumerate(outcoords):
             distances[idx, :] = numpy.sqrt(

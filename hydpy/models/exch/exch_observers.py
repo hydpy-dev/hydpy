@@ -6,13 +6,14 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
-from hydpy.models.exch import exch_control
+from hydpy.models.exch import exch_derived
 
 
 class X(sequencetools.ObserverSequence):
     """Arbitrary kind of input data [?].
 
-    Parameter |ObserverNodes| determines the length of |exch_observers.X|:
+    Parameter |ObserverNodes| determines the length of |exch_observers.X| (via the
+    derived parameter |NmbObserverNodes|):
 
     >>> from hydpy.models.exch_interp import *
     >>> parameterstep()
@@ -37,7 +38,7 @@ class X(sequencetools.ObserverSequence):
     _observernodes: tuple[str, ...] | None = None
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
-        if isinstance(p, exch_control.ObserverNodes):
+        if isinstance(p, exch_derived.NmbObserverNodes):
             self.__hydpy__change_shape_if_necessary__((p.value,))
 
     @property

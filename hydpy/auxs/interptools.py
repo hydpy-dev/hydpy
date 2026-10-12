@@ -25,7 +25,6 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import propertytools
 from hydpy.core import timetools
-from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 from hydpy.cythons import interputils
 
@@ -217,36 +216,17 @@ dy1/dx3   dy2/dx3
         return pyplot.gcf()
 
 
-class BaseInterpolator(_Labeled):
-    """Base class for |SimpleInterpolator| and |SeasonalInterpolator|."""
+class BaseInterpolator(parametertools.SpecialParameter, _Labeled):
+    """Base class for |SimpleInterpolator| and |SeasonalInterpolator|.
 
-    NDIM: Final[Literal[0]] = 0
-    TIME = None
-    SPAN = (None, None)
-
-    name: str
-    """Class name in lowercase letters."""
-    subvars: parametertools.SubParameters[Any]
-    """The |SubParameters| object containing the current |BaseInterpolator| object."""
-    subpars: parametertools.SubParameters[Any]
-    """The |SubParameters| object containing the current |BaseInterpolator| object."""
-    fastaccess: parametertools.FastAccessParameter
-    """The `fastaccess` object providing access to the interpolator functionalities
-    implemented in Cython."""
-
-    __hydpy__subclasscounter__: ClassVar[int]
-
-    def __init_subclass__(cls) -> None:
-        cls.name = cls.__name__.lower()
-        subclasscounter = variabletools.Variable.__hydpy__subclasscounter__ + 1
-        variabletools.Variable.__hydpy__subclasscounter__ = subclasscounter
-        cls.__hydpy__subclasscounter__ = subclasscounter
-
-    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
-        pass
+    Both interpolator types are special parameters (see |SpecialParameter|) that hand
+    Cython extension objects to the model methods.
+    """
 
     @abc.abstractmethod
-    def __repr__(self, simplify: SimplifyInterpAlgorithm = None, /) -> str: ...
+    def __repr__(  # pylint: disable=arguments-differ
+        self, simplify: SimplifyInterpAlgorithm = None, /
+    ) -> str: ...
 
 
 class SimpleInterpolator(BaseInterpolator):
@@ -265,6 +245,24 @@ class SimpleInterpolator(BaseInterpolator):
 
     >>> from hydpy import ANN, PPoly, print_vector
     >>> simpleinterpolator(PPoly(xs=[0.0, 1.0], ys=[0.0, 2.0]))
+    >>> simpleinterpolator
+    simpleinterpolator(
+        PPoly(
+            xs=[0.0, 1.0],
+            ys=[0.0, 2.0],
+        )
+    )
+
+    Subclasses can pass a function to method `__repr__` that converts the handled
+    |InterpAlgorithm| object into a simplified one for the string representation only:
+
+    >>> print(simpleinterpolator.__repr__(lambda algorithm: PPoly(xs=[0.0], ys=[1.0])))
+    simpleinterpolator(
+        PPoly(
+            xs=[0.0],
+            ys=[1.0],
+        )
+    )
     >>> simpleinterpolator
     simpleinterpolator(
         PPoly(
@@ -316,16 +314,14 @@ class SimpleInterpolator(BaseInterpolator):
     >>> mock.assert_called_with(**kwargs)
     """
 
-    TYPE: Final = "interputils.SimpleInterpolator"
+    CTYPE: ClassVar[str] = "interputils.SimpleInterpolator"
 
     _algorithm: InterpAlgorithm | None
 
     __simpleinterpolator: interputils.SimpleInterpolator | None
 
     def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]) -> None:
-        self.subvars = subvars
-        self.subpars = subvars
-        self.fastaccess = parametertools.FastAccessParameter()
+        super().__init__(subvars)
         self._algorithm = None
         self.__simpleinterpolator = None
         self._do_refresh = True
@@ -336,20 +332,12 @@ class SimpleInterpolator(BaseInterpolator):
         self.fastaccess = self.subpars.fastaccess
         setattr(self.fastaccess, self.name, self.__simpleinterpolator)
 
-    def __call__(self, algorithm: InterpAlgorithm) -> None:
+    def __call__(  # pylint: disable=arguments-differ
+        self, algorithm: InterpAlgorithm
+    ) -> None:
         self._algorithm = algorithm
         self.__simpleinterpolator = interputils.SimpleInterpolator(algorithm)
         setattr(self.fastaccess, self.name, self.__simpleinterpolator)
-
-    @property
-    def shape(self) -> ShapeHookGet:
-        """This property exists for type consistency; we might remove it later.
-
-        >>> from hydpy.auxs.interptools import SimpleInterpolator
-        >>> SimpleInterpolator(None).shape
-        ()
-        """
-        return ()
 
     @property
     def algorithm(self) -> InterpAlgorithm:
@@ -396,9 +384,6 @@ interpolator has been defined so far.
     def output_derivatives(self) -> VectorFloat:
         """The current input values."""
         return self.algorithm.output_derivatives
-
-    def update(self) -> None:
-        """Do nothing (this method only ensures compatibility with |Parameter|)."""
 
     def verify(self) -> None:
         """Raise a |RuntimeError| if the current |InterpAlgorithm| object shows
@@ -514,11 +499,11 @@ class SeasonalInterpolator(BaseInterpolator):
 
     .. image:: SeasonalInterpolator_plot.png
 
-    Property |SeasonalInterpolator.shape| reflects the number of required weighting
-    ratios for each time of year (in this example, 366 days per year) and each
+    The shape of array |SeasonalInterpolator.ratios| reflects the number of required
+    weighting ratios for each time of year (in this example, 366 days per year) and each
     interpolator (in this example, three):
 
-    >>> seasonalinterpolator.shape
+    >>> seasonalinterpolator.ratios.shape
     (366, 3)
 
     The following plot shows the |SeasonalInterpolator.ratios| used for weighting (note
@@ -713,7 +698,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
     AttributeError: 'SeasonalInterpolator' object has no attribute 'temp'
     """
 
-    TYPE: Final = "interputils.SeasonalInterpolator"
+    CTYPE: ClassVar[str] = "interputils.SeasonalInterpolator"
 
     nmb_algorithms: int
 
@@ -722,15 +707,15 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
     __seasonalinterpolator: interputils.SeasonalInterpolator | None
 
     def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]) -> None:
-        self.subvars = subvars
-        self.subpars = subvars
-        self.fastaccess = parametertools.FastAccessParameter()
+        super().__init__(subvars)
         self._toy2algorithm = []
         self.__seasonalinterpolator = None
         self._do_refresh = True
 
     @overload
-    def __call__(self, __algorithm: InterpAlgorithm) -> None: ...
+    def __call__(  # pylint: disable=arguments-differ
+        self, __algorithm: InterpAlgorithm
+    ) -> None: ...
 
     @overload
     def __call__(self, **algorithm: InterpAlgorithm) -> None: ...
@@ -843,9 +828,6 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
             else:
                 self.__seasonalinterpolator = None
 
-    def update(self) -> None:
-        """Do nothing (this method only ensures compatibility with |Parameter|)."""
-
     def verify(self) -> None:
         """Raise a |RuntimeError| and remove all handled interpolators if they are
         defined inconsistently.
@@ -932,12 +914,6 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
                 ratios[tdx, :] = 0.0
                 ratios[tdx, idx_1] = (xnew - x_0) / (x_1 - x_0)
                 ratios[tdx, idx_0] = 1.0 - ratios[tdx, idx_1]
-
-    @property
-    def shape(self) -> ShapeHookGet:
-        """The shape of array |SeasonalInterpolator.ratios|."""
-        shape = self.ratios.shape
-        return int(shape[0]), int(shape[1])
 
     def _prepare_shape(self) -> None:
         """Private on purpose."""

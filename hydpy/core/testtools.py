@@ -33,6 +33,7 @@ from hydpy.core import hydpytools
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
+from hydpy.core import parametertools
 from hydpy.core import pubtools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
@@ -1675,7 +1676,12 @@ def update_integrationtests(
         resultfile.write(docstring)
 
 
-def _enumerate(variables: tuple[type[variabletools.Variable], ...]) -> str:
+_VariableType: TypeAlias = type[
+    variabletools.Variable | parametertools.SpecialParameter
+]
+
+
+def _enumerate(variables: tuple[_VariableType, ...]) -> str:
     return objecttools.enumeration(
         v.__name__ for v in variabletools.sort_variables(variables)
     )
@@ -1999,8 +2005,8 @@ and PotentialInterceptionEvaporation
 
     # search for variables selected by at least one submethod but not by the method
     # calling these submethods:
-    vars_method: set[type[variabletools.Variable]]
-    vars_submethods: set[type[variabletools.Variable]]
+    vars_method: set[_VariableType]
+    vars_submethods: set[_VariableType]
     for group in groups:
         vars_method = set(getattr(method, group))
         found_problem = False
@@ -2030,12 +2036,10 @@ and PotentialInterceptionEvaporation
 
     # search for selected variables that are neither used within the source code nor
     # selected by any submethod:
-    group2vars_method: dict[str, set[type[variabletools.Variable]]] = {
+    group2vars_method: dict[str, set[_VariableType]] = {
         g: set(getattr(method, g)) for g in groups
     }
-    group2vars_submethods: dict[str, set[type[variabletools.Variable]]] = {
-        g: set() for g in groups
-    }
+    group2vars_submethods: dict[str, set[_VariableType]] = {g: set() for g in groups}
     for submethod in method.SUBMETHODS:
         for group, vars_submethods in group2vars_submethods.items():
             vars_submethods.update(getattr(submethod, group))
@@ -2053,9 +2057,9 @@ and PotentialInterceptionEvaporation
             )
 
     # search for variables that are selected multiple times:
-    vars1: tuple[type[variabletools.Variable], ...]
-    vars2: tuple[type[variabletools.Variable], ...]
-    dupl: set[type[variabletools.Variable]] = set()
+    vars1: tuple[_VariableType, ...]
+    vars2: tuple[_VariableType, ...]
+    dupl: set[_VariableType] = set()
     for group1 in groups:
         vars1 = getattr(method, group1)
         for var in vars1:

@@ -37,7 +37,7 @@ additional releases from the sources:
 >>> timedelay(0)
 >>> timewindow(1)
 
-The scalar parameter |Sources| tells |manager_lwc| the names of those elements which
+The special parameter |Sources| tells |manager_lwc| the names of those elements which
 handle the |dam| models we will initialise below:
 
 >>> sources("d_1", "d_1a", "d_2", "d_2a", "d_2b", "d_2b1")

@@ -110,6 +110,7 @@ from hydpy.core import objecttools
 from hydpy.core import selectiontools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
+from hydpy.core import variabletools
 from hydpy.exe import commandtools
 from hydpy.core.typingtools import *
 
@@ -117,7 +118,6 @@ if TYPE_CHECKING:
     import netCDF4 as netcdf4
     import xmlschema
     from hydpy.core import modeltools
-    from hydpy.core import variabletools
 else:
     netcdf4 = exceptiontools.OptionalImport(
         "netcdf4", ["netCDF4", "h5netcdf.legacyapi"], locals()
@@ -2808,13 +2808,17 @@ class XSDWriter:
     def get_mathitemsinsertion(cls, indent: int) -> str:
         """Return a string defining a model-specific XML type extending `ItemType`.
 
+        Special parameters (see |SpecialParameter|), like |arma_control.Responses| of
+        application model |arma_rimorido|, cannot serve as exchange items, so the
+        first selectable variable is the flux sequence |arma_fluxes.QIn|:
+
         >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_mathitemsinsertion(1))  # doctest: +ELLIPSIS
             <complexType name="arma_rimorido_mathitemType">
                 <complexContent>
                     <extension base="hpcb:mathitemType">
                         <choice>
-                            <element name="control.responses"/>
+                            <element name="fluxes.qin"/>
         ...
                             <element name="fluxes.qout"/>
                         </choice>
@@ -2838,7 +2842,7 @@ class XSDWriter:
                 ]
             )
             for subvars in cls._get_subvars(model, conditions=False):
-                for var in subvars:
+                for var in cls._get_variables(subvars):
                     subs.append(
                         f"{blanks}                "
                         f'<element name="{subvars.name}.{var.name}"/>'
@@ -2885,7 +2889,7 @@ class XSDWriter:
         for modelname in cls.get_basemodelnames():
             model = importtools.prepare_model(modelname, ignore_deprecated=True)
             for subvars in cls._get_subvars(model, conditions=False):
-                for var in subvars:
+                for var in cls._get_variables(subvars):
                     if isinstance(var, parametertools.Parameter) and var.KEYWORDS:
                         prefix = f"{modelname.split('_')[0]}_{subvars.name}_{var.name}_"
                         subs.extend(
@@ -3131,7 +3135,8 @@ class XSDWriter:
     def _get_subvars(
         cls, model: modeltools.Model, conditions: bool
     ) -> Iterator[variabletools.SubVariables[Any, Any, Any, Any]]:
-        yield model.parameters.control
+        if model.parameters.control.regular:
+            yield model.parameters.control
         names = ["inputs", "factors", "fluxes"]
         if conditions:
             names.extend(("states", "logs"))
@@ -3139,6 +3144,15 @@ class XSDWriter:
             subseqs = getattr(model.sequences, name, None)
             if subseqs:
                 yield subseqs
+
+    @staticmethod
+    def _get_variables(
+        subvars: variabletools.SubVariables[Any, Any, Any, Any], /
+    ) -> Iterator[variabletools.Variable]:
+        if isinstance(subvars, parametertools.SubParameters):
+            yield from subvars.regular
+        else:
+            yield from subvars
 
     @classmethod
     def get_subgroupiteminsertion(
@@ -3239,7 +3253,7 @@ class XSDWriter:
             f'{blanks1}                     minOccurs="0"/>',
         ]
         seriesflags = [False] if subgroup.name == "control" else [False, True]
-        for var in subgroup:
+        for var in cls._get_variables(subgroup):
             for series in seriesflags:
                 name = f"{var.name}.series" if series else var.name
                 subs.append(f'{blanks1}            <element name="{name}"')

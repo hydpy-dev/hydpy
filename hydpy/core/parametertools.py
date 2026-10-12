@@ -118,15 +118,30 @@ def _warn_trim_kwarg(
 
 
 class IntConstant(int):
-    """Class for |int| objects with individual docstrings."""
+    """Class for |int| objects with individual docstrings.
+
+    Note that copying returns the same (immutable) object:
+
+    >>> from hydpy.core.parametertools import IntConstant
+    >>> c = IntConstant(1)
+    >>> from copy import copy, deepcopy
+    >>> assert c is copy(c)
+    >>> assert c is deepcopy(c)
+    """
 
     def __new__(cls, value) -> Self:
         const = int.__new__(cls, value)
         const.__doc__ = None
         assert (frame := inspect.currentframe()) is not None
         assert (frame := frame.f_back) is not None
-        const.__module__ = frame.f_locals["__name__"]
+        const.__module__ = frame.f_globals["__name__"]
         return const
+
+    def __copy__(self) -> Self:
+        return self
+
+    def __deepcopy__(self, memodict: dict[int, object] | None = None) -> Self:
+        return self
 
 
 class Constants(dict[str, int]):

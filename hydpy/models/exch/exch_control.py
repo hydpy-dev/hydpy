@@ -329,9 +329,7 @@ keyword arguments `stream` and `transfer` of parameter `targets` of element `?` 
     targets(stream="river", transfer="diversion")
     """
 
-    def __call__(  # pylint: disable=arguments-differ
-        self, stream: str, transfer: str
-    ) -> None:
+    def __call__(self, stream: str, transfer: str) -> None:
         if stream == transfer:
             raise ValueError(
                 f"You must not assign the same target node name (`{stream}`) to both "
@@ -630,9 +628,7 @@ documentation).
                 f"{objecttools.elementphrase(self)}"
             )
 
-    def __repr__(  # pylint: disable=arguments-differ
-        self, simplify: interptools.SimplifyInterpAlgorithm = None
-    ) -> str:
+    def __repr__(self, simplify: interptools.SimplifyInterpAlgorithm = None) -> str:
 
         class _Simplify:
             _names: Sequence[str]

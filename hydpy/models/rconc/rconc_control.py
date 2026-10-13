@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import math
+from typing import Literal
 
 import numpy
 
@@ -36,17 +37,49 @@ class UH(parametertools.Parameter):
     >>> uh
     uh(0.1, 0.2, 0.4, 0.2, 0.1)
 
+    Like for other 1-dimensional parameters, passing the ordinates as separate
+    positional arguments works as well:
+
+    >>> uh(0.2, 0.6, 0.2)
+    >>> uh
+    uh(0.2, 0.6, 0.2)
+
+    The number of the given ordinates determines the parameter's shape.  Hence, its
+    string representation never combines identical ordinates into a single value:
+
+    >>> uh(0.5, 0.5)
+    >>> uh
+    uh(0.5, 0.5)
+    >>> uh(1.0)
+    >>> uh
+    uh(1.0)
+
+    The ordinates must be given as a 1-dimensional sequence:
+
+    >>> uh([[0.5], [0.5]])
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the values of parameter `uh` of element `?`, the \
+following error occurred: The ordinates must be given as a 1-dimensional sequence, \
+but the given values are 2-dimensional.
+
+    >>> uh()
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the values of parameter `uh` of element `?`, the \
+following error occurred: Neither the ordinates, nor a predefined geometry, nor an \
+auxiliary file is given.
+
     Alternatively, implemented geometries can be specified via a positional 'option'
     parameter and parameterised with the corresponding arguments.
 
     We generate the ordinates of a unit hydrograph in the form of an isosceles triangle
     with a base length of 10 days:
 
-    >>> from hydpy import print_vector
-    >>> from hydpy.models.rconc import *
     >>> uh("triangle", tb=10.0)
     >>> uh
     uh("triangle", tb=10.0)
+    >>> from hydpy import print_vector
     >>> print_vector(uh.values)
     0.02, 0.06, 0.1, 0.14, 0.18, 0.18, 0.14, 0.1, 0.06, 0.02
 
@@ -57,31 +90,31 @@ class UH(parametertools.Parameter):
     ...     uh
     uh("triangle", tb=5.0)
 
-    Omitting the option string will result in an error:
+    Omitting the option string or passing additional positional arguments results in
+    an error:
 
     >>> uh(tb=10.0)
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the values of parameter `uh` of element `?`, the \
-following error occurred: Exactly one positional argument is expected, but none or \
-more than one is given.
-
-    Also, calling uh with more than one positional argument or with a positional
-    argument of the wrong type is not allowed:
+following error occurred: When selecting a predefined geometry, you must pass the \
+option string as the only positional argument and its parameters as keyword arguments.
 
     >>> uh([0.1,0.2,0.1], "triangle", tb=10.0)
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the values of parameter `uh` of element `?`, the \
-following error occurred: Exactly one positional argument is expected, but none or \
-more than one is given.
+following error occurred: When selecting a predefined geometry, you must pass the \
+option string as the only positional argument and its parameters as keyword arguments.
 
-    >>> uh(True)
+    If an unknown option is given, |UH| points to the supported ones:
+
+    >>> uh("rectangle", tb=10.0)
     Traceback (most recent call last):
     ...
-    TypeError: While trying to set the values of parameter `uh` of element `?`, the \
-following error occurred: The expected type of the positional argument is a sequence \
-of floats but a value of `bool` is given.
+    ValueError: While trying to set the values of parameter `uh` of element `?`, the \
+following error occurred: Option `rectangle` is unknown.  Available options are \
+`triangle`, `gr_uh1`, and `gr_uh2`.
 
     The optional argument 'tp' specifies the position of the peak:
 
@@ -101,13 +134,24 @@ of floats but a value of `bool` is given.
     0.015711, 0.047133, 0.078555, 0.109976, 0.141398, 0.17282, 0.199445,
     0.150376, 0.075188, 0.009398
 
-    Parameter 'tp' must not be greater than 'tb':
+    Passing |None| for 'tp' is the same as omitting it:
 
+    >>> uh("triangle", tb=10.0, tp=None)
+    >>> uh
+    uh("triangle", tb=10.0)
+
+    Parameter 'tp' must not be greater than 'tb'.  After such a failed call, |UH|
+    keeps its previous ordinates, and its string representation reports them instead
+    of the rejected geometry:
+
+    >>> uh("triangle", tb=2.0)
     >>> uh("triangle", tb=2.0, tp=3.0)
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the values of parameter `uh` of element `?`, the \
 following error occurred: Parameter 'tp' must not be greater than 'tb'.
+    >>> uh
+    uh(0.5, 0.5)
 
     In addition to the HBV96-oriented triangular unit hydrograph (with the general
     purpose of damping the flood pulse; see :cite:t:`ref-Harlin1992`), the unit
@@ -135,8 +179,8 @@ following error occurred: Parameter 'tp' must not be greater than 'tb'.
     >>> print_vector(uh.values)
     0.75643, 0.24357
 
-    According to :cite:t:`ref-Perrin2007`, the exponent 'beta' is 2.5 by default but
-    can be changed:
+    According to :cite:t:`ref-Perrin2007`, the exponent 'beta' is 2.5 by default but can
+    be changed:
 
     >>> uh("gr_uh1", x4=6.3, beta=1.5)
     >>> print_vector(uh.values)
@@ -153,7 +197,7 @@ following error occurred: Parameter 'tp' must not be greater than 'tb'.
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the values of parameter `uh` of element `?`, the \
-following error occurred: Wrong arguments for option 'triangle'.
+following error occurred: Wrong arguments for option `triangle`.
 
     The GR4J-based options cannot be mixed with the triangle parameters:
 
@@ -161,13 +205,13 @@ following error occurred: Wrong arguments for option 'triangle'.
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the values of parameter `uh` of element `?`, the \
-following error occurred: Wrong arguments for option 'gr_uh1'.
+following error occurred: Wrong arguments for option `gr_uh1`.
 
     >>> uh("gr_uh2", tb=2.0, tp=3.0)
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the values of parameter `uh` of element `?`, the \
-following error occurred: Wrong arguments for option 'gr_uh2'.
+following error occurred: Wrong arguments for option `gr_uh2`.
 
     The following tests examine the correct calculation of ordinates in edge cases:
 
@@ -206,6 +250,37 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
     >>> uh("gr_uh1", x4=0.8)
     >>> logs.quh
     quh(nan)
+
+    Like other parameters, |UH| supports taking its ordinates from auxiliary control
+    files.  The following example writes an auxiliary file, which defines a triangle
+    unit hydrograph, and lets |UH| read it.  The string representation then reflects
+    the definition given in the auxiliary file, and |QUH| is adjusted as usual:
+
+    >>> from hydpy import TestIO
+    >>> with TestIO(clear_own=True):
+    ...     with open("uh_aux.py", "w", encoding="utf-8") as file_:
+    ...         for line in (
+    ...             "from hydpy.models.rconc import *",
+    ...             "simulationstep('1d')",
+    ...             "parameterstep('1d')",
+    ...             "uh('triangle', tb=3.0)",
+    ...         ):
+    ...             print(line, file=file_)
+    ...     uh(auxfile="uh_aux")
+    >>> uh
+    uh("triangle", tb=3.0)
+    >>> print_vector(uh.values)
+    0.222222, 0.555556, 0.222222
+    >>> logs.quh
+    quh(nan, nan, nan)
+
+    As usual, you cannot combine the `auxfile` keyword with other arguments:
+
+    >>> uh("triangle", auxfile="uh_aux")
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `uh` of element `?` both positional and keyword \
+arguments are given, which is ambiguous.
     """
 
     NDIM: Final[Literal[1]] = 1
@@ -224,6 +299,12 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
     def __call__(self, value: VectorInputFloat, /) -> None: ...
 
     @overload
+    def __call__(self, *values: float) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
     def __call__(
         self, option: Literal["triangle"], /, *, tb: float, tp: float | None = None
     ) -> None: ...
@@ -235,120 +316,90 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
 
     def __call__(
         self,
-        *args: VectorInputFloat | str,
+        *args: VectorInputFloat | float | str,
         **kwargs: Unpack[_AllowedKeywordArgsOfClassUH],
     ) -> None:
         self._keywordarguments = parametertools.KeywordArguments(False)
-
-        # TODO: testing for parameter auxfile here would lead to necessity of
-        # TODO: complex doctests, otherwise we would have to change the super class
-        # TODO: For now, we skip support of auxfile and need to find a general solution.
-        # auxfile = kwargs.get("auxfile")
-        # if auxfile is not None:
-        #    super().__call__(*args, **kwargs)
-        #    return None
+        if "auxfile" in kwargs:
+            super().__call__(*args, **kwargs)
+            return
         try:
-            self._validate_args(args)
-            if isinstance(args[0], str):
-                option = args[0]
-                args = ()
+            if kwargs or any(isinstance(arg, str) for arg in args):
+                if (len(args) != 1) or not isinstance(option := args[0], str):
+                    raise ValueError(
+                        "When selecting a predefined geometry, you must pass the "
+                        "option string as the only positional argument and its "
+                        "parameters as keyword arguments."
+                    )
+                self._set_geometry(option, kwargs)
             else:
-                try:
-                    self.shape = len(args[0])
-                    self._adjust_quh_shape()
-                except TypeError:
-                    raise TypeError(
-                        f"The expected type of the positional argument is a "
-                        f"sequence of floats but a value of `{type(args[0]).__name__}`"
-                        f" is given."
-                    ) from None
-                self.values = args[0]
-                return None
-
-            idx = self._find_kwargscombination(
-                args, dict(kwargs), ({"tb"}, {"tb", "tp"}, {"x4"}, {"x4", "beta"})
-            )
-
-            if option == "triangle":
-                if idx in (0, 1):
-                    tb = kwargs["tb"]
-                    tb /= self.get_timefactor()
-                    if idx == 1:
-                        tp = kwargs["tp"]
-                        if tp is not None:
-                            tp /= self.get_timefactor()
-                        self._keywordarguments = parametertools.KeywordArguments(
-                            option=option, tb=tb, tp=tp
-                        )
-                    else:
-                        tp = None
-                        self._keywordarguments = parametertools.KeywordArguments(
-                            option=option, tb=tb
-                        )
-                    self._set_triangle_uh(tb=tb, tp=tp)
-                else:
-                    raise ValueError("Wrong arguments for option 'triangle'.")
-            elif option == "gr_uh1":
-                if idx in (2, 3):
-                    x4 = kwargs["x4"]
-                    x4 /= self.get_timefactor()
-                    if idx == 3 and kwargs["beta"] is not None:
-                        beta = kwargs["beta"]
-                        self._keywordarguments = parametertools.KeywordArguments(
-                            option=option, x4=x4, beta=beta
-                        )
-                    else:
-                        beta = 2.5
-                        self._keywordarguments = parametertools.KeywordArguments(
-                            option=option, x4=x4
-                        )
-                    self.set_gr_uh1(x4=x4, beta=beta)
-                else:
-                    raise ValueError("Wrong arguments for option 'gr_uh1'.")
-            elif option == "gr_uh2":
-                if idx in (2, 3):
-                    x4 = kwargs["x4"]
-                    x4 /= self.get_timefactor()
-                    if idx == 3 and kwargs["beta"] is not None:
-                        beta = kwargs["beta"]
-                        self._keywordarguments = parametertools.KeywordArguments(
-                            option=option, x4=x4, beta=beta
-                        )
-                    else:
-                        beta = 2.5
-                        self._keywordarguments = parametertools.KeywordArguments(
-                            option=option, x4=x4
-                        )
-                    self.set_gr_uh2(x4=x4, beta=beta)
-                else:
-                    raise ValueError("Wrong arguments for option 'gr_uh2'.")
+                if not args:
+                    raise ValueError(
+                        "Neither the ordinates, nor a predefined geometry, nor an "
+                        "auxiliary file is given."
+                    )
+                self._set_ordinates(args)
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to set the values of parameter "
                 f"{objecttools.elementphrase(self)}"
             )
 
-        return None
-
-    def _validate_args(self, args: tuple[VectorInputFloat | str, ...]) -> None:
-        if len(args) != 1:
+    def _set_ordinates(self, args: tuple[VectorInputFloat | float | str, ...]) -> None:
+        ordinates = numpy.array(
+            args[0] if len(args) == 1 else args, dtype=config.NP_FLOAT, ndmin=1
+        )
+        if ordinates.ndim != 1:
             raise ValueError(
-                "Exactly one positional argument is expected, but none or more "
-                "than one is given."
+                f"The ordinates must be given as a 1-dimensional sequence, but the "
+                f"given values are {ordinates.ndim}-dimensional."
             )
+        self.shape = len(ordinates)
+        self._adjust_quh_shape()
+        self.values = ordinates
 
-    def __repr__(self) -> str:
-        if self._keywordarguments.valid:
-            strings = []
-            for name, value in self._keywordarguments:
-                if name in ("tb", "tp", "x4"):
-                    value *= self.get_timefactor()
-                if name == "option":
-                    strings.append(f'"{objecttools.repr_(value)}"')
-                else:
-                    strings.append(f"{name}={objecttools.repr_(value)}")
-            return f"{self.name}({', '.join(strings)})"
-        return super().__repr__()
+    def _set_geometry(self, option: str, kwargs: _AllowedKeywordArgsOfClassUH) -> None:
+        if option not in ("triangle", "gr_uh1", "gr_uh2"):
+            raise ValueError(
+                f"Option `{option}` is unknown.  Available options are `triangle`, "
+                f"`gr_uh1`, and `gr_uh2`."
+            )
+        idx = self._find_kwargscombination(
+            (), dict(kwargs), ({"tb"}, {"tb", "tp"}, {"x4"}, {"x4", "beta"})
+        )
+        if idx not in ((0, 1) if option == "triangle" else (2, 3)):
+            raise ValueError(f"Wrong arguments for option `{option}`.")
+        if option == "triangle":
+            self._set_triangle(kwargs)
+        else:
+            self._set_gr_uh(option, kwargs)
+
+    def _set_triangle(self, kwargs: _AllowedKeywordArgsOfClassUH) -> None:
+        tb = kwargs["tb"] / self.get_timefactor()
+        if (tp := kwargs.get("tp")) is None:
+            keywordarguments = parametertools.KeywordArguments(option="triangle", tb=tb)
+        else:
+            tp /= self.get_timefactor()
+            keywordarguments = parametertools.KeywordArguments(
+                option="triangle", tb=tb, tp=tp
+            )
+        self._set_triangle_uh(tb=tb, tp=tp)
+        self._keywordarguments = keywordarguments
+
+    def _set_gr_uh(self, option: str, kwargs: _AllowedKeywordArgsOfClassUH) -> None:
+        x4 = kwargs["x4"] / self.get_timefactor()
+        if (beta := kwargs.get("beta")) is None:
+            beta = 2.5
+            keywordarguments = parametertools.KeywordArguments(option=option, x4=x4)
+        else:
+            keywordarguments = parametertools.KeywordArguments(
+                option=option, x4=x4, beta=beta
+            )
+        if option == "gr_uh1":
+            self._set_gr_uh1(x4=x4, beta=beta)
+        else:
+            self._set_gr_uh2(x4=x4, beta=beta)
+        self._keywordarguments = keywordarguments
 
     def _adjust_quh_shape(self) -> None:
         """Adjust the shape of log sequence |QUH| to the current shape of |UH| if
@@ -413,14 +464,14 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
             uh[:] = uh / numpy.sum(uh)
             self.values = uh
 
-    def set_gr_uh1(self, x4: float, beta: float = 2.5) -> None:
+    def _set_gr_uh1(self, x4: float, beta: float = 2.5) -> None:
         """Calculate and set the ordinates of a unit hydrograph as done by GR4J for
         modifying base flow.
         """
         self.shape, self.values = self._det_gr_uh(x4=x4, beta=beta, left=True)
         self._adjust_quh_shape()
 
-    def set_gr_uh2(self, x4: float, beta: float = 2.5) -> None:
+    def _set_gr_uh2(self, x4: float, beta: float = 2.5) -> None:
         """Calculate and set the ordinates of a unit hydrograph as done by GR4J for
         modifying direct runoff."""
         shape_left, values_left = self._det_gr_uh(x4=x4, beta=beta, left=True)
@@ -452,6 +503,38 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
         if not left:
             deltas = deltas[::-1]
         return len(deltas), deltas / numpy.sum(deltas)
+
+    def compress_repr(self) -> str | None:
+        """Return `?` if the ordinates are not ready yet, `[]` if there are none, and
+        |None| otherwise.
+
+        The number of the ordinates defines the shape of |UH|.  Hence, combining
+        identical ordinates into a single value (like |Parameter.compress_repr| does)
+        would lose information:
+
+        >>> from hydpy.models.rconc import *
+        >>> parameterstep()
+        >>> uh.compress_repr()
+        '?'
+        >>> uh(0.5, 0.5)
+        >>> uh.compress_repr()
+        """
+        if (result := super().compress_repr()) in ("?", "[]"):
+            return result
+        return None
+
+    def __repr__(self) -> str:
+        if self._keywordarguments.valid:
+            strings = []
+            for name, value in self._keywordarguments:
+                if name in ("tb", "tp", "x4"):
+                    value *= self.get_timefactor()
+                if name == "option":
+                    strings.append(f'"{objecttools.repr_(value)}"')
+                else:
+                    strings.append(f"{name}={objecttools.repr_(value)}")
+            return f"{self.name}({', '.join(strings)})"
+        return super().__repr__()
 
 
 class RetentionTime(parametertools.Parameter):

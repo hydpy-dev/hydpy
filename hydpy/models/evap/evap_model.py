@@ -4923,24 +4923,43 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
     r"""Calculate reference evapotranspiration after Turc-Wendling.
 
     Basic equation:
-      :math:`ReferenceEvapotranspiration =
-      \frac{(8.64 \cdot GlobalRadiation + 93 \cdot CoastFactor) \cdot
-      (AirTemperature + 22)}
-      {165 \cdot (AirTemperature + 123) \cdot
+      :math:`ReferenceEvapotranspiration = Days \cdot
+      \frac{(8.64 \cdot DailyGlobalRadiation + 93 \cdot CoastFactor) \cdot
+      (DailyAirTemperature + 22)}
+      {165 \cdot (DailyAirTemperature + 123) \cdot
       (1 + 0.00019 \cdot min(Altitude, 600))}`
 
-    Example:
+    The Turc-Wendling equation is designed for daily data.  Hence,
+    |Calc_ReferenceEvapotranspiration_V2| always evaluates it for the average air
+    temperature and the average global radiation of the last 24 hours and converts the
+    resulting daily evapotranspiration to the actual simulation step size.
+
+    Examples:
+
+        For a daily simulation step, the averages of the last 24 hours are identical
+        with the current values of air temperature and global radiation:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
         >>> nmbhru(3)
         >>> coastfactor(0.6)
         >>> hrualtitude(200.0, 600.0, 1000.0)
-        >>> factors.airtemperature = 15.0
-        >>> fluxes.globalradiation = 200.0
+        >>> derived.days(1)
+        >>> factors.dailyairtemperature = 15.0
+        >>> fluxes.dailyglobalradiation = 200.0
         >>> model.calc_referenceevapotranspiration_v2()
         >>> fluxes.referenceevapotranspiration
         referenceevapotranspiration(2.792463, 2.601954, 2.601954)
+
+        For an hourly simulation step, the same daily averages result in one
+        twenty-fourth of the above values.  So, the calculated reference
+        evapotranspiration shows no diurnal pattern but sums up to the correct daily
+        value:
+
+        >>> derived.days(1/24)
+        >>> model.calc_referenceevapotranspiration_v2()
+        >>> fluxes.referenceevapotranspiration
+        referenceevapotranspiration(0.116353, 0.108415, 0.108415)
     """
 
     CONTROLPARAMETERS = (
@@ -4948,22 +4967,31 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
         evap_control.HRUAltitude,
         evap_control.CoastFactor,
     )
-    REQUIREDSEQUENCES = (evap_factors.AirTemperature, evap_fluxes.GlobalRadiation)
+    DERIVEDPARAMETERS = (evap_derived.Days,)
+    REQUIREDSEQUENCES = (
+        evap_factors.DailyAirTemperature,
+        evap_fluxes.DailyGlobalRadiation,
+    )
     RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
     def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
             flu.referenceevapotranspiration[k] = (
-                (8.64 * flu.globalradiation + 93.0 * con.coastfactor[k])
-                * (fac.airtemperature[k] + 22.0)
-            ) / (
-                165.0
-                * (fac.airtemperature[k] + 123.0)
-                * (1.0 + 0.00019 * min(con.hrualtitude[k], 600.0))
+                der.days
+                * (
+                    (8.64 * flu.dailyglobalradiation + 93.0 * con.coastfactor[k])
+                    * (fac.dailyairtemperature[k] + 22.0)
+                )
+                / (
+                    165.0
+                    * (fac.dailyairtemperature[k] + 123.0)
+                    * (1.0 + 0.00019 * min(con.hrualtitude[k], 600.0))
+                )
             )
 
 

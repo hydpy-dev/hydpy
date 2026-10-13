@@ -26,6 +26,8 @@ class Calc_E_PETModel_V1(modeltools.Method):
         >>> parameterstep()
         >>> from hydpy import prepare_model
         >>> area(50.0)
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> with model.add_petmodel_v1("evap_ret_tw2002"):
         ...     hrualtitude(200.0)
         ...     coastfactor(0.6)
@@ -1322,6 +1324,8 @@ class Main_PETModel_V1(modeltools.AdHocModel):
         >>> from hydpy.models.gland_gr4 import *
         >>> parameterstep()
         >>> area(5.0)
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> with model.add_petmodel_v1("evap_ret_tw2002"):
         ...     nmbhru
         ...     hruarea

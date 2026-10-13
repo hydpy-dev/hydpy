@@ -1,13 +1,13 @@
 
 [run]
-source =
-    hydpy
+source = hydpy
 omit =
     */hydpy/tests/*
     */hydpy/docs/*
     */hydpy/cythons/modelutils.py
     */hydpy/mypy_plugin.py
-parallel=True
+parallel = True
+core = sysmon
 
 [report]
 show_missing = True

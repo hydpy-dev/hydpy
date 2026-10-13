@@ -224,9 +224,7 @@ class BaseInterpolator(parametertools.SpecialParameter, _Labeled):
     """
 
     @abc.abstractmethod
-    def __repr__(  # pylint: disable=arguments-differ
-        self, simplify: SimplifyInterpAlgorithm = None, /
-    ) -> str: ...
+    def __repr__(self, simplify: SimplifyInterpAlgorithm = None, /) -> str: ...
 
 
 class SimpleInterpolator(BaseInterpolator):
@@ -332,9 +330,7 @@ class SimpleInterpolator(BaseInterpolator):
         self.fastaccess = self.subpars.fastaccess
         setattr(self.fastaccess, self.name, self.__simpleinterpolator)
 
-    def __call__(  # pylint: disable=arguments-differ
-        self, algorithm: InterpAlgorithm
-    ) -> None:
+    def __call__(self, algorithm: InterpAlgorithm) -> None:
         self._algorithm = algorithm
         self.__simpleinterpolator = interputils.SimpleInterpolator(algorithm)
         setattr(self.fastaccess, self.name, self.__simpleinterpolator)
@@ -713,9 +709,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         self._do_refresh = True
 
     @overload
-    def __call__(  # pylint: disable=arguments-differ
-        self, __algorithm: InterpAlgorithm
-    ) -> None: ...
+    def __call__(self, __algorithm: InterpAlgorithm) -> None: ...
 
     @overload
     def __call__(self, **algorithm: InterpAlgorithm) -> None: ...

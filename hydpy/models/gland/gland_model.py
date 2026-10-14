@@ -40,6 +40,10 @@ class Calc_E_PETModel_V1(modeltools.Method):
         >>> model.calc_e_v1()
         >>> fluxes.e
         e(3.07171)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     RESULTSEQUENCES = (gland_fluxes.E,)
@@ -1336,6 +1340,10 @@ class Main_PETModel_V1(modeltools.AdHocModel):
         >>> etf = model.petmodel.parameters.control.evapotranspirationfactor
         >>> etf
         evapotranspirationfactor(1.5)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         control = self.parameters.control
         petmodel.prepare_nmbzones(1)

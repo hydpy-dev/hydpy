@@ -6229,6 +6229,8 @@ class Main_PEModel_V1(modeltools.Model, abc.ABC):
         >>> from hydpy.models.dam_v001 import *
         >>> parameterstep()
         >>> surfacearea(2.0)
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> with model.add_pemodel_v1("evap_ret_tw2002"):
         ...     nmbhru
         ...     hruarea
@@ -6238,6 +6240,10 @@ class Main_PEModel_V1(modeltools.Model, abc.ABC):
 
         >>> model.pemodel.parameters.control.evapotranspirationfactor
         evapotranspirationfactor(1.5)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         control = self.parameters.control
         pemodel.prepare_nmbzones(1)

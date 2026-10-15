@@ -124,7 +124,7 @@ for subpackage in (auxs, core, cythons, exe, interfaces, models):
                         and not member.CLASSES
                     ):
                         _exc_mem.add(member.__name__)
-            excludemembers = ", ".join(_exc_mem)
+            excludemembers = ", ".join(sorted(_exc_mem))
             lines = [
                 "",
                 f".. _{filename}:",

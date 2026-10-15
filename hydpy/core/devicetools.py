@@ -1385,7 +1385,7 @@ class Elements(Devices["Element"]):
         channel `C` consists of two subchannels (represented by elements `c1` and
         `c2`):
 
-        >>> from hydpy import Element, Elements, Nodes
+        >>> from hydpy import Element, Elements, Node, Nodes
         >>> q_a, q_a_b, q_b_c1, q_c1_c2, q_c2_d, q_d = Nodes(
         ...     "q_a", "q_a_b", "q_b_c1", "q_c1_c2", "q_c2_d", "q_d",
         ...     defaultvariable=q)
@@ -1469,6 +1469,33 @@ class Elements(Devices["Element"]):
         >>> assert e_c.model.routingmodels[1].routingmodelsdownstream[0] is \
 e_c.model.routingmodels[2]
 
+        A new element also adopts all input and output nodes of its subelements.  We
+        add the output node `ts_c1` to element `c1` and the input node `p_c2` to
+        element `c2` (for demonstration only, as none of the currently available |sw1d|
+        models provides an input sequence that could be connected to an input node):
+
+        >>> e_c1 = Element("e_c1", outputs=Node("ts_c1", variable="TimeStep"))
+        >>> e_c2 = Element("e_c2", inputs=Node("p_c2", variable="P"))
+        >>> elements.unite_collectives().C
+        Element("C",
+                inlets="q_b_c1",
+                outlets=["q_c1_c2", "q_c2_d"],
+                inputs="p_c2",
+                outputs="ts_c1")
+
+        In contrast to inlet and outlet nodes, an input node of one subelement must not
+        serve as an output node of another subelement of the same collective (we may
+        allow this later if an actual need arises):
+
+        >>> e_e1 = Element("e_e1", collective="E", outputs="x_e1_e2")
+        >>> e_e2 = Element("e_e2", collective="E", inputs=["x_e1_e2", "x_e"])
+        >>> Elements(e_e1, e_e2).unite_collectives()
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to unite the elements belonging to collective `E`, \
+the following error occurred: The following input node of one element is an output \
+node of another element of the same collective, which is not supported: x_e1_e2.
+
         |Elements.unite_collectives| raises the following error if an element belonging
         to a collective does not handle a |Model| instance:
 
@@ -1522,8 +1549,18 @@ a function for coupling models that belong to the same collective.
                         input_
                         for subelement in subelements
                         for input_ in subelement.inputs
-                        if input_ not in outputs
                     }
+                    if internals := inputs.intersection(outputs):
+                        plural = objecttools.Inflect.plural
+                        n = len(internals)
+                        names = sorted(node.name for node in internals)
+                        raise ValueError(
+                            f"The following input {plural('node', n)} of one element "
+                            f"{plural('is', n)} {plural('an', n)} output "
+                            f"{plural('node', n)} of another element of the same "
+                            f"collective, which is not supported: "
+                            f"{objecttools.enumeration(names)}."
+                        )
                     _registry[Element].pop(collective, None)
                     newelement = Element(
                         collective,

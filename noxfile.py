@@ -60,7 +60,7 @@ def _clean_environment(session: nox.Session) -> Iterator[dict[str, str]]:
 
 @nox.session
 def doctest(session: nox.Session) -> None:
-    """Execute script `run_doctests.py` and measure code coverage.
+    """Execute script `run_doctests.py`.
 
     You can define arguments specific to the doctest session.  The `doctest` session
     passes them to the `run_doctests.py` script.  For example, to restrict testing to
@@ -72,34 +72,43 @@ def doctest(session: nox.Session) -> None:
     Or shorter:
 
     nox -s doctest -- -f hland_96.py -p f -t 4
-
-    The "doctest" session only measures code coverage when no session-specific
-    arguments are given.  Otherwise, the mentioned restrictions would inevitably result
-    in incomplete code coverage measurements.
     """
+    _install_hydpy(session)
+    session.chdir(_get_sitepackagepath(session))
+    with _clean_environment(session):
+        session.run("python", "hydpy/tests/run_doctests.py", *session.posargs)
 
-    multithreading = ("-t" in session.posargs) or ("--threads" in session.posargs)
-    analyse_coverage = (len(session.posargs) - (2 * multithreading)) == 0
+
+@nox.session
+def coverage(session: nox.Session) -> None:
+    """Execute script `run_doctests.py` and measure code coverage.
+
+    Measuring code coverage requires executing all doctests in Python mode but only a
+    few in Cython mode, as Cython mode executes the compiled model code.  (Use session
+    "doctest" or session "sphinx" to execute all doctests in Cython mode.
+    """
+    cythonmodules = ("modeltools.py", "parametertools.py")
 
     _install_hydpy(session)
-    if analyse_coverage:
-        session.install("coverage")
+    session.install("coverage")
     session.chdir(_get_sitepackagepath(session))
-    if analyse_coverage:
-        shutil.copy("hydpy/tests/hydpydoctestcustomize.py", "hydpydoctestcustomize.py")
-        shutil.copy(
-            "hydpy/tests/hydpydoctestcustomize.pth", "hydpydoctestcustomize.pth"
-        )
+    shutil.copy("hydpy/tests/hydpydoctestcustomize.py", "hydpydoctestcustomize.py")
+    shutil.copy("hydpy/tests/hydpydoctestcustomize.pth", "hydpydoctestcustomize.pth")
+    env = {"HYDPY_USEAUTODOC": "1"}
     with _clean_environment(session):
+        session.run(
+            "python", "hydpy/tests/run_doctests.py", "--cython-mode=false", env=env
+        )
+        args = itertools.chain.from_iterable(("-f", m) for m in cythonmodules)
         session.run(
             "python",
             "hydpy/tests/run_doctests.py",
-            *session.posargs,
-            env={"HYDPY_USEAUTODOC": "1"},
+            "--python-mode=false",
+            *args,
+            env=env,
         )
-    if analyse_coverage:
-        session.run("coverage", "combine")
-        session.run("coverage", "report", "-m", "--skip-covered", "--fail-under=100")
+    session.run("coverage", "combine")
+    session.run("coverage", "report", "-m", "--skip-covered", "--fail-under=100")
 
 
 @nox.session

@@ -7,7 +7,7 @@ dist: jammy
 matrix:
   include:
     - python: 3.14
-      env: JOB=doctest
+      env: JOB=coverage
     - python: 3.14
       env: JOB=rest
 
@@ -18,7 +18,7 @@ install:
 script:
   - python prepare_build.py
   - python -m build
-  - if [ $JOB == "doctest" ]; then nox -s doctest; fi
+  - if [ $JOB == "coverage" ]; then nox -s coverage; fi
   - if [ $JOB == "rest" ]; then pip install ghp-import; fi
   - if [ $JOB == "rest" ]; then nox -s sphinx -- -W; fi
   - if [ $JOB == "rest" ]; then nox -s black; fi

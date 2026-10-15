@@ -2,7 +2,6 @@
 
 import abc
 
-import inflect
 import numpy
 
 from hydpy.core import objecttools
@@ -130,14 +129,14 @@ the following error occurred: The following sources are unknown: d and e
                 required_names = set(sourcenames)
                 given_names = set(kwargs)
                 if (len(args) == 0) and (diff := required_names - given_names):
-                    p = inflect.engine().plural
+                    p = objecttools.Inflect.plural
                     n = len(diff)
                     raise ValueError(
                         f"For the following {p('source', n)}, no {p('value', n)} "
                         f"{p('is', n)} given: {objecttools.enumeration(sorted(diff))}"
                     ) from None
                 if diff := given_names - required_names:
-                    p = inflect.engine().plural
+                    p = objecttools.Inflect.plural
                     n = len(diff)
                     raise ValueError(
                         f"The following {p('source', n)} {p('is', n)} unknown: "

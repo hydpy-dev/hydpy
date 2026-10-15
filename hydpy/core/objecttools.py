@@ -22,6 +22,7 @@ from hydpy.core import exceptiontools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
+    import inflect
     from hydpy.core import devicetools
     from hydpy.core import modeltools
     from hydpy.core import parametertools
@@ -1831,6 +1832,99 @@ def enumeration(
     if (ellipsis_ > 0) and (len(values_) > 2 * ellipsis_):
         values_ = values_[:ellipsis_] + ["..."] + values_[-ellipsis_:]
     return f", {conjunction} ".join((", ".join(values_[:-1]), values_[-1]))
+
+
+class Inflect:
+    """Convenience interface to the functionalities of the `inflect` library that HydPy
+    uses for writing grammatically correct (error) messages.
+
+    Importing `inflect` takes time, so |Inflect| imports it and creates the required
+    engine only when needed for the first time.  There is no need to create |Inflect|
+    instances; call its class methods directly:
+
+    >>> from hydpy.core.objecttools import Inflect
+    >>> Inflect.plural("value", 2)
+    'values'
+    """
+
+    _engine: ClassVar[inflect.engine | None] = None
+
+    @classmethod
+    def _get_engine(cls) -> inflect.engine:
+        if (engine := cls._engine) is None:
+            import inflect  # pylint: disable=import-outside-toplevel
+
+            engine = cls._engine = inflect.engine()
+        return engine
+
+    @classmethod
+    def plural(cls, text: str, count: int) -> str:
+        """Return the plural form of the given noun, verb, or indefinite article if
+        `count` is not one; otherwise, return it unchanged.
+
+        >>> from hydpy.core.objecttools import Inflect
+        >>> Inflect.plural("value", 1), Inflect.plural("value", 2)
+        ('value', 'values')
+
+        Method |Inflect.plural| also handles verbs and indefinite articles:
+
+        >>> Inflect.plural("is", 1), Inflect.plural("is", 2)
+        ('is', 'are')
+        >>> Inflect.plural("a", 1), Inflect.plural("a", 2)
+        ('a', 'some')
+        >>> Inflect.plural("time series", 2), Inflect.plural("duration curve", 2)
+        ('time series', 'duration curves')
+        """
+        return cls._get_engine().plural(text, count)
+
+    @classmethod
+    def a(cls, text: str) -> str:
+        """Prefix the given word with the correct indefinite article.
+
+        >>> from hydpy.core.objecttools import Inflect
+        >>> Inflect.a("input"), Inflect.a("output"), Inflect.a("inlet")
+        ('an input', 'an output', 'an inlet')
+        >>> Inflect.a("node")
+        'a node'
+        """
+        return cls._get_engine().a(text)
+
+    @classmethod
+    def number_to_words(cls, number: int | str, zero: str = "zero") -> str:
+        """Spell out the given number or ordinal.
+
+        >>> from hydpy.core.objecttools import Inflect
+        >>> Inflect.number_to_words(0)
+        'zero'
+        >>> Inflect.number_to_words(1)
+        'one'
+        >>> Inflect.number_to_words(21)
+        'twenty-one'
+        >>> Inflect.number_to_words(1234)
+        'one thousand, two hundred and thirty-four'
+
+        Combined with method |Inflect.ordinal|, |Inflect.number_to_words| spells out
+        ordinals:
+
+        >>> Inflect.number_to_words(Inflect.ordinal(3))
+        'third'
+        """
+        engine = cls._get_engine()
+        words = engine.number_to_words(number, zero=zero)  # type: ignore[arg-type]
+        assert isinstance(words, str)
+        return words
+
+    @classmethod
+    def ordinal(cls, number: int) -> str:
+        """Return the ordinal of the given number.
+
+        >>> from hydpy.core.objecttools import Inflect
+        >>> Inflect.ordinal(1), Inflect.ordinal(3)
+        ('1st', '3rd')
+
+        See method |Inflect.number_to_words| for spelling out ordinals.
+        """
+        return cls._get_engine().ordinal(number)  # type: ignore[arg-type]
 
 
 def description(self: object) -> str:

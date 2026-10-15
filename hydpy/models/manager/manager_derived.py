@@ -2,7 +2,6 @@
 
 import itertools
 
-import inflect
 import networkx
 
 from hydpy.core import devicetools
@@ -276,11 +275,11 @@ and the target node `t`, but there must be exactly one.
                 n = len(paths)
                 if check:
                     if n != 1:
-                        e = inflect.engine()
-                        number = e.number_to_words(n)  # type: ignore[arg-type]
+                        i = objecttools.Inflect
+                        number = i.number_to_words(n)
                         raise RuntimeError(
-                            f"There {e.plural('is', n)} {number} "
-                            f"{e.plural('path', n)} between the source element "
+                            f"There {i.plural('is', n)} {number} "
+                            f"{i.plural('path', n)} between the source element "
                             f"`{upstream}` and the target node `{target}`, but there "
                             f"must be exactly one."
                         )

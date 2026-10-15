@@ -1,6 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-import inflect
 import numpy
 
 from hydpy.core import modeltools
@@ -1160,12 +1159,11 @@ value of parameter `nlayers` of element `?` is set to 101.
         """
 
         if len(hypsodata) != 101:
-            p = inflect.engine()
             n = len(hypsodata)
+            plural = objecttools.Inflect.plural
             raise ValueError(
                 f"Method `prepare_layers` requires a vector of 101 hypsometric data "
-                f"points but {len(hypsodata)} {p.plural_noun('value', n)} "
-                f"{p.plural_verb('is', n)} given."
+                f"points but {n} {plural('value', n)} {plural('is', n)} given."
             )
 
         control = self.parameters.control

@@ -473,7 +473,6 @@ the end part of the simulation period:
 
 import itertools
 
-import inflect
 
 from hydpy.exe.modelimports import *
 from hydpy.core import devicetools
@@ -694,8 +693,7 @@ additional water release, but two such nodes are available (`r3a` and `r3b`).
             ]
             if (n := len(selected)) != 1:
                 selected_ = self._get_error_message_suffix(selected)
-                e = inflect.engine()
-                number = e.number_to_words(n, zero="no")  # type: ignore[arg-type]
+                number = objecttools.Inflect.number_to_words(n, zero="no")
                 raise RuntimeError(
                     f"There must be exactly one node that informs about the "
                     f"current water volume of the source element `{sourcename}`, but "
@@ -712,8 +710,7 @@ additional water release, but two such nodes are available (`r3a` and `r3b`).
         target_nodes = [n for n in self.element.receivers if n.variable == "Q"]
         if (n := len(target_nodes)) != 1:
             selected_ = self._get_error_message_suffix(target_nodes)
-            e = inflect.engine()
-            number = e.number_to_words(n, zero="no")  # type: ignore[arg-type]
+            number = objecttools.Inflect.number_to_words(n, zero="no")
             raise RuntimeError(
                 f"There must be exactly one node that reports the current discharge "
                 f"at the target location, but {number} such nodes are available"
@@ -745,8 +742,7 @@ additional water release, but two such nodes are available (`r3a` and `r3b`).
             ]
             if (n := len(selected)) != 1:
                 selected_ = self._get_error_message_suffix(selected)
-                e = inflect.engine()
-                number = e.number_to_words(n, zero="no")  # type: ignore[arg-type]
+                number = objecttools.Inflect.number_to_words(n, zero="no")
                 raise RuntimeError(
                     f"There must be exactly one node that informs the source element "
                     f"`{sourcename}` about the request for additional water release, "

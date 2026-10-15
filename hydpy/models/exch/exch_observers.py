@@ -1,6 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-import inflect
 
 from hydpy.core import devicetools
 from hydpy.core import objecttools
@@ -199,9 +198,9 @@ following nodes have not been connected to any sequences: gauge_5.
                 applied_nodes.append(node)
                 remaining_idxs.remove(idx)
         if nmb := len(remaining_idxs):
-            p = inflect.engine()
+            plural = objecttools.Inflect.plural
             remaining_names = [self.observernodes[i] for i in sorted(remaining_idxs)]
             raise RuntimeError(
-                f"The following {p.plural_noun('node', nmb)} "
-                f"{p.plural_verb('is', nmb)} unavailable: {p.join(remaining_names)}."
+                f"The following {plural('node', nmb)} {plural('is', nmb)} "
+                f"unavailable: {objecttools.enumeration(remaining_names)}."
             )

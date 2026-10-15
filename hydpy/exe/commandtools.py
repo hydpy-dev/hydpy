@@ -23,14 +23,14 @@ from hydpy.core.typingtools import *
 def run_subprocess(
     command: str, *, verbose: bool = True, blocking: Literal[True] = ...
 ) -> subprocess.CompletedProcess[str]:
-    """non-blocking"""
+    """blocking"""
 
 
 @overload
 def run_subprocess(
     command: str, *, verbose: bool = True, blocking: Literal[False]
 ) -> subprocess.Popen[str]:
-    """blocking"""
+    """non-blocking"""
 
 
 def run_subprocess(

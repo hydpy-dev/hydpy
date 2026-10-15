@@ -1,0 +1,52 @@
+.. |Double| replace:: :class:`~hydpy.cythons.autogen.pointerutils.Double`
+.. |False| replace:: :const:`False`
+.. |HydPy| replace:: :class:`~hydpy.core.hydpytools.HydPy`
+.. |Masks| replace:: :class:`~hydpy.core.masktools.Masks`
+.. |NodeMasks| replace:: :class:`~hydpy.core.masktools.NodeMasks`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |Options.autocompile| replace:: :const:`~hydpy.core.optiontools.Options.autocompile`
+.. |Options.checkseries| replace:: :const:`~hydpy.core.optiontools.Options.checkseries`
+.. |Options.ellipsis| replace:: :const:`~hydpy.core.optiontools.Options.ellipsis`
+.. |Options.reprdigits| replace:: :const:`~hydpy.core.optiontools.Options.reprdigits`
+.. |PPDouble.set_pointer| replace:: :func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`
+.. |ReplaceIUH.update_parameters| replace:: :attr:`~hydpy.auxs.calibtools.ReplaceIUH.update_parameters`
+.. |Substituter.add_module| replace:: :func:`~hydpy.core.autodoctools.Substituter.add_module`
+.. |Substituter.get_commands| replace:: :func:`~hydpy.core.autodoctools.Substituter.get_commands`
+.. |Substituter.update_masters| replace:: :func:`~hydpy.core.autodoctools.Substituter.update_masters`
+.. |Substituter.update_slaves| replace:: :func:`~hydpy.core.autodoctools.Substituter.update_slaves`
+.. |Substituter| replace:: :class:`~hydpy.core.autodoctools.Substituter`
+.. |Timegrids.initindices| replace:: :const:`~hydpy.core.timetools.Timegrids.initindices`
+.. |Timegrids.init| replace:: :attr:`~hydpy.core.timetools.Timegrids.init`
+.. |True| replace:: :const:`True`
+.. |autodoc_applicationmodel| replace:: :func:`~hydpy.core.autodoctools.autodoc_applicationmodel`
+.. |autodoc_basemodel| replace:: :func:`~hydpy.core.autodoctools.autodoc_basemodel`
+.. |builtins| replace:: :mod:`~builtins`
+.. |config| replace:: :mod:`~hydpy.config`
+.. |numpy| replace:: :mod:`~numpy`
+.. |optiontools| replace:: :mod:`~hydpy.core.optiontools`
+.. |pointerutils| replace:: :mod:`~hydpy.cythons.autogen.pointerutils`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |calibtools.ReplaceIUH.update_parameters| replace:: :attr:`~hydpy.auxs.calibtools.ReplaceIUH.update_parameters`
+.. |devicetools.Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |hydpytools.HydPy| replace:: :class:`~hydpy.core.hydpytools.HydPy`
+.. |masktools.Masks| replace:: :class:`~hydpy.core.masktools.Masks`
+.. |masktools.NodeMasks| replace:: :class:`~hydpy.core.masktools.NodeMasks`
+.. |numpy.clip| replace:: :func:`~numpy.clip`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |numpy.ndarray.clip| replace:: :func:`~numpy.ndarray.clip`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+.. |optiontools.Options.autocompile| replace:: :const:`~hydpy.core.optiontools.Options.autocompile`
+.. |optiontools.Options.checkseries| replace:: :const:`~hydpy.core.optiontools.Options.checkseries`
+.. |pointerutils.PPDouble.set_pointer| replace:: :func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`
+.. |timetools.Timegrids.initindices| replace:: :const:`~hydpy.core.timetools.Timegrids.initindices`
+.. |timetools.Timegrids.init| replace:: :attr:`~hydpy.core.timetools.Timegrids.init`
+
+.. _autodoctools:
+
+autodoctools
+============
+
+.. automodule:: hydpy.core.autodoctools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

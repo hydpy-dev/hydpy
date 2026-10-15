@@ -1,0 +1,30 @@
+.. |AngstromAlternative| replace:: :class:`~hydpy.models.meteo.meteo_control.AngstromAlternative`
+.. |Calc_DailyGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_DailyGlobalRadiation_V1`
+.. |Calc_GlobalRadiation_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_GlobalRadiation_V2`
+.. |Calc_SunshineDuration_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_SunshineDuration_V2`
+.. |Calc_UnadjustedGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_UnadjustedGlobalRadiation_V1`
+.. |LoggedGlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedGlobalRadiation`
+.. |LoggedSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedSunshineDuration`
+.. |LoggedUnadjustedSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedUnadjustedSunshineDuration`
+.. |RadiationModel_V1| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V1`
+.. |Return_DailyGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Return_DailyGlobalRadiation_V1`
+.. |meteo_glob_fao56| replace:: :mod:`~hydpy.models.meteo_glob_fao56`
+.. |meteo_glob_morsim| replace:: :mod:`~hydpy.models.meteo_glob_morsim`
+.. |meteo_sun_fao56| replace:: :mod:`~hydpy.models.meteo_sun_fao56`
+.. |meteo_sun_morsim.DOCNAME.complete| replace:: HydPy-Meteo-Sun-MORSIM (sunshine duration estimation adopted from MORECS/LARSIM)
+.. |meteo_sun_morsim| replace:: :mod:`~hydpy.models.meteo_sun_morsim`
+.. |meteo_factors.PossibleSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.PossibleSunshineDuration`
+.. |meteo_factors.SunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.SunshineDuration`
+.. |meteo_fluxes.GlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_fluxes.GlobalRadiation`
+.. |meteo_inputs.GlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_inputs.GlobalRadiation`
+.. |meteo_inputs.SunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_inputs.SunshineDuration`
+
+.. _meteo_sun_morsim:
+
+meteo_sun_morsim
+================
+
+.. automodule:: hydpy.models.meteo_sun_morsim
+    :members:
+    :show-inheritance:
+    :exclude-members: ADD_METHODS, AbstractSet, AideSequences, Annotated, Any, AnyStr, AsyncContextManager, AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, BinaryIO, Buffer, ByteString, CLASSES, CONTROLPARAMETERS, Callable, CapsuleType, ChainMap, ClassVar, Collection, Concatenate, Container, ContextManager, Coroutine, Counter, DERIVEDPARAMETERS, DefaultDict, Deque, Dict, Doc, FIXEDPARAMETERS, FULL_ODE_METHODS, Final, Format, ForwardRef, FrozenSet, Generator, Generic, Hashable, INLET_METHODS, INTERFACE_METHODS, IO, InletSequences, IntVar, ItemsView, Iterable, Iterator, KeysView, List, Literal, LiteralString, Mapping, MappingView, Match, MutableMapping, MutableSequence, MutableSet, NamedTuple, Never, NewType, NoDefault, NoExtraItems, NoReturn, NotRequired, OBSERVER_METHODS, OUTLET_METHODS, ObserverSequences, Optional, OrderedDict, OutletSequences, PART_ODE_METHODS, POST_ODE_METHODS, ParamSpec, ParamSpecArgs, ParamSpecKwargs, Pattern, Protocol, RECEIVER_METHODS, REQUIREDSEQUENCES, RESULTSEQUENCES, RUN_METHODS, ReadOnly, Reader, ReceiverSequences, Required, Reversible, SENDER_METHODS, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELINTERFACES, SUBMODELS, Self, SenderSequences, Sentinel, Sequence, Set, Sized, StateSequences, SupportsAbs, SupportsBytes, SupportsComplex, SupportsFloat, SupportsIndex, SupportsInt, SupportsRound, TYPE_CHECKING, Text, TextIO, Tuple, Type, TypeAlias, TypeAliasType, TypeForm, TypeGuard, TypeIs, TypeVar, TypeVarTuple, TypedDict, UPDATEDSEQUENCES, Union, Unpack, ValuesView, Writer, assert_never, assert_type, cast, clear_overloads, dataclass_transform, deprecated, disjoint_base, evaluate_forward_ref, fastaccess, fastaccess_new, fastaccess_old, final, get_annotations, get_args, get_origin, get_original_bases, get_overloads, get_protocol_members, get_type_hints, is_protocol, is_typeddict, no_type_check, no_type_check_decorator, overload, override, pars, reveal_type, runtime, runtime_checkable, sentinel, seqs, subpars, subseqs, subvars, type_repr

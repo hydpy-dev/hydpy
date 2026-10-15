@@ -1,0 +1,76 @@
+.. |Branched| replace:: :class:`~hydpy.models.exch.exch_outlets.Branched`
+.. |Calc_ActualExchange_V1| replace:: :class:`~hydpy.models.exch.exch_model.Calc_ActualExchange_V1`
+.. |Calc_DeltaWaterLevel_V1| replace:: :class:`~hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1`
+.. |Calc_PotentialExchange_V1| replace:: :class:`~hydpy.models.exch.exch_model.Calc_PotentialExchange_V1`
+.. |DeltaWaterLevel| replace:: :class:`~hydpy.models.exch.exch_factors.DeltaWaterLevel`
+.. |Delta| replace:: :class:`~hydpy.models.exch.exch_control.Delta`
+.. |Determine_Transfer_V1| replace:: :class:`~hydpy.models.exch.exch_model.Determine_Transfer_V1`
+.. |False| replace:: :const:`False`
+.. |FlowTransferRules| replace:: :class:`~hydpy.models.exch.exch_control.FlowTransferRules`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |KeepWaterBalance| replace:: :class:`~hydpy.models.exch.exch_control.KeepWaterBalance`
+.. |LoggedWaterLevels| replace:: :class:`~hydpy.models.exch.exch_logs.LoggedWaterLevels`
+.. |MaxStream| replace:: :class:`~hydpy.models.exch.exch_control.MaxStream`
+.. |MaxVol| replace:: :class:`~hydpy.models.exch.exch_control.MaxVol`
+.. |MinStream| replace:: :class:`~hydpy.models.exch.exch_control.MinStream`
+.. |MinVol| replace:: :class:`~hydpy.models.exch.exch_control.MinVol`
+.. |Minimum| replace:: :class:`~hydpy.models.exch.exch_control.Minimum`
+.. |NmbObserverNodes.update| replace:: :func:`~hydpy.models.exch.exch_derived.NmbObserverNodes.update`
+.. |NmbObserverNodes| replace:: :class:`~hydpy.models.exch.exch_derived.NmbObserverNodes`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |ObserverNodes| replace:: :class:`~hydpy.models.exch.exch_control.ObserverNodes`
+.. |Options.checkseries| replace:: :const:`~hydpy.core.optiontools.Options.checkseries`
+.. |OriginalInput| replace:: :class:`~hydpy.models.exch.exch_fluxes.OriginalInput`
+.. |Outputs| replace:: :class:`~hydpy.models.exch.exch_fluxes.Outputs`
+.. |PPolys| replace:: :class:`~hydpy.auxs.ppolytools.PPolys`
+.. |PPoly| replace:: :class:`~hydpy.auxs.ppolytools.PPoly`
+.. |Pass_ActualTransfer_StreamOutflow_V1| replace:: :class:`~hydpy.models.exch.exch_model.Pass_ActualTransfer_StreamOutflow_V1`
+.. |QTol| replace:: :class:`~hydpy.models.exch.exch_control.QTol`
+.. |RequestedTransfer| replace:: :class:`~hydpy.models.exch.exch_inputs.RequestedTransfer`
+.. |Return_AllowedTransfer_V1| replace:: :class:`~hydpy.models.exch.exch_model.Return_AllowedTransfer_V1`
+.. |Rules| replace:: :class:`~hydpy.models.exch.exch_control.Rules`
+.. |RuntimeError| replace:: :class:`RuntimeError`
+.. |Set_Transfer_V1| replace:: :class:`~hydpy.models.exch.exch_model.Set_Transfer_V1`
+.. |SpecialParameter| replace:: :class:`~hydpy.core.parametertools.SpecialParameter`
+.. |StreamIndex| replace:: :class:`~hydpy.models.exch.exch_derived.StreamIndex`
+.. |StreamOutflow| replace:: :class:`~hydpy.models.exch.exch_outlets.StreamOutflow`
+.. |Targets| replace:: :class:`~hydpy.models.exch.exch_control.Targets`
+.. |Total| replace:: :class:`~hydpy.models.exch.exch_inlets.Total`
+.. |True| replace:: :const:`True`
+.. |UnitTest| replace:: :class:`~hydpy.core.testtools.UnitTest`
+.. |VolTol| replace:: :class:`~hydpy.models.exch.exch_control.VolTol`
+.. |VolTransferRules| replace:: :class:`~hydpy.models.exch.exch_control.VolTransferRules`
+.. |XPoints| replace:: :class:`~hydpy.models.exch.exch_control.XPoints`
+.. |YPoints| replace:: :class:`~hydpy.models.exch.exch_control.YPoints`
+.. |dam_detention| replace:: :mod:`~hydpy.models.dam_detention`
+.. |dam_llake| replace:: :mod:`~hydpy.models.dam_llake`
+.. |dam| replace:: :mod:`~hydpy.models.dam`
+.. |exch.DOCNAME.complete| replace:: HydPy-Exch (base model)
+.. |exch_branch_hbv96| replace:: :mod:`~hydpy.models.exch_branch_hbv96`
+.. |exch_interp| replace:: :mod:`~hydpy.models.exch_interp`
+.. |exch_water_transfer_io| replace:: :mod:`~hydpy.models.exch_water_transfer_io`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |smooth_max1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_max1`
+.. |smooth_min1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_min1`
+.. |smoothtools| replace:: :mod:`~hydpy.auxs.smoothtools`
+.. |dam_inlets.Q| replace:: :class:`~hydpy.models.dam.dam_inlets.Q`
+.. |dam_model.Fix_Min1_V1| replace:: :class:`~hydpy.models.dam.dam_model.Fix_Min1_V1`
+.. |exch_factors.WaterLevels| replace:: :class:`~hydpy.models.exch.exch_factors.WaterLevels`
+.. |exch_inputs.RequestedTransfer| replace:: :class:`~hydpy.models.exch.exch_inputs.RequestedTransfer`
+.. |exch_observers.X.connect_to_nodes| replace:: :func:`~hydpy.models.exch.exch_observers.X.connect_to_nodes`
+.. |exch_observers.X| replace:: :class:`~hydpy.models.exch.exch_observers.X`
+.. |exch_outlets.ActualTransfer| replace:: :class:`~hydpy.models.exch.exch_outlets.ActualTransfer`
+.. |numpy.inf| replace:: :const:`~numpy.inf`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+
+.. _exch:
+
+exch
+====
+
+.. automodule:: hydpy.models.exch
+    :members:
+    :show-inheritance:
+    :exclude-members: ADD_METHODS, AbstractSet, Annotated, Any, AnyStr, AsyncContextManager, AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, BinaryIO, Buffer, ByteString, CLASSES, CONTROLPARAMETERS, Callable, CapsuleType, ChainMap, ClassVar, Collection, Concatenate, Container, ContextManager, Coroutine, Counter, DERIVEDPARAMETERS, DefaultDict, Deque, Dict, Doc, FIXEDPARAMETERS, FULL_ODE_METHODS, Final, Format, ForwardRef, FrozenSet, Generator, Generic, Hashable, INLET_METHODS, INTERFACE_METHODS, IO, IntVar, ItemsView, Iterable, Iterator, KeysView, List, Literal, LiteralString, Mapping, MappingView, Match, MutableMapping, MutableSequence, MutableSet, NamedTuple, Never, NewType, NoDefault, NoExtraItems, NoReturn, NotRequired, OBSERVER_METHODS, OUTLET_METHODS, Optional, OrderedDict, PART_ODE_METHODS, POST_ODE_METHODS, ParamSpec, ParamSpecArgs, ParamSpecKwargs, Pattern, Protocol, RECEIVER_METHODS, REQUIREDSEQUENCES, RESULTSEQUENCES, RUN_METHODS, ReadOnly, Reader, Required, Reversible, SENDER_METHODS, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELINTERFACES, SUBMODELS, Self, Sentinel, Sequence, Set, Sized, StateSequences, SupportsAbs, SupportsBytes, SupportsComplex, SupportsFloat, SupportsIndex, SupportsInt, SupportsRound, TYPE_CHECKING, Text, TextIO, Tuple, Type, TypeAlias, TypeAliasType, TypeForm, TypeGuard, TypeIs, TypeVar, TypeVarTuple, TypedDict, UPDATEDSEQUENCES, Union, Unpack, ValuesView, Writer, assert_never, assert_type, cast, clear_overloads, dataclass_transform, deprecated, disjoint_base, evaluate_forward_ref, fastaccess, fastaccess_new, fastaccess_old, final, get_annotations, get_args, get_origin, get_original_bases, get_overloads, get_protocol_members, get_type_hints, is_protocol, is_typeddict, no_type_check, no_type_check_decorator, overload, override, pars, reveal_type, runtime, runtime_checkable, sentinel, seqs, subpars, subseqs, subvars, type_repr

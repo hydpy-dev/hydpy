@@ -1,0 +1,25 @@
+.. |AETModel_V1| replace:: :class:`~hydpy.interfaces.aetinterfaces.AETModel_V1`
+.. |CONIFER| replace:: :const:`~hydpy.models.whmod.whmod_constants.CONIFER`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |GRASS| replace:: :const:`~hydpy.models.whmod.whmod_constants.GRASS`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.whmod_rural.Model.check_waterbalance`
+.. |NONE| replace:: :const:`~hydpy.models.whmod.whmod_constants.NONE`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |SEALED| replace:: :const:`~hydpy.models.whmod.whmod_constants.SEALED`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |WATER| replace:: :const:`~hydpy.models.whmod.whmod_constants.WATER`
+.. |evap_aet_minhas| replace:: :mod:`~hydpy.models.evap_aet_minhas`
+.. |evap_pet_mlc| replace:: :mod:`~hydpy.models.evap_pet_mlc`
+.. |evap_ret_io| replace:: :mod:`~hydpy.models.evap_ret_io`
+.. |whmod_rural.DOCNAME.complete| replace:: HydPy-WHMod-Rural (WHMod for rural regions)
+.. |whmod_rural| replace:: :mod:`~hydpy.models.whmod_rural`
+
+.. _whmod_rural:
+
+whmod_rural
+===========
+
+.. automodule:: hydpy.models.whmod_rural
+    :members:
+    :show-inheritance:
+    :exclude-members: ADD_METHODS, AbstractSet, AideSequences, Annotated, Any, AnyStr, AsyncContextManager, AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, BinaryIO, Buffer, ByteString, CLASSES, CONTROLPARAMETERS, Callable, CapsuleType, ChainMap, ClassVar, Collection, Concatenate, Container, ContextManager, Coroutine, Counter, DERIVEDPARAMETERS, DefaultDict, Deque, Dict, Doc, FIXEDPARAMETERS, FULL_ODE_METHODS, Final, Format, ForwardRef, FrozenSet, Generator, Generic, Hashable, INLET_METHODS, INTERFACE_METHODS, IO, InletSequences, IntVar, ItemsView, Iterable, Iterator, KeysView, List, Literal, LiteralString, LogSequences, Mapping, MappingView, Match, MutableMapping, MutableSequence, MutableSet, NamedTuple, Never, NewType, NoDefault, NoExtraItems, NoReturn, NotRequired, OBSERVER_METHODS, OUTLET_METHODS, ObserverSequences, Optional, OrderedDict, OutletSequences, PART_ODE_METHODS, POST_ODE_METHODS, ParamSpec, ParamSpecArgs, ParamSpecKwargs, Pattern, Protocol, RECEIVER_METHODS, REQUIREDSEQUENCES, RESULTSEQUENCES, RUN_METHODS, ReadOnly, Reader, ReceiverSequences, Required, Reversible, SENDER_METHODS, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELINTERFACES, SUBMODELS, Self, SenderSequences, Sentinel, Sequence, Set, Sized, SupportsAbs, SupportsBytes, SupportsComplex, SupportsFloat, SupportsIndex, SupportsInt, SupportsRound, TYPE_CHECKING, Text, TextIO, Tuple, Type, TypeAlias, TypeAliasType, TypeForm, TypeGuard, TypeIs, TypeVar, TypeVarTuple, TypedDict, UPDATEDSEQUENCES, Union, Unpack, ValuesView, Writer, assert_never, assert_type, cast, clear_overloads, dataclass_transform, deprecated, disjoint_base, evaluate_forward_ref, fastaccess, fastaccess_new, fastaccess_old, final, get_annotations, get_args, get_origin, get_original_bases, get_overloads, get_protocol_members, get_type_hints, is_protocol, is_typeddict, no_type_check, no_type_check_decorator, overload, override, pars, reveal_type, runtime, runtime_checkable, sentinel, seqs, subpars, subseqs, subvars, type_repr

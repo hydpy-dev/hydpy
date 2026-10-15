@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.exch.exch_derived &#8212; HydPy 7.0dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=a3767c0e"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 7.0dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.exch.exch_derived</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.exch.exch_derived</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs</span><span class="w"> </span><span class="kn">import</span> <span class="n">smoothtools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.exch</span><span class="w"> </span><span class="kn">import</span> <span class="n">exch_control</span>
+
+
+<div class="viewcode-block" id="TOY">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.TOY">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TOY</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">TOYParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""References the |Indexer.timeofyear| index array provided by the instance of class</span>
+<span class="sd">    |Indexer| available in module |pub| [-]."""</span></div>
+
+
+
+<div class="viewcode-block" id="MOY">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.MOY">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MOY</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">MOYParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""References the "global" month of the year index array [-]."""</span></div>
+
+
+
+<div class="viewcode-block" id="NmbObserverNodes">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.NmbObserverNodes">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NmbObserverNodes</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">NmbParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The number of observer nodes [-].</span>
+
+<span class="sd">    Calling the control parameter |ObserverNodes| sets |NmbObserverNodes| immediately.</span>
+<span class="sd">    Method |NmbObserverNodes.update| determines the same value:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.exch_interp import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; observernodes("node_1", "node_2", "node_3")</span>
+<span class="sd">    &gt;&gt;&gt; derived.nmbobservernodes(1)</span>
+<span class="sd">    &gt;&gt;&gt; derived.nmbobservernodes.update()</span>
+<span class="sd">    &gt;&gt;&gt; derived.nmbobservernodes</span>
+<span class="sd">    nmbobservernodes(3)</span>
+<span class="sd">    """</span>
+
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_control</span><span class="o">.</span><span class="n">ObserverNodes</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="NmbObserverNodes.update">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.NmbObserverNodes.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Determine the number of observer nodes."""</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">observers</span><span class="o">.</span><span class="n">x</span>
+        <span class="bp">self</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">observernodes</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NmbBranches">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.NmbBranches">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NmbBranches</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The number of branches [-]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">int</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NmbBranches.update">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.NmbBranches.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Determine the number of branches."""</span>
+        <span class="bp">self</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nodenames</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NmbPoints">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.NmbPoints">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NmbPoints</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The number of supporting points for linear interpolation [-]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">int</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_control</span><span class="o">.</span><span class="n">YPoints</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="NmbPoints.update">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.NmbPoints.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Determine the number of points."""</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">ypoints</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StreamIndex">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.StreamIndex">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StreamIndex</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The index of the stream node's output among the outputs of parameter</span>
+<span class="sd">    |FlowTransferRules| [-]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">int</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_control</span><span class="o">.</span><span class="n">Targets</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="StreamIndex.update">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.StreamIndex.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Determine the index of the stream node's output.</span>
+
+<span class="sd">        |PPolys| sorts its outputs alphabetically by the target nodes' names.  Hence,</span>
+<span class="sd">        the stream node's output comes first if its name is "smaller" than the name of</span>
+<span class="sd">        the transfer node:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.exch_branch_io import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; targets(stream="channel", transfer="diversion")</span>
+<span class="sd">        &gt;&gt;&gt; derived.streamindex.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.streamindex</span>
+<span class="sd">        streamindex(0)</span>
+
+<span class="sd">        Otherwise, it comes second:</span>
+
+<span class="sd">        &gt;&gt;&gt; targets(stream="river", transfer="diversion")</span>
+<span class="sd">        &gt;&gt;&gt; derived.streamindex.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.streamindex</span>
+<span class="sd">        streamindex(1)</span>
+<span class="sd">        """</span>
+        <span class="n">stream</span><span class="p">,</span> <span class="n">transfer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">targetnames</span>
+        <span class="bp">self</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">stream</span> <span class="o">&gt;</span> <span class="n">transfer</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="VolSmoothPar">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.VolSmoothPar">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">VolSmoothPar</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Smoothing parameter to be derived from |VolTol| for smoothing kernel</span>
+<span class="sd">    |smooth_logistic1| [million m³]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_control</span><span class="o">.</span><span class="n">VolTol</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="VolSmoothPar.update">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.VolSmoothPar.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Calculate the smoothing parameter values.</span>
+
+<span class="sd">        The documentation on module |smoothtools| explains the following example in</span>
+<span class="sd">        some detail:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = "2000-01-01", "2000-01-03", "1d"</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.exch_water_transfer_io import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; voltol(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; voltol.values[1] = 2.5</span>
+<span class="sd">        &gt;&gt;&gt; derived.volsmoothpar.update()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.cythons.smoothutils import smooth_logistic1</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_logistic1(0.1, derived.volsmoothpar[0]))</span>
+<span class="sd">        1.0</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_logistic1(2.5, derived.volsmoothpar[1]))</span>
+<span class="sd">        0.99</span>
+
+<span class="sd">        .. testsetup::</span>
+
+<span class="sd">            &gt;&gt;&gt; del pub.timegrids</span>
+<span class="sd">        """</span>
+        <span class="n">metapar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">voltol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">metapar</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">smoothtools</span><span class="o">.</span><span class="n">calc_smoothpar_logistic1</span><span class="p">(</span><span class="n">metapar</span><span class="o">.</span><span class="n">values</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="QSmoothPar">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.QSmoothPar">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QSmoothPar</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Smoothing parameter to be derived from |QTol| for smoothing kernels</span>
+<span class="sd">    |smooth_min1| and |smooth_max1| [m³/s]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_control</span><span class="o">.</span><span class="n">QTol</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="QSmoothPar.update">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_derived.QSmoothPar.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Calculate the smoothing parameter value.</span>
+
+<span class="sd">        The documentation on module |smoothtools| explains the following example in</span>
+<span class="sd">        some detail:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.exch_water_transfer_io import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; qtol(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.qsmoothpar.update()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.cythons.smoothutils import smooth_min1</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_min1(4.0, 1.5, derived.qsmoothpar))</span>
+<span class="sd">        1.5</span>
+<span class="sd">        &gt;&gt;&gt; qtol(2.5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.qsmoothpar.update()</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_min1(4.0, 1.5, derived.qsmoothpar))</span>
+<span class="sd">        1.49</span>
+<span class="sd">        """</span>
+        <span class="n">metapar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">qtol</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">smoothtools</span><span class="o">.</span><span class="n">calc_smoothpar_min1</span><span class="p">(</span><span class="n">metapar</span><span class="o">.</span><span class="n">value</span><span class="p">))</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 7.0dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.exch.exch_derived</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

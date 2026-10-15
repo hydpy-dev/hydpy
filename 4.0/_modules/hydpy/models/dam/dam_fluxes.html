@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.dam.dam_fluxes &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam.dam_fluxes</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.dam.dam_fluxes</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">sequencetools</span>
+
+
+<div class="viewcode-block" id="Inflow"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.Inflow">[docs]</a><span class="k">class</span> <span class="nc">Inflow</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Total inflow [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="TotalRemoteDischarge"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.TotalRemoteDischarge">[docs]</a><span class="k">class</span> <span class="nc">TotalRemoteDischarge</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Total discharge at a cross section far downstream [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="NaturalRemoteDischarge"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.NaturalRemoteDischarge">[docs]</a><span class="k">class</span> <span class="nc">NaturalRemoteDischarge</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Natural discharge at a cross section far downstream [m³/s].</span>
+
+<span class="sd">    `Natural` means: without the water released by the dam.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RemoteDemand"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.RemoteDemand">[docs]</a><span class="k">class</span> <span class="nc">RemoteDemand</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Discharge demand at a cross section far downstream [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RemoteFailure"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.RemoteFailure">[docs]</a><span class="k">class</span> <span class="nc">RemoteFailure</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Difference between the the actual and the required discharge at</span>
+<span class="sd">    a cross section far downstream [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RequiredRemoteRelease"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.RequiredRemoteRelease">[docs]</a><span class="k">class</span> <span class="nc">RequiredRemoteRelease</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Water release considered appropriate to reduce drought events</span>
+<span class="sd">    at cross sections far downstream to the desired degree [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="AllowedRemoteRelieve"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.AllowedRemoteRelieve">[docs]</a><span class="k">class</span> <span class="nc">AllowedRemoteRelieve</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Allowed water release to relieve a dam during high</span>
+<span class="sd">    flow conditions [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RequiredRemoteSupply"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.RequiredRemoteSupply">[docs]</a><span class="k">class</span> <span class="nc">RequiredRemoteSupply</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Required water supply, e.g. to fill a dam during low water conditions</span>
+<span class="sd">    [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="PossibleRemoteRelieve"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.PossibleRemoteRelieve">[docs]</a><span class="k">class</span> <span class="nc">PossibleRemoteRelieve</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Maximum possible water release to a remote location to relieve the</span>
+<span class="sd">    dam during high flow conditions [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="ActualRemoteRelieve"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.ActualRemoteRelieve">[docs]</a><span class="k">class</span> <span class="nc">ActualRemoteRelieve</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Actual water release to a remote location to relieve the</span>
+<span class="sd">    dam during high flow conditions [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="RequiredRelease"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.RequiredRelease">[docs]</a><span class="k">class</span> <span class="nc">RequiredRelease</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Required water release for reducing drought events downstream [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="TargetedRelease"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.TargetedRelease">[docs]</a><span class="k">class</span> <span class="nc">TargetedRelease</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The targeted water release for reducing drought events downstream</span>
+<span class="sd">    after taking both the required release and additional low flow</span>
+<span class="sd">    regulations into account [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="ActualRelease"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.ActualRelease">[docs]</a><span class="k">class</span> <span class="nc">ActualRelease</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Actual water release thought for reducing drought events</span>
+<span class="sd">    downstream [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="MissingRemoteRelease"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.MissingRemoteRelease">[docs]</a><span class="k">class</span> <span class="nc">MissingRemoteRelease</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Amount of the required remote demand that could not be met</span>
+<span class="sd">    by the actual release [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="ActualRemoteRelease"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.ActualRemoteRelease">[docs]</a><span class="k">class</span> <span class="nc">ActualRemoteRelease</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Actual water release thought for arbitrary &quot;remote&quot; purposes [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="FloodDischarge"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.FloodDischarge">[docs]</a><span class="k">class</span> <span class="nc">FloodDischarge</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Water release associated with flood events [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="Outflow"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_fluxes.Outflow">[docs]</a><span class="k">class</span> <span class="nc">Outflow</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Total outflow [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam.dam_fluxes</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

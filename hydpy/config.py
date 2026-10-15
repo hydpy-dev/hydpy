@@ -3,15 +3,17 @@
 The available options should not be changed during runtime.
 """
 
+import os
 from typing import Final
 
 import numpy
 
-USEAUTODOC = False
+USEAUTODOC = os.environ.get("HYDPY_USEAUTODOC") == "1"
 """A flag that indicates whether *HydPy's* automatic documentation manipulation 
-features should be applied or not.  It is imperative to set it to `True` before one 
-uses `Sphinx` to generate the online documentation.  However, one can set it to `False` 
-for regular applications, which reduces *HydPy's* initialisation time."""
+features should be applied or not.  ctivate them before using  `Sphinx` to generate the 
+online documentation.  However, one should not activate them  for regular applications, 
+as this increases *HydPy's* initialisation time.  To  activate them, set the 
+environment variable `HYDPY_USEAUTODOC` to "1" before importing hydpy."""
 
 FASTCYTHON = True
 """A flag that indicates whether cythonizing should result in faster but more fragile 

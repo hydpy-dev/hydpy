@@ -85,14 +85,18 @@ def doctest(session: nox.Session) -> None:
     if analyse_coverage:
         session.install("coverage")
     session.chdir(_get_sitepackagepath(session))
-    session.run("python", "hydpy/docs/enable_autodoc.py")
     if analyse_coverage:
         shutil.copy("hydpy/tests/hydpydoctestcustomize.py", "hydpydoctestcustomize.py")
         shutil.copy(
             "hydpy/tests/hydpydoctestcustomize.pth", "hydpydoctestcustomize.pth"
         )
     with _clean_environment(session):
-        session.run("python", "hydpy/tests/run_doctests.py", *session.posargs)
+        session.run(
+            "python",
+            "hydpy/tests/run_doctests.py",
+            *session.posargs,
+            env={"HYDPY_USEAUTODOC": "1"},
+        )
     if analyse_coverage:
         session.run("coverage", "combine")
         session.run("coverage", "report", "-m", "--skip-covered", "--fail-under=100")
@@ -168,12 +172,19 @@ def sphinx(session: nox.Session) -> None:
     session.chdir(_get_sitepackagepath(session))
     with _clean_environment(session):
         session.run("python", "hydpy/tests/run_doctests.py", "--python-mode=false")
-    session.run("python", "hydpy/docs/enable_autodoc.py")
-    session.run("python", "hydpy/docs/prepare.py")
+    env = {"HYDPY_USEAUTODOC": "1"}
+    session.run("python", "hydpy/docs/prepare.py", env=env)
     session.run(
-        "sphinx-build", "hydpy/docs/auto", "hydpy/docs/auto/build", *session.posargs
+        "sphinx-build",
+        "hydpy/docs/auto",
+        "hydpy/docs/auto/build",
+        *session.posargs,
+        env=env,
     )
     session.run(
-        "python", "hydpy/docs/polish_html.py", "--dirpath=hydpy/docs/auto/build"
+        "python",
+        "hydpy/docs/polish_html.py",
+        "--dirpath=hydpy/docs/auto/build",
+        env=env,
     )
     shutil.rmtree("hydpy/docs/auto/build/.doctrees")

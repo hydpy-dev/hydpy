@@ -241,6 +241,8 @@ class Calc_PE_PET_PETModel_V1(modeltools.Method):
         >>> lt(FIELD, FIELD, FIELD, WATER)
         >>> derived.nul.update()
         >>> from hydpy import prepare_model
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> with model.add_petmodel_v1("evap_ret_tw2002"):
         ...     hrualtitude(200.0, 600.0, 1000.0, 100.0)
         ...     coastfactor(0.6)
@@ -255,6 +257,10 @@ class Calc_PE_PET_PETModel_V1(modeltools.Method):
         pe(3.07171, 2.86215, 2.86215, 3.128984)
         >>> fluxes.pet
         pet(3.07171, 2.86215, 2.86215, 0.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     DERIVEDPARAMETERS = (wland_derived.NUL,)
@@ -3469,6 +3475,8 @@ class Main_PETModel_V1(modeltools.ELSModel):
         >>> at(10.0)
         >>> aur(0.5, 0.3, 0.2)
         >>> lt(FIELD, TREES, WATER)
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> with model.add_petmodel_v1("evap_ret_tw2002"):
         ...     nmbhru
         ...     hruarea
@@ -3490,6 +3498,10 @@ class Main_PETModel_V1(modeltools.ELSModel):
         >>> from hydpy import round_
         >>> round_(etf.average_values())
         1.4
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         control = self.parameters.control
         petmodel.prepare_nmbzones(control.nu.value)

@@ -26,6 +26,8 @@ class Calc_E_PETModel_V1(modeltools.Method):
         >>> parameterstep()
         >>> from hydpy import prepare_model
         >>> area(50.0)
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> with model.add_petmodel_v1("evap_ret_tw2002"):
         ...     hrualtitude(200.0)
         ...     coastfactor(0.6)
@@ -38,6 +40,10 @@ class Calc_E_PETModel_V1(modeltools.Method):
         >>> model.calc_e_v1()
         >>> fluxes.e
         e(3.07171)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
     """
 
     RESULTSEQUENCES = (gland_fluxes.E,)
@@ -1322,6 +1328,8 @@ class Main_PETModel_V1(modeltools.AdHocModel):
         >>> from hydpy.models.gland_gr4 import *
         >>> parameterstep()
         >>> area(5.0)
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> with model.add_petmodel_v1("evap_ret_tw2002"):
         ...     nmbhru
         ...     hruarea
@@ -1332,6 +1340,10 @@ class Main_PETModel_V1(modeltools.AdHocModel):
         >>> etf = model.petmodel.parameters.control.evapotranspirationfactor
         >>> etf
         evapotranspirationfactor(1.5)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
         """
         control = self.parameters.control
         petmodel.prepare_nmbzones(1)

@@ -481,7 +481,7 @@ def _get_methoddocstringinsertions(method: modeltools.Method) -> list[str]:
             seqs = [
                 seq
                 for seq in getattr(method, tuplename, ())
-                if issubclass(seq, seqtype)
+                if seqtype in seq.__mro__  # for efficiency
             ]
             if seqs:
                 insertions.append(
@@ -535,14 +535,16 @@ def _gain_and_insert_additional_information_into_docstrings(
 
         if (
             inspect.isclass(value)
-            and issubclass(
-                value,
-                variabletools.Variable
-                | interptools.BaseInterpolator
-                | modeltools.Method
-                | modeltools.Submodel,
+            and any(
+                c in value.__mro__  # for efficiency
+                for c in (
+                    variabletools.Variable,
+                    interptools.BaseInterpolator,
+                    modeltools.Method,
+                    modeltools.Submodel,
+                )
             )
-            and (applicationmodels := member2applicationmodels.get(value))
+            and (applicationmodels := member2applicationmodels.get(cast(Member, value)))
         ):
             insertions.append(
                 f"    Used by the "

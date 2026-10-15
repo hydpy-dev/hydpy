@@ -1,6 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-import inflect
 
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -127,7 +126,7 @@ the relevant sources so far.
         try:
             ivvi = objecttools.is_valid_variable_identifier
             if wrong := tuple(a for a in args if not ivvi(a)):
-                p = inflect.engine().plural
+                p = objecttools.Inflect.plural
                 n = len(wrong)
                 wrong = tuple(f"`{w}`" for w in wrong)
                 raise ValueError(

@@ -80,7 +80,6 @@ import typing
 import warnings
 import weakref
 
-import inflect
 import numpy
 
 import hydpy
@@ -2909,11 +2908,11 @@ the following error occurred: '.' is not a valid value for ls. Did you mean: '-.
             periodstring = f" for the period `{tg.firstdate}` to `{tg.lastdate}`"
         else:
             periodstring = ""
-        p = inflect.engine()
         n = len(sequences)
+        plural = objecttools.Inflect.plural
         objecttools.augment_excmessage(
-            f"While trying to plot the {p.plural_noun(plottype, n)} of the "
-            f"{p.plural_noun('sequence', n)} "
+            f"While trying to plot the {plural(plottype, n)} of the "
+            f"{plural('sequence', n)} "
             f"{objecttools.enumeration(s.name for s in sequences)} of node "
             f"`{objecttools.devicename(sequences[0])}`{periodstring}"
         )
@@ -3243,11 +3242,11 @@ already a collective `NileRiver` member.
         for node in Nodes(values):
             for incomp in incompatiblenodes:
                 if node in getattr(self, incomp):
-                    engine = inflect.engine()
+                    a = objecttools.Inflect.a(incomp[1:-1])
                     raise ValueError(
                         f"For element `{self}`, the given {targetnodes[1:-1]} node "
-                        f"`{node}` is already defined as {engine.a(incomp[1:-1])} "
-                        f"node, which is not allowed."
+                        f"`{node}` is already defined as {a} node, which is not "
+                        f"allowed."
                     )
             elementgroup.add_device(node, force=True)
             nodegroup: Elements = getattr(node, targetelements)

@@ -3237,7 +3237,7 @@ the available directories (calib_1 and calib_2).
                 method.RESULTSEQUENCES,
             ):
                 for _, typesequence, sequences in infos:
-                    if issubclass(sequence, typesequence):
+                    if typesequence in sequence.__mro__:  # for efficiency
                         sequences.add(sequence)
         for typesequences, _, sequences in infos:
             allsequences.update(sequences)

@@ -19,6 +19,15 @@ from typing import Iterator
 
 import nox
 
+nox.options.sessions = [
+    "black",
+    "mypy",
+    "pylint",
+    "check_consistency",
+    "sphinx",
+    "coverage",
+]
+
 
 def _install_hydpy(session: nox.Session) -> None:
     wheels = [

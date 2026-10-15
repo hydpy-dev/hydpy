@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>importtools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="indextools" href="indextools.html" />
+    <link rel="prev" title="hydpytools" href="hydpytools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="indextools.html" title="indextools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="hydpytools.html" title="hydpytools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">importtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">importtools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.core.importtools.parameterstep"><code class="docutils literal notranslate"><span class="pre">parameterstep()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.core.importtools.prepare_parameters"><code class="docutils literal notranslate"><span class="pre">prepare_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.core.importtools.prepare_sequences"><code class="docutils literal notranslate"><span class="pre">prepare_sequences()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.core.importtools.reverse_model_wildcard_import"><code class="docutils literal notranslate"><span class="pre">reverse_model_wildcard_import()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.core.importtools.prepare_model"><code class="docutils literal notranslate"><span class="pre">prepare_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.core.importtools.simulationstep"><code class="docutils literal notranslate"><span class="pre">simulationstep()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.core.importtools.controlcheck"><code class="docutils literal notranslate"><span class="pre">controlcheck()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="hydpytools.html"
+                          title="previous chapter">hydpytools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="indextools.html"
+                          title="next chapter">indextools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/importtools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="importtools">
+<span id="id1"></span><h1>importtools<a class="headerlink" href="#importtools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.core.importtools">This module implements features related to importing models.</p>
+<p>The implemented tools are primarily designed for hiding model initialisation routines
+from model users and for allowing writing readable doctests.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.importtools" title="hydpy.core.importtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">importtools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.importtools.parameterstep" title="hydpy.core.importtools.parameterstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">parameterstep()</span></code></a> Define a parameter time step size within a parameter control file.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.importtools.prepare_parameters" title="hydpy.core.importtools.prepare_parameters"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_parameters()</span></code></a> Prepare a <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code></a> object based on the given dictionary information and return it.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.importtools.prepare_sequences" title="hydpy.core.importtools.prepare_sequences"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_sequences()</span></code></a> Prepare a <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequences</span></code></a> object based on the given dictionary information and return it.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.importtools.reverse_model_wildcard_import" title="hydpy.core.importtools.reverse_model_wildcard_import"><code class="xref py py-func docutils literal notranslate"><span class="pre">reverse_model_wildcard_import()</span></code></a> Clear the local namespace from a model wildcard import.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.importtools.prepare_model" title="hydpy.core.importtools.prepare_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_model()</span></code></a> Prepare and return the model of the given module.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.importtools.simulationstep" title="hydpy.core.importtools.simulationstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">simulationstep()</span></code></a> Define a simulation time step size for testing purposes within a parameter control file.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.importtools.controlcheck" title="hydpy.core.importtools.controlcheck"><code class="xref py py-func docutils literal notranslate"><span class="pre">controlcheck()</span></code></a> Define the corresponding control file within a condition file.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.core.importtools.parameterstep">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.importtools.</span></span><span class="sig-name descname"><span class="pre">parameterstep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">timetools.PeriodConstrArg</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/importtools.html#parameterstep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.importtools.parameterstep" title="Link to this definition">¶</a></dt>
+<dd><p>Define a parameter time step size within a parameter control file.</p>
+<p>Function <a class="reference internal" href="#hydpy.core.importtools.parameterstep" title="hydpy.core.importtools.parameterstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">parameterstep()</span></code></a> should usually be applied in a line immediately behind the
+model import or behind calling function <a class="reference internal" href="#hydpy.core.importtools.simulationstep" title="hydpy.core.importtools.simulationstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">simulationstep()</span></code></a>.  Defining the step size
+of time-dependent parameters is a prerequisite to access any model-specific
+parameter.</p>
+<p>Note that <a class="reference internal" href="#hydpy.core.importtools.parameterstep" title="hydpy.core.importtools.parameterstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">parameterstep()</span></code></a> implements some namespace magic utilising the module
+<a class="reference external" href="https://docs.python.org/3/library/inspect.html#module-inspect" title="(in Python v3.11)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">inspect</span></code></a>, which makes things a little complicated for framework developers.  Still
+it eases the definition of parameter control files for framework users.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.core.importtools.prepare_parameters">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.importtools.</span></span><span class="sig-name descname"><span class="pre">prepare_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dict_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.11)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.11)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/importtools.html#prepare_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.importtools.prepare_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare a <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code></a> object based on the given dictionary
+information and return it.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.core.importtools.prepare_sequences">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.importtools.</span></span><span class="sig-name descname"><span class="pre">prepare_sequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dict_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.11)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.11)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/importtools.html#prepare_sequences"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.importtools.prepare_sequences" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare a <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequences</span></code></a> object based on the given dictionary
+information and return it.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.core.importtools.reverse_model_wildcard_import">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.importtools.</span></span><span class="sig-name descname"><span class="pre">reverse_model_wildcard_import</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/importtools.html#reverse_model_wildcard_import"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.importtools.reverse_model_wildcard_import" title="Link to this definition">¶</a></dt>
+<dd><p>Clear the local namespace from a model wildcard import.</p>
+<p>Calling this method should remove the critical imports into the local
+namespace due to the last wildcard import of a particular application
+model. In this manner, it secures the repeated preparation of different
+types of models via wildcard imports.  See the following example, on
+how it can be applied.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">reverse_model_wildcard_import</span>
+</pre></div>
+</div>
+<p>Assume you import the first version of HydPy-L-Land (<a class="reference internal" href="lland_v1.html#module-hydpy.models.lland_v1" title="hydpy.models.lland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v1</span></code></a>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.lland_v1</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<p>This import adds, for example, the collection class for handling control
+parameters of <cite>lland_v1</cite> into the local namespace:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ControlParameters</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+<span class="go">control</span>
+</pre></div>
+</div>
+<p>Calling function <a class="reference internal" href="#hydpy.core.importtools.parameterstep" title="hydpy.core.importtools.parameterstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">parameterstep()</span></code></a> prepares, for example, the control
+parameter object of class <a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.NHRU" title="hydpy.models.lland.lland_control.NHRU"><code class="xref py py-class docutils literal notranslate"><span class="pre">NHRU</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nhru</span>
+<span class="go">nhru(?)</span>
+</pre></div>
+</div>
+<p>Calling function <a class="reference internal" href="#hydpy.core.importtools.reverse_model_wildcard_import" title="hydpy.core.importtools.reverse_model_wildcard_import"><code class="xref py py-func docutils literal notranslate"><span class="pre">reverse_model_wildcard_import()</span></code></a> tries to give its
+best to clear the local namespace (even from unexpected classes as
+the one we define now):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Test</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="vm">__module__</span> <span class="o">=</span> <span class="s2">&quot;hydpy.models.lland_v1&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reverse_model_wildcard_import</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ControlParameters</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">NameError</span>: <span class="n">name &#39;ControlParameters&#39; is not defined</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nhru</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">NameError</span>: <span class="n">name &#39;nhru&#39; is not defined</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Test</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">NameError</span>: <span class="n">name &#39;Test&#39; is not defined</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">NameError</span>: <span class="n">name &#39;test&#39; is not defined</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.core.importtools.prepare_model">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.importtools.</span></span><span class="sig-name descname"><span class="pre">prepare_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/types.html#types.ModuleType" title="(in Python v3.11)"><span class="pre">types.ModuleType</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">timetools.PeriodConstrArg</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><span class="pre">modeltools.Model</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/importtools.html#prepare_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.importtools.prepare_model" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare and return the model of the given module.</p>
+<p>In usual <em>HydPy</em> projects, each control file prepares an individual
+model instance only, which allows for “polluting” the namespace with
+different model attributes.   There is no danger of name conflicts,
+as long as we do not perform other (wildcard) imports.</p>
+<p>However, there are situations where we need to load different models
+into the same namespace.  Then it is advisable to use function
+<a class="reference internal" href="#hydpy.core.importtools.prepare_model" title="hydpy.core.importtools.prepare_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_model()</span></code></a>, which returns a reference to the model
+and nothing else.</p>
+<p>See the documentation of <a class="reference internal" href="dam_v001.html#module-hydpy.models.dam_v001" title="hydpy.models.dam_v001"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v001</span></code></a> on how to apply function
+<a class="reference internal" href="#hydpy.core.importtools.prepare_model" title="hydpy.core.importtools.prepare_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_model()</span></code></a> properly.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.core.importtools.simulationstep">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.importtools.</span></span><span class="sig-name descname"><span class="pre">simulationstep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/importtools.html#simulationstep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.importtools.simulationstep" title="Link to this definition">¶</a></dt>
+<dd><p>Define a simulation time step size for testing purposes within a
+parameter control file.</p>
+<p>Using <a class="reference internal" href="#hydpy.core.importtools.simulationstep" title="hydpy.core.importtools.simulationstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">simulationstep()</span></code></a> only affects the values of time-dependent
+parameters, when <cite>pub.timegrids.stepsize</cite> is not defined.  It thus
+does not influence usual <em>HydPy</em> simulations at all.  Use it to check
+your parameter control files.  Write it in a line immediately behind
+the model import.</p>
+<p>To clarify its purpose, function <a class="reference internal" href="#hydpy.core.importtools.simulationstep" title="hydpy.core.importtools.simulationstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">simulationstep()</span></code></a> raises a warning
+when executed from within a control file:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnsimulationstep</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="kn">from</span> <span class="nn">hydpy.models.hland_v1</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">... </span>    <span class="n">simulationstep</span><span class="p">(</span><span class="s2">&quot;1h&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">UserWarning</span>: <span class="n">Note that the applied function `simulationstep` is intended for testing purposes only.  When doing a HydPy simulation, parameter values are initialised based on the actual simulation time step as defined under `pub.timegrids.stepsize` and the value given to `simulationstep` is ignored.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="go">Period(&quot;1h&quot;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.core.importtools.controlcheck">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.importtools.</span></span><span class="sig-name descname"><span class="pre">controlcheck</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">controldir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">projectdir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">controlfile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">firstdate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">timetools.DateConstrArg</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stepsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">timetools.PeriodConstrArg</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/importtools.html#controlcheck"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.importtools.controlcheck" title="Link to this definition">¶</a></dt>
+<dd><p>Define the corresponding control file within a condition file.</p>
+<p>Function <a class="reference internal" href="#hydpy.core.importtools.controlcheck" title="hydpy.core.importtools.controlcheck"><code class="xref py py-func docutils literal notranslate"><span class="pre">controlcheck()</span></code></a> serves similar purposes as function <a class="reference internal" href="#hydpy.core.importtools.parameterstep" title="hydpy.core.importtools.parameterstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">parameterstep()</span></code></a>.  It is
+the reason why one can interactively access the state and the log sequences within
+condition files as <cite>land_dill.py</cite> of the example project <cite>LahnH</cite>.  It is called
+<cite>controlcheck</cite> due to its feature to check for possible inconsistencies between
+control and condition files.  The following test, where we write a number of soil
+moisture values (<a class="reference internal" href="hland.html#hydpy.models.hland.hland_states.SM" title="hydpy.models.hland.hland_states.SM"><code class="xref py py-class docutils literal notranslate"><span class="pre">SM</span></code></a>) into condition file <cite>land_dill.py</cite>, which does
+not agree with the number of hydrological response units (<a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.NmbZones" title="hydpy.models.hland.hland_control.NmbZones"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbZones</span></code></a>)
+defined in control file <cite>land_dill.py</cite>, verifies that this, in fact, works within
+a separate Python process:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prepare_full_example_1</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">run_subprocess</span><span class="p">,</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;LahnH&quot;</span><span class="p">,</span> <span class="s2">&quot;conditions&quot;</span><span class="p">,</span> <span class="s2">&quot;init_1996_01_01_00_00_00&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>   
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;land_dill.py&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">lines</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">lines</span><span class="p">[</span><span class="mi">10</span><span class="p">:</span><span class="mi">12</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;sm(185.13164, 181.18755)&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;land_dill.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py exec_script land_dill.py&quot;</span><span class="p">)</span>
+
+<span class="go">...</span>
+<span class="go">While trying to set the value(s) of variable `sm`, the following error occurred: While trying to convert the value(s) `(185.13164, 181.18755)` to a numpy ndarray with shape `(12,)` and type `float`, the following error occurred: could not broadcast input array from shape (2...) into shape (12...)</span>
+<span class="go">...</span>
+</pre></div>
+</div>
+<p>With a little trick, we can fake to be “inside” condition file <cite>land_dill.py</cite>.
+Calling <a class="reference internal" href="#hydpy.core.importtools.controlcheck" title="hydpy.core.importtools.controlcheck"><code class="xref py py-func docutils literal notranslate"><span class="pre">controlcheck()</span></code></a> then, for example, prepares the shape of sequence
+<a class="reference internal" href="hland.html#hydpy.models.hland.hland_states.Ic" title="hydpy.models.hland.hland_states.Ic"><code class="xref py py-class docutils literal notranslate"><span class="pre">Ic</span></code></a> as specified by the value of parameter <a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.NmbZones" title="hydpy.models.hland.hland_control.NmbZones"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbZones</span></code></a>
+given in the corresponding control file:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.hland_v1</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="vm">__file__</span> <span class="o">=</span> <span class="s2">&quot;land_dill.py&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">controlcheck</span><span class="p">(</span><span class="n">firstdate</span><span class="o">=</span><span class="s2">&quot;1996-01-01&quot;</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ic</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(12,)</span>
+</pre></div>
+</div>
+<p>In the above example, we use the default names for the project directory
+(the one containing the executed condition file) and the control
+directory (<cite>default</cite>).  The following example shows how to change them:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">model</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>   
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">controlcheck</span><span class="p">(</span><span class="n">projectdir</span><span class="o">=</span><span class="s2">&quot;somewhere&quot;</span><span class="p">,</span> <span class="n">controldir</span><span class="o">=</span><span class="s2">&quot;nowhere&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">FileNotFoundError</span>: <span class="n">While trying to load the control file `land_dill.py` from directory `...hydpy/tests/iotesting/somewhere/control/nowhere`, the following error occurred: ...</span>
+</pre></div>
+</div>
+<p>For some models, the suitable states may depend on the initialisation
+date.  One example is the interception storage (<a class="reference internal" href="lland.html#hydpy.models.lland.lland_states.Inzp" title="hydpy.models.lland.lland_states.Inzp"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inzp</span></code></a>) of
+application model <a class="reference internal" href="lland_v1.html#module-hydpy.models.lland_v1" title="hydpy.models.lland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v1</span></code></a>, which should not exceed the interception
+capacity (<a class="reference internal" href="lland.html#hydpy.models.lland.lland_derived.KInz" title="hydpy.models.lland.lland_derived.KInz"><code class="xref py py-class docutils literal notranslate"><span class="pre">KInz</span></code></a>).  However, <a class="reference internal" href="lland.html#hydpy.models.lland.lland_derived.KInz" title="hydpy.models.lland.lland_derived.KInz"><code class="xref py py-class docutils literal notranslate"><span class="pre">KInz</span></code></a> itself
+depends on the leaf area index parameter <a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.LAI" title="hydpy.models.lland.lland_control.LAI"><code class="xref py py-class docutils literal notranslate"><span class="pre">LAI</span></code></a>, which
+offers varying values both for different land-use types and months.
+Hence, one can assign higher values to state <a class="reference internal" href="lland.html#hydpy.models.lland.lland_states.Inzp" title="hydpy.models.lland.lland_states.Inzp"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inzp</span></code></a> during
+periods with high leaf area indices than during periods with small
+leaf area indices.</p>
+<p>To show the related functionalities, we first replace the <a class="reference internal" href="hland_v1.html#module-hydpy.models.hland_v1" title="hydpy.models.hland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_v1</span></code></a> application
+model of element <cite>land_dill</cite> with a <a class="reference internal" href="lland_v1.html#module-hydpy.models.lland_v1" title="hydpy.models.lland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v1</span></code></a> model object, define some of its
+parameter values, and write its control and condition files.  Note that the
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.LAI" title="hydpy.models.lland.lland_control.LAI"><code class="xref py py-class docutils literal notranslate"><span class="pre">LAI</span></code></a> value of the only relevant land-use (<a class="reference internal" href="lland.html#hydpy.models.lland.lland_constants.ACKER" title="hydpy.models.lland.lland_constants.ACKER"><code class="xref py py-const docutils literal notranslate"><span class="pre">ACKER</span></code></a>)
+is 0.5 during January and 5.0 during July:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">HydPy</span><span class="p">,</span> <span class="n">prepare_model</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.lland_v1</span> <span class="kn">import</span> <span class="n">ACKER</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-06-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2000-07-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">hp</span> <span class="o">=</span> <span class="n">HydPy</span><span class="p">(</span><span class="s2">&quot;LahnH&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">hp</span><span class="o">.</span><span class="n">prepare_network</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">land_dill</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="s2">&quot;land_dill&quot;</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">usedefaultvalues</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">land_dill</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">prepare_model</span><span class="p">(</span><span class="s2">&quot;lland_v1&quot;</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">control</span> <span class="o">=</span> <span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span>
+<span class="gp">... </span>        <span class="n">control</span><span class="o">.</span><span class="n">nhru</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">control</span><span class="o">.</span><span class="n">ft</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">control</span><span class="o">.</span><span class="n">fhru</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">control</span><span class="o">.</span><span class="n">hnn</span><span class="p">(</span><span class="mf">100.0</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">control</span><span class="o">.</span><span class="n">lnk</span><span class="p">(</span><span class="n">ACKER</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">control</span><span class="o">.</span><span class="n">lai</span><span class="o">.</span><span class="n">acker_jan</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="gp">... </span>        <span class="n">control</span><span class="o">.</span><span class="n">lai</span><span class="o">.</span><span class="n">acker_jul</span> <span class="o">=</span> <span class="mf">5.0</span>
+<span class="gp">... </span>        <span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">... </span>        <span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">inzp</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">save_controls</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">save_conditions</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Unfortunately, state <a class="reference internal" href="lland.html#hydpy.models.lland.lland_states.Inzp" title="hydpy.models.lland.lland_states.Inzp"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inzp</span></code></a> does not define a <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.trim" title="hydpy.core.variabletools.trim"><code class="xref py py-func docutils literal notranslate"><span class="pre">trim()</span></code></a> method
+taking the actual value of parameter <a class="reference internal" href="lland.html#hydpy.models.lland.lland_derived.KInz" title="hydpy.models.lland.lland_derived.KInz"><code class="xref py py-class docutils literal notranslate"><span class="pre">KInz</span></code></a> into account
+(due to compatibility with the original LARSIM model).  As an auxiliary
+solution, we define such a function within the <cite>land_dill.py</cite> condition
+file (and additionally modify some warning settings in favour of the
+next examples):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;LahnH&quot;</span><span class="p">,</span> <span class="s2">&quot;conditions&quot;</span><span class="p">,</span> <span class="s2">&quot;init_2000_07_01_00_00_00&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;land_dill.py&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">lines</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;land_dill.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">file_</span><span class="o">.</span><span class="n">writelines</span><span class="p">([</span>
+<span class="gp">... </span>            <span class="s2">&quot;from hydpy import pub</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="s2">&quot;pub.options.warnsimulationstep = False</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="s2">&quot;import warnings</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="s1">&#39;warnings.filterwarnings(&quot;error&quot;, message=&quot;For variable&quot;)</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">])</span>
+<span class="gp">... </span>        <span class="n">file_</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">lines</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span>
+<span class="gp">... </span>        <span class="n">file_</span><span class="o">.</span><span class="n">writelines</span><span class="p">([</span>
+<span class="gp">... </span>            <span class="s2">&quot;from hydpy.core.variabletools import trim as trim_</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="s2">&quot;def trim(self, lower=None, upper=None):</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="s2">&quot;    der = self.subseqs.seqs.model.parameters.derived</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="s2">&quot;    trim_(self, 0.0, der.kinz.acker[der.moy[0]])</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="s2">&quot;type(inzp).trim = trim</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">])</span>
+<span class="gp">... </span>        <span class="n">file_</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">5</span><span class="p">:])</span>
+</pre></div>
+</div>
+<p>Now, executing the condition file (and thereby calling function
+<a class="reference internal" href="#hydpy.core.importtools.controlcheck" title="hydpy.core.importtools.controlcheck"><code class="xref py py-func docutils literal notranslate"><span class="pre">controlcheck()</span></code></a>) does not raise any warnings due to extracting the
+initialisation date from the name of the condition directory:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py exec_script land_dill.py&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If the directory name does imply the initialisation date to be within
+January 2000 instead of July 2000, we correctly get the following warning:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cwd_old</span> <span class="o">=</span> <span class="n">cwd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cwd_new</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;LahnH&quot;</span><span class="p">,</span> <span class="s2">&quot;conditions&quot;</span><span class="p">,</span> <span class="s2">&quot;init_2000_01_01&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>   
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">cwd_old</span><span class="p">,</span> <span class="n">cwd_new</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd_new</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py exec_script land_dill.py&quot;</span><span class="p">)</span>
+<span class="go">Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the following error:</span>
+<span class="go">For variable `inzp` at least one value needed to be trimmed.  The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.</span>
+<span class="go">...</span>
+</pre></div>
+</div>
+<p>One can define an alternative initialisation date via argument
+<cite>firstdate</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">text_old</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;controlcheck(projectdir=r&quot;LahnH&quot;, &#39;</span>
+<span class="gp">... </span>            <span class="s1">&#39;controldir=&quot;default&quot;, stepsize=&quot;1d&quot;)&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">text_new</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;controlcheck(projectdir=r&quot;LahnH&quot;, controldir=&quot;default&quot;, &#39;</span>
+<span class="gp">... </span>            <span class="s1">&#39;firstdate=&quot;2100-07-15&quot;, stepsize=&quot;1d&quot;)&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd_new</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;land_dill.py&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">text</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">text_old</span><span class="p">,</span> <span class="n">text_new</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;land_dill.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py exec_script land_dill.py&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Default condition directory names do not contain any information about
+the simulation step size.  Hence, one needs to define it explicitly for
+all application modelsrelying on the functionalities of class <a class="reference internal" href="indextools.html#hydpy.core.indextools.Indexer" title="hydpy.core.indextools.Indexer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Indexer</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>   
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd_new</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;land_dill.py&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">text</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;stepsize=&quot;1d&quot;&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;land_dill.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py exec_script land_dill.py&quot;</span><span class="p">)</span>
+<span class="go">Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the following error:</span>
+<span class="go">To apply function `controlcheck` requires time information for some model types.  Please define the `Timegrids` object of module `pub` manually or pass the required information (`stepsize` and eventually `firstdate`) as function arguments.</span>
+<span class="go">...</span>
+</pre></div>
+</div>
+<p>The same error occurs we do not use the argument <cite>firstdate</cite> to define
+the initialisation time point, and method <a class="reference internal" href="#hydpy.core.importtools.controlcheck" title="hydpy.core.importtools.controlcheck"><code class="xref py py-func docutils literal notranslate"><span class="pre">controlcheck()</span></code></a> cannot
+extract it from the directory name:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cwd_old</span> <span class="o">=</span> <span class="n">cwd_new</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cwd_new</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;LahnH&quot;</span><span class="p">,</span> <span class="s2">&quot;conditions&quot;</span><span class="p">,</span> <span class="s2">&quot;init&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>   
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">cwd_old</span><span class="p">,</span> <span class="n">cwd_new</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd_new</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;land_dill.py&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">text</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;firstdate=&quot;2100-07-15&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;stepsize=&quot;1d&quot;&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;land_dill.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py exec_script land_dill.py&quot;</span><span class="p">)</span>
+<span class="go">Invoking hyd.py with arguments `exec_script, land_dill.py` resulted in the following error:</span>
+<span class="go">To apply function `controlcheck` requires time information for some model types.  Please define the `Timegrids` object of module `pub` manually or pass the required information (`stepsize` and eventually `firstdate`) as function arguments.</span>
+<span class="go">...</span>
+</pre></div>
+</div>
+<p>Note that the functionalities of function <a class="reference internal" href="#hydpy.core.importtools.controlcheck" title="hydpy.core.importtools.controlcheck"><code class="xref py py-func docutils literal notranslate"><span class="pre">controlcheck()</span></code></a> do not come
+into action if there is a <cite>model</cite> variable in the namespace, which is
+the case when a condition file is executed within the context of a
+complete <em>HydPy</em> project.</p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="indextools.html" title="indextools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="hydpytools.html" title="hydpytools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">importtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

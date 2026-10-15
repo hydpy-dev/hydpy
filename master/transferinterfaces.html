@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>transferinterfaces &#8212; HydPy 7.0dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=a3767c0e"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bibliography" href="zbibliography.html" />
+    <link rel="prev" title="tempinterfaces" href="tempinterfaces.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="zbibliography.html" title="Bibliography"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tempinterfaces.html" title="tempinterfaces"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 7.0dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="submodel_interfaces.html" accesskey="U">Submodel Interfaces</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">transferinterfaces</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aetinterfaces.html">aetinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exchangeinterfaces.html">exchangeinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dischargeinterfaces.html">dischargeinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="petinterfaces.html">petinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="precipinterfaces.html">precipinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="radiationinterfaces.html">radiationinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rconcinterfaces.html">rconcinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="routinginterfaces.html">routinginterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="soilinterfaces.html">soilinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stateinterfaces.html">stateinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tempinterfaces.html">tempinterfaces</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">transferinterfaces</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1"><code class="docutils literal notranslate"><span class="pre">TransferModel_V1</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1.typeid"><code class="docutils literal notranslate"><span class="pre">TransferModel_V1.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1.determine_transfer"><code class="docutils literal notranslate"><span class="pre">TransferModel_V1.determine_transfer()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1.get_transfer"><code class="docutils literal notranslate"><span class="pre">TransferModel_V1.get_transfer()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1.set_transfer"><code class="docutils literal notranslate"><span class="pre">TransferModel_V1.set_transfer()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="tempinterfaces.html"
+                          title="previous chapter">tempinterfaces</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="zbibliography.html"
+                          title="next chapter">Bibliography</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/transferinterfaces.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="transferinterfaces">
+<span id="id1"></span><h1>transferinterfaces<a class="headerlink" href="#transferinterfaces" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.interfaces.transferinterfaces">This module defines submodel interfaces for calculating water transfers into or out
+of main models like those of the <a class="reference internal" href="HydPy-Dam.html#hydpy-dam"><span class="std std-ref">HydPy-Dam</span></a> model family.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.interfaces.transferinterfaces" title="hydpy.interfaces.transferinterfaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">transferinterfaces</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1" title="hydpy.interfaces.transferinterfaces.TransferModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransferModel_V1</span></code></a> Interface for calculating water transfers based on the main model’s current water volume and allowed discharge.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.transferinterfaces.TransferModel_V1">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.transferinterfaces.</span></span><span class="sig-name descname"><span class="pre">TransferModel_V1</span></span><a class="reference internal" href="_modules/hydpy/interfaces/transferinterfaces.html#TransferModel_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelInterface" title="hydpy.core.modeltools.SubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelInterface</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<p>Interface for calculating water transfers based on the main model’s current
+water volume and allowed discharge.</p>
+<p><a class="reference internal" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1" title="hydpy.interfaces.transferinterfaces.TransferModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransferModel_V1</span></code></a> separates determining, querying, and setting the water transfer.
+This allows coupling with numerically solved main models like <a class="reference internal" href="dam_llake.html#module-hydpy.models.dam_llake" title="hydpy.models.dam_llake"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_llake</span></code></a>, which
+let the submodel determine the transfer for multiple intermediate states within one
+simulation step (via <a class="reference internal" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1.determine_transfer" title="hydpy.interfaces.transferinterfaces.TransferModel_V1.determine_transfer"><code class="xref py py-func docutils literal notranslate"><span class="pre">determine_transfer()</span></code></a>) and query the results
+(via <a class="reference internal" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1.get_transfer" title="hydpy.interfaces.transferinterfaces.TransferModel_V1.get_transfer"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_transfer()</span></code></a>).  At the end of the simulation step, the main
+model passes the step-averaged transfer back (via <a class="reference internal" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1.set_transfer" title="hydpy.interfaces.transferinterfaces.TransferModel_V1.set_transfer"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_transfer()</span></code></a>),
+so the submodel can process the final value further, for example, by passing it to
+an outlet node.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.transferinterfaces.TransferModel_V1.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1" title="hydpy.interfaces.transferinterfaces.TransferModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransferModel_V1</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.transferinterfaces.TransferModel_V1.determine_transfer">
+<span class="sig-name descname"><span class="pre">determine_transfer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">watervolume</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alloweddischarge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/transferinterfaces.html#TransferModel_V1.determine_transfer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1.determine_transfer" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the water transfer based on the water volume (million m³) and the
+highest discharge (m³/s) the main model can currently lose.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.transferinterfaces.TransferModel_V1.get_transfer">
+<span class="sig-name descname"><span class="pre">get_transfer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/transferinterfaces.html#TransferModel_V1.get_transfer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1.get_transfer" title="Link to this definition">¶</a></dt>
+<dd><p>Return the water transfer in m³/s determined by the last call of
+<a class="reference internal" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1.determine_transfer" title="hydpy.interfaces.transferinterfaces.TransferModel_V1.determine_transfer"><code class="xref py py-func docutils literal notranslate"><span class="pre">determine_transfer()</span></code></a>.</p>
+<p>Positive values indicate withdrawals; negative values indicate supplies.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.transferinterfaces.TransferModel_V1.set_transfer">
+<span class="sig-name descname"><span class="pre">set_transfer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transfer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/transferinterfaces.html#TransferModel_V1.set_transfer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.transferinterfaces.TransferModel_V1.set_transfer" title="Link to this definition">¶</a></dt>
+<dd><p>Set the final water transfer in m³/s averaged over the current simulation
+step.</p>
+<p>Positive values indicate withdrawals; negative values indicate supplies.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="zbibliography.html" title="Bibliography"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tempinterfaces.html" title="tempinterfaces"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 7.0dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="submodel_interfaces.html" >Submodel Interfaces</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">transferinterfaces</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

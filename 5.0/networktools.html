@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>networktools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ppolytools" href="ppolytools.html" />
+    <link rel="prev" title="iuhtools" href="iuhtools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ppolytools.html" title="ppolytools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="iuhtools.html" title="iuhtools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="auxiliaries.html" accesskey="U">Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">networktools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="anntools.html">anntools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="armatools.html">armatools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="calibtools.html">calibtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interptools.html">interptools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="iuhtools.html">iuhtools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">networktools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumber"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumber</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumber.is_rivermouth"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumber.is_rivermouth</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumber.is_mainchannel"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumber.is_mainchannel</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumber.is_tributary"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumber.is_tributary</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumber.possible_next_initial_digits"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumber.possible_next_initial_digits</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumber.nmb_digits"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumber.nmb_digits</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers.select"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers.select()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers.next_numbers"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers.next_numbers</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers2Selection</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.supplier_prefix"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers2Selection.supplier_prefix</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.router_prefix"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers2Selection.router_prefix</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.node_prefix"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers2Selection.node_prefix</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.last_node"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers2Selection.last_node</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.selection_name"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers2Selection.selection_name</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.supplier_elements"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers2Selection.supplier_elements</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.router_elements"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers2Selection.router_elements</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.elements"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers2Selection.elements</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.nodes"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers2Selection.nodes</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.selection"><code class="docutils literal notranslate"><span class="pre">RiverBasinNumbers2Selection.selection</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ppolytools.html">ppolytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quadtools.html">quadtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="roottools.html">roottools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="smoothtools.html">smoothtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="statstools.html">statstools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="validtools.html">validtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="xmltools.html">xmltools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="iuhtools.html"
+                          title="previous chapter">iuhtools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="ppolytools.html"
+                          title="next chapter">ppolytools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/networktools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="networktools">
+<span id="id1"></span><h1>networktools<a class="headerlink" href="#networktools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.auxs.networktools">This module provides features for preparing <em>HydPy</em> networks based on
+different data.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.auxs.networktools" title="hydpy.auxs.networktools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">networktools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumber" title="hydpy.auxs.networktools.RiverBasinNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">RiverBasinNumber</span></code></a> A single river basin number (Gewässerkennzahl) based on a <a class="reference external" href="https://www.lawa.de/documents/richtlinie_fuer_die_gebietsbezeichnung_und_die_verschluesselung_von_fliessgewaessern_1552305779.pdf#pylint:disable=line-too-long">guideline of the German organisation LAWA</a> (Länderarbeitsgemeinschaft Wasser: Richtlinie für die Gebietsbezeichung und die Verschlüsselung von Fließgewässern, 1970).</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers" title="hydpy.auxs.networktools.RiverBasinNumbers"><code class="xref py py-class docutils literal notranslate"><span class="pre">RiverBasinNumbers</span></code></a> A sorted collection of <a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumber" title="hydpy.auxs.networktools.RiverBasinNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">RiverBasinNumber</span></code></a> objects.</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection" title="hydpy.auxs.networktools.RiverBasinNumbers2Selection"><code class="xref py py-class docutils literal notranslate"><span class="pre">RiverBasinNumbers2Selection</span></code></a> Class for defining a <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selection" title="hydpy.core.selectiontools.Selection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selection</span></code></a> object based on a given <a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers" title="hydpy.auxs.networktools.RiverBasinNumbers"><code class="xref py py-class docutils literal notranslate"><span class="pre">RiverBasinNumbers</span></code></a> object.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumber">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.networktools.</span></span><span class="sig-name descname"><span class="pre">RiverBasinNumber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/networktools.html#RiverBasinNumber"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumber" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+<p>A single river basin number (Gewässerkennzahl) based on a <a class="reference external" href="https://www.lawa.de/documents/richtlinie_fuer_die_gebietsbezeichnung_und_die_verschluesselung_von_fliessgewaessern_1552305779.pdf#pylint:disable=line-too-long">guideline
+of the German organisation LAWA</a> (Länderarbeitsgemeinschaft Wasser:
+Richtlinie für die Gebietsbezeichung und die Verschlüsselung von
+Fließgewässern, 1970).</p>
+<p><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumber" title="hydpy.auxs.networktools.RiverBasinNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">RiverBasinNumber</span></code></a> ignores the fill number zero:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">1230</span><span class="p">)</span>
+<span class="go">RiverBasinNumber(123)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">RiverBasinNumber</span><span class="p">(</span><span class="s2">&quot;0123&quot;</span><span class="p">)</span>
+<span class="go">RiverBasinNumber(123)</span>
+</pre></div>
+</div>
+<p>Numbers not interpretable as a river basin number result in the
+following error message:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">RiverBasinNumber</span><span class="p">(</span><span class="s2">&quot;123A&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The given value `123A` could not be interpreted as a river basin number.</span>
+</pre></div>
+</div>
+<p>Use the <cite>in</cite> operator to find out if one river basin lies within
+the source area of another one. For example, <cite>56626131</cite> lies
+upstream of <cite>566331</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">56626131</span><span class="p">)</span> <span class="ow">in</span> <span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">566331</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">566331</span><span class="p">)</span> <span class="ow">in</span> <span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">56626131</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>River basin <cite>532142</cite> does neither lie upstream nor downstream of
+river basin <cite>566331</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">532142</span><span class="p">)</span> <span class="ow">in</span> <span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">566331</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">566331</span><span class="p">)</span> <span class="ow">in</span> <span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">532142</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>For river basins numbers that are identical in all shared digits,
+the result is always <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">566331</span><span class="p">)</span> <span class="ow">in</span> <span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">566331</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">566331</span><span class="p">)</span> <span class="ow">in</span> <span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">5663311</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumber.is_rivermouth">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_rivermouth</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumber.is_rivermouth" title="Link to this definition">¶</a></dt>
+<dd><p>Only true if the river basin number ends with <cite>9</cite>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">RiverBasinNumber</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">129</span><span class="p">)</span><span class="o">.</span><span class="n">is_rivermouth</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span><span class="o">.</span><span class="n">is_rivermouth</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumber.is_mainchannel">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_mainchannel</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumber.is_mainchannel" title="Link to this definition">¶</a></dt>
+<dd><p>Only true if the river basin number ends with an odd number.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">RiverBasinNumber</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">130</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">rbn</span> <span class="o">=</span> <span class="n">RiverBasinNumber</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">rbn</span><span class="p">,</span> <span class="n">rbn</span><span class="o">.</span><span class="n">is_mainchannel</span><span class="p">)</span>
+<span class="go">120 12 False</span>
+<span class="go">121 121 True</span>
+<span class="go">122 122 False</span>
+<span class="go">123 123 True</span>
+<span class="go">124 124 False</span>
+<span class="go">125 125 True</span>
+<span class="go">126 126 False</span>
+<span class="go">127 127 True</span>
+<span class="go">128 128 False</span>
+<span class="go">129 129 True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumber.is_tributary">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_tributary</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumber.is_tributary" title="Link to this definition">¶</a></dt>
+<dd><p>Only true if the river basin number ends with an even number.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">RiverBasinNumber</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">130</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">rbn</span> <span class="o">=</span> <span class="n">RiverBasinNumber</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">rbn</span><span class="p">,</span> <span class="n">rbn</span><span class="o">.</span><span class="n">is_tributary</span><span class="p">)</span>
+<span class="go">120 12 True</span>
+<span class="go">121 121 False</span>
+<span class="go">122 122 True</span>
+<span class="go">123 123 False</span>
+<span class="go">124 124 True</span>
+<span class="go">125 125 False</span>
+<span class="go">126 126 True</span>
+<span class="go">127 127 False</span>
+<span class="go">128 128 True</span>
+<span class="go">129 129 False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumber.possible_next_initial_digits">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">possible_next_initial_digits</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.11)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumber.possible_next_initial_digits" title="Link to this definition">¶</a></dt>
+<dd><p>Return all potential candidates for the next downstream river
+basin number.</p>
+<p>Eventually, only the first and the last returned candidate should be
+relevant.  But to return all possible intermediate candidates might
+be safer to capture unexpected river basin number specifications.</p>
+<p>The candidate numbers might be incomplete.  For example, the next
+number downstream of <cite>123</cite> could be <cite>1251</cite> instead of <cite>125</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">RiverBasinNumber</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">130</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">rbn</span> <span class="o">=</span> <span class="n">RiverBasinNumber</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">rbn</span><span class="p">,</span> <span class="n">rbn</span><span class="o">.</span><span class="n">possible_next_initial_digits</span><span class="p">)</span>
+<span class="go">120 12 (&#39;13&#39;, &#39;15&#39;, &#39;17&#39;, &#39;19&#39;)</span>
+<span class="go">121 121 (&#39;123&#39;, &#39;125&#39;, &#39;127&#39;, &#39;129&#39;)</span>
+<span class="go">122 122 (&#39;123&#39;, &#39;125&#39;, &#39;127&#39;, &#39;129&#39;)</span>
+<span class="go">123 123 (&#39;125&#39;, &#39;127&#39;, &#39;129&#39;)</span>
+<span class="go">124 124 (&#39;125&#39;, &#39;127&#39;, &#39;129&#39;)</span>
+<span class="go">125 125 (&#39;127&#39;, &#39;129&#39;)</span>
+<span class="go">126 126 (&#39;127&#39;, &#39;129&#39;)</span>
+<span class="go">127 127 (&#39;129&#39;,)</span>
+<span class="go">128 128 (&#39;129&#39;,)</span>
+<span class="go">129 129 (&#39;13&#39;, &#39;15&#39;, &#39;17&#39;, &#39;19&#39;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumber.nmb_digits">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nmb_digits</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumber.nmb_digits" title="Link to this definition">¶</a></dt>
+<dd><p>The number of (significant) digits of a river basin number.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">RiverBasinNumber</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">RiverBasinNumber</span><span class="p">(</span><span class="mi">120</span><span class="p">)</span><span class="o">.</span><span class="n">nmb_digits</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.networktools.</span></span><span class="sig-name descname"><span class="pre">RiverBasinNumbers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.11)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/networktools.html#RiverBasinNumbers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+<p>A sorted collection of <a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumber" title="hydpy.auxs.networktools.RiverBasinNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">RiverBasinNumber</span></code></a> objects.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">RiverBasinNumbers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns</span> <span class="o">=</span> <span class="n">RiverBasinNumbers</span><span class="p">((</span><span class="mi">111</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">1132</span><span class="p">,</span> <span class="mi">1129</span><span class="p">,</span> <span class="mi">11269</span><span class="p">,</span> <span class="mi">1125</span><span class="p">,</span> <span class="mi">11261</span><span class="p">,</span>
+<span class="gp">... </span>                          <span class="mi">11262</span><span class="p">,</span> <span class="mi">1123</span><span class="p">,</span> <span class="mi">1124</span><span class="p">,</span> <span class="mi">1122</span><span class="p">,</span> <span class="mi">1121</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns</span>
+<span class="go">RiverBasinNumbers((111, 1121, 1122, 1123, 1124, 1125, 11261,</span>
+<span class="go">                   11262, 11269, 1129, 113, 1132))</span>
+</pre></div>
+</div>
+<p>The <cite>in</cite> operator works as to be expected, but performs an automatic
+type conversion and relies on a more efficient implementation than the
+one of the base class <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="mi">113</span> <span class="ow">in</span> <span class="n">rbns</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">1126</span> <span class="ow">in</span> <span class="n">rbns</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">11262</span> <span class="ow">in</span> <span class="n">rbns</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">11263</span> <span class="ow">in</span> <span class="n">rbns</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers.select">
+<span class="sig-name descname"><span class="pre">select</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers" title="hydpy.auxs.networktools.RiverBasinNumbers"><span class="pre">RiverBasinNumbers</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/networktools.html#RiverBasinNumbers.select"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers.select" title="Link to this definition">¶</a></dt>
+<dd><p>Select and return all river basin numbers starting with the given
+number.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">RiverBasinNumbers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns</span> <span class="o">=</span> <span class="n">RiverBasinNumbers</span><span class="p">((</span><span class="mi">111</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">1132</span><span class="p">,</span> <span class="mi">1129</span><span class="p">,</span> <span class="mi">11269</span><span class="p">,</span> <span class="mi">1125</span><span class="p">,</span> <span class="mi">11261</span><span class="p">,</span>
+<span class="gp">... </span>                          <span class="mi">11262</span><span class="p">,</span> <span class="mi">1123</span><span class="p">,</span> <span class="mi">1124</span><span class="p">,</span> <span class="mi">1122</span><span class="p">,</span> <span class="mi">1121</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<span class="go">RiverBasinNumbers((111,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="mi">112</span><span class="p">)</span>
+<span class="go">RiverBasinNumbers((1121, 1122, 1123, 1124, 1125, 11261,</span>
+<span class="go">                   11262, 11269, 1129))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="mi">113</span><span class="p">)</span>
+<span class="go">RiverBasinNumbers((113, 1132))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="mi">114</span><span class="p">)</span>
+<span class="go">RiverBasinNumbers(())</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers.next_numbers">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">next_numbers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.11)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumber" title="hydpy.auxs.networktools.RiverBasinNumber"><span class="pre">RiverBasinNumber</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers.next_numbers" title="Link to this definition">¶</a></dt>
+<dd><p>A tuple of the next downstream river basin numbers.</p>
+<p>The order of the returned numbers corresponds to the order of the
+numbers contained by the actual <a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers" title="hydpy.auxs.networktools.RiverBasinNumbers"><code class="xref py py-class docutils literal notranslate"><span class="pre">RiverBasinNumbers</span></code></a> object.</p>
+<p>The number of the subcatchment immediately downstream of the outlet
+subcatchment is not known.  The tuple contains a <code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code> object
+instead (or multiple <code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code> objects in case of multiple outlets).</p>
+<p>Eventually, not all possible combinations of river basin numbers
+are covered.  Please keep us informed if you notice a problem
+when applying this algorithm to your data.  At least, the algorithm
+works properly on the following test case provided by Michael
+Wagner (TU Dresden):</p>
+<img alt="_images/LAWA_river-basin-bumbers.png" src="_images/LAWA_river-basin-bumbers.png" />
+<p>At first, we consider only the black arrows, exemplifying the basic
+definition of river basin numbers:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">RiverBasinNumbers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns</span> <span class="o">=</span> <span class="n">RiverBasinNumbers</span><span class="p">((</span><span class="mi">111</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">1129</span><span class="p">,</span> <span class="mi">11269</span><span class="p">,</span> <span class="mi">1125</span><span class="p">,</span> <span class="mi">11261</span><span class="p">,</span>
+<span class="gp">... </span>                          <span class="mi">11262</span><span class="p">,</span> <span class="mi">1123</span><span class="p">,</span> <span class="mi">1124</span><span class="p">,</span> <span class="mi">1122</span><span class="p">,</span> <span class="mi">1121</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">this_rbn</span><span class="p">,</span> <span class="n">next_rbn</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rbns</span><span class="p">,</span> <span class="n">rbns</span><span class="o">.</span><span class="n">next_numbers</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="nb">print</span><span class="p">(</span><span class="n">this_rbn</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">6</span><span class="p">),</span> <span class="n">next_rbn</span><span class="p">)</span>
+<span class="go">111    113</span>
+<span class="go">1121   1123</span>
+<span class="go">1122   1123</span>
+<span class="go">1123   1125</span>
+<span class="go">1124   1125</span>
+<span class="go">1125   1129</span>
+<span class="go">11261  11269</span>
+<span class="go">11262  11269</span>
+<span class="go">11269  1129</span>
+<span class="go">1129   113</span>
+<span class="go">113    None</span>
+</pre></div>
+</div>
+<p>The coloured arrows exemplify the situation, where some additional
+subdivisions become necessary:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">RiverBasinNumbers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns</span> <span class="o">=</span> <span class="n">RiverBasinNumbers</span><span class="p">((</span><span class="mi">1111</span><span class="p">,</span> <span class="mi">1119</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">1129</span><span class="p">,</span> <span class="mi">1127</span><span class="p">,</span>
+<span class="gp">... </span>                          <span class="mi">11269</span><span class="p">,</span> <span class="mi">1125</span><span class="p">,</span> <span class="mi">11261</span><span class="p">,</span> <span class="mi">11262</span><span class="p">,</span> <span class="mi">11239</span><span class="p">,</span>
+<span class="gp">... </span>                          <span class="mi">11231</span><span class="p">,</span> <span class="mi">1124</span><span class="p">,</span> <span class="mi">1122</span><span class="p">,</span> <span class="mi">1121</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">this_rbn</span><span class="p">,</span> <span class="n">next_rbn</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rbns</span><span class="p">,</span> <span class="n">rbns</span><span class="o">.</span><span class="n">next_numbers</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="nb">print</span><span class="p">(</span><span class="n">this_rbn</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">6</span><span class="p">),</span> <span class="n">next_rbn</span><span class="p">)</span>
+<span class="go">1111   1119</span>
+<span class="go">1119   113</span>
+<span class="go">1121   11231</span>
+<span class="go">1122   11231</span>
+<span class="go">11231  11239</span>
+<span class="go">11239  1125</span>
+<span class="go">1124   1125</span>
+<span class="go">1125   1127</span>
+<span class="go">11261  11269</span>
+<span class="go">11262  11269</span>
+<span class="go">11269  1127</span>
+<span class="go">1127   1129</span>
+<span class="go">1129   113</span>
+<span class="go">113    None</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers2Selection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.networktools.</span></span><span class="sig-name descname"><span class="pre">RiverBasinNumbers2Selection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">numbers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.11)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/networktools.html#RiverBasinNumbers2Selection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class for defining a <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selection" title="hydpy.core.selectiontools.Selection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selection</span></code></a> object based on a given
+<a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers" title="hydpy.auxs.networktools.RiverBasinNumbers"><code class="xref py py-class docutils literal notranslate"><span class="pre">RiverBasinNumbers</span></code></a> object.</p>
+<p>Note that this class does not cover all possible <em>HydPy</em> networks.
+So it might be necessary to make some adjustments on the returned
+selection, e.g. to define individual names for specific elements
+or nodes.</p>
+<p>All examples in the documentation on the methods and properties of
+class <a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection" title="hydpy.auxs.networktools.RiverBasinNumbers2Selection"><code class="xref py py-class docutils literal notranslate"><span class="pre">RiverBasinNumbers2Selection</span></code></a> rely on the river basin numbers
+defined in the documentation on class <a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers" title="hydpy.auxs.networktools.RiverBasinNumbers"><code class="xref py py-class docutils literal notranslate"><span class="pre">RiverBasinNumbers</span></code></a>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers2Selection.supplier_prefix">
+<span class="sig-name descname"><span class="pre">supplier_prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.supplier_prefix" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers2Selection.router_prefix">
+<span class="sig-name descname"><span class="pre">router_prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.router_prefix" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers2Selection.node_prefix">
+<span class="sig-name descname"><span class="pre">node_prefix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.node_prefix" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers2Selection.last_node">
+<span class="sig-name descname"><span class="pre">last_node</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.last_node" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers2Selection.selection_name">
+<span class="sig-name descname"><span class="pre">selection_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.selection_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers2Selection.supplier_elements">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">supplier_elements</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><span class="pre">Elements</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.supplier_elements" title="Link to this definition">¶</a></dt>
+<dd><p>An <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object containing all “supplying basins”.</p>
+<p>(All river basins are assumed to supply something to the downstream
+basin.)</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">RiverBasinNumbers2Selection</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span> <span class="o">=</span> <span class="n">RiverBasinNumbers2Selection</span><span class="p">(</span>
+<span class="gp">... </span>                           <span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">1129</span><span class="p">,</span> <span class="mi">11269</span><span class="p">,</span> <span class="mi">1125</span><span class="p">,</span> <span class="mi">11261</span><span class="p">,</span>
+<span class="gp">... </span>                            <span class="mi">11262</span><span class="p">,</span> <span class="mi">1123</span><span class="p">,</span> <span class="mi">1124</span><span class="p">,</span> <span class="mi">1122</span><span class="p">,</span> <span class="mi">1121</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The following elements are correctly connected to the required
+outlet nodes already:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">rbns2s</span><span class="o">.</span><span class="n">supplier_elements</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">element</span><span class="p">))</span>
+<span class="go">Element(&quot;land_111&quot;,</span>
+<span class="go">        outlets=&quot;node_113&quot;)</span>
+<span class="go">Element(&quot;land_1121&quot;,</span>
+<span class="go">        outlets=&quot;node_1123&quot;)</span>
+<span class="go">Element(&quot;land_1122&quot;,</span>
+<span class="go">        outlets=&quot;node_1123&quot;)</span>
+<span class="go">Element(&quot;land_1123&quot;,</span>
+<span class="go">        outlets=&quot;node_1125&quot;)</span>
+<span class="go">Element(&quot;land_1124&quot;,</span>
+<span class="go">        outlets=&quot;node_1125&quot;)</span>
+<span class="go">Element(&quot;land_1125&quot;,</span>
+<span class="go">        outlets=&quot;node_1129&quot;)</span>
+<span class="go">Element(&quot;land_11261&quot;,</span>
+<span class="go">        outlets=&quot;node_11269&quot;)</span>
+<span class="go">Element(&quot;land_11262&quot;,</span>
+<span class="go">        outlets=&quot;node_11269&quot;)</span>
+<span class="go">Element(&quot;land_11269&quot;,</span>
+<span class="go">        outlets=&quot;node_1129&quot;)</span>
+<span class="go">Element(&quot;land_1129&quot;,</span>
+<span class="go">        outlets=&quot;node_113&quot;)</span>
+<span class="go">Element(&quot;land_113&quot;,</span>
+<span class="go">        outlets=&quot;node_outlet&quot;)</span>
+</pre></div>
+</div>
+<p>It is both possible to change the prefix names of the elements
+and nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span><span class="o">.</span><span class="n">supplier_prefix</span> <span class="o">=</span> <span class="s2">&quot;a_&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span><span class="o">.</span><span class="n">node_prefix</span> <span class="o">=</span> <span class="s2">&quot;b_&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span><span class="o">.</span><span class="n">supplier_elements</span>
+<span class="go">Elements(&quot;a_111&quot;, &quot;a_1121&quot;, &quot;a_1122&quot;, &quot;a_1123&quot;, &quot;a_1124&quot;, &quot;a_1125&quot;,</span>
+<span class="go">         &quot;a_11261&quot;, &quot;a_11262&quot;, &quot;a_11269&quot;, &quot;a_1129&quot;, &quot;a_113&quot;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers2Selection.router_elements">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">router_elements</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><span class="pre">Elements</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.router_elements" title="Link to this definition">¶</a></dt>
+<dd><p>An <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object containing all “routing basins”.</p>
+<p>(Only river basins with an upstream basin are assumed to route
+something to the downstream basin.)</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">RiverBasinNumbers2Selection</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span> <span class="o">=</span> <span class="n">RiverBasinNumbers2Selection</span><span class="p">(</span>
+<span class="gp">... </span>                           <span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">1129</span><span class="p">,</span> <span class="mi">11269</span><span class="p">,</span> <span class="mi">1125</span><span class="p">,</span> <span class="mi">11261</span><span class="p">,</span>
+<span class="gp">... </span>                            <span class="mi">11262</span><span class="p">,</span> <span class="mi">1123</span><span class="p">,</span> <span class="mi">1124</span><span class="p">,</span> <span class="mi">1122</span><span class="p">,</span> <span class="mi">1121</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The following elements are correctly connected to the required
+inlet and outlet nodes already:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">rbns2s</span><span class="o">.</span><span class="n">router_elements</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">element</span><span class="p">))</span>
+<span class="go">Element(&quot;stream_1123&quot;,</span>
+<span class="go">        inlets=&quot;node_1123&quot;,</span>
+<span class="go">        outlets=&quot;node_1125&quot;)</span>
+<span class="go">Element(&quot;stream_1125&quot;,</span>
+<span class="go">        inlets=&quot;node_1125&quot;,</span>
+<span class="go">        outlets=&quot;node_1129&quot;)</span>
+<span class="go">Element(&quot;stream_11269&quot;,</span>
+<span class="go">        inlets=&quot;node_11269&quot;,</span>
+<span class="go">        outlets=&quot;node_1129&quot;)</span>
+<span class="go">Element(&quot;stream_1129&quot;,</span>
+<span class="go">        inlets=&quot;node_1129&quot;,</span>
+<span class="go">        outlets=&quot;node_113&quot;)</span>
+<span class="go">Element(&quot;stream_113&quot;,</span>
+<span class="go">        inlets=&quot;node_113&quot;,</span>
+<span class="go">        outlets=&quot;node_outlet&quot;)</span>
+</pre></div>
+</div>
+<p>It is both possible to change the prefix names of the elements
+and nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span><span class="o">.</span><span class="n">router_prefix</span> <span class="o">=</span> <span class="s2">&quot;c_&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span><span class="o">.</span><span class="n">node_prefix</span> <span class="o">=</span> <span class="s2">&quot;d_&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span><span class="o">.</span><span class="n">router_elements</span>
+<span class="go">Elements(&quot;c_1123&quot;, &quot;c_1125&quot;, &quot;c_11269&quot;, &quot;c_1129&quot;, &quot;c_113&quot;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers2Selection.elements">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">elements</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><span class="pre">Elements</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.elements" title="Link to this definition">¶</a></dt>
+<dd><p>An <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><code class="xref py py-class docutils literal notranslate"><span class="pre">Elements</span></code></a> object containing all required elements (both the
+<a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.supplier_elements" title="hydpy.auxs.networktools.RiverBasinNumbers2Selection.supplier_elements"><code class="xref py py-const docutils literal notranslate"><span class="pre">supplier_elements</span></code></a> and the
+<a class="reference internal" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.router_elements" title="hydpy.auxs.networktools.RiverBasinNumbers2Selection.router_elements"><code class="xref py py-const docutils literal notranslate"><span class="pre">router_elements</span></code></a>).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers2Selection.nodes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nodes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><span class="pre">Nodes</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.nodes" title="Link to this definition">¶</a></dt>
+<dd><p>A <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nodes</span></code></a> object containing all required nodes, including the
+outlet node.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">RiverBasinNumbers2Selection</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span> <span class="o">=</span> <span class="n">RiverBasinNumbers2Selection</span><span class="p">(</span>
+<span class="gp">... </span>                           <span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">1129</span><span class="p">,</span> <span class="mi">11269</span><span class="p">,</span> <span class="mi">1125</span><span class="p">,</span> <span class="mi">11261</span><span class="p">,</span>
+<span class="gp">... </span>                            <span class="mi">11262</span><span class="p">,</span> <span class="mi">1123</span><span class="p">,</span> <span class="mi">1124</span><span class="p">,</span> <span class="mi">1122</span><span class="p">,</span> <span class="mi">1121</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span><span class="o">.</span><span class="n">nodes</span>
+<span class="go">Nodes(&quot;node_1123&quot;, &quot;node_1125&quot;, &quot;node_11269&quot;, &quot;node_1129&quot;, &quot;node_113&quot;,</span>
+<span class="go">      &quot;node_outlet&quot;)</span>
+</pre></div>
+</div>
+<p>It is both possible to change the prefix names of the nodes and
+the name of the outlet node separately:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span><span class="o">.</span><span class="n">node_prefix</span> <span class="o">=</span> <span class="s2">&quot;b_&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span><span class="o">.</span><span class="n">last_node</span> <span class="o">=</span> <span class="s2">&quot;l_node&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span><span class="o">.</span><span class="n">nodes</span>
+<span class="go">Nodes(&quot;b_1123&quot;, &quot;b_1125&quot;, &quot;b_11269&quot;, &quot;b_1129&quot;, &quot;b_113&quot;, &quot;l_node&quot;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.networktools.RiverBasinNumbers2Selection.selection">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">selection</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selection" title="hydpy.core.selectiontools.Selection"><span class="pre">Selection</span></a></em><a class="headerlink" href="#hydpy.auxs.networktools.RiverBasinNumbers2Selection.selection" title="Link to this definition">¶</a></dt>
+<dd><p>A complete <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selection" title="hydpy.core.selectiontools.Selection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selection</span></code></a> object containing all required elements
+and nodes.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">RiverBasinNumbers2Selection</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span> <span class="o">=</span> <span class="n">RiverBasinNumbers2Selection</span><span class="p">(</span>
+<span class="gp">... </span>                           <span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">1129</span><span class="p">,</span> <span class="mi">11269</span><span class="p">,</span> <span class="mi">1125</span><span class="p">,</span> <span class="mi">11261</span><span class="p">,</span>
+<span class="gp">... </span>                            <span class="mi">11262</span><span class="p">,</span> <span class="mi">1123</span><span class="p">,</span> <span class="mi">1124</span><span class="p">,</span> <span class="mi">1122</span><span class="p">,</span> <span class="mi">1121</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span><span class="o">.</span><span class="n">selection</span>
+<span class="go">Selection(&quot;complete&quot;,</span>
+<span class="go">          nodes=(&quot;node_1123&quot;, &quot;node_1125&quot;, &quot;node_11269&quot;, &quot;node_1129&quot;,</span>
+<span class="go">                 &quot;node_113&quot;, &quot;node_outlet&quot;),</span>
+<span class="go">          elements=(&quot;land_111&quot;, &quot;land_1121&quot;, &quot;land_1122&quot;, &quot;land_1123&quot;,</span>
+<span class="go">                    &quot;land_1124&quot;, &quot;land_1125&quot;, &quot;land_11261&quot;,</span>
+<span class="go">                    &quot;land_11262&quot;, &quot;land_11269&quot;, &quot;land_1129&quot;,</span>
+<span class="go">                    &quot;land_113&quot;, &quot;stream_1123&quot;, &quot;stream_1125&quot;,</span>
+<span class="go">                    &quot;stream_11269&quot;, &quot;stream_1129&quot;, &quot;stream_113&quot;))</span>
+</pre></div>
+</div>
+<p>Besides the possible modifications on the names of the different
+nodes and elements, one is also free to define an arbitrary
+selection name:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rbns2s</span><span class="o">.</span><span class="n">selection_name</span> <span class="o">=</span> <span class="s2">&quot;sel&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">ellipsis</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">rbns2s</span><span class="o">.</span><span class="n">selection</span><span class="p">))</span>
+<span class="go">Selection(&quot;sel&quot;,</span>
+<span class="go">          nodes=(&quot;node_1123&quot;, ...,&quot;node_outlet&quot;),</span>
+<span class="go">          elements=(&quot;land_111&quot;, ...,&quot;stream_113&quot;))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ppolytools.html" title="ppolytools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="iuhtools.html" title="iuhtools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="auxiliaries.html" >Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">networktools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

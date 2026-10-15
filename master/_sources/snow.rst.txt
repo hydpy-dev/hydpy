@@ -1,0 +1,40 @@
+.. |BaseModel.prepare_layers| replace:: :func:`~hydpy.models.snow.snow_model.BaseModel.prepare_layers`
+.. |CN4| replace:: :class:`~hydpy.models.snow.snow_control.CN4`
+.. |Calc_PLayer_V1| replace:: :class:`~hydpy.models.snow.snow_model.Calc_PLayer_V1`
+.. |Calc_PotMelt_V1| replace:: :class:`~hydpy.models.snow.snow_model.Calc_PotMelt_V1`
+.. |Calc_SolidFractionPrecipitation_V1| replace:: :class:`~hydpy.models.snow.snow_model.Calc_SolidFractionPrecipitation_V1`
+.. |GLocalMax| replace:: :class:`~hydpy.models.snow.snow_logs.GLocalMax`
+.. |GRatio| replace:: :class:`~hydpy.models.snow.snow_states.GRatio`
+.. |GThresh| replace:: :class:`~hydpy.models.snow.snow_derived.GThresh`
+.. |GradTMean| replace:: :class:`~hydpy.models.snow.snow_control.GradTMean`
+.. |G| replace:: :class:`~hydpy.models.snow.snow_states.G`
+.. |Hysteresis| replace:: :class:`~hydpy.models.snow.snow_control.Hysteresis`
+.. |LayerArea| replace:: :class:`~hydpy.models.snow.snow_control.LayerArea`
+.. |MeanAnSolidPrecip| replace:: :class:`~hydpy.models.snow.snow_control.MeanAnSolidPrecip`
+.. |Melt| replace:: :class:`~hydpy.models.snow.snow_fluxes.Melt`
+.. |MinG| replace:: :class:`~hydpy.models.snow.snow_fixed.MinG`
+.. |NLayers| replace:: :class:`~hydpy.models.snow.snow_control.NLayers`
+.. |PLayer| replace:: :class:`~hydpy.models.snow.snow_fluxes.PLayer`
+.. |PotMelt| replace:: :class:`~hydpy.models.snow.snow_fluxes.PotMelt`
+.. |Return_T_V1| replace:: :class:`~hydpy.models.snow.snow_model.Return_T_V1`
+.. |TLayer| replace:: :class:`~hydpy.models.snow.snow_factors.TLayer`
+.. |TMaxLayer| replace:: :class:`~hydpy.models.snow.snow_factors.TMaxLayer`
+.. |TMinLayer| replace:: :class:`~hydpy.models.snow.snow_factors.TMinLayer`
+.. |TThreshRain| replace:: :class:`~hydpy.models.snow.snow_fixed.TThreshRain`
+.. |TThreshSnow| replace:: :class:`~hydpy.models.snow.snow_fixed.TThreshSnow`
+.. |Update_GRatio_GLocalMax_V2| replace:: :class:`~hydpy.models.snow.snow_model.Update_GRatio_GLocalMax_V2`
+.. |ZLayers| replace:: :class:`~hydpy.models.snow.snow_control.ZLayers`
+.. |ZMean| replace:: :class:`~hydpy.models.snow.snow_derived.ZMean`
+.. |ZThreshold| replace:: :class:`~hydpy.models.snow.snow_fixed.ZThreshold`
+.. |snow.DOCNAME.complete| replace:: HydPy-Snow (base model)
+.. |snow_model.BaseModel.prepare_layers| replace:: :func:`~hydpy.models.snow.snow_model.BaseModel.prepare_layers`
+
+.. _snow:
+
+snow
+====
+
+.. automodule:: hydpy.models.snow
+    :members:
+    :show-inheritance:
+    :exclude-members: ADD_METHODS, AbstractSet, AideSequences, Annotated, Any, AnyStr, AsyncContextManager, AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, BinaryIO, Buffer, ByteString, CLASSES, CONTROLPARAMETERS, Callable, CapsuleType, ChainMap, ClassVar, Collection, Concatenate, Container, ContextManager, Coroutine, Counter, DERIVEDPARAMETERS, DefaultDict, Deque, Dict, Doc, FIXEDPARAMETERS, FULL_ODE_METHODS, Final, Format, ForwardRef, FrozenSet, Generator, Generic, Hashable, INLET_METHODS, INTERFACE_METHODS, IO, InletSequences, IntVar, ItemsView, Iterable, Iterator, KeysView, List, Literal, LiteralString, Mapping, MappingView, Match, MutableMapping, MutableSequence, MutableSet, NamedTuple, Never, NewType, NoDefault, NoExtraItems, NoReturn, NotRequired, OBSERVER_METHODS, OUTLET_METHODS, ObserverSequences, Optional, OrderedDict, OutletSequences, PART_ODE_METHODS, POST_ODE_METHODS, ParamSpec, ParamSpecArgs, ParamSpecKwargs, Pattern, Protocol, RECEIVER_METHODS, REQUIREDSEQUENCES, RESULTSEQUENCES, RUN_METHODS, ReadOnly, Reader, ReceiverSequences, Required, Reversible, SENDER_METHODS, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELINTERFACES, SUBMODELS, Self, SenderSequences, Sentinel, Sequence, Set, Sized, SupportsAbs, SupportsBytes, SupportsComplex, SupportsFloat, SupportsIndex, SupportsInt, SupportsRound, TYPE_CHECKING, Text, TextIO, Tuple, Type, TypeAlias, TypeAliasType, TypeForm, TypeGuard, TypeIs, TypeVar, TypeVarTuple, TypedDict, UPDATEDSEQUENCES, Union, Unpack, ValuesView, Writer, assert_never, assert_type, cast, clear_overloads, dataclass_transform, deprecated, disjoint_base, evaluate_forward_ref, fastaccess, fastaccess_new, fastaccess_old, final, get_annotations, get_args, get_origin, get_original_bases, get_overloads, get_protocol_members, get_type_hints, is_protocol, is_typeddict, no_type_check, no_type_check_decorator, overload, override, pars, reveal_type, runtime, runtime_checkable, sentinel, seqs, subpars, subseqs, subvars, type_repr

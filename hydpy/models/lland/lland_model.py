@@ -6830,6 +6830,17 @@ class Calc_QBGA_SBG_QBGZ_QDGZ_V1(modeltools.Method):
             >>> check(sm=10.0, g1=1.4, g2=1.4)
             sbg(6.39434), qbga(0.569946), qbgz(1.964286), qdgz(1.035714)
 
+            In the last example, the groundwater amount does not reach `sm` within the
+            current interval but would do so later.  If `sm` is not smaller than the
+            equilibrium groundwater amount (the product of |KB| and |QBGZ|, which is
+            20 mm), the groundwater amount could never reach it.  This also holds for
+            infinite `sm` values.  The results are the same as in the last example:
+
+            >>> check(sm=20.0, g1=1.4, g2=1.4)
+            sbg(6.39434), qbga(0.569946), qbgz(1.964286), qdgz(1.035714)
+            >>> check(sm=inf, g1=1.4, g2=1.4)
+            sbg(6.39434), qbga(0.569946), qbgz(1.964286), qdgz(1.035714)
+
             As for the volume-related case, one can apply rise-related restrictions
             when the value of |KB| is |numpy.inf|:
 

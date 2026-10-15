@@ -81,9 +81,6 @@ The intermediate soil moisture values have been stored in a NetCDF file called
 Spatially averaged time series values have been stored in files ending with the suffix
 `_mean`:
 
->>> import time
->>> time.sleep(10)
-
 >>> with TestIO(clear_all=True):
 ...     print_vector(
 ...         numpy.load("HydPy-H-Lahn/series/averages/lahn_marb_sim_q_mean.npy")[13:]

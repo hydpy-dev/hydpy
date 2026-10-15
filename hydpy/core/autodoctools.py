@@ -229,7 +229,7 @@ def _add_lines(specification: str, module: types.ModuleType) -> list[str]:
     else:
         name_collectionclass = None
     lines = []
-    exc_mem = ", ".join(excluded_members)
+    exc_mem = ", ".join(sorted(excluded_members))
     if specification == "model":
         lines += [
             "",

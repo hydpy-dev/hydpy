@@ -110,6 +110,11 @@ def main(  # pylint: disable=too-many-branches
     from hydpy.core import devicetools
     from hydpy.core import testtools
 
+    # Subprocesses started by the doctests do not require the time-consuming automatic
+    # documentation features, even if the main process does (e.g. for measuring the
+    # coverage of these features):
+    os.environ.pop("HYDPY_USEAUTODOC", None)
+
     filter_filenames = _FilterFilenames(file_doctests)
     pingtime: float = time.perf_counter()
 

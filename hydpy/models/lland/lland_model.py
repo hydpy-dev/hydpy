@@ -6354,19 +6354,21 @@ class Calc_QDGZ_V1(modeltools.Method):
         The first example shows that |QDGZ| is the area weighted sum of |QDB| from
         "land type" HRUs like arable land (|ACKER|) and sealed surfaces (|VERS|) as
         well as of |NKor|-|EvI| from water areas of type |FLUSS|.  Water areas of type
-        |WASSER| and |SEE| have no impact on |QDGZ|:
+        |WASSER| and |SEE| have no impact on |QDGZ|.  The last HRU, also of type
+        |FLUSS|, demonstrates that negative evaporation values (condensation) increase
+        |QDGZ|:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
-        >>> nhru(5)
-        >>> lnk(ACKER, VERS, WASSER, SEE, FLUSS)
-        >>> fhru(0.1, 0.2, 0.1, 0.2, 0.4)
-        >>> fluxes.qdb = 2., 4.0, 300.0, 300.0, 300.0
-        >>> fluxes.nkor = 200.0, 200.0, 200.0, 200.0, 20.0
-        >>> fluxes.evi = 100.0, 100.0, 100.0, 100.0, 10.0
+        >>> nhru(6)
+        >>> lnk(ACKER, VERS, WASSER, SEE, FLUSS, FLUSS)
+        >>> fhru(0.1, 0.2, 0.1, 0.1, 0.4, 0.1)
+        >>> fluxes.qdb = 2., 4.0, 300.0, 300.0, 300.0, 300.0
+        >>> fluxes.nkor = 200.0, 200.0, 200.0, 200.0, 20.0, 0.0
+        >>> fluxes.evi = 100.0, 100.0, 100.0, 100.0, 10.0, -10.0
         >>> model.calc_qdgz_v1()
         >>> fluxes.qdgz
-        qdgz(5.0)
+        qdgz(6.0)
 
         The second example shows that large evaporation values above a HRU of type
         |FLUSS| can result in negative values of |QDGZ|:
@@ -6374,7 +6376,7 @@ class Calc_QDGZ_V1(modeltools.Method):
         >>> fluxes.evi[4] = 30
         >>> model.calc_qdgz_v1()
         >>> fluxes.qdgz
-        qdgz(-3.0)
+        qdgz(-2.0)
     """
 
     CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.FHRU)

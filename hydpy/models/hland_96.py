@@ -52,10 +52,12 @@ Integration tests
 The following integration tests rely on the meteorological input data used for testing
 the application model |lland_dd|. The values of the input sequences |P| (precipitation)
 and |T| (temperature) are copy-pasted.  The |evap_inputs.NormalEvapotranspiration|
-values are the |evap_fluxes.ReferenceEvapotranspiration| values calcuted by
-|evap_ret_tw2002| but divided by 0.4 to account for the selected value of the
-evaporation adjustment factor |evap_control.EvapotranspirationFactor|.  Hopefully, this
-will make it easier to draw comparisons between both models.
+values are the |evap_fluxes.ReferenceEvapotranspiration| values calculated by an
+earlier version of |evap_ret_tw2002| but divided by 0.4 to account for the selected
+value of the evaporation adjustment factor |evap_control.EvapotranspirationFactor|.
+This earlier version applied the Turc-Wendling equation directly to the hourly input
+data without any adjustment to the simulation step size.  Hence, the values used here
+are much higher than those of the current |lland_dd| examples.
 
 We perform all integration tests over five days with a simulation step of one hour:
 
@@ -167,7 +169,7 @@ and all other storages are empty:
 
 As mentioned above, the values of the input sequences |P| and |hland_inputs.T| of
 |hland_96| stem from :ref:`here <lland_dd_acker_summer>`.  For educational purposes, we
-again use unrealistically high values of |evap_inputs.NormalEvapotranspiration|.  For
+use unrealistically high values of |evap_inputs.NormalEvapotranspiration|.  For
 the sake of simplicity, we define |evap_inputs.NormalAirTemperature| to be constantly
 1 °C below |hland_inputs.T|:
 

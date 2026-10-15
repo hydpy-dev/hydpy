@@ -24,8 +24,8 @@ blank |Element| instance is sufficient:
 >>> element = Element("element")
 >>> element.model = model
 
-The Turc-Wendling equation is designed for daily data.  Hence, we start with a daily
-simulation step:
+The Turc-Wendling equation requires input data aggregated over at least one day.  We
+start with a daily simulation step:
 
 >>> from hydpy import IntegrationTest, pub
 >>> pub.timegrids = "2000-07-06", "2000-07-07", "1d"

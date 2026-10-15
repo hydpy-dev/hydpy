@@ -4929,10 +4929,13 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
       {165 \cdot (DailyAirTemperature + 123) \cdot
       (1 + 0.00019 \cdot min(Altitude, 600))}`
 
-    The Turc-Wendling equation is designed for daily data.  Hence,
-    |Calc_ReferenceEvapotranspiration_V2| always evaluates it for the average air
-    temperature and the average global radiation of the last 24 hours and converts the
-    resulting daily evapotranspiration to the actual simulation step size.
+    The Turc-Wendling equation requires input data aggregated over at least one day.
+    For daily simulation steps, |Calc_ReferenceEvapotranspiration_V2| uses the current
+    air temperature and global radiation directly.  For sub-daily simulation steps, it
+    evaluates the equation for the average air temperature and the average global
+    radiation of the last 24 hours and converts the resulting daily evapotranspiration
+    to the actual simulation step size.  Simulation steps longer than one day are not
+    supported.
 
     Examples:
 

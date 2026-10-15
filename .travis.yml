@@ -17,7 +17,7 @@ install:
 
 script:
   - python prepare_build.py
-  - python -m build
+  - python -m build --wheel --no-isolation
   - if [ $JOB == "coverage" ]; then nox -s coverage; fi
   - if [ $JOB == "rest" ]; then pip install ghp-import; fi
   - if [ $JOB == "rest" ]; then nox -s sphinx -- -W; fi

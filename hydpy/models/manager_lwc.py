@@ -693,11 +693,11 @@ additional water release, but two such nodes are available (`r3a` and `r3b`).
             ]
             if (n := len(selected)) != 1:
                 selected_ = self._get_error_message_suffix(selected)
-                number = objecttools.Inflect.number_to_words(n, zero="no")
+                number = objecttools.Inflect.cardinal(n, zero="no")
                 raise RuntimeError(
-                    f"There must be exactly one node that informs about the "
-                    f"current water volume of the source element `{sourcename}`, but "
-                    f"{number} such nodes are available{selected_}."
+                    f"There must be exactly one node that informs about the current "
+                    f"water volume of the source element `{sourcename}`, but {number} "
+                    f"such nodes are available{selected_}."
                 )
             volume_nodes.append(selected[0])
         watervolume.connect_to_nodes(
@@ -710,7 +710,7 @@ additional water release, but two such nodes are available (`r3a` and `r3b`).
         target_nodes = [n for n in self.element.receivers if n.variable == "Q"]
         if (n := len(target_nodes)) != 1:
             selected_ = self._get_error_message_suffix(target_nodes)
-            number = objecttools.Inflect.number_to_words(n, zero="no")
+            number = objecttools.Inflect.cardinal(n, zero="no")
             raise RuntimeError(
                 f"There must be exactly one node that reports the current discharge "
                 f"at the target location, but {number} such nodes are available"
@@ -742,7 +742,7 @@ additional water release, but two such nodes are available (`r3a` and `r3b`).
             ]
             if (n := len(selected)) != 1:
                 selected_ = self._get_error_message_suffix(selected)
-                number = objecttools.Inflect.number_to_words(n, zero="no")
+                number = objecttools.Inflect.cardinal(n, zero="no")
                 raise RuntimeError(
                     f"There must be exactly one node that informs the source element "
                     f"`{sourcename}` about the request for additional water release, "

@@ -3279,7 +3279,7 @@ already a collective `NileRiver` member.
         for node in Nodes(values):
             for incomp in incompatiblenodes:
                 if node in getattr(self, incomp):
-                    a = objecttools.Inflect.a(incomp[1:-1])
+                    a = objecttools.Inflect.a(incomp[1:-1], 1)
                     raise ValueError(
                         f"For element `{self}`, the given {targetnodes[1:-1]} node "
                         f"`{node}` is already defined as {a} node, which is not "

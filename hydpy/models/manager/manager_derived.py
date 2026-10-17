@@ -299,12 +299,10 @@ and the target node `t`, but there must be exactly one.
                 if check:
                     if n != 1:
                         i = objecttools.Inflect
-                        number = i.number_to_words(n)
                         raise RuntimeError(
-                            f"There {i.plural('is', n)} {number} "
-                            f"{i.plural('path', n)} between the source element "
-                            f"`{upstream}` and the target node `{target}`, but there "
-                            f"must be exactly one."
+                            f"There {i.plural('is', n)} {i.count(n, 'path')} between "
+                            f"the source element `{upstream}` and the target node "
+                            f"`{target}`, but there must be exactly one."
                         )
                 if n > 0:
                     if all(d.name not in name2element for d in paths[0][1:-1]):

@@ -875,12 +875,11 @@ the given one has one input and two outputs.
         try:
             super().__call__(*args, **kwargs)
             if ((ni := self.nmb_inputs) != 1) or ((no := self.nmb_outputs) != 1):
-                i = objecttools.Inflect
+                count = objecttools.Inflect.count
                 raise ValueError(
                     f"Parameter `{self.name}` requires interpolators with exactly one "
                     f"input and one output, but the given one has "
-                    f"{i.number_to_words(ni)} {i.plural('input', ni)} and "
-                    f"{i.number_to_words(no)} {i.plural('output', no)}."
+                    f"{count(ni, 'input')} and {count(no, 'output')}."
                 )
         except BaseException:
             objecttools.augment_excmessage(
@@ -931,12 +930,11 @@ relevant observation nodes, but the first given value is of type `int`.
     def __call__(self, *observernodes: str) -> None:
         for i, node in enumerate(observernodes):
             if not isinstance(node, str):
-                i_ = objecttools.Inflect  # type: ignore[unreachable]
+                ordinal = objecttools.Inflect.ordinal  # type: ignore[unreachable]
                 raise ValueError(
                     f"Parameter {objecttools.elementphrase(self)} requires the names "
-                    f"of all relevant observation nodes, but the "
-                    f"{i_.number_to_words(i_.ordinal(i + 1))} given value is of type "
-                    f"`{type(node).__name__}`."
+                    f"of all relevant observation nodes, but the {ordinal(i + 1)} "
+                    f"given value is of type `{type(node).__name__}`."
                 )
         pars = self.subpars.pars
         pars.derived.nmbobservernodes(len(observernodes))

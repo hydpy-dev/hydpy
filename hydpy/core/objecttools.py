@@ -1765,7 +1765,7 @@ classes: str and int.
         except TypeError as exc:
             if exc.args[0].startswith("The given (sub)value"):
                 raise exc
-            enum = enumeration(types_, converter=lambda x: x.__name__)
+            enum = enumeration(types_, converter=lambda x: x.__name__, backticks=True)
             raise TypeError(
                 f"The given (sub)value `{repr(values)}` is not an instance of the "
                 f"following classes: {enum}."
@@ -1777,6 +1777,7 @@ def enumeration(
     converter: Callable[[T_inv], str] = str,
     default: str = "",
     conjunction: str = "and",
+    backticks: bool = False,
 ) -> str:
     """Return an enumeration string based on the given values.
 
@@ -1822,10 +1823,21 @@ def enumeration(
     >>> with pub.options.ellipsis(3):
     ...     enumeration(range(10), conjunction="or")
     '0, 1, 2, ..., 7, 8, or 9'
+
+    Set `backticks` to |True| to put each value (but not the conjunction or the
+    ellipsis points) into backticks:
+
+    >>> enumeration(("a", "b", "c"), backticks=True)
+    '`a`, `b`, and `c`'
+    >>> with pub.options.ellipsis(1):
+    ...     enumeration(("a", "b", "c"), backticks=True)
+    '`a`, ..., and `c`'
     """
     values_ = list(converter(value) for value in values)
     if not values_:
         return default
+    if backticks:
+        values_ = [f"`{value}`" for value in values_]
     if len(values_) == 1:
         return values_[0]
     if len(values_) == 2:
@@ -1877,56 +1889,143 @@ class Inflect:
         >>> Inflect.plural("time series", 2), Inflect.plural("duration curve", 2)
         ('time series', 'duration curves')
         """
-        return cls._get_engine().plural(text, count)
+        return cls._get_engine().plural(text, int(count))
 
     @classmethod
-    def a(cls, text: str) -> str:
-        """Prefix the given word with the correct indefinite article.
+    def a(cls, text: str, count: int) -> str:
+        """Prefix the given word with the correct indefinite article if `count` is
+        one; otherwise, return its plural form without any article.
 
         >>> from hydpy.core.objecttools import Inflect
-        >>> Inflect.a("input"), Inflect.a("output"), Inflect.a("inlet")
+        >>> Inflect.a("input", 1), Inflect.a("output", 1), Inflect.a("inlet", 1)
         ('an input', 'an output', 'an inlet')
-        >>> Inflect.a("node")
+        >>> Inflect.a("node", 1)
         'a node'
+        >>> Inflect.a("output node", 0), Inflect.a("output node", 2)
+        ('output nodes', 'output nodes')
         """
-        return cls._get_engine().a(text)
+        if count == 1:
+            return cls._get_engine().a(text)
+        return cls.plural(text, count)
 
     @classmethod
-    def number_to_words(cls, number: int | str, zero: str = "zero") -> str:
-        """Spell out the given number or ordinal.
+    def cardinal(cls, number: int, zero: str = "zero", threshold: int = 10) -> str:
+        """Spell out the given cardinal number if it does not exceed the given
+        threshold; otherwise, return it in digits.
 
         >>> from hydpy.core.objecttools import Inflect
-        >>> Inflect.number_to_words(0)
-        'zero'
-        >>> Inflect.number_to_words(1)
-        'one'
-        >>> Inflect.number_to_words(21)
+        >>> Inflect.cardinal(0), Inflect.cardinal(3), Inflect.cardinal(10)
+        ('zero', 'three', 'ten')
+        >>> Inflect.cardinal(11)
+        '11'
+
+        You can modify the word used for zero and the threshold:
+
+        >>> Inflect.cardinal(0, zero="no")
+        'no'
+        >>> Inflect.cardinal(21, threshold=30)
         'twenty-one'
-        >>> Inflect.number_to_words(1234)
-        'one thousand, two hundred and thirty-four'
-
-        Combined with method |Inflect.ordinal|, |Inflect.number_to_words| spells out
-        ordinals:
-
-        >>> Inflect.number_to_words(Inflect.ordinal(3))
-        'third'
         """
         engine = cls._get_engine()
-        words = engine.number_to_words(number, zero=zero)  # type: ignore[arg-type]
+        words = engine.number_to_words(
+            int(number), zero=zero, threshold=threshold  # type: ignore[arg-type]
+        )
         assert isinstance(words, str)
         return words
 
     @classmethod
-    def ordinal(cls, number: int) -> str:
-        """Return the ordinal of the given number.
+    def ordinal(cls, number: int, threshold: int = 10) -> str:
+        """Spell out the ordinal of the given number if the number does not exceed the
+        given threshold; otherwise, return the ordinal in digits.
 
         >>> from hydpy.core.objecttools import Inflect
-        >>> Inflect.ordinal(1), Inflect.ordinal(3)
-        ('1st', '3rd')
-
-        See method |Inflect.number_to_words| for spelling out ordinals.
+        >>> Inflect.ordinal(1), Inflect.ordinal(3), Inflect.ordinal(10)
+        ('first', 'third', 'tenth')
+        >>> Inflect.ordinal(11), Inflect.ordinal(22)
+        ('11th', '22nd')
+        >>> Inflect.ordinal(22, threshold=30)
+        'twenty-second'
         """
-        return cls._get_engine().ordinal(number)  # type: ignore[arg-type]
+        engine = cls._get_engine()
+        ordinal = engine.ordinal(int(number))  # type: ignore[arg-type]
+        if number > threshold:
+            return ordinal
+        words = engine.number_to_words(ordinal)
+        assert isinstance(words, str)
+        return words
+
+    @classmethod
+    def count(
+        cls,
+        number: int,
+        noun: str,
+        verb: str | None = None,
+        zero: str = "no",
+        threshold: int = 10,
+    ) -> str:
+        """Combine the given number (see method |Inflect.cardinal|) with the fitting
+        singular or plural form of the given noun and, optionally, of the given verb.
+
+        >>> from hydpy.core.objecttools import Inflect
+        >>> Inflect.count(1, "path"), Inflect.count(3, "path")
+        ('one path', 'three paths')
+        >>> Inflect.count(1, "value", "is"), Inflect.count(15, "value", "is")
+        ('one value is', '15 values are')
+        >>> Inflect.count(0, "node", "is"), Inflect.count(0, "node", zero="zero")
+        ('no nodes are', 'zero nodes')
+        >>> Inflect.count(13, "node", threshold=20)
+        'thirteen nodes'
+        """
+        words = [
+            cls.cardinal(number, zero=zero, threshold=threshold),
+            cls.plural(noun, number),
+        ]
+        if verb is not None:
+            words.append(cls.plural(verb, number))
+        return " ".join(words)
+
+    @classmethod
+    def listing(
+        cls,
+        noun: str,
+        items: Iterable[object],
+        verb: str | None = None,
+        backticks: bool = True,
+    ) -> str:
+        """Combine the fitting singular or plural form of the given noun and,
+        optionally, of the given verb with an enumeration of the given items.
+
+        >>> from hydpy.core.objecttools import Inflect
+        >>> Inflect.listing("node", ["a"])
+        'node `a`'
+        >>> Inflect.listing("node", ["a", "b"], "is")
+        'nodes `a` and `b` are'
+
+        You can omit the backticks, which usually wrap each item:
+
+        >>> Inflect.listing("row", [1, 3, 5], backticks=False)
+        'rows 1, 3, and 5'
+
+        |Inflect.listing| relies on function |enumeration| and so respects option
+        |Options.ellipsis|:
+
+        >>> from hydpy import pub
+        >>> with pub.options.ellipsis(1):
+        ...     Inflect.listing("node", "abc", "is")
+        'nodes `a`, ..., and `c` are'
+
+        For an empty enumeration, |Inflect.listing| returns only the plural forms
+        without superfluous spaces:
+
+        >>> Inflect.listing("node", [], "is")
+        'nodes are'
+        """
+        items = tuple(items)
+        enum = enumeration(items, backticks=backticks)
+        words = [cls.plural(noun, len(items)), enum]
+        if verb is not None:
+            words.append(cls.plural(verb, len(items)))
+        return " ".join(word for word in words if word)
 
 
 def description(self: object) -> str:

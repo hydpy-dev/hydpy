@@ -374,8 +374,8 @@ For variable `latitude`, no value has been defined so far.
         >>> model.parameters.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `latitude`, 1 required value has not been set yet: \
-latitude(?).
+        RuntimeError: For variable `latitude`, one required value has not been set \
+yet: latitude(?).
 
         Assigning a value to |meteo_control.Latitude| is not sufficient:
 
@@ -383,7 +383,7 @@ latitude(?).
         >>> model.parameters.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `longitude`, 1 required value has not been set \
+        RuntimeError: For variable `longitude`, one required value has not been set \
 yet: longitude(?).
 
         After also defining suitable values for all remaining control parameters, the
@@ -1101,7 +1101,7 @@ error occurred: While trying to add the keyword arguments for element \
 type `float64` to the current `KeywordArguments` object as it already handles the \
 unequal argument `1.5` under the keyword `forest`.
 
-        The old keywords arguments and the validity status remain unchanged:
+        The old keyword arguments and the validity status remain unchanged:
 
         >>> kwargs
         KeywordArguments(field=1.0, forest=1.5)
@@ -1352,9 +1352,8 @@ control files only.
     >>> par(auxfile="test", x1=1, x2=2, x3=3)
     Traceback (most recent call last):
     ...
-    ValueError: It is not allowed to combine keyword `auxfile` with other \
-keywords, but for parameter `par` of element `?` also the following keywords \
-are used: x1, x2, and x3.
+    ValueError: It is not allowed to combine keyword `auxfile` with other keywords, \
+but for parameter `par` of element `?` also the keywords `x1`, `x2`, and `x3` are used.
 
     Some |Parameter| subclasses support other keyword arguments.
     The standard error message for unsupported arguments is the following:
@@ -1538,8 +1537,8 @@ broadcast input array from shape (2,) into shape (2,3)
     def _raise_kwargs_and_auxfile_error(self, kwargs: Mapping[str, object]) -> NoReturn:
         raise ValueError(
             f"It is not allowed to combine keyword `auxfile` with other keywords, but "
-            f"for parameter {objecttools.elementphrase(self)} also the following "
-            f"keywords are used: {objecttools.enumeration(kwargs.keys())}."
+            f"for parameter {objecttools.elementphrase(self)} also the "
+            f"{objecttools.Inflect.listing('keyword', kwargs.keys(), 'is')} used."
         )
 
     def _raise_wrong_kwargs_error(self) -> NoReturn:
@@ -2457,8 +2456,8 @@ class ZipParameter(_MixinModifiableParameter, Parameter, abc.ABC):
     Traceback (most recent call last):
     ...
     TypeError: While trying to set the values of parameter `par` of element `?` based \
-on keyword arguments `soil, glacier, and wrong`, the following error occurred: Keyword \
-`wrong` is not among the available model constants.
+on keyword arguments `soil`, `glacier`, and `wrong`, the following error occurred: \
+Keyword `wrong` is not among the available model constants.
 
     The same is true when passing incomplete information:
 
@@ -2466,7 +2465,7 @@ on keyword arguments `soil, glacier, and wrong`, the following error occurred: K
     Traceback (most recent call last):
     ...
     TypeError: While trying to set the values of parameter `par` of element `?` based \
-on keyword arguments `soil`, the following error occurred: The given keywords are \
+on keyword argument `soil`, the following error occurred: The given keywords are \
 incomplete and no default value is available.
 
     Values exceeding the bounds defined by class attribute `SPAN` are trimmed as usual:
@@ -2491,13 +2490,13 @@ incomplete and no default value is available.
     >>> par.Soil  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    AttributeError: `Soil` is neither a normal attribute of parameter `par` of element \
-`?` nor among the following special attributes: soil, water, and glacier...
+    AttributeError: `Soil` is neither a normal attribute of parameter `par` of \
+element `?` nor among the special attributes `soil`, `water`, and `glacier`...
 
     >>> par.soil = "test"
     Traceback (most recent call last):
     ...
-    ValueError: While trying the set the value(s) of parameter `par` of element `?` \
+    ValueError: While trying to set the value(s) of parameter `par` of element `?` \
 related to the special attribute `soil`, the following error occurred: could not \
 convert string to float: 'test'
     """
@@ -2580,7 +2579,7 @@ convert string to float: 'test'
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to set the values of parameter `zippar` of element \
-`?` based on keyword arguments `water and default`, the following error occurred: \
+`?` based on keyword arguments `water` and `default`, the following error occurred: \
 Variable `zippar` of element `?` does currently not reference an instance-specific \
 index parameter.
 
@@ -2622,8 +2621,8 @@ index parameter.
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to set the values of parameter "
-                    f"{objecttools.elementphrase(self)} based on keyword arguments "
-                    f"`{objecttools.enumeration(kwargs)}`"
+                    f"{objecttools.elementphrase(self)} based on "
+                    f"{objecttools.Inflect.listing('keyword argument', kwargs)}"
                 )
 
     def _own_call(self, kwargs: dict[str, Any]) -> None:
@@ -2673,7 +2672,7 @@ index parameter.
         After defining all required values via keyword arguments (note that parameter
         |lland_control.TRefT| does not need any values for response units of type
         |lland_constants.WASSER|), property |ZipParameter.keywordarguments| makes
-        exactly these keywords arguments available:
+        exactly these keyword arguments available:
 
         >>> treft(acker=2.0, laubw=1.0)
         >>> treft.keywordarguments
@@ -2732,12 +2731,16 @@ index parameter.
         name_ = name.upper()
         if (not name.islower()) or (name_ not in self.constants):
             names = objecttools.enumeration(
-                key.lower() for key in self.constants.keys()
+                (key.lower() for key in self.constants.keys()), backticks=True
+            )
+            phrase = (
+                "the special attribute"
+                if len(self.constants) == 1
+                else "among the special attributes"
             )
             raise AttributeError(
                 f"`{name}` is neither a normal attribute of parameter "
-                f"{objecttools.elementphrase(self)} nor among the following special "
-                f"attributes: {names}."
+                f"{objecttools.elementphrase(self)} nor {phrase} {names}."
             )
         sel_constant = self.constants[name_]
         used_constants = self.mask.refindices.values
@@ -2752,7 +2755,7 @@ index parameter.
                 self.values[used_constants == sel_constant] = value
             except BaseException:
                 objecttools.augment_excmessage(
-                    f"While trying the set the value(s) of parameter "
+                    f"While trying to set the value(s) of parameter "
                     f"{objecttools.elementphrase(self)} related to the special "
                     f"attribute `{name}`"
                 )
@@ -3494,15 +3497,15 @@ class KeywordParameter1D(_MixinModifiableParameter, Parameter, abc.ABC):
     Traceback (most recent call last):
     ...
     ValueError: When setting parameter `ishot` of element `?` via keyword arguments, \
-each string defined in `entrynames` must be used as a keyword, but the following \
-keywords are not: `summer`.
+each string defined in `entrynames` must be used as a keyword, but the keyword \
+`summer` is not.
 
     >>> ishot(winter=True, summer=False, spring=True, autumn=False)
     Traceback (most recent call last):
     ...
     ValueError: When setting parameter `ishot` of element `?` via keyword arguments, \
-each keyword must be defined in `entrynames`, but the following keywords are not: \
-`spring and autumn`.
+each keyword must be defined in `entrynames`, but the keywords `spring` and `autumn` \
+are not.
 
     Class |KeywordParameter1D| implements attribute access, including specialised error
     messages:
@@ -3647,16 +3650,16 @@ for axis 0 with size 1
                     raise ValueError(
                         f"When setting parameter {objecttools.elementphrase(self)} "
                         f"via keyword arguments, each string defined in `entrynames` "
-                        f"must be used as a keyword, but the following keywords are "
-                        f"not: `{objecttools.enumeration(err)}`."
+                        f"must be used as a keyword, but the "
+                        f"{objecttools.Inflect.listing('keyword', err, 'is')} not."
                     ) from None
             if len(kwargs) != len(self.entrynames):
                 err = (key for key in kwargs if key not in self.entrynames)
                 raise ValueError(
                     f"When setting parameter {objecttools.elementphrase(self)} via "
                     f"keyword arguments, each keyword must be defined in "
-                    f"`entrynames`, but the following keywords are not: "
-                    f"`{objecttools.enumeration(err)}`."
+                    f"`entrynames`, but the "
+                    f"{objecttools.Inflect.listing('keyword', err, 'is')} not."
                 ) from None
 
     def __getattr__(self, key: str) -> float:
@@ -3805,7 +3808,7 @@ class KeywordParameter2D(_MixinModifiableParameter, Parameter, abc.ABC):
     ...
     ValueError: While setting parameter `iswarm` of element `?` via row related \
 keyword arguments, each string defined in `rownames` must be used as a keyword, but \
-the following keywords are not: `south`.
+the keyword `south` is not.
 
     One can modify single rows via attribute access:
 
@@ -4091,8 +4094,8 @@ attribute nor a row or column related attribute named `wrong`.
                         f"While setting parameter "
                         f"{objecttools.elementphrase(self)} via row related keyword "
                         f"arguments, each string defined in `rownames` must be used "
-                        f"as a keyword, but the following keywords are not: "
-                        f"`{objecttools.enumeration(miss)}`."
+                        f"as a keyword, but the "
+                        f"{objecttools.Inflect.listing('keyword', miss, 'is')} not."
                     ) from None
             self.trim()
 
@@ -4325,7 +4328,7 @@ class SortedParameter(Parameter):
     Traceback (most recent call last):
     ...
     ValueError: The values assigned to parameter `heights` of element `?` are not \
-sorted in increasing order (0.333333, 0.0, and 0.666667).
+sorted in increasing order (`0.333333, 0.0, 0.666667`).
 
     >>> heights
     heights(nan)
@@ -4348,7 +4351,7 @@ sorted in increasing order (0.333333, 0.0, and 0.666667).
             raise ValueError(
                 f"The values assigned to parameter {objecttools.elementphrase(self)} "
                 f"are not sorted in increasing order "
-                f"({objecttools.enumeration(objecttools.repr_(v) for v in values)})."
+                f"(`{objecttools.repr_values(values)}`)."
             )
 
 
@@ -4663,7 +4666,7 @@ class DateParameter(Parameter):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: While trying to set the commission \
 date via parameter `commission` of element `?`, the following error occurred: \
-Attribute timegrids of module `pub` is not defined at the moment.
+Attribute `timegrids` of module `pub` is not defined at the moment.
 
     After defining the initialisation period, you can pass the commission data, for
     example, in the form of a |Date| instance or a suitable string:

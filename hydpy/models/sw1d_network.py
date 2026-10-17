@@ -947,7 +947,7 @@ def combine_channels(
     RuntimeError: While trying to couple the given model instances to a composite \
 model of type `sw1d_network` based on function `combine_channels`, the following \
 error occurred: Model `sw1d_channel` of element `e3a` requires a routing model at \
-position `1`, which is missing.
+position 1, which is missing.
 
     There must be one storage model for each channel segment:
 
@@ -956,7 +956,7 @@ position `1`, which is missing.
     Traceback (most recent call last):
     ...
     RuntimeError: ... Model `sw1d_channel` of element `e2` requires a storage model \
-at position `0`, which is missing.
+at position 0, which is missing.
 
     There must be one routing model between each pair of a channel's neighbouring
     segments:
@@ -1055,13 +1055,13 @@ connected to `sw1d_storage` of element `e3a` and `sw1d_storage` of element `e3b`
         for i, sm in enumerate(cm.storagemodels):
             if sm is None:
                 raise RuntimeError(
-                    f"Model {ep(cm)} requires a storage model at position `{i}`, "
-                    f"which is missing."
+                    f"Model {ep(cm)} requires a storage model at position {i}, which "
+                    f"is missing."
                 )
         for i, rm in enumerate(cm.routingmodels.submodels[1:-1]):
             if rm is None:
                 raise RuntimeError(
-                    f"Model {ep(cm)} requires a routing model at position `{i + 1}`, "
+                    f"Model {ep(cm)} requires a routing model at position {i + 1}, "
                     f"which is missing."
                 )
 

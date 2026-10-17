@@ -146,9 +146,9 @@ class ParameterSoilThreshold(ParameterSoil, abc.ABC):
     >>> pwp(relative=True, acker=10.0)
     Traceback (most recent call last):
     ...
-    TypeError: While trying to set the values of parameter `pwp` of \
-element `?` with arguments `relative and acker`:  It is not allowed to use \
-keyword `relative` and other keywords at the same time.
+    TypeError: While trying to set the values of parameter `pwp` of element `?` with \
+arguments `relative` and `acker`:  It is not allowed to use keyword `relative` and \
+other keywords at the same time.
 
     Other possible errors related to the usage of |ParameterSoil| are
     reported as usual:
@@ -156,9 +156,9 @@ keyword `relative` and other keywords at the same time.
     >>> pwp(feld=20.0, acker=10.0)
     Traceback (most recent call last):
     ...
-    TypeError: While trying to set the values of parameter `pwp` of \
-element `?` based on keyword arguments `feld and acker`, the following error \
-occurred: Keyword `feld` is not among the available model constants.
+    TypeError: While trying to set the values of parameter `pwp` of element `?` based \
+on keyword arguments `feld` and `acker`, the following error occurred: Keyword `feld` \
+is not among the available model constants.
     """
 
     def __call__(self, *args, **kwargs) -> None:
@@ -172,9 +172,9 @@ occurred: Keyword `feld` is not among the available model constants.
                     raise TypeError(
                         f"While trying to set the values of parameter "
                         f"{objecttools.elementphrase(self)} with arguments "
-                        f"`{objecttools.enumeration(kwargs.keys())}`:  "
-                        f"It is not allowed to use keyword `relative` and "
-                        f"other keywords at the same time."
+                        f"{objecttools.enumeration(kwargs.keys(), backticks=True)}:  "
+                        f"It is not allowed to use keyword `relative` and other "
+                        f"keywords at the same time."
                     ) from None
             else:
                 raise exc

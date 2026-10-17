@@ -461,7 +461,7 @@ def execute_scriptfunction() -> int | None:
             func = hydpy.pub.scriptfunctions[funcname]
         except KeyError:
             available_funcs = objecttools.enumeration(
-                sorted(hydpy.pub.scriptfunctions.keys())
+                sorted(hydpy.pub.scriptfunctions.keys()), backticks=True
             )
             raise ValueError(
                 f"There is no `{funcname}` function callable by `hyd.py`.  Choose one "
@@ -479,7 +479,9 @@ def execute_scriptfunction() -> int | None:
         if nmb_args_given < nmb_args_required or nmb_args_given > nmb_args_possible:
             enum_args_given = ""
             if nmb_args_given:
-                enum_args_given = f" ({objecttools.enumeration(args_given)})"
+                enum_args_given = (
+                    f" ({objecttools.enumeration(args_given, backticks=True)})"
+                )
             if nmb_args_given < nmb_args_required:
                 args = args_required
                 nmb_args = nmb_args_required
@@ -490,11 +492,13 @@ def execute_scriptfunction() -> int | None:
                 condition = "allows"
             enum_args = ""
             if nmb_args:
-                enum_args = f" ({objecttools.enumeration(args)})"
+                enum_args = f" ({objecttools.enumeration(args, backticks=True)})"
+            i = objecttools.Inflect
             raise ValueError(
-                f"Function `{funcname}` {condition} `{nmb_args:d}` "
-                f"positional arguments{enum_args}, but "
-                f"`{nmb_args_given:d}` are given{enum_args_given}."
+                f"Function `{funcname}` {condition} "
+                f"{i.count(nmb_args, 'positional argument', zero='zero')}"
+                f"{enum_args}, but {i.cardinal(nmb_args_given, zero='none')} "
+                f"{i.plural('is', nmb_args_given)} given{enum_args_given}."
             )
         with _activate_logfile(logfilepath, logstyle, "info", "warning"):
             return func(*args_given, **kwargs_given)
@@ -589,10 +593,12 @@ class LogFileInterface:
         try:
             stdtype2string = self.style2infotype2string[logstyle]
         except KeyError:
-            styles = objecttools.enumeration(sorted(self.style2infotype2string.keys()))
+            styles = objecttools.enumeration(
+                sorted(self.style2infotype2string.keys()), backticks=True
+            )
             raise ValueError(
-                f"The given log file style {logstyle} is not available.  "
-                f"Please choose one of the following: {styles}."
+                f"The given log file style `{logstyle}` is not available.  Please "
+                f"choose one of the following: {styles}."
             ) from None
         self._string = stdtype2string[infotype]
 

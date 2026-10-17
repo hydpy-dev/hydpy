@@ -153,15 +153,15 @@ of range
     Traceback (most recent call last):
     ...
     ValueError: For parameter `responses` of element `?` at most one positional \
-argument is allowed, but `2` are given.
+argument is allowed, but two are given.
 
     Checks for the repeated definition of the same threshold values are also performed:
 
     >>> responses(tde, _0=lsc, _1=tde, _1_0=lsc)
     Traceback (most recent call last):
     ...
-    ValueError: For parameter `responses` of element `?` `4` arguments have been \
-given but only `2` response functions could be prepared.  Most probably, you defined \
+    ValueError: For parameter `responses` of element `?`, four arguments have been \
+given, but only two response functions could be prepared.  Most probably, you defined \
 the same threshold value(s) twice.
 
     The number of response functions and the number of the respective AR and MA
@@ -224,19 +224,21 @@ functions.
         if len(args) > 1:
             raise ValueError(
                 f"For parameter {objecttools.elementphrase(self)} at most one "
-                f"positional argument is allowed, but `{len(args)}` are given."
+                f"positional argument is allowed, but "
+                f"{objecttools.Inflect.cardinal(len(args))} are given."
             )
         for key, value in kwargs.items():
             setattr(self, key, value)
         if len(args) == 1:
             setattr(self, "th_0_0", args[0])
         if len(args) + len(kwargs) != len(self):
+            count = objecttools.Inflect.count
+            given = count(len(args) + len(kwargs), "argument", "has")
+            prepared = count(len(self), "response function", zero="zero")
             raise ValueError(
-                f"For parameter `{self.name}` of element "
-                f"`{objecttools.devicename(self.subpars)}` `{len(args)+len(kwargs)}` "
-                f"arguments have been given but only `{len(self)}` response functions "
-                f"could be prepared.  Most probably, you defined the same threshold "
-                f"value(s) twice."
+                f"For parameter {objecttools.elementphrase(self)}, {given} been "
+                f"given, but only {prepared} could be prepared.  Most probably, you "
+                f"defined the same threshold value(s) twice."
             )
 
     def verify(self) -> None:

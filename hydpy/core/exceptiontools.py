@@ -188,7 +188,7 @@ variable `par` can only be retrieved after it has been defined.
     >>> getattr_(par, "NDIM", type_=str)
     Traceback (most recent call last):
     ...
-    AssertionError: returned type: int, allowed type: str
+    AssertionError: The returned type is `int`, but the allowed type is `str`.
 
     Additionally, it infers the expected return type from the default argument
     automatically:
@@ -196,7 +196,7 @@ variable `par` can only be retrieved after it has been defined.
     >>> getattr_(par, "NDIM", "wrong")
     Traceback (most recent call last):
     ...
-    AssertionError: returned type: int, allowed type(s): str
+    AssertionError: The returned type is `int`, but the allowed type is `str`.
 
     If the attribute type differs from the default value type, you need to define
     the attribute type explicitly:
@@ -208,8 +208,8 @@ variable `par` can only be retrieved after it has been defined.
         value = getattr(obj, name)
         if type_ is not None and not isinstance(value, type_):
             raise AssertionError(
-                f"returned type: {type(value).__name__}, "
-                f"allowed type: {type_.__name__}"
+                f"The returned type is `{type(value).__name__}`, but the allowed "
+                f"type is `{type_.__name__}`."
             )
         return value
     try:
@@ -218,9 +218,12 @@ variable `par` can only be retrieved after it has been defined.
         return default
     types_ = ((type_,) if type_ else ()) + ((type(default),) if default else ())
     if types_ and not isinstance(value, types_):
+        names = tuple(type_.__name__ for type_ in types_)
+        i = objecttools.Inflect
         raise AssertionError(
-            f"returned type: {type(value).__name__}, allowed type(s): "
-            f"{objecttools.enumeration(type_.__name__ for type_ in types_)}"
+            f"The returned type is `{type(value).__name__}`, but the allowed "
+            f"{i.plural('type', len(names))} {i.plural('is', len(names))} "
+            f"{objecttools.enumeration(names, backticks=True)}."
         )
     return value
 
@@ -247,10 +250,17 @@ class OptionalImport(types.ModuleType):
     >>> numpie.nan
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.OptionalModuleNotAvailable: HydPy could not \
-load one of the following modules: `numpie`.  These modules are no general \
-requirement but installing at least one of them is necessary for some \
-specific functionalities.
+    hydpy.core.exceptiontools.OptionalModuleNotAvailable: HydPy could not load module \
+`numpie`.  This module is no general requirement, but installing it is necessary for \
+some specific functionalities.
+
+    >>> numpies = OptionalImport("numpies", ["numpie", "numpye"], locals())
+    >>> numpies.nan
+    Traceback (most recent call last):
+    ...
+    hydpy.core.exceptiontools.OptionalModuleNotAvailable: HydPy could not load any of \
+the modules `numpie` and `numpye`.  These modules are no general requirement, but \
+installing at least one of them is necessary for some specific functionalities.
 
     Note the very special case that |OptionalImport| raises a plain
     |AttributeError| when asked for the attribute `__wrapped__` (to avoid
@@ -282,9 +292,15 @@ specific functionalities.
                 pass
         if module:
             return getattr(module, name)
+        modules = objecttools.enumeration(self._modules, backticks=True)
+        if len(self._modules) == 1:
+            raise OptionalModuleNotAvailable(
+                f"HydPy could not load module {modules}.  This module is no general "
+                f"requirement, but installing it is necessary for some specific "
+                f"functionalities."
+            )
         raise OptionalModuleNotAvailable(
-            f"HydPy could not load one of the following modules: "
-            f"`{objecttools.enumeration(self._modules)}`.  These modules are "
-            f"no general requirement but installing at least one of them "
-            f"is necessary for some specific functionalities."
+            f"HydPy could not load any of the modules {modules}.  These modules are "
+            f"no general requirement, but installing at least one of them is "
+            f"necessary for some specific functionalities."
         )

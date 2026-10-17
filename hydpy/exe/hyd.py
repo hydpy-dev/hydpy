@@ -77,8 +77,8 @@ The first additional argument must be an available "script function":
 ...                         "wrong_argument")  # doctest: +ELLIPSIS
 Invoking hyd.py with argument `wrong_argument` resulted in the following error:
 There is no `wrong_argument` function callable by `hyd.py`.  Choose one of the \
-following instead: await_server, exec_commands, exec_script, run_doctests, \
-run_simulation, start_server, start_shell, xml_replace, and xml_validate.
+following instead: `await_server`, `exec_commands`, `exec_script`, `run_doctests`, \
+`run_simulation`, `start_server`, `start_shell`, `xml_replace`, and `xml_validate`.
 ...
 
 Further argument requirements depend on the selected "script function":
@@ -86,7 +86,7 @@ Further argument requirements depend on the selected "script function":
 >>> result = run_subprocess("hyd.py "
 ...                         "exec_commands")  # doctest: +ELLIPSIS
 Invoking hyd.py with argument `exec_commands` resulted in the following error:
-Function `exec_commands` requires `1` positional arguments (commands), but `0` are \
+Function `exec_commands` requires one positional argument (`commands`), but none are \
 given.
 ...
 >>> result = run_subprocess("hyd.py "
@@ -95,8 +95,8 @@ given.
 ...                         "second_name")  # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `exec_commands, first_name, second_name` resulted in \
 the following error:
-Function `exec_commands` allows `1` positional arguments (commands), but `2` are \
-given (first_name and second_name).
+Function `exec_commands` allows one positional argument (`commands`), but two are \
+given (`first_name` and `second_name`).
 ...
 
 Optional keyword arguments are supported: (on Linux, we have to escape the characters \
@@ -170,8 +170,8 @@ So far, only `prefixed` and the default style `plain` have been implemented:
 ...                         "logstyle=missing")
 Invoking hyd.py with arguments `exec_commands, None, logstyle=missing` resulted in \
 the following error:
-The given log file style missing is not available.  Please choose one of the \
-following: plain and prefixed.
+The given log file style `missing` is not available.  Please choose one of the \
+following: `plain` and `prefixed`.
 ...
 
 A related option is `errorstyle`, which allows for modifying the print style of

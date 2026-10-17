@@ -55,7 +55,8 @@ class SoilType(whmod_variables.MixinZones, parametertools.NameParameter):
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the values of parameter `soiltype` of element `?`, \
-the following error occurred: The soil type of land type(s) SUGARBEETS must not be NONE.
+the following error occurred: The soil type of land type `SUGARBEETS` must not be \
+`NONE`.
 
     >>> soiltype
     soiltype(?)
@@ -64,9 +65,9 @@ the following error occurred: The soil type of land type(s) SUGARBEETS must not 
     >>> soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, SAND, SAND, SAND)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to set the values of parameter `soiltype` of element `?`, \
-the following error occurred: The soil type of land type(s) SEALED and WATER must be \
-NONE.
+    ValueError: While trying to set the values of parameter `soiltype` of element \
+`?`, the following error occurred: The soil type of land types `SEALED` and `WATER` \
+must be `NONE`.
 
     >>> soiltype
     soiltype(?)
@@ -82,7 +83,8 @@ NONE.
 
         def _make_names() -> str:
             value2name = whmod_constants.LANDTYPE_CONSTANTS.value2name
-            return objecttools.enumeration([value2name[l] for l in landtype[jdxs]])
+            names = [value2name[l] for l in landtype[jdxs]]
+            return objecttools.Inflect.listing("land type", names)
 
         try:
             super().__call__(*args, **kwargs)
@@ -92,13 +94,11 @@ NONE.
             if numpy.any(jdxs := should_be_soil * ~is_soil):
                 self._valueready = False
                 raise ValueError(
-                    f"The soil type of land type(s) {_make_names()} must not be NONE."
+                    f"The soil type of {_make_names()} must not be `NONE`."
                 )
             if numpy.any(jdxs := ~should_be_soil * is_soil):
                 self._valueready = False
-                raise ValueError(
-                    f"The soil type of land type(s) {_make_names()} must be NONE."
-                )
+                raise ValueError(f"The soil type of {_make_names()} must be `NONE`.")
         except BaseException:
             objecttools.augment_excmessage(
                 "While trying to set the values of parameter "

@@ -745,7 +745,7 @@ under the id `0`.  There is nothing registered, so far.
     ...
     urllib.error.HTTPError: HTTP Error 500: RuntimeError: While trying to execute \
 method `GET_activate_simulationdates`, the following error occurred: Nothing \
-registered under the id `1`.  The available ids are: 0.
+registered under the id `1`.  The available id is `0`.
 
     The logic of the parameter-related GET and POST methods is very similar to the one
     of the simulation date-related methods discussed above.  Method
@@ -1867,11 +1867,14 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         try:
             return dict_[self._id]
         except KeyError:
-            message = f"Nothing registered under the id `{self._id}`."
+            message = f"Nothing registered under the id `{self._id}`.  "
             if dict_:
-                message += f"  The available ids are: {objecttools.enumeration(dict_)}."
+                plural = objecttools.Inflect.plural
+                ids = objecttools.enumeration(dict_, backticks=True)
+                n = len(dict_)
+                message += f"The available {plural('id', n)} {plural('is', n)} {ids}."
             else:
-                message += "  There is nothing registered, so far."
+                message += "There is nothing registered, so far."
             raise RuntimeError(message) from None
 
     def POST_register_simulationdates(self) -> None:

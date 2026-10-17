@@ -216,8 +216,8 @@ class VG2FG(interptools.SimpleInterpolator):
     >>> vg2fg()
     Traceback (most recent call last):
     ...
-    ValueError: parameter `vg2fg` of element `?` requires exactly one argument but \
-`0` are given.
+    ValueError: Parameter `vg2fg` of element `?` requires exactly one argument, but \
+none are given.
     """
 
     XLABEL = "VG [million m³]"
@@ -249,8 +249,9 @@ class VG2FG(interptools.SimpleInterpolator):
         nmb = (algorithm is not None) + (velocity is not None) + (timedelay is not None)
         if nmb != 1:
             raise ValueError(
-                f"parameter {objecttools.elementphrase(self)} requires exactly one "
-                f"argument but `{nmb}` are given."
+                f"Parameter {objecttools.elementphrase(self)} requires exactly one "
+                f"argument, but {objecttools.Inflect.cardinal(nmb, zero='none')} are "
+                f"given."
             )
         self._keyword = None
         if algorithm is None:

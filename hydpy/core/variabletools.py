@@ -1235,8 +1235,9 @@ no value has been defined so far.
         >>> var.value = 1.0, 1.0
         Traceback (most recent call last):
         ...
-        ValueError: While trying to set the value(s) of variable `var`, the \
-following error occurred: 2 values are assigned to the scalar variable `var`.
+        ValueError: While trying to set the value(s) of variable `var`, the following \
+error occurred: The scalar variable `var` requires a single value, but two values are \
+assigned.
         >>> var.value
         2.0
 
@@ -1356,9 +1357,10 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         else:
             if isinstance(value, Sequence):
                 if len(value) > 1:
+                    given = objecttools.Inflect.count(len(value), "value", "is")
                     raise ValueError(
-                        f"{len(value)} values are assigned to the scalar variable "
-                        f"{objecttools.devicephrase(self)}."
+                        f"The scalar variable {objecttools.devicephrase(self)} "
+                        f"requires a single value, but {given} assigned."
                     )
                 value = value[0]
             try:
@@ -1442,9 +1444,8 @@ values have been defined so far.
         >>> var.shape = "x"
         Traceback (most recent call last):
         ...
-        TypeError: While trying create a new numpy ndarray for \
-variable `var`, the following error occurred: 'str' object cannot \
-be interpreted as an integer
+        TypeError: While trying to create a new numpy ndarray for variable `var`, the \
+following error occurred: 'str' object cannot be interpreted as an integer
         >>> from hydpy import attrready
         >>> attrready(var, "shape")
         False
@@ -1539,7 +1540,7 @@ as `var` can only be `()`, but `(2,)` is given.
             except BaseException:
                 setattr(self.fastaccess, self.name, None)
                 objecttools.augment_excmessage(
-                    f"While trying create a new numpy ndarray for variable "
+                    f"While trying to create a new numpy ndarray for variable "
                     f"{objecttools.devicephrase(self)}"
                 )
             if array.ndim != self.NDIM:
@@ -1647,7 +1648,7 @@ as `var` can only be `()`, but `(2,)` is given.
         >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `var`, 1 required value has not been set yet: \
+        RuntimeError: For variable `var`, one required value has not been set yet: \
 var(nan).
 
         >>> var.INIT = numpy.nan
@@ -1663,7 +1664,7 @@ var(nan).
         >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `var`, 2 required values have not been set yet: \
+        RuntimeError: For variable `var`, two required values have not been set yet: \
 var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
 
         >>> Var.mask = var.mask
@@ -1671,7 +1672,7 @@ var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `var`, 1 required value has not been set yet: \
+        RuntimeError: For variable `var`, one required value has not been set yet: \
 var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
 
         >>> Var.mask[1, 1] = False
@@ -1684,10 +1685,10 @@ var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         finally:
             self._valueready = valueready
         if nmbnan and ((self.INIT is None) or not math.isnan(self.INIT)):
-            text = "value has" if nmbnan == 1 else "values have"
+            count = objecttools.Inflect.count(nmbnan, "required value", "has")
             raise RuntimeError(
-                f"For variable {objecttools.devicephrase(self)}, {nmbnan} required "
-                f"{text} not been set yet: {objecttools.flatten_repr(self)}."
+                f"For variable {objecttools.devicephrase(self)}, {count} not been set "
+                f"yet: {objecttools.flatten_repr(self)}."
             )
 
     @property
@@ -2484,7 +2485,8 @@ variable nor another attribute named wrong.
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the value(s) of variable `testvar`, the following \
-error occurred: 5 values are assigned to the scalar variable `testvar`.
+error occurred: The scalar variable `testvar` requires a single value, but five \
+values are assigned.
 
     Alternatively, you can item-access a variable:
 

@@ -145,6 +145,13 @@ def abstractmodelmethod(method: Callable[P_, T_inv]) -> Callable[P_, T_inv]:
     return method
 
 
+def _get_interfacephrase(interfaces: tuple[type[SubmodelInterface], ...]) -> str:
+    names = objecttools.enumeration((i.__name__ for i in interfaces), backticks=True)
+    if len(interfaces) == 1:
+        return f"the supported interface {names}"
+    return f"any of the supported interfaces {names}"
+
+
 class _SubmodelPropertyBase(Generic[TypeSubmodelInterface]):
     interfaces: tuple[type[TypeSubmodelInterface], ...]
 
@@ -158,10 +165,9 @@ class _SubmodelPropertyBase(Generic[TypeSubmodelInterface]):
         self, submodel: TypeSubmodelInterface
     ) -> None:
         if not isinstance(submodel, self.interfaces):
-            interfacenames = (i.__name__ for i in self.interfaces)
             raise ValueError(
-                f"The given submodel is not an instance of any of the following "
-                f"supported interfaces: {objecttools.enumeration(interfacenames)}."
+                f"The given submodel is not an instance of "
+                f"{_get_interfacephrase(self.interfaces)}."
             )
 
     def _find_first_suitable_interface(
@@ -170,10 +176,9 @@ class _SubmodelPropertyBase(Generic[TypeSubmodelInterface]):
         for interface in self.interfaces:
             if isinstance(submodel, interface):
                 return interface
-        interfacenames = (i.__name__ for i in self.interfaces)
         raise ValueError(
-            f"The given submodel is not an instance of any of the following supported "
-            f"interfaces: {objecttools.enumeration(interfacenames)}."
+            f"The given submodel is not an instance of "
+            f"{_get_interfacephrase(self.interfaces)}."
         )
 
 
@@ -250,9 +255,9 @@ that the main model's cythonized methods could apply the submodel's methods.
     >>> mainmodel_python.soilmodel = mainmodel_python
     Traceback (most recent call last):
     ...
-    ValueError: While trying to assign submodel `lland` to property `soilmodel` of \
-the main model `lland`, the following error occurred: The given submodel is not an \
-instance of any of the following supported interfaces: SoilModel_V1.
+    ValueError: While trying to assign submodel `lland` to property `soilmodel` of the \
+main model `lland`, the following error occurred: The given submodel is not an \
+instance of the supported interface `SoilModel_V1`.
 
     The automatically generated docstrings list the supported interfaces:
 
@@ -399,9 +404,9 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
         self._mainmodel2numbersubmodels = collections.defaultdict(int)
         self._mainmodel2submodeltypeids = collections.defaultdict(list)
         interfacenames = (i.__name__ for i in self.interfaces)
-        suffix = "s" if len(interfaces) > 1 else ""
+        interface = objecttools.Inflect.plural("interface", len(interfaces))
         self.__doc__ = (
-            f"Vector of submodels that comply with the following interface{suffix}: "
+            f"Vector of submodels that comply with the following {interface}: "
             f"{objecttools.enumeration(interfacenames, conjunction='or')}."
         )
 
@@ -540,7 +545,7 @@ class SubmodelsProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
         >>> main_cy.storagemodels.put_submodel(submodel=sub_py, typeid=1, position=0)
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to put submodel `sw1d_storage` to position `0` of \
+        RuntimeError: While trying to put submodel `sw1d_storage` to position 0 of \
 property `storagemodels` of the main model `sw1d_channel`, the following error \
 occurred: The main model is initialised in Cython mode, but the submodel is \
 initialised in pure Python mode so that the main model's cythonized methods could \
@@ -563,10 +568,9 @@ apply the submodel's methods.
         >>> main_py.storagemodels.put_submodel(submodel=sub_py, typeid=1, position=0)
         Traceback (most recent call last):
         ...
-        ValueError: While trying to put submodel `sw1d_lias` to position `0` of \
-property `storagemodels` of the main model `sw1d_channel`, the following error \
-occurred: The given submodel is not an instance of any of the following supported \
-interfaces: StorageModel_V1.
+        ValueError: While trying to put submodel `sw1d_lias` to position 0 of property \
+`storagemodels` of the main model `sw1d_channel`, the following error occurred: The \
+given submodel is not an instance of the supported interface `StorageModel_V1`.
         >>> assert main_py.storagemodels.typeids[0] == 0
         >>> assert main_py.storagemodels.submodels[0] is None
         >>> assert main_py.storagemodels.typeids[1] == 0
@@ -584,7 +588,7 @@ interfaces: StorageModel_V1.
             self._mainmodel2submodeltypeids[mainmodel][position] = typeid
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to put submodel `{submodel}` to position `{position}` "
+                f"While trying to put submodel `{submodel}` to position {position} "
                 f"of property `{self.name}` of the main model `{mainmodel}`"
             )
 
@@ -641,7 +645,7 @@ interfaces: StorageModel_V1.
         >>> main_cy.storagemodels.delete_submodel(position=3)
         Traceback (most recent call last):
         ...
-        IndexError: While trying to delete a submodel at position `3` of property \
+        IndexError: While trying to delete a submodel at position 3 of property \
 `storagemodels` of the main model `sw1d_channel`, the following error occurred: list \
 assignment index out of range
         """
@@ -654,7 +658,7 @@ assignment index out of range
                 cyprop.put_submodel(submodel=None, typeid=0, position=position)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to delete a submodel at position `{position}` of "
+                f"While trying to delete a submodel at position {position} of "
                 f"property `{self.name}` of the main model `{mainmodel}`"
             )
 
@@ -732,8 +736,7 @@ methods.
         ...
         ValueError: While trying to append submodel `sw1d_lias` to property \
 `storagemodels` of the main model `sw1d_channel`, the following error occurred: The \
-given submodel is not an instance of any of the following supported interfaces: \
-StorageModel_V1.
+given submodel is not an instance of the supported interface `StorageModel_V1`.
 
         >>> assert main_py.storagemodels.number == 2
         >>> assert main_py.storagemodels.typeids[0] == 1
@@ -760,8 +763,8 @@ StorageModel_V1.
         ...
         ValueError: While trying to append submodel `sw1d_q_out` to property \
 `routingmodelsupstream` of the main model `sw1d_weir_out`, the following error \
-occurred: The given submodel is not an instance of any of the following supported \
-interfaces: RoutingModel_V1 and RoutingModel_V2.
+occurred: The given submodel is not an instance of any of the supported interfaces \
+`RoutingModel_V1` and `RoutingModel_V2`.
         """
         assert (mainmodel := self._mainmodel) is not None
         try:
@@ -1305,7 +1308,7 @@ available which are handling variable `Q`.
         ...
         RuntimeError: While trying to build the node connection of the `outlet` \
 sequences of the model handled by element `element4`, the following error occurred: \
-The following nodes have not been connected to any sequences: out3.
+Node `out3` has not been connected to any sequences.
 
         >>> element5 = Element("element5", inlets=(in1, in2, in3), outlets=out1)
         >>> element5.model = prepare_model("musk_classic")
@@ -1313,7 +1316,7 @@ The following nodes have not been connected to any sequences: out3.
         ...
         RuntimeError: While trying to build the node connection of the `inlet` \
 sequences of the model handled by element `element5`, the following error occurred: \
-The following nodes have not been connected to any sequences: in3.
+Node `in3` has not been connected to any sequences.
 
         >>> element6 = Element("element6", inlets=in1, outlets=out1, receivers=in2)
         >>> element6.model = prepare_model("musk_classic")
@@ -1321,7 +1324,7 @@ The following nodes have not been connected to any sequences: in3.
         ...
         RuntimeError: While trying to build the node connection of the `receiver` \
 sequences of the model handled by element `element6`, the following error occurred: \
-The following nodes have not been connected to any sequences: in2.
+Node `in2` has not been connected to any sequences.
 
         >>> element7 = Element("element7", inlets=in1, outlets=out1, senders=in2)
         >>> element7.model = prepare_model("musk_classic")
@@ -1329,7 +1332,7 @@ The following nodes have not been connected to any sequences: in2.
         ...
         RuntimeError: While trying to build the node connection of the `sender` \
 sequences of the model handled by element `element7`, the following error occurred: \
-The following nodes have not been connected to any sequences: in2.
+Node `in2` has not been connected to any sequences.
 
         The above examples explain how to connect link sequences to their nodes.  Such
         connections are relatively hard requirements (|musk_classic| definitively needs
@@ -1413,7 +1416,7 @@ The following nodes have not been connected to any sequences: in2.
         ...
         RuntimeError: While trying to build the node connection of the `input` \
 sequences of the model handled by element `element10`, the following error occurred: \
-The following nodes have not been connected to any sequences: inp3.
+Node `inp3` has not been connected to any sequences.
 
         >>> outp4 = Node("outp4", variable=Wrong)
         >>> element11 = Element("element11", outlets=out1, outputs=outp4)
@@ -1434,7 +1437,7 @@ variable `Wrong` of node `outp4`.
         ...
         RuntimeError: While trying to build the node connection of the `input` \
 sequences of the model handled by element `element12`, the following error occurred: \
-The following nodes have not been connected to any sequences: outp5.
+Node `outp5` has not been connected to any sequences.
 
         >>> inp5 = Node("inp5", variable="P")
         >>> element13 = Element("element13", outlets=out1, outputs=inp5)
@@ -1618,10 +1621,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
             remaining_nodes = [
                 node.name for node in available_nodes if node not in applied_nodes
             ]
-            raise RuntimeError(
-                f"The following nodes have not been connected to any sequences: "
-                f"{objecttools.enumeration(remaining_nodes)}."
-            )
+            nodes = objecttools.Inflect.listing("Node", remaining_nodes, "has")
+            raise RuntimeError(f"{nodes} not been connected to any sequences.")
 
     def __hydpy__collect_sequences__(
         self,
@@ -2363,8 +2364,8 @@ element.
 following error occurred: While trying to determine the related control file \
 directory for configuring the `controlcheck` function, the following error occurred: \
 The current working directory of the control manager has not been defined manually \
-and cannot be determined automatically: The default directory (default) is not among \
-the available directories (calib_1 and calib_2).
+and cannot be determined automatically: The default directory `default` is not among \
+the available directories (`calib_1` and `calib_2`).
 
         .. testsetup::
 
@@ -4992,8 +4993,8 @@ class ModelCoupler(Generic[TypeModel_co, TypeModel_contra]):
     ...
     TypeError: While trying to couple the given model instances to a composite model \
 of type `sw1d_network` based on function `combine_channels`, the following error \
-occurred: `musk_classic` of element `e3` is not among the supported model types: \
-sw1d_channel.
+occurred: `musk_classic` of element `e3` is not of the supported model type \
+`sw1d_channel`.
     """
 
     _inputtypes: tuple[type[TypeModel_contra], ...]
@@ -5035,11 +5036,17 @@ sw1d_channel.
                 elements = selection.elements
             for element in elements:
                 if not isinstance(element.model, self._inputtypes):
-                    modeltypes = (m.__HYDPY_NAME__ for m in self._inputtypes)
+                    modeltypes = objecttools.enumeration(
+                        (m.__HYDPY_NAME__ for m in self._inputtypes), backticks=True
+                    )
+                    phrase = (
+                        "of the supported model type"
+                        if len(self._inputtypes) == 1
+                        else "of any of the supported model types"
+                    )
                     raise TypeError(
-                        f"{objecttools.elementphrase(element.model)} is not among the "
-                        f"supported model types: "
-                        f"{objecttools.enumeration(modeltypes)}."
+                        f"{objecttools.elementphrase(element.model)} is not "
+                        f"{phrase} {modeltypes}."
                     )
             return self._wrapped(nodes=nodes, elements=elements)
         except BaseException:

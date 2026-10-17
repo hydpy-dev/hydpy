@@ -58,25 +58,26 @@ class SoilParameter(parametertools.Parameter, abc.ABC):
     >>> b(soil=0)
     Traceback (most recent call last):
     ...
-    ValueError: While trying the set the value of parameter `b` of element `?`, the \
+    ValueError: While trying to set the value of parameter `b` of element `?`, the \
 following error occurred: The given soil constant `0` is not among the available \
-ones.  Please use one of the following constants: SAND (1), LOAMY_SAND (2), \
-SANDY_LOAM (3), SILT_LOAM (4), LOAM (5), SANDY_CLAY_LOAM (6), SILT_CLAY_LOAM (7), \
-CLAY_LOAM (8), SANDY_CLAY (9), SILTY_CLAY (10), and CLAY (11).
+ones.  Please use one of the following constants: `SAND` (1), `LOAMY_SAND` (2), \
+`SANDY_LOAM` (3), `SILT_LOAM` (4), `LOAM` (5), `SANDY_CLAY_LOAM` (6), \
+`SILT_CLAY_LOAM` (7), `CLAY_LOAM` (8), `SANDY_CLAY` (9), `SILTY_CLAY` (10), and \
+`CLAY` (11).
 
     Combining the `soil` keyword with other keywords is not allowed:
 
     >>> b(soil=SAND, landuse='acre')
     Traceback (most recent call last):
     ...
-    TypeError: While trying the set the value of parameter `b` of element `?`, the \
+    TypeError: While trying to set the value of parameter `b` of element `?`, the \
 following error occurred: It is not allowed to combine keyword `soil` with other \
-keywords, but the following ones are also used: landuse.
+keywords, but the keyword `landuse` is also used.
 
     >>> b(landuse='acre')
     Traceback (most recent call last):
     ...
-    NotImplementedError: While trying the set the value of parameter `b` of element \
+    NotImplementedError: While trying to set the value of parameter `b` of element \
 `?`, the following error occurred: The value(s) of parameter `b` of element `?` could \
 not be set based on the given keyword arguments.
     """
@@ -98,10 +99,11 @@ not be set based on the given keyword arguments.
                 if soil is None:
                     raise exc
                 if kwargs:
+                    listing = objecttools.Inflect.listing
                     raise TypeError(
                         f"It is not allowed to combine keyword `soil` with other "
-                        f"keywords, but the following ones are also used: "
-                        f"{objecttools.enumeration(kwargs.keys())}."
+                        f"keywords, but the "
+                        f"{listing('keyword', kwargs.keys(), 'is')} also used."
                     ) from None
                 try:
                     self(self._SOIL2VALUE[soil])
@@ -109,7 +111,7 @@ not be set based on the given keyword arguments.
                 except KeyError:
                     value2name = wland_constants.CONSTANTS.value2name
                     names = (
-                        f"{value2name[value]} ({value})"
+                        f"`{value2name[value]}` ({value})"
                         for value in self._SOIL2VALUE.keys()
                     )
                     raise ValueError(
@@ -119,7 +121,7 @@ not be set based on the given keyword arguments.
                     ) from None
             except BaseException:
                 objecttools.augment_excmessage(
-                    f"While trying the set the value of parameter "
+                    f"While trying to set the value of parameter "
                     f"{objecttools.elementphrase(self)}"
                 )
 

@@ -523,7 +523,7 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
         RuntimeError: While trying to validate XML file `...single_run.xml`, \
 the following error occurred: Configuration file `single_run.xml` does not \
 correctly refer to one of the available XML schema files \
-(HydPyConfigSingleRun.xsd and HydPyConfigMultipleRuns.xsd).
+(`HydPyConfigSingleRun.xsd` and `HydPyConfigMultipleRuns.xsd`).
 
         XML files based on `HydPyConfigMultipleRuns.xsd` can be validated as well:
 
@@ -541,7 +541,7 @@ correctly refer to one of the available XML schema files \
                 raise RuntimeError(
                     f"Configuration file `{os.path.split(self.filepath)[-1]}` does "
                     f"not correctly refer to one of the available XML schema files "
-                    f"({objecttools.enumeration(filenames)})."
+                    f"({objecttools.enumeration(filenames, backticks=True)})."
                 )
             confpath: str = conf.__path__[0]
             schemapath = os.path.join(confpath, schemafile)

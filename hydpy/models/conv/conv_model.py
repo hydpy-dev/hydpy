@@ -673,9 +673,9 @@ class BaseModel(modeltools.AdHocModel):
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to connect model `conv_nn` of element `conv`, the \
-following error occurred: The node handled by control parameter outputcoordinates \
-(out1 and out2) are not the same as the outlet nodes handled by element conv (out1, \
-out2, and out3).
+following error occurred: The nodes handled by control parameter `outputcoordinates` \
+(`out1` and `out2`) are not the same as the outlet nodes handled by element `conv` \
+(`out1`, `out2`, and `out3`).
         """
         model = cast(Model, self)
         try:
@@ -701,13 +701,17 @@ out2, and out3).
                         sequence.set_pointer(double, idx)
                         sequence.node2idx[node] = idx
                 else:
-                    parameternodes = objecttools.enumeration(coordinates.nodes)
-                    elementnodes = objecttools.enumeration(nodes)
+                    enum = objecttools.enumeration
+                    parameternodes = enum(coordinates.nodes, backticks=True)
+                    elementnodes = enum(nodes, backticks=True)
+                    plural = objecttools.Inflect.plural
+                    n1, n2 = len(coordinates.nodes), len(nodes)
                     raise RuntimeError(
-                        f"The node handled by control parameter {coordinates.name} "
-                        f"({parameternodes}) are not the same as the "
-                        f"{sequence.subseqs.name[:-1]} nodes handled by element "
-                        f"{model.element.name} ({elementnodes})."
+                        f"The {plural('node', n1)} handled by control parameter "
+                        f"`{coordinates.name}` ({parameternodes}) "
+                        f"{plural('is', n1)} not the same as the "
+                        f"{sequence.subseqs.name[:-1]} {plural('node', n2)} handled "
+                        f"by element `{model.element.name}` ({elementnodes})."
                     )
         except BaseException:
             objecttools.augment_excmessage(

@@ -1088,8 +1088,8 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler.get_filename(tgr)
         Traceback (most recent call last):
         ...
-        UserWarning: Parameter `tgr(2.0)` matches several auxiliary files: file1 and \
-file2
+        UserWarning: Parameter `tgr(2.0)` matches several auxiliary files: `file1` \
+and `file2`.
 
         Nevertheless, it returns the first match (which might be confusing due to its
         arbitrariness but at least results in a working project configuration):
@@ -1113,7 +1113,7 @@ file2
         if len(filenames) > 1:
             warnings.warn(
                 f"Parameter `{parameter}` matches several auxiliary files: "
-                f"{objecttools.enumeration(filenames)}"
+                f"{objecttools.enumeration(filenames, backticks=True)}."
             )
         return filenames[0]
 

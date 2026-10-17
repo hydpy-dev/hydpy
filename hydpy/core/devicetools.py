@@ -180,7 +180,7 @@ class Keywords(set[str]):
             except ValueError:
                 objecttools.augment_excmessage(
                     f"While trying to add the keyword `{name}` to device "
-                    f"{objecttools.devicename(self.device)}"
+                    f"`{objecttools.devicename(self.device)}`"
                 )
 
     def update(self, *names: str) -> None:  # type: ignore[override]
@@ -194,7 +194,7 @@ class Keywords(set[str]):
         >>> keywords.update("test_1", "test 2")   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ValueError: While trying to add the keyword `test 2` to device ?, the \
+        ValueError: While trying to add the keyword `test 2` to device `?`, the \
 following error occurred: The given name string `test 2` does not define a valid \
 variable identifier.  ...
 
@@ -226,7 +226,7 @@ variable identifier.  ...
         >>> keywords.add("1_test")   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ValueError: While trying to add the keyword `1_test` to device ?, the \
+        ValueError: While trying to add the keyword `1_test` to device `?`, the \
 following error occurred: The given name string `1_test` does not define a valid \
 variable identifier.  ...
 
@@ -394,9 +394,10 @@ class FusedVariable:
     Traceback (most recent call last):
     ...
     ValueError: The sequences combined by a FusedVariable object cannot be changed.  \
-The already defined sequences of the fused variable `T` are `lland_inputs_TemL and \
-meteo_inputs_Temperature` instead of `hland_inputs_T and lland_inputs_TemL`.  Keep in \
-mind, that `name` is the unique identifier for fused variable instances.
+The fused variable `T` combines the sequences `lland_inputs_TemL` and \
+`meteo_inputs_Temperature`, not the sequences `hland_inputs_T` and \
+`lland_inputs_TemL`.  Keep in mind, that `name` is the unique identifier for fused \
+variable instances.
 
     Defining additional fused variables with the same member sequences is not
     advisable, but is allowed:
@@ -460,12 +461,13 @@ mind, that `name` is the unique identifier for fused variable instances.
         if fusedvariable:
             if variables == fusedvariable._variables:
                 return fusedvariable
+            listing = objecttools.Inflect.listing
             raise ValueError(
                 f"The sequences combined by a {type(self).__name__} object cannot be "
-                f"changed.  The already defined sequences of the fused variable "
-                f"`{name}` are `{objecttools.enumeration(fusedvariable._aliases)}` "
-                f"instead of `{objecttools.enumeration(aliases)}`.  Keep in mind, "
-                f"that `name` is the unique identifier for fused variable instances."
+                f"changed.  The fused variable `{name}` combines the "
+                f"{listing('sequence', fusedvariable._aliases)}, not the "
+                f"{listing('sequence', aliases)}.  Keep in mind, that `name` is the "
+                f"unique identifier for fused variable instances."
             )
         self._name = name
         self._aliases = aliases
@@ -691,8 +693,8 @@ and is thus not support, hence `NF` is rejected.
     Traceback (most recent call last):
     ...
     TypeError: While trying to initialise a `Nodes` object, the following error \
-occurred: The given (sub)value `Element("ea")` is not an instance of the following \
-classes: Node and str.
+occurred: The given (sub)value `Element("ea")` is not an instance of any of the \
+classes `Node` and `str`.
     """
 
     _mutable: bool
@@ -1493,8 +1495,8 @@ e_c.model.routingmodels[2]
         Traceback (most recent call last):
         ...
         ValueError: While trying to unite the elements belonging to collective `E`, \
-the following error occurred: The following input node of one element is an output \
-node of another element of the same collective, which is not supported: x_e1_e2.
+the following error occurred: The input node `x_e1_e2` is an output node of another \
+element of the same collective, which is not supported.
 
         |Elements.unite_collectives| raises the following error if an element belonging
         to a collective does not handle a |Model| instance:
@@ -1551,15 +1553,13 @@ a function for coupling models that belong to the same collective.
                         for input_ in subelement.inputs
                     }
                     if internals := inputs.intersection(outputs):
-                        plural = objecttools.Inflect.plural
+                        i = objecttools.Inflect
                         n = len(internals)
                         names = sorted(node.name for node in internals)
                         raise ValueError(
-                            f"The following input {plural('node', n)} of one element "
-                            f"{plural('is', n)} {plural('an', n)} output "
-                            f"{plural('node', n)} of another element of the same "
-                            f"collective, which is not supported: "
-                            f"{objecttools.enumeration(names)}."
+                            f"The input {i.listing('node', names, 'is')} "
+                            f"{i.a('output node', n)} of another element of the same "
+                            f"collective, which is not supported."
                         )
                     _registry[Element].pop(collective, None)
                     newelement = Element(
@@ -1647,7 +1647,7 @@ a function for coupling models that belong to the same collective.
         Traceback (most recent call last):
         ...
         UserWarning: Due to a missing or no accessible control file, no model could \
-be initialised for element `land_dill_assl`
+be initialised for element `land_dill_assl`.
         >>> attrready(hp.elements.land_dill_assl, "model")
         False
         """
@@ -2611,11 +2611,11 @@ that `name` is the unique identifier of node objects.
         >>> figure = lahn_marb.plot_allseries(stepsize="quaterly")
         Traceback (most recent call last):
         ...
-        ValueError: While trying to plot the time series of the sequences obs and sim \
-of node `lahn_marb` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, the \
-following error occurred: While trying to aggregate the given series, the following \
-error occurred: Argument `stepsize` received value `quaterly`, but only the following \
-ones are supported: `monthly` (default), `daily`, and `yearly`.
+        ValueError: While trying to plot the time series of the sequences `obs` and \
+`sim` of node `lahn_marb` for the period `1996-10-01 00:00:00` to `1996-11-01 \
+00:00:00`, the following error occurred: While trying to aggregate the given series, \
+the following error occurred: Argument `stepsize` received value `quaterly`, but only \
+the following ones are supported: `monthly` (default), `daily`, and `yearly`.
 
         >>> from hydpy import pub
         >>> del pub.timegrids
@@ -2623,8 +2623,8 @@ ones are supported: `monthly` (default), `daily`, and `yearly`.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to plot the time \
-series of the sequences obs and sim of node `lahn_marb`, the following error \
-occurred: Attribute timegrids of module `pub` is not defined at the moment.
+series of the sequences `obs` and `sim` of node `lahn_marb`, the following error \
+occurred: Attribute `timegrids` of module `pub` is not defined at the moment.
         """
 
         t = TypeVar("t", str, int)
@@ -2804,9 +2804,10 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         >>> dill_assl.plot_alldurationcurves(linestyles=".")
         Traceback (most recent call last):
         ...
-        ValueError: While trying to plot the duration curves of the sequences obs and \
-sim of node `dill_assl` for the period `1996-01-01 00:00:00` to `1996-06-01 00:00:00`, \
-the following error occurred: '.' is not a valid value for ls. Did you mean: '-.'?
+        ValueError: While trying to plot the duration curves of the sequences `obs` \
+and `sim` of node `dill_assl` for the period `1996-01-01 00:00:00` to `1996-06-01 \
+00:00:00`, the following error occurred: '.' is not a valid value for ls. Did you \
+mean: '-.'?
         """
 
         t = TypeVar("t", str, int)
@@ -2945,12 +2946,10 @@ the following error occurred: '.' is not a valid value for ls. Did you mean: '-.
             periodstring = f" for the period `{tg.firstdate}` to `{tg.lastdate}`"
         else:
             periodstring = ""
-        n = len(sequences)
-        plural = objecttools.Inflect.plural
+        i = objecttools.Inflect
         objecttools.augment_excmessage(
-            f"While trying to plot the {plural(plottype, n)} of the "
-            f"{plural('sequence', n)} "
-            f"{objecttools.enumeration(s.name for s in sequences)} of node "
+            f"While trying to plot the {i.plural(plottype, len(sequences))} of the "
+            f"{i.listing('sequence', (s.name for s in sequences))} of node "
             f"`{objecttools.devicename(sequences[0])}`{periodstring}"
         )
 
@@ -3539,7 +3538,7 @@ already a collective `NileRiver` member.
             if options.warnmissingcontrolfile:
                 warnings.warn(
                     f"Due to a missing or no accessible control file, no model could "
-                    f"be initialised for element `{self.name}`"
+                    f"be initialised for element `{self.name}`."
                 )
             else:
                 objecttools.augment_excmessage(

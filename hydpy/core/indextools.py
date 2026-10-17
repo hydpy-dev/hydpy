@@ -114,8 +114,8 @@ object, the following error occurred: 'int' object is not subscriptable
     ...
     ValueError: The `monthofyear` index array of an Indexer object must have a number \
 of entries fitting to the initialization time period precisely.  However, the given \
-value has been interpreted to be of length `4` and the length of the Timegrid object \
-representing the actual initialisation period is `5`.
+value has been interpreted to be of length 4 and the length of the Timegrid object \
+representing the actual initialisation period is 5.
     """
 
     timegrids: timetools.Timegrids | None
@@ -175,12 +175,12 @@ representing the actual initialisation period is `5`.
         if timegrids is not None:
             if len(array) != len(timegrids.init):
                 raise ValueError(
-                    f"The `{name}` index array of an Indexer object must have a number "
-                    f"of entries fitting to the initialization time period precisely.  "
-                    f"However, the given value has been interpreted to be of length "
-                    f"`{len(array)}` and the length of the Timegrid object "
+                    f"The `{name}` index array of an Indexer object must have a "
+                    f"number of entries fitting to the initialization time period "
+                    f"precisely.  However, the given value has been interpreted to be "
+                    f"of length {len(array)} and the length of the Timegrid object "
                     f"representing the actual initialisation period is "
-                    f"`{len(timegrids.init)}`."
+                    f"{len(timegrids.init)}."
                 )
         return array
 

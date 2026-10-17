@@ -667,7 +667,8 @@ additional water release, but two such nodes are available (`r3a` and `r3b`).
     @staticmethod
     def _get_error_message_suffix(nodes: list[devicetools.Node]) -> str:
         if nodes:
-            return f" ({objecttools.enumeration(f'`{s.name}`' for s in nodes)})"
+            names = (node.name for node in nodes)
+            return f" ({objecttools.enumeration(names, backticks=True)})"
         return ""
 
     def _connect_receivers(self, report_noconnect: bool = True) -> None:

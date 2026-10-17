@@ -357,7 +357,7 @@ class SRedOrder(parametertools.Parameter):
         Traceback (most recent call last):
         ...
         RuntimeError: The weighting factors of parameter `sred` of element `?` define \
-at least one cycle: (1, 4), (4, 5), and (5, 1).
+at least one cycle: `(1, 4)`, `(4, 5)`, and `(5, 1)`.
 
         A "no redistribution" example:
 
@@ -393,7 +393,7 @@ at least one cycle: (1, 4), (4, 5), and (5, 1).
                 raise RuntimeError(
                     f"The weighting factors of parameter "
                     f"{objecttools.elementphrase(sred)} define at least one cycle: "
-                    f"{objecttools.enumeration(first_cycle)}."
+                    f"{objecttools.enumeration(first_cycle, backticks=True)}."
                 )
             except networkx.NetworkXNoCycle:
                 self.values = tuple(networkx.topological_sort(networkx.line_graph(dg)))

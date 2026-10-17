@@ -96,14 +96,13 @@ of at least one node, but none are given.
     Traceback (most recent call last):
     ...
     ValueError: Parameter `inputcoordinates` of element `?` requires exactly two \
-coordinates for each node, but for node `in2`, the following values are given: \
-(1.0, 2.0, 3.0).
+coordinates for each node, but for node `in2`, `(1.0, 2.0, 3.0)` is given.
 
     >>> inputcoordinates(in1="wrong")
     Traceback (most recent call last):
     ...
     ValueError: Parameter `inputcoordinates` of element `?` requires exactly two \
-coordinates for each node, but for node `in1`, the following values are given: wrong.
+coordinates for each node, but for node `in1`, `wrong` is given.
 
     >>> inputcoordinates
     inputcoordinates(in2=(2.0, 4.0),
@@ -141,8 +140,8 @@ coordinates for each node, but for node `in1`, the following values are given: w
             except (TypeError, ValueError):
                 raise ValueError(
                     f"Parameter {objecttools.elementphrase(self)} requires exactly "
-                    f"two coordinates for each node, but for node `{name}`, the "
-                    f"following values are given: {objecttools.repr_(values)}."
+                    f"two coordinates for each node, but for node `{name}`, "
+                    f"`{objecttools.repr_(values)}` is given."
                 ) from None
         self.nodes = tuple(devicetools.Node(name) for name in coordinates)
         self._coordinates = matrix

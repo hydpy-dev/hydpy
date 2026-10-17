@@ -1727,7 +1727,7 @@ def calc_mean_time(timepoints: VectorInputFloat, weights: VectorInputFloat) -> f
     Traceback (most recent call last):
     ...
     ValueError: While trying to calculate the weighted mean time, the following error \
-occurred: For the following objects, at least one value is negative: weights.
+occurred: For the object `weights`, at least one value is negative.
     """
     timepoints = numpy.asarray(timepoints)
     weights = numpy.asarray(weights)
@@ -1774,8 +1774,7 @@ def calc_mean_time_deviation(
     Traceback (most recent call last):
     ...
     ValueError: While trying to calculate the weighted time deviation from mean time, \
-the following error occurred: For the following objects, at least one value is \
-negative: weights.
+the following error occurred: For the object `weights`, at least one value is negative.
     """
     timepoints_ = numpy.asarray(timepoints)
     weights_ = numpy.asarray(weights)
@@ -1822,9 +1821,9 @@ def calc_weights(nodes: Collection[devicetools.Node]) -> dict[devicetools.Node, 
     >>> print_vector(calc_weights((test2,)).values())
     Traceback (most recent call last):
     ...
-    RuntimeError: None of the given nodes (test2) provides any observation values for \
-the current evaluation period (Timegrid("02.01.2000 00:00:00", "03.01.2000 00:00:00", \
-"1d")).
+    RuntimeError: None of the given nodes (`test2`) provides any observation values \
+for the current evaluation period (`Timegrid("02.01.2000 00:00:00", "03.01.2000 \
+00:00:00", "1d")`).
 
     >>> calc_weights(())
     {}
@@ -1834,10 +1833,10 @@ the current evaluation period (Timegrid("02.01.2000 00:00:00", "03.01.2000 00:00
         nonnans.append(sum(~numpy.isnan(node.sequences.obs.evalseries)))
     sum_nonnan = sum(nonnans)
     if (len(nodes) > 0) and (sum_nonnan == 0):
-        names = objecttools.enumeration(n.name for n in nodes)
+        names = objecttools.enumeration((n.name for n in nodes), backticks=True)
         raise RuntimeError(
             f"None of the given nodes ({names}) provides any observation values for "
-            f"the current evaluation period ({hydpy.pub.timegrids.eval_})."
+            f"the current evaluation period (`{hydpy.pub.timegrids.eval_}`)."
         )
     return {g: w / sum_nonnan for g, w in zip(nodes, nonnans)}
 
@@ -2150,8 +2149,8 @@ def print_evaluationtable(
     Traceback (most recent call last):
     ...
     ValueError: While trying to evaluate the simulation results of some node objects, \
-the following error occurred: 2 node objects are given which does not match with \
-number of given alternative names being 1.
+the following error occurred: The numbers of given nodes and alternative node names \
+must be equal, but two nodes and one alternative node name are given.
 
     >>> print_evaluationtable(nodes=nodes,
     ...                       criteria=(corr, bias_abs),
@@ -2159,8 +2158,9 @@ number of given alternative names being 1.
     Traceback (most recent call last):
     ...
     ValueError: While trying to evaluate the simulation results of some node objects, \
-the following error occurred: 2 criteria functions are given which does not match with \
-number of given alternative names being 1.
+the following error occurred: The numbers of given criteria functions and alternative \
+criteria names must be equal, but two criteria functions and one alternative criteria \
+name are given.
 
     Set the `average` argument to |False| to omit the row containing the average values:
 
@@ -2262,17 +2262,22 @@ number of given alternative names being 1.
     """
     if nodenames:
         if len(nodes) != len(nodenames):
+            count = objecttools.Inflect.count
             raise ValueError(
-                f"{len(nodes)} node objects are given which does not match with "
-                f"number of given alternative names being {len(nodenames)}."
+                f"The numbers of given nodes and alternative node names must be "
+                f"equal, but {count(len(nodes), 'node')} and "
+                f"{count(len(nodenames), 'alternative node name')} are given."
             )
     else:
         nodenames = [node.name for node in nodes]
     if critnames:
         if len(criteria) != len(critnames):
+            count = objecttools.Inflect.count
             raise ValueError(
-                f"{len(criteria)} criteria functions are given which does not match "
-                f"with number of given alternative names being {len(critnames)}."
+                f"The numbers of given criteria functions and alternative criteria "
+                f"names must be equal, but "
+                f"{count(len(criteria), 'criteria function')} and "
+                f"{count(len(critnames), 'alternative criteria name')} are given."
             )
     else:
         critnames = [getattr(crit, "__name__", str(crit)) for crit in criteria]

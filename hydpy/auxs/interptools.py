@@ -611,7 +611,7 @@ the range `(1, 12)`, but the given value is `13`.
     ...
     ValueError: Type `SeasonalInterpolator` accepts either a single positional \
 argument or an arbitrary number of keyword arguments, but for the corresponding \
-parameter of element `?` 1 positional and 2 keyword arguments have been given.
+parameter of element `?` one positional and two keyword arguments have been given.
 
     >>> seasonalinterpolator(_1_1_12=ANN(nmb_inputs=2, nmb_outputs=1),
     ...                      _7_1_12=PPoly(Poly(x0=1.0, cs=(1.0,))),
@@ -725,8 +725,10 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
                     f"Type `{type(self).__name__}` accepts either a single positional "
                     f"argument or an arbitrary number of keyword arguments, but for "
                     f"the corresponding parameter of element "
-                    f"`{objecttools.devicename(self)}` {len(algorithm)} positional "
-                    f"and {len(algorithms)} keyword arguments have been given."
+                    f"`{objecttools.devicename(self)}` "
+                    f"{objecttools.Inflect.cardinal(len(algorithm))} positional and "
+                    f"{objecttools.Inflect.count(len(algorithms), 'keyword argument')} "
+                    f"have been given."
                 )
             if algorithm:
                 algorithms["_1"] = algorithm[0]

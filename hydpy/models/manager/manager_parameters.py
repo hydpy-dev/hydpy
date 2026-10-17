@@ -89,23 +89,23 @@ positional argument simultaneously is not supported.
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the values of parameter `active` of element `?`, \
-the following error occurred: For the following source, no value is given: b
+the following error occurred: For the source `b`, no value is given.
     >>> active(c=True)
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the values of parameter `active` of element `?`, \
-the following error occurred: For the following sources, no values are given: a and b
+the following error occurred: For the sources `a` and `b`, no values are given.
 
     >>> active(c=True, a=False, b=True, d=True)
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the values of parameter `active` of element `?`, \
-the following error occurred: The following source is unknown: d
+the following error occurred: The source `d` is unknown.
     >>> active(c=True, a=False, b=True, d=True, e=False)
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the values of parameter `active` of element `?`, \
-the following error occurred: The following sources are unknown: d and e
+the following error occurred: The sources `d` and `e` are unknown.
     """
 
     def __call__(self, *args, **kwargs) -> None:
@@ -129,18 +129,17 @@ the following error occurred: The following sources are unknown: d and e
                 required_names = set(sourcenames)
                 given_names = set(kwargs)
                 if (len(args) == 0) and (diff := required_names - given_names):
-                    p = objecttools.Inflect.plural
+                    inflect = objecttools.Inflect
                     n = len(diff)
                     raise ValueError(
-                        f"For the following {p('source', n)}, no {p('value', n)} "
-                        f"{p('is', n)} given: {objecttools.enumeration(sorted(diff))}"
+                        f"For the {inflect.listing('source', sorted(diff))}, no "
+                        f"{inflect.plural('value', n)} {inflect.plural('is', n)} "
+                        f"given."
                     ) from None
                 if diff := given_names - required_names:
-                    p = objecttools.Inflect.plural
-                    n = len(diff)
+                    listing = objecttools.Inflect.listing
                     raise ValueError(
-                        f"The following {p('source', n)} {p('is', n)} unknown: "
-                        f"{objecttools.enumeration(sorted(diff))}"
+                        f"The {listing('source', sorted(diff), 'is')} unknown."
                     ) from None
                 if len(args) == 1:
                     default = args[0]

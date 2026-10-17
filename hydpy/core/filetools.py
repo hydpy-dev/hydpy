@@ -290,7 +290,7 @@ previously defined and is hence set to `dir1`.
     ...
     RuntimeError: The current working directory of the file manager has not been \
 defined manually and cannot be determined automatically: `.../projectname/basename` \
-does contain multiple available directories (dir1 and dir2).
+does contain multiple available directories (`dir1` and `dir2`).
 
     Setting |FileManager.currentdir| manually solves the problem:
 
@@ -318,8 +318,8 @@ does contain multiple available directories (dir1 and dir2).
     Traceback (most recent call last):
     ...
     RuntimeError: The current working directory of the file manager has not been \
-defined manually and cannot be determined automatically: The default directory (dir3) \
-is not among the available directories (dir1 and dir2).
+defined manually and cannot be determined automatically: The default directory `dir3` \
+is not among the available directories (`dir1` and `dir2`).
 
     We can fix this by manually adding the required default directory:
 
@@ -503,11 +503,12 @@ context manager without "calling it", which is unsafe.  In combination with the 
                         raise RuntimeError(
                             f"{prefix} `{objecttools.repr_(manager.basepath)}` does "
                             f"contain multiple available directories "
-                            f"({objecttools.enumeration(dirs)})."
+                            f"({objecttools.enumeration(dirs, backticks=True)})."
                         )
                     raise RuntimeError(
-                        f"{prefix} The default directory ({default}) is not among the "
-                        f"available directories ({objecttools.enumeration(dirs)})."
+                        f"{prefix} The default directory `{default}` is not among the "
+                        f"available directories "
+                        f"({objecttools.enumeration(dirs, backticks=True)})."
                     )
         return _CurrentDirContext(manager, self)
 
@@ -524,8 +525,8 @@ context manager without "calling it", which is unsafe.  In combination with the 
                 os.remove(zippath)
                 if hydpy.pub.options.printprogress:
                     print(
-                        f"The zip file {zippath} has been extracted to directory "
-                        f"{dirpath} and removed."
+                        f"The zip file `{zippath}` has been extracted to directory "
+                        f"`{dirpath}` and removed."
                     )
             elif not os.path.exists(dirpath):
                 os.makedirs(dirpath)
@@ -595,7 +596,7 @@ class FileManager:
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to automatically \
 determine the file manager's project root directory, the following error occurred: \
-Attribute projectname of module `pub` is not defined at the moment.
+Attribute `projectname` of module `pub` is not defined at the moment.
         """
         if (projectdir := self._projectdir) is None:
             try:
@@ -796,7 +797,7 @@ Attribute projectname of module `pub` is not defined at the moment.
         ...     assert os.listdir(basepath) == ["folder"]
         ...     assert sorted(filemanager.filenames) == ["file1.py", "file2.py"]
         ...     filemanager.availabledirs
-        The zip file ...folder.zip has been extracted to directory ...folder and \
+        The zip file `...folder.zip` has been extracted to directory `...folder` and \
 removed.
         Folder2Path(folder=.../projectname/basename/folder)
         """
@@ -902,7 +903,7 @@ class NetworkManager(FileManager):
     ...     networkmanager.delete_files(["headwaters"])   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    FileNotFoundError: While trying to remove the network files of the selection(s) \
+    FileNotFoundError: While trying to remove the network files of the selection \
 `headwaters`, the following error occurred: ...
 
     >>> with TestIO():
@@ -920,7 +921,7 @@ error occurred: name 'y' is not defined
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    RuntimeError: The class Element cannot be loaded from the network file \
+    RuntimeError: The class `Element` cannot be loaded from the network file \
 `...streams.py`.
 
     >>> with TestIO():
@@ -929,7 +930,7 @@ error occurred: name 'y' is not defined
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    RuntimeError: The class Node cannot be loaded from the network file \
+    RuntimeError: The class `Node` cannot be loaded from the network file \
 `...streams.py`.
 
     >>> import shutil
@@ -938,8 +939,8 @@ error occurred: name 'y' is not defined
     ...     networkmanager.save_files(selections)   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    FileNotFoundError: While trying to save the selection(s) `headwaters and \
-nonheadwaters` into network files, the following error occurred: ...
+    FileNotFoundError: While trying to save the selections `headwaters` and \
+`nonheadwaters` into network files, the following error occurred: ...
     """
 
     BASEDIR = "network"
@@ -975,8 +976,8 @@ nonheadwaters` into network files, the following error occurred: ...
                 )
             except KeyError as exc:
                 raise RuntimeError(
-                    f"The class {exc.args[0]} cannot be loaded from the network file "
-                    f"`{path}`."
+                    f"The class `{exc.args[0]}` cannot be loaded from the network "
+                    f"file `{path}`."
                 ) from None
         return selections
 
@@ -994,8 +995,9 @@ nonheadwaters` into network files, the following error occurred: ...
                 selection.save_networkfile(filepath=path)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to save the selection(s) "
-                f"`{objecttools.enumeration(selections)}` into network files"
+                f"While trying to save the "
+                f"{objecttools.Inflect.listing('selection', selections)} into "
+                f"network files"
             )
 
     def delete_files(self, selections: Iterable[selectiontools.Selection]) -> None:
@@ -1015,8 +1017,8 @@ nonheadwaters` into network files, the following error occurred: ...
                 os.remove(path)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to remove the network files of the selection(s) "
-                f"`{objecttools.enumeration(selections)}`"
+                f"While trying to remove the network files of the "
+                f"{objecttools.Inflect.listing('selection', selections)}"
             )
 
 
@@ -1286,7 +1288,7 @@ Hence, the condition manager writes its data to a directory named \
     ...
     hydpy.core.exceptiontools.AttributeNotReady: While trying to determine the \
 currently relevant input path for loading conditions file, the following error \
-occurred: Attribute timegrids of module `pub` is not defined at the moment.
+occurred: Attribute `timegrids` of module `pub` is not defined at the moment.
 
     >>> del pub.timegrids
     >>> with TestIO():  # doctest: +ELLIPSIS
@@ -1295,7 +1297,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
     ...
     hydpy.core.exceptiontools.AttributeNotReady: While trying to determine the \
 currently relevant output path for saving conditions file, the following error \
-occurred: Attribute timegrids of module `pub` is not defined at the moment.
+occurred: Attribute `timegrids` of module `pub` is not defined at the moment.
     """
 
     BASEDIR = "conditions"
@@ -1645,7 +1647,7 @@ initialisation time grid (Timegrid("2000-01-01 00:00:00", "2000-01-05 00:00:00",
     ...
     RuntimeError: While trying to load the time series data of sequence `sim` of node \
 `node2`, the following error occurred: The series array of sequence `sim` of node \
-`node2` contains 1 nan value.
+`node2` contains one nan value.
     >>> sim.series = sim_series
 
     By default, overwriting existing time series files is disabled:

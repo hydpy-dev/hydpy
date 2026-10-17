@@ -525,7 +525,7 @@ def write_ncfile(
     ...
     ValueError: While trying to write the NetCDF file `my_ncfile.nc`, the following \
 error occurred: According to the given timegrid, all given series must have a length \
-of `3`, but the length of series `series_2` is `2`.
+of 3, but the length of series `series_2` is 2.
 
     When creating the following NetCDF file, we use all possible ways to add more
     metadata and follow one of the available conventions for naming the NetCDF sequence
@@ -587,8 +587,8 @@ of `3`, but the length of series `series_2` is `2`.
             if len(seriesvector) != nrows:
                 raise ValueError(
                     f"According to the given timegrid, all given series must have a "
-                    f"length of `{nrows}`, but the length of series `{subdevicename}` "
-                    f"is `{len(seriesvector)}`."
+                    f"length of {nrows}, but the length of series `{subdevicename}` "
+                    f"is {len(seriesvector)}."
                 )
             seriesmatrix[:, j] = seriesvector
         MixinVariableWriter.__hydpy_write_ncfile__(
@@ -688,8 +688,8 @@ def create_dimension(ncfile: netcdf4.Dataset, name: str, length: int) -> None:
     ...     create_dimension(ncfile, "dim1", 5)
     ... except BaseException as exc:
     ...     print(exc)  # doctest: +ELLIPSIS
-    While trying to add dimension `dim1` with length `5` to the NetCDF file \
-`test.nc`, the following error occurred: ...
+    While trying to add dimension `dim1` with length 5 to the NetCDF file `test.nc`, \
+the following error occurred: ...
 
     >>> ncfile.close()
     """
@@ -697,7 +697,7 @@ def create_dimension(ncfile: netcdf4.Dataset, name: str, length: int) -> None:
         ncfile.createDimension(name, length)
     except BaseException:
         objecttools.augment_excmessage(
-            f"While trying to add dimension `{name}` with length `{length}` to the "
+            f"While trying to add dimension `{name}` with length {length} to the "
             f"NetCDF file `{get_filepath(ncfile)}`"
         )
 

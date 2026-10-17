@@ -314,7 +314,7 @@ element `?` is 1, but 0 is given.
     Traceback (most recent call last):
     ...
     ValueError: The largest possible index value of parameter `transitions` of \
-element `?` is 5 (NmbWidths - 2), but 6 is given.
+element `?` is 5 (`nmbwidths` - 2), but 6 is given.
 
     >>> transitions
     transitions(-999999)
@@ -325,7 +325,7 @@ element `?` is 5 (NmbWidths - 2), but 6 is given.
     Traceback (most recent call last):
     ...
     ValueError: The index values given to parameter `transitions` of element `?` are \
-not strictly rising (1, 4, and 4).
+not strictly rising (`1, 4, 4`).
 
     >>> transitions
     transitions(-999999)
@@ -349,7 +349,7 @@ not strictly rising (1, 4, and 4).
                     raise ValueError(
                         f"The index values given to parameter "
                         f"{objecttools.elementphrase(self)} are not strictly rising "
-                        f"({objecttools.enumeration(values)})."
+                        f"(`{objecttools.repr_values(values)}`)."
                     )
                 if values[0] < 1:
                     self.values = variabletools.INT_NAN
@@ -363,7 +363,7 @@ not strictly rising (1, 4, and 4).
                     raise ValueError(
                         f"The largest possible index value of parameter "
                         f"{objecttools.elementphrase(self)} is {max_} "
-                        f"(NmbWidths - 2), but {values[-1]} is given."
+                        f"(`nmbwidths` - 2), but {values[-1]} is given."
                     )
 
     def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:

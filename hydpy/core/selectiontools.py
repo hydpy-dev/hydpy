@@ -21,6 +21,13 @@ from hydpy.core.typingtools import *
 ModelTypesArg: TypeAlias = Union[modeltools.Model, types.ModuleType, str]
 
 
+def _get_substringphrase(substrings: tuple[str, ...]) -> str:
+    values = objecttools.enumeration(substrings, backticks=True)
+    if len(substrings) == 1:
+        return f"the given substring {values}"
+    return f"at least one of the given substrings {values}"
+
+
 class Selections:
     """Collection class for |Selection| objects.
 
@@ -1063,7 +1070,7 @@ required as the "inlet device", but the given `device` value is of type `int`.
         Traceback (most recent call last):
         ...
         ModuleNotFoundError: While trying to determine the elements of selection \
-`test` handling the model defined by the argument(s) `wrong` of type(s) `str`, the \
+`test` handling the model defined by the argument `wrong` of type `str`, the \
 following error occurred: No module named 'hydpy.models.wrong'
 
         Method |Selection.select_modeltypes| restricts the current selection to the one
@@ -1098,12 +1105,15 @@ following error occurred: No module named 'hydpy.models.wrong'
                 if isinstance(element.model, typetuple):
                     selection.elements += element
         except BaseException:
-            values = objecttools.enumeration(models)
-            classes = objecttools.enumeration(type(model).__name__ for model in models)
+            i = objecttools.Inflect
+            n = len(models)
+            classes = objecttools.enumeration(
+                (type(model).__name__ for model in models), backticks=True
+            )
             objecttools.augment_excmessage(
                 f"While trying to determine the elements of selection `{self.name}` "
-                f"handling the model defined by the argument(s) `{values}` of type(s) "
-                f"`{classes}`"
+                f"handling the {i.plural('model', n)} defined by the "
+                f"{i.listing('argument', models)} of {i.plural('type', n)} {classes}"
             )
         return selection
 
@@ -1152,8 +1162,8 @@ following error occurred: No module named 'hydpy.models.wrong'
         Traceback (most recent call last):
         ...
         TypeError: While trying to determine the nodes of selection `test` with names \
-containing at least one of the given substrings `['dill_assl', 'lahn_marb']`, the \
-following error occurred: 'in <string>' requires string as left operand, not list
+containing the given substring `['dill_assl', 'lahn_marb']`, the following error \
+occurred: 'in <string>' requires string as left operand, not list
 
         Method |Selection.select_nodenames| restricts the current selection to the one
         determined with the the method |Selection.search_nodenames|:
@@ -1188,10 +1198,9 @@ following error occurred: 'in <string>' requires string as left operand, not lis
                         selection.nodes += node
                         break
         except BaseException:
-            values = objecttools.enumeration(substrings)
             objecttools.augment_excmessage(
                 f"While trying to determine the nodes of selection `{self.name}` with "
-                f"names containing at least one of the given substrings `{values}`"
+                f"names containing {_get_substringphrase(substrings)}"
             )
         return selection
 
@@ -1238,11 +1247,11 @@ following error occurred: 'in <string>' requires string as left operand, not lis
 
         Wrong string specifications result in errors like the following:
 
-        >>> test.search_elementnames(["dill", "lahn_marb"])
+        >>> test.search_elementnames("dill", ["lahn_marb"])
         Traceback (most recent call last):
         ...
         TypeError: While trying to determine the elements of selection `test` with \
-names containing at least one of the given substrings `['dill', 'lahn_marb']`, the \
+names containing at least one of the given substrings `dill` and `['lahn_marb']`, the \
 following error occurred: 'in <string>' requires string as left operand, not list
 
         Method |Selection.select_elementnames| restricts the current selection to the
@@ -1273,10 +1282,9 @@ following error occurred: 'in <string>' requires string as left operand, not lis
                         selection.elements += element
                         break
         except BaseException:
-            values = objecttools.enumeration(substrings)
             objecttools.augment_excmessage(
                 f"While trying to determine the elements of selection `{self.name}` "
-                f"with names containing at least one of the given substrings `{values}`"
+                f"with names containing {_get_substringphrase(substrings)}"
             )
         return selection
 

@@ -512,7 +512,7 @@ def _check_seriesfiletype(value: SeriesFileType) -> SeriesFileType:
     except AssertionError:
         raise ValueError(
             f"The given sequence file type `{value}` is not implemented.  Please "
-            f"choose one of the following file types: npy, asc, and nc."
+            f"choose one of the following file types: `npy`, `asc`, and `nc`."
         ) from None
     assert False
 
@@ -539,7 +539,7 @@ class OptionPropertySeriesFileType(
     Traceback (most recent call last):
     ...
     ValueError: The given sequence file type `abc` is not implemented.  Please choose \
-one of the following file types: npy, asc, and nc.
+one of the following file types: `npy`, `asc`, and `nc`.
     >>> assert t.v == "asc"
     >>> t.v = "npy"
     >>> assert t.v == "npy"
@@ -553,7 +553,7 @@ one of the following file types: npy, asc, and nc.
     Traceback (most recent call last):
     ...
     ValueError: The given sequence file type `abc` is not implemented.  Please choose \
-one of the following file types: npy, asc, and nc.
+one of the following file types: `npy`, `asc`, and `nc`.
     >>> assert t.v == "asc"
     >>> with t.v("npy"):
     ...     assert t.v == "npy"
@@ -581,7 +581,7 @@ def _check_seriesaggregationtype(value: SeriesAggregationType) -> SeriesAggregat
     except AssertionError:
         raise ValueError(
             f"The given aggregation mode `{value}` is not implemented.  Please "
-            f"choose one of the following modes: none and mean."
+            f"choose one of the following modes: `none` and `mean`."
         ) from None
     assert False
 
@@ -608,7 +608,7 @@ class OptionPropertySeriesAggregation(
     Traceback (most recent call last):
     ...
     ValueError: The given aggregation mode `sum` is not implemented.  Please choose \
-one of the following modes: none and mean.
+one of the following modes: `none` and `mean`.
     >>> assert t.v == "none"
     >>> t.v = "mean"
     >>> assert t.v == "mean"
@@ -620,7 +620,7 @@ one of the following modes: none and mean.
     Traceback (most recent call last):
     ...
     ValueError: The given aggregation mode `sum` is not implemented.  Please choose \
-one of the following modes: none and mean.
+one of the following modes: `none` and `mean`.
     >>> assert t.v == "none"
     >>> with t.v("mean"):
     ...     assert t.v == "mean"
@@ -645,9 +645,8 @@ def _check_seriesconventiontype(value: SeriesConventionType) -> SeriesConvention
         assert_never(value)
     except AssertionError:
         raise ValueError(
-            f"The given time series naming convention `{value}` is not "
-            f"implemented.  Please choose one of the following modes: "
-            f"model-specific and HydPy."
+            f"The given time series naming convention `{value}` is not implemented.  "
+            f"Please choose one of the following modes: `model-specific` and `HydPy`."
         ) from None
     assert False
 
@@ -677,7 +676,7 @@ class OptionPropertySeriesConvention(
     Traceback (most recent call last):
     ...
     ValueError: The given time series naming convention `WMO` is not implemented.  \
-Please choose one of the following modes: model-specific and HydPy.
+Please choose one of the following modes: `model-specific` and `HydPy`.
     >>> assert t.v == "model-specific"
     >>> t.v = "HydPy"
     >>> assert t.v == "HydPy"
@@ -689,7 +688,7 @@ Please choose one of the following modes: model-specific and HydPy.
     Traceback (most recent call last):
     ...
     ValueError: The given time series naming convention `WMO` is not implemented.  \
-Please choose one of the following modes: model-specific and HydPy.
+Please choose one of the following modes: `model-specific` and `HydPy`.
 
     >>> assert t.v == "model-specific"
     >>> with t.v("HydPy"):

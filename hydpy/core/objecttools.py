@@ -224,12 +224,12 @@ def submodelphrase(model: modeltools.Model, include_subsubmodels: bool = True) -
     """
     submodels = model.find_submodels(include_subsubmodels=include_subsubmodels)
     if submodels:
-        suffix = "s" if len(submodels) > 1 else ""
+        submodel_ = Inflect.plural("submodel", len(submodels))
         names = enumeration(
             f"`{name.rpartition('.')[2]}/{submodel}`"
             for name, submodel in submodels.items()
         )
-        return f"model `{model}` and its submodel{suffix} ({names})"
+        return f"model `{model}` and its {submodel_} ({names})"
     return f"model `{model}`"
 
 
@@ -1736,14 +1736,13 @@ def extract(
     >>> tuple(extract("str1", (int,)))
     Traceback (most recent call last):
     ...
-    TypeError: The given (sub)value `'str1'` is not an instance of the following \
-classes: int.
+    TypeError: The given (sub)value `'str1'` is not an instance of class `int`.
 
     >>> tuple(extract((["str1", "str2"], [None, 1]), (str, int)))
     Traceback (most recent call last):
     ...
-    TypeError: The given (sub)value `None` is not an instance of the following \
-classes: str and int.
+    TypeError: The given (sub)value `None` is not an instance of any of the classes \
+`str` and `int`.
 
     Optionally, |None| values can be skipped:
 
@@ -1766,9 +1765,10 @@ classes: str and int.
             if exc.args[0].startswith("The given (sub)value"):
                 raise exc
             enum = enumeration(types_, converter=lambda x: x.__name__, backticks=True)
+            phrase = "class" if len(types_) == 1 else "any of the classes"
             raise TypeError(
-                f"The given (sub)value `{repr(values)}` is not an instance of the "
-                f"following classes: {enum}."
+                f"The given (sub)value `{repr(values)}` is not an instance of "
+                f"{phrase} {enum}."
             ) from None
 
 

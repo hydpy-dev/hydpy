@@ -115,7 +115,7 @@ information via the control parameter `observernodes`.
         ...
         RuntimeError: While trying to build the node connection of the `observer` \
 sequences of the model handled by element `basin`, the following error occurred: The \
-following node is unavailable: gauge_1.
+node `gauge_1` is unavailable.
 
         Adding a node named `gauge_1` as an inlet node makes no difference:
 
@@ -125,7 +125,7 @@ following node is unavailable: gauge_1.
         ...
         RuntimeError: While trying to build the node connection of the `observer` \
 sequences of the model handled by element `basin`, the following error occurred: The \
-following node is unavailable: gauge_1.
+node `gauge_1` is unavailable.
 
         After also adding `gauge_1` as an observer node,
         |exch_observers.X.connect_to_nodes| builds a proper connection to it without
@@ -159,7 +159,7 @@ following node is unavailable: gauge_1.
         ...
         RuntimeError: While trying to build the node connection of the `observer` \
 sequences of the model handled by element `basin`, the following error occurred: The \
-following nodes are unavailable: gauge_2 and gauge_4.
+nodes `gauge_2` and `gauge_4` are unavailable.
 
         >>> from hydpy import print_vector
         >>> basin.observers = ("gauge_2", "gauge_4")
@@ -184,8 +184,8 @@ following nodes are unavailable: gauge_2 and gauge_4.
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to build the node connection of the `observer` \
-sequences of the model handled by element `basin`, the following error occurred: The \
-following nodes have not been connected to any sequences: gauge_5.
+sequences of the model handled by element `basin`, the following error occurred: \
+Node `gauge_5` has not been connected to any sequences.
         """
 
         self.node2idx = {}
@@ -198,10 +198,9 @@ following nodes have not been connected to any sequences: gauge_5.
                 self.node2idx[node] = idx
                 applied_nodes.append(node)
                 remaining_idxs.remove(idx)
-        if nmb := len(remaining_idxs):
-            plural = objecttools.Inflect.plural
+        if remaining_idxs:
             remaining_names = [self.observernodes[i] for i in sorted(remaining_idxs)]
             raise RuntimeError(
-                f"The following {plural('node', nmb)} {plural('is', nmb)} "
-                f"unavailable: {objecttools.enumeration(remaining_names)}."
+                f"The {objecttools.Inflect.listing('node', remaining_names, 'is')} "
+                f"unavailable."
             )

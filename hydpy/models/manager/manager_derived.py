@@ -251,7 +251,7 @@ class Adjacency(parametertools.Parameter):
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to update parameter `adjacency` of element `lwc`, \
-the following error occurred: There are zero paths between the source element `d_3` \
+the following error occurred: There are no paths between the source element `d_3` \
 and the target node `t`, but there must be exactly one.
 
         A branching of the river network above the target node can mean trouble.

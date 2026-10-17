@@ -2257,8 +2257,8 @@ during a simulation run is not supported but tried for sequence `t` of element \
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to load the time \
-series data of `s`, the following error occurred: Attribute sequencemanager of module \
-`pub` is not defined at the moment.
+series data of `s`, the following error occurred: Attribute `sequencemanager` of \
+module `pub` is not defined at the moment.
         """
         try:
             sequencemanager = hydpy.pub.sequencemanager
@@ -2548,7 +2548,7 @@ step is `1d`.
         >>> seq.check_completeness()
         Traceback (most recent call last):
         ...
-        RuntimeError: The series array of sequence `seq` contains 10 nan values.
+        RuntimeError: The series array of sequence `seq` contains ten nan values.
 
         >>> seq.series = 1.0
         >>> seq.check_completeness()
@@ -2557,7 +2557,7 @@ step is `1d`.
         >>> seq.check_completeness()
         Traceback (most recent call last):
         ...
-        RuntimeError: The series array of sequence `seq` contains 1 nan value.
+        RuntimeError: The series array of sequence `seq` contains one nan value.
 
         >>> with pub.options.checkseries(False):
         ...     seq.check_completeness()
@@ -2566,10 +2566,9 @@ step is `1d`.
             isnan = numpy.isnan(self.series)
             if numpy.any(isnan):
                 nmb = numpy.sum(isnan)
-                valuestring = "value" if nmb == 1 else "values"
                 raise RuntimeError(
                     f"The series array of sequence {objecttools.devicephrase(self)} "
-                    f"contains {nmb} nan {valuestring}."
+                    f"contains {objecttools.Inflect.count(nmb, 'nan value')}."
                 )
 
     def save_series(self) -> None:
@@ -2594,8 +2593,8 @@ step is `1d`.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to save the time \
-series data of `s`, the following error occurred: Attribute sequencemanager of module \
-`pub` is not defined at the moment.
+series data of `s`, the following error occurred: Attribute `sequencemanager` of \
+module `pub` is not defined at the moment.
         """
         try:
             sequencemanager = hydpy.pub.sequencemanager
@@ -2945,10 +2944,10 @@ class ModelSequence(Sequence_, abc.ABC):
         >>> model.sequences.fluxes.inflow.numericshape
         Traceback (most recent call last):
         ...
-        AttributeError: The `numericshape` of a sequence like `inflow` depends on the \
-configuration of the actual integration algorithm.  While trying to query the \
-required configuration data `nmb_stages` of the model associated with element `?`, \
-the following error occurred: 'Model' object has no attribute 'numconsts'
+        AttributeError: While trying to query the configuration data `nmb_stages` of \
+the integration algorithm of the model associated with element `?`, which is required \
+for determining the `numericshape` of sequence `inflow`, the following error \
+occurred: 'Model' object has no attribute 'numconsts'
         """
         from hydpy.core import modeltools  # pylint: disable=import-outside-toplevel
 
@@ -2958,10 +2957,10 @@ the following error occurred: 'Model' object has no attribute 'numconsts'
             numericshape = [model.numconsts.nmb_stages]
         except AttributeError:
             objecttools.augment_excmessage(
-                f"The `numericshape` of a sequence like `{self.name}` depends on the "
-                f"configuration of the actual integration algorithm.  While trying to "
-                f"query the required configuration data `nmb_stages` of the model "
-                f"associated with element `{objecttools.devicename(self)}`"
+                f"While trying to query the configuration data `nmb_stages` of the "
+                f"integration algorithm of the model associated with element "
+                f"`{objecttools.devicename(self)}`, which is required for determining "
+                f"the `numericshape` of sequence `{self.name}`"
             )
         numericshape.extend(self.shape)
         return tuple(numericshape)
@@ -4341,7 +4340,7 @@ node `dill_assl`, the following error occurred: [Errno 2] No such file or direct
         ...
         UserWarning: While trying to load the time series data of sequence `sim` of \
 node `dill_assl`, the following error occurred: The series array of sequence `sim` of \
-node `dill_assl` contains 1 nan value.
+node `dill_assl` contains one nan value.
         >>> sim.series
         InfoArray([ 1.,  1., nan,  1.,  1.])
 
@@ -4457,7 +4456,7 @@ No such file or directory: '...dill_assl_obs_q.asc'
         ...
         UserWarning: While trying to load the time series data of sequence `obs` of \
 node `dill_assl`, the following error occurred: The series array of sequence `obs` of \
-node `dill_assl` contains 1 nan value.
+node `dill_assl` contains one nan value.
         >>> obs.memoryflag
         True
 

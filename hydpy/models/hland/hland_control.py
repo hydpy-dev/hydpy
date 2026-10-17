@@ -413,8 +413,8 @@ class SRed(hland_variables.MixinZonesZones, parametertools.Parameter):
     >>> sred.verify()
     Traceback (most recent call last):
     ...
-    RuntimeError: The sum(s) of the following row(s) of parameter `sred` of element \
-`?` are neither 0.0 nor 1.0: 3 and 4.
+    RuntimeError: The sums of rows 3 and 4 of parameter `sred` of element `?` are \
+neither `0.0` nor `1.0`.
 
     Zones of type |ILAKE| possess no snow module.  Hence, they never release any snow
     for redistribution and method |SRed.verify| checks for possible unused weighting
@@ -431,8 +431,8 @@ class SRed(hland_variables.MixinZonesZones, parametertools.Parameter):
     Traceback (most recent call last):
     ...
     RuntimeError: Internal lake zones cannot be involved in snow redistribution, so \
-the sums of all rows of parameter `sred` of element `?` corresponding to internal lake \
-zones must be zero, which is not the case for the row(s): 3.
+the sums of all rows of parameter `sred` of element `?` corresponding to internal \
+lake zones must be zero, which is not the case for row 3.
 
     For the same reason, internal lakes cannot receive and accumulate any redistributed
     snow.  Therefore, method |SRed.verify| additionally checks for possible problematic
@@ -449,7 +449,7 @@ zones must be zero, which is not the case for the row(s): 3.
     ...
     RuntimeError: Internal lake zones cannot be involved in snow redistribution, so \
 the sums of all columns of parameter `sred` of element `?` corresponding to internal \
-lake zones must be zero, which is not the case for the column(s): 3 and 5.
+lake zones must be zero, which is not the case for columns 3 and 5.
 
     The snow redistribution routine of |hland| does not allow for any cycles.  Method
     |SRed.verify| checks for possible cycles by calling method |SRed.verify_order|:
@@ -465,7 +465,7 @@ lake zones must be zero, which is not the case for the column(s): 3 and 5.
     Traceback (most recent call last):
     ...
     RuntimeError: The weighting factors of parameter `sred` of element `?` define at \
-least one cycle: (1, 5) and (5, 1).
+least one cycle: `(1, 5)` and `(5, 1)`.
 
     Note that method |SRed.verify_order| relies on the |SRedOrder.update| method of
     parameter |SRedOrder| but resets its values afterwards:
@@ -478,7 +478,7 @@ least one cycle: (1, 5) and (5, 1).
     Traceback (most recent call last):
     ...
     RuntimeError: The weighting factors of parameter `sred` of element `?` define at \
-least one cycle: (3, 5) and (5, 3).
+least one cycle: `(3, 5)` and `(5, 3)`.
     >>> derived.sredorder
     sredorder(0, 1)
 
@@ -710,7 +710,7 @@ least one cycle: (3, 5) and (5, 3).
     Traceback (most recent call last):
     ...
     ValueError: Parameter `sred` of element `?` accepts at most a single keyword \
-argument but 2 are given.
+argument, but two are given.
 
     >>> sred(0.0, d_height=0.0)
     Traceback (most recent call last):
@@ -738,7 +738,8 @@ arguments are given, which is ambiguous.
             if len(kwargs) > 1:
                 raise ValueError(
                     f"Parameter {objecttools.elementphrase(self)} accepts at most a "
-                    f"single keyword argument but {len(kwargs)} are given."
+                    f"single keyword argument, but "
+                    f"{objecttools.Inflect.cardinal(len(kwargs))} are given."
                 )
             self._keywordarguments.add(*tuple(kwargs.items())[0])
         try:
@@ -800,10 +801,14 @@ arguments are given, which is ambiguous.
         sums = numpy.round(numpy.sum(values, axis=1), 12)
         errors = ~numpy.isin(sums, (0.0, 1.0))
         if numpy.any(errors):
+            rows = numpy.where(errors)[0]
+            inflect = objecttools.Inflect
+            n = len(rows)
             raise RuntimeError(
-                f"The sum(s) of the following row(s) of parameter "
-                f"{objecttools.elementphrase(self)} are neither 0.0 nor 1.0: "
-                f"{objecttools.enumeration(numpy.where(errors)[0])}."
+                f"The {inflect.plural('sum', n)} of "
+                f"{inflect.listing('row', rows, backticks=False)} of parameter "
+                f"{objecttools.elementphrase(self)} {inflect.plural('is', n)} "
+                f"neither `0.0` nor `1.0`."
             )
 
     def verify_order(self) -> None:
@@ -830,12 +835,13 @@ arguments are given, which is ambiguous.
         for axis, string in ((1, "row"), (0, "column")):
             errors = is_lake * (numpy.sum(values, axis=axis) > 0.0)
             if numpy.any(errors):
+                idxs = numpy.where(errors)[0]
                 raise RuntimeError(
                     f"Internal lake zones cannot be involved in snow "
                     f"redistribution, so the sums of all {string}s of parameter "
                     f"{objecttools.elementphrase(self)} corresponding to internal "
-                    f"lake zones must be zero, which is not the case for the "
-                    f"{string}(s): {objecttools.enumeration(numpy.where(errors)[0])}."
+                    f"lake zones must be zero, which is not the case for "
+                    f"{objecttools.Inflect.listing(string, idxs, backticks=False)}."
                 )
 
     @property
@@ -1134,7 +1140,7 @@ indirectly by using the keyword arguments `khq` and `hq`.
         Traceback (most recent call last):
         ...
         ValueError: For the alternative calculation of parameter `k` of element `?`, \
-at least the keywords arguments `khq` and `hq` must be given.
+at least the keyword arguments `khq` and `hq` must be given.
 
         >>> import numpy
         >>> alpha(numpy.nan)
@@ -1173,8 +1179,8 @@ must be defined beforehand.
             if counter == 1:
                 raise ValueError(
                     f"For the alternative calculation of parameter "
-                    f"{objecttools.elementphrase(self)}, at least the "
-                    f"keywords arguments `khq` and `hq` must be given."
+                    f"{objecttools.elementphrase(self)}, at least the keyword "
+                    f"arguments `khq` and `hq` must be given."
                 ) from exc
             alpha = float(
                 kwargs.get(

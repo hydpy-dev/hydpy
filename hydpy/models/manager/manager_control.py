@@ -94,17 +94,17 @@ the name of at least one element, but none is given.
     Traceback (most recent call last):
     ...
     ValueError: While trying to define the sources to be controlled by the model \
-`manager` of element `?`, the following error occurred: Parameter `sources` requires \
-a list of the names of the elements which handle the relevant source models, but the \
-following argument is not a valid element name: `3`
+`manager` of element `?`, the following error occurred: Parameter `sources` requires a \
+list of the names of the elements which handle the relevant source models, but the \
+argument `3` is not a valid element name.
 
     >>> sources("not valid", "valid", " invalid")
     Traceback (most recent call last):
     ...
     ValueError: While trying to define the sources to be controlled by the model \
-`manager` of element `?`, the following error occurred: Parameter `sources` requires \
-a list of the names of the elements which handle the relevant source models, but the \
-following arguments are not some valid element names: `not valid` and ` invalid`
+`manager` of element `?`, the following error occurred: Parameter `sources` requires a \
+list of the names of the elements which handle the relevant source models, but the \
+arguments `not valid` and ` invalid` are not valid element names.
 
     In case of errors, the previous definitions remain unchanged:
 
@@ -146,14 +146,13 @@ the relevant sources so far.
                 )
             ivvi = objecttools.is_valid_variable_identifier
             if wrong := tuple(a for a in sourcenames if not ivvi(a)):
-                p = objecttools.Inflect.plural
+                i = objecttools.Inflect
                 n = len(wrong)
-                wrong = tuple(f"`{w}`" for w in wrong)
                 raise ValueError(
                     f"Parameter `{self.name}` requires a list of the names of the "
                     f"elements which handle the relevant source models, but the "
-                    f"following {p('argument', n)} {p('is', n)} not {p('a', n)} valid "
-                    f"element {p('name', n)}: {objecttools.enumeration(wrong)}"
+                    f"{i.listing('argument', wrong, 'is')} not "
+                    f"{i.a('valid element name', n)}."
                 )
             sourcenames = tuple(sorted(sourcenames))
             self.subpars.pars.derived.nmbsources(len(sourcenames))

@@ -675,7 +675,7 @@ by the MA coefficients `1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0`.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: No moving average model (`ma`) \
-available
+available.
 
         >>> arma.ma = ma
         >>> assert arma.ma is ma
@@ -684,12 +684,12 @@ available
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: No moving average model (`ma`) \
-available
+available.
         """
         if (ma := self._ma) is not None:
             return ma
         raise exceptiontools.AttributeNotReady(
-            "No moving average model (`ma`) available"
+            "No moving average model (`ma`) available."
         )
 
     @ma.setter

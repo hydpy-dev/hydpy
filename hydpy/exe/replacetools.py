@@ -81,17 +81,17 @@ def xml_replace(filename: str, *, printflag: bool = True, **replacements: str) -
     ...     xml_replace("test1", e2="E2")
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to replace the markers `e2, e3_, and e4` \
-of the XML template file `test1.xmlt` with the available keywords `e2`, \
-the following error occurred: Marker `e3_` cannot be replaced.
+    RuntimeError: While trying to replace the markers `e2`, `e3_`, and `e4` of the \
+XML template file `test1.xmlt` with the available keyword `e2`, the following error \
+occurred: Marker `e3_` cannot be replaced.
 
     >>> with TestIO():
     ...     xml_replace("test1", e2="e2", e3_="E3", e4="e4", e5="e5")
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to replace the markers `e2, e3_, and e4` \
-of the XML template file `test1.xmlt` with the available keywords `e2, e3_, \
-e4, and e5`, the following error occurred: Keyword(s) `e5` cannot be used.
+    RuntimeError: While trying to replace the markers `e2`, `e3_`, and `e4` of the \
+XML template file `test1.xmlt` with the available keywords `e2`, `e3_`, `e4`, and \
+`e5`, the following error occurred: Keyword `e5` cannot be used.
 
     Using different default values for the same substitution marker
     is not allowed:
@@ -199,16 +199,18 @@ for marker `e4`.
                 unused_keywords.discard(part)
         targetbody = "".join(parts)
         if unused_keywords:
-            raise RuntimeError(
-                f"Keyword(s) `{objecttools.enumeration(unused_keywords)}` "
-                f"cannot be used."
-            )
+            keywords_ = objecttools.Inflect.listing("Keyword", sorted(unused_keywords))
+            raise RuntimeError(f"{keywords_} cannot be used.")
         with open(targetname, "w", encoding=config.ENCODING) as targetfile:
             targetfile.write(targetbody)
     except BaseException:
+        listing = objecttools.Inflect.listing
+        keywordphrase = (
+            f"the available {listing('keyword', sorted(keywords))}"
+            if keywords
+            else "no keywords"
+        )
         objecttools.augment_excmessage(
-            f"While trying to replace the markers "
-            f"`{objecttools.enumeration(sorted(set(markers)))}` of the "
-            f"XML template file `{templatename}` with the available "
-            f"keywords `{objecttools.enumeration(sorted(keywords))}`"
+            f"While trying to replace the {listing('marker', sorted(set(markers)))} "
+            f"of the XML template file `{templatename}` with {keywordphrase}"
         )

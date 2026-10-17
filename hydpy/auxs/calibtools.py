@@ -1572,7 +1572,8 @@ attribute nor a rule object named `FC`...
     ...     ci._logfilepath = "dirname1/filename.log"
     ...     ci.update_logfile()
     UserWarning: While trying to update the logfile `dirname1/filename.log`, the \
-following problem occured: [Errno 2] No such file or directory: 'dirname1/filename.log'.
+following problem occurred: [Errno 2] No such file or directory: \
+'dirname1/filename.log'.
 
     On subsequent calls, it tries to write both the previously logged and the new data:
 
@@ -1598,7 +1599,8 @@ following problem occured: [Errno 2] No such file or directory: 'dirname1/filena
     Traceback (most recent call last):
     ...
     UserWarning: While trying to update the logfile `dirname2/filename.log`, the \
-following problem occured: [Errno 2] No such file or directory: 'dirname2/filename.log'.
+following problem occurred: [Errno 2] No such file or directory: \
+'dirname2/filename.log'.
     >>> from unittest import mock
     >>> with TestIO():
     ...     with mock.patch("time.sleep") as mocked:
@@ -1606,7 +1608,7 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     ...         ci.finalise_logfile()
     Traceback (most recent call last):
     ...
-    UserWarning: Trying to finalise logfile `dirname2/filename.log` failed 1 times.
+    UserWarning: Trying to finalise logfile `dirname2/filename.log` failed once.
     >>> with TestIO():
     ...     with mock.patch("warnings.warn"), mock.patch("time.sleep") as mocked:
     ...         mocked.side_effect = Exception("time.sleep actually called")
@@ -1722,8 +1724,8 @@ does not agree with the one documentated in log file `example_calibration.log` (
     Traceback (most recent call last):
     ...
     RuntimeError: The names of the rules handled by the actual calibration interface \
-(damp, fc, and k4) do not agree with the names in the header of logfile \
-`example_calibration.log` (damp, fc, k4, and percmax).
+(`damp`, `fc`, and `k4`) do not agree with the names in the header of logfile \
+`example_calibration.log` (`damp`, `fc`, `k4`, and `percmax`).
 
     The last consistency check is optional.  Set argument `check` to |False| to force
     method |CalibrationInterface.read_logfile| to query all available data instead of
@@ -1985,7 +1987,7 @@ object named `fc`.
             except BaseException as exc:
                 warnings.warn(
                     f"While trying to update the logfile `{self._logfilepath}`, the "
-                    f"following problem occured: {exc}."
+                    f"following problem occurred: {exc}."
                 )
 
     def finalise_logfile(self) -> None:
@@ -2002,9 +2004,10 @@ object named `fc`.
                     self._write_data_into_logfile()
                 except BaseException:
                     counter += 1
+                    cardinal = objecttools.Inflect.cardinal
                     warnings.warn(
                         f"Trying to finalise logfile `{self._logfilepath}` failed "
-                        f"{counter} times."
+                        f"{'once' if counter == 1 else f'{cardinal(counter)} times'}."
                     )
                     time.sleep(10.0)
 
@@ -2052,12 +2055,13 @@ object named `fc`.
             names_int = set(self.names)
             names_ext = set(idx2name.values())
             if names_int != names_ext:
-                enumeration = objecttools.enumeration
+                enum = objecttools.enumeration
+                int_ = enum(sorted(names_int), backticks=True)
+                ext_ = enum(sorted(names_ext), backticks=True)
                 raise RuntimeError(
                     f"The names of the rules handled by the actual calibration "
-                    f"interface ({enumeration(sorted(names_int))}) do not agree with "
-                    f"the names in the header of logfile `{self._logfilepath}` "
-                    f"({enumeration(sorted(names_ext))})."
+                    f"interface ({int_}) do not agree with the names in the header of "
+                    f"logfile `{self._logfilepath}` ({ext_})."
                 )
         jdx_best = 0
         result_best = -numpy.inf if maximisation else numpy.inf
@@ -2611,11 +2615,14 @@ following error occurred: Rule type `ReplaceIUH` supports only parameters of typ
             names_int = set(self.elements.names)
             names_ext = set(iuhs.keys())
             if names_int != names_ext:
-                enumeration = objecttools.enumeration
+                enum_ = objecttools.enumeration
+                plural = objecttools.Inflect.plural
+                n = len(names_ext)
                 raise RuntimeError(
-                    f"The given elements ({enumeration(sorted(names_ext))}) do not "
-                    f"agree with the complete set of relevant elements "
-                    f"({enumeration(sorted(names_int))})."
+                    f"The given {plural('element', n)} "
+                    f"({enum_(sorted(names_ext), backticks=True)}) "
+                    f"{plural('does', n)} not agree with the complete set of "
+                    f"relevant elements ({enum_(sorted(names_int), backticks=True)})."
                 )
             element2iuh = self._element2iuh = {}
             for element in self.elements:
@@ -2717,8 +2724,8 @@ class ReplaceIUH(RuleIUH):
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to add `IUH` objects to the `ReplaceIUH` rule `D`, the \
-following error occurred: The given elements (element1) do not agree with the \
-complete set of relevant elements (element1 and element2).
+following error occurred: The given element (`element1`) does not agree with the \
+complete set of relevant elements (`element1` and `element2`).
 
     By default, each |ReplaceIUH| object triggers the calculation of the ARMA
     coefficients during the execution of its method |ReplaceIUH.apply_value|, which can

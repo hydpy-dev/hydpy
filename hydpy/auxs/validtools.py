@@ -29,8 +29,8 @@ def test_equal_shape(**kwargs: HasShape) -> None:
     ...                  arr3=numpy.asarray([5.0, 6.0]))
     Traceback (most recent call last):
     ...
-    ValueError: The shapes of the following objects are not equal: \
-arr1 (2,), arr2 (1,), and arr3 (2,).
+    ValueError: The shapes of the following objects are not equal: `arr1` with shape \
+`(2,)`, `arr2` with shape `(1,)`, and `arr3` with shape `(2,)`.
 
     For flexibility in the functions application, it is allowed to pass only one array
     or no arrays at all:
@@ -42,7 +42,7 @@ arr1 (2,), arr2 (1,), and arr3 (2,).
     shapes = numpy.asarray([numpy.asarray(array).shape for array in kwargs.values()])
     if any(shapes[:-1] != shapes[1:]):
         string = objecttools.enumeration(
-            f"{name} {objecttools.repr_tuple(shape)}"
+            f"`{name}` with shape `{objecttools.repr_tuple(shape)}`"
             for (name, shape) in sorted(zip(names, shapes))
         )
         raise ValueError(
@@ -70,7 +70,7 @@ def test_non_negative(
     ...                   arr3=numpy.asarray([5.0, 6.0]))
     Traceback (most recent call last):
     ...
-    ValueError: For the following objects, at least one value is negative: arr2.
+    ValueError: For the object `arr2`, at least one value is negative.
 
     For flexibility in the functions application, it is allowed to pass no array at all:
 
@@ -79,9 +79,7 @@ def test_non_negative(
     names = list(kwargs.keys())
     negs = [numpy.nanmin(numpy.asarray(array)) < 0.0 for array in kwargs.values()]
     if any(negs):
-        string = objecttools.enumeration(
-            name for name, neg in sorted(zip(names, negs)) if neg
+        string = objecttools.Inflect.listing(
+            "object", (name for name, neg in sorted(zip(names, negs)) if neg)
         )
-        raise ValueError(
-            f"For the following objects, at least one value is negative: {string}."
-        )
+        raise ValueError(f"For the {string}, at least one value is negative.")

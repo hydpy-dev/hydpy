@@ -528,8 +528,8 @@ of the model handled by element `exchange`, the following error occurred: Outlet
     ...
     RuntimeError: While trying to build the node connection of the `receiver` \
 sequences of the model handled by element `exchange`, the following error occurred: \
-There must be exactly 2 outlet receiver but the following `1` receiver nodes are \
-defined: waterlevel1.
+There must be exactly two receiver nodes, but one receiver node is defined \
+(`waterlevel1`).
 
     Correspondingly, |exch_weir_hbv96| raises the following error if there are not
     precisely two overflow nodes available:
@@ -548,8 +548,8 @@ defined: waterlevel1.
     ...
     RuntimeError: While trying to build the node connection of the `outlet` sequences \
 of the model handled by element `exchange`, the following error occurred: There must \
-be exactly 2 outlet nodes but the following `3` outlet nodes are defined: overflow1, \
-overflow2, and waterlevel2.
+be exactly two outlet nodes, but three outlet nodes are defined (`overflow1`, \
+`overflow2`, and `waterlevel2`).
     """
 
     DOCNAME = modeltools.DocName(
@@ -576,11 +576,12 @@ overflow2, and waterlevel2.
         element = self.element
         assert element is not None
         receivers = element.receivers
-        if len(receivers) != 2:
+        if (n := len(receivers)) != 2:
+            names = objecttools.enumeration(receivers.names, backticks=True)
             raise RuntimeError(
-                f"There must be exactly 2 outlet receiver but the following "
-                f"`{len(receivers)}` receiver nodes are defined: "
-                f"{objecttools.enumeration(node.name for node in receivers)}."
+                f"There must be exactly two receiver nodes, but "
+                f"{objecttools.Inflect.count(n, 'receiver node', 'is')} defined"
+                f"{f' ({names})' if n else ''}."
             )
         super()._connect_receivers(report_noconnect)
 
@@ -588,11 +589,12 @@ overflow2, and waterlevel2.
         element = self.element
         assert element is not None
         outlets = element.outlets
-        if len(outlets) != 2:
+        if (n := len(outlets)) != 2:
+            names = objecttools.enumeration(outlets.names, backticks=True)
             raise RuntimeError(
-                f"There must be exactly 2 outlet nodes but the following "
-                f"`{len(outlets)}` outlet nodes are defined: "
-                f"{objecttools.enumeration(node.name for node in outlets)}."
+                f"There must be exactly two outlet nodes, but "
+                f"{objecttools.Inflect.count(n, 'outlet node', 'is')} defined"
+                f"{f' ({names})' if n else ''}."
             )
         idx2outlets = {}
         for outlet in outlets:

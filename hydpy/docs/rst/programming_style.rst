@@ -241,7 +241,7 @@ string to the `outputfiletype` of an instance ofclass |SequenceManager| :
 >>> sequencemanager.filetype = "test"
 Traceback (most recent call last):
   ...
-ValueError: The given sequence file type `test` is not implemented.  Please choose one of the following file types: npy, asc, and nc.
+ValueError: The given sequence file type `test` is not implemented.  Please choose one of the following file types: `npy`, `asc`, and `nc`.
 
 
 Of course, the extensive usage of protected attributes increases the
@@ -285,7 +285,7 @@ recommend using the function |augment_excmessage|:
 >>> e1.keywords = "correct", "w r o n g"
 Traceback (most recent call last):
 ...
-ValueError: While trying to add the keyword `w r o n g` to device e1, the following error occurred: The given name string `w r o n g` does not define a valid variable identifier.  Valid identifiers do not contain characters like `-` or empty spaces, do not start with numbers, cannot be mistaken with Python built-ins like `for`...)
+ValueError: While trying to add the keyword `w r o n g` to device `e1`, the following error occurred: The given name string `w r o n g` does not define a valid variable identifier.  Valid identifiers do not contain characters like `-` or empty spaces, do not start with numbers, cannot be mistaken with Python built-ins like `for`...)
 
 
 Naming conventions

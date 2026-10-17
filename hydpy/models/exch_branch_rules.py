@@ -334,8 +334,8 @@ unknown.  Please define them via parameter `rules` first.
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to connect model `exch_branch_rules` with element \
-`branch`, the following error occurred: The target node names `channel and \
-diversion` do not agree with the available outlet nodes `diversion and river`.
+`branch`, the following error occurred: The target node names `channel` and \
+`diversion` do not agree with the available outlet nodes `diversion` and `river`.
 
         With consistent definitions, the branched flows reach the nodes `diversion`
         and `river` as intended:
@@ -378,10 +378,11 @@ diversion` do not agree with the available outlet nodes `diversion and river`.
             targetnames = self.targetnames
             outlets = self.element.outlets
             if targetnames != outlets.names:
+                listing = objecttools.Inflect.listing
                 raise RuntimeError(
-                    f"The target node names `{objecttools.enumeration(targetnames)}` "
-                    f"do not agree with the available outlet nodes "
-                    f"`{objecttools.enumeration(outlets.names)}`."
+                    f"The target node {listing('name', targetnames, 'does')} not "
+                    f"agree with the available outlet "
+                    f"{listing('node', outlets.names)}."
                 )
             branched = self.sequences.outlets.branched
             branched.node2idx = {}

@@ -1729,7 +1729,7 @@ class Model(modeltools.SubstepModel, routinginterfaces.ChannelModel_V1):
         ...
         ValueError: While trying to add a submodel to the main model `sw1d_channel`, \
 the following error occurred: Submodels of type `sw1d_q_in` can only be added to the \
-first channel position 0, but `1` is given.
+first channel position 0, but position 1 is given.
         >>> assert model.routingmodels[1] is None
 
         We first add one storage model to each channel segment and one routing model
@@ -1777,7 +1777,7 @@ first channel position 0, but `1` is given.
                 self.routingmodels.delete_submodel(position=position)
                 raise ValueError(
                     f"Submodels of type `{routingmodel.name}` can only be added to "
-                    f"the first channel position 0, but `{position}` is given."
+                    f"the first channel position 0, but position {position} is given."
                 )
             r = routingmodel
             r1 = routinginterfaces.RoutingModel_V1
@@ -1920,7 +1920,7 @@ first channel position 0, but `1` is given.
         ...
         ValueError: While trying to add a submodel to the main model `sw1d_channel`, \
 the following error occurred: Submodels of type `sw1d_weir_out` can only be added to \
-the last channel position (2), but `1` is given.
+the last channel position 2, but position 1 is given.
         >>> assert model.routingmodels[1] is None
 
         We first add one storage model to each channel segment and one routing model
@@ -1968,7 +1968,8 @@ as rm2:
                 self.routingmodels.delete_submodel(position=position)
                 raise ValueError(
                     f"Submodels of type `{routingmodel.name}` can only be added to "
-                    f"the last channel position ({nmb}), but `{position}` is given."
+                    f"the last channel position {nmb}, but position {position} is "
+                    f"given."
                 )
             r = routingmodel
             r1 = routinginterfaces.RoutingModel_V1

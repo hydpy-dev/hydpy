@@ -23,7 +23,7 @@ class _PubProperty(propertytools.DefaultProperty[T_contra, T_co]):
 
     def _fget(self, obj: Any) -> NoReturn:
         raise exceptiontools.AttributeNotReady(
-            f"Attribute {self.name} of module `pub` is not defined at the moment."
+            f"Attribute `{self.name}` of module `pub` is not defined at the moment."
         )
 
 
@@ -178,8 +178,8 @@ class Pub(types.ModuleType):
     >>> pub.timegrids
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Attribute timegrids of module `pub` \
-is not defined at the moment.
+    hydpy.core.exceptiontools.AttributeNotReady: Attribute `timegrids` of module \
+`pub` is not defined at the moment.
 
     After setting an attribute value successfully, it is accessible (we select the
     `timegrids` attribute here, as its setter supplies a little magic to make defining
@@ -188,11 +188,11 @@ is not defined at the moment.
     >>> pub.timegrids = None
     Traceback (most recent call last):
     ...
-    ValueError: While trying to define a new `Timegrids` object based on the \
-arguments `None`, the following error occurred: Initialising a `Timegrids` object \
-either requires one, two, or three `Timegrid` objects or two dates objects (of type \
-`Date`, `datetime`, or `str`) and one period object (of type `Period`, `timedelta`, \
-or `str`), but objects of the types `None, None, and None` are given.
+    ValueError: While trying to define a new `Timegrids` object based on the argument \
+`None`, the following error occurred: Initialising a `Timegrids` object either \
+requires one, two, or three `Timegrid` objects or two dates objects (of type `Date`, \
+`datetime`, or `str`) and one period object (of type `Period`, `timedelta`, or \
+`str`), but objects of the types `None`, `None`, and `None` are given.
 
     >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
     >>> pub.timegrids
@@ -206,8 +206,8 @@ or `str`), but objects of the types `None, None, and None` are given.
     >>> pub.timegrids
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: Attribute timegrids of module `pub` \
-is not defined at the moment.
+    hydpy.core.exceptiontools.AttributeNotReady: Attribute `timegrids` of module \
+`pub` is not defined at the moment.
     """
 
     options: optiontools.Options

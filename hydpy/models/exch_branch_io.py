@@ -268,8 +268,8 @@ unknown.  Please define them via parameter `targets` first.
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to connect model `exch_branch_io` with element \
-`branch`, the following error occurred: The target node names `channel and diversion` \
-do not agree with the available outlet nodes `diversion and river`.
+`branch`, the following error occurred: The target node names `channel` and \
+`diversion` do not agree with the available outlet nodes `diversion` and `river`.
 
         With consistent definitions, the transfer and the mainstream outflow reach the
         nodes `diversion` and `river` as intended:
@@ -307,10 +307,11 @@ do not agree with the available outlet nodes `diversion and river`.
             targetnames = self.targetnames
             outlets = self.element.outlets
             if sorted(targetnames) != sorted(outlets.names):
+                listing = objecttools.Inflect.listing
                 raise RuntimeError(
-                    f"The target node names `{objecttools.enumeration(targetnames)}` "
-                    f"do not agree with the available outlet nodes "
-                    f"`{objecttools.enumeration(outlets.names)}`."
+                    f"The target node {listing('name', targetnames, 'does')} not "
+                    f"agree with the available outlet "
+                    f"{listing('node', outlets.names)}."
                 )
             sequences = self.sequences.outlets
             for targetname, sequence in zip(

@@ -438,15 +438,15 @@ def _extend_methoddocstrings(module: types.ModuleType) -> None:
         )
 
 
-def _get_ending(container: Sized) -> str:
-    return "s" if len(container) > 1 else ""
+def _plural(noun: str, container: Sized) -> str:
+    return objecttools.Inflect.plural(noun, len(container))
 
 
 def _get_methoddocstringinsertions(method: modeltools.Method) -> list[str]:
     insertions = []
     submethods = getattr(method, "SUBMETHODS", ())
     if submethods:
-        insertions.append(f"    Required submethod{_get_ending(submethods)}:")
+        insertions.append(f"    Required {_plural('submethod', submethods)}:")
         for submethod in submethods:
             insertions.append(
                 f"      :class:`~{submethod.__module__}." f"{submethod.__name__}`"
@@ -456,7 +456,7 @@ def _get_methoddocstringinsertions(method: modeltools.Method) -> list[str]:
         pars = getattr(method, f"{pargroup.upper()}PARAMETERS", ())
         if pars:
             insertions.append(
-                f"    Requires the {pargroup} parameter{_get_ending(pars)}:"
+                f"    Requires the {pargroup} {_plural('parameter', pars)}:"
             )
             for par in pars:
                 insertions.append(f"      :class:`~{par.__module__}.{par.__name__}`")
@@ -487,7 +487,7 @@ def _get_methoddocstringinsertions(method: modeltools.Method) -> list[str]:
                 insertions.append(
                     f"    {statement} "
                     f"{seqtype.__name__[:-8].lower()} "
-                    f"sequence{_get_ending(seqs)}:"
+                    f"{_plural('sequence', seqs)}:"
                 )
                 for seq in seqs:
                     insertions.append(
@@ -528,7 +528,7 @@ def _gain_and_insert_additional_information_into_docstrings(
                         f"      :class:`~{method.__module__}." f"{method.__name__}`"
                     )
                 insertions.append(
-                    f"    {description} by the " f"method{_get_ending(subinsertions)}:"
+                    f"    {description} by the {_plural('method', subinsertions)}:"
                 )
                 insertions.extend(sorted(subinsertions))
                 insertions.append("\n")
@@ -548,7 +548,7 @@ def _gain_and_insert_additional_information_into_docstrings(
         ):
             insertions.append(
                 f"    Used by the "
-                f"application model{_get_ending(applicationmodels)}:"
+                f"{_plural('application model', applicationmodels)}:"
             )
             insertions.extend(
                 f"      :mod:`~hydpy.models.{am}`" for am in applicationmodels

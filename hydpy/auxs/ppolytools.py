@@ -600,10 +600,10 @@ the actual number of constants held by vector `x0s` (3).
         >>> PPoly.from_data(xs=xs, ys=ys, method="spline")
         Traceback (most recent call last):
         ...
-        ValueError: While trying to derive polynomials from the vectors `x` ([1.0, \
-2.0, and 3.0]) and `y` ([1.0, 2.0, and 3.5]), the following error occurred: `spline` \
-is not a supported interpolation method.  Please select "linear", "cubic", "akima", \
-or "pchip" or pass a subclass of SciPy's `CubicHermiteSpline` class.
+        ValueError: While trying to derive polynomials from the vectors `x` (`[1.0, \
+2.0, 3.0]`) and `y` (`[1.0, 2.0, 3.5]`), the following error occurred: `spline` is \
+not a supported interpolation method.  Please select "linear", "cubic", "akima", or \
+"pchip" or pass a subclass of SciPy's `CubicHermiteSpline` class.
 
         |PPoly| also checks the type of the method argument, even if the given data
         set contains so few x-y pairs that it does not need a spline at all:
@@ -613,8 +613,8 @@ or "pchip" or pass a subclass of SciPy's `CubicHermiteSpline` class.
         >>> PPoly.from_data(xs=[0.0, 1.0], ys=[2.0, 5.0], method=MyOtherSpline)
         Traceback (most recent call last):
         ...
-        TypeError: While trying to derive polynomials from the vectors `x` ([0.0 and \
-1.0]) and `y` ([2.0 and 5.0]), the following error occurred: `MyOtherSpline` is not a \
+        TypeError: While trying to derive polynomials from the vectors `x` (`[0.0, \
+1.0]`) and `y` (`[2.0, 5.0]`), the following error occurred: `MyOtherSpline` is not a \
 supported interpolation method.  Please select "linear", "cubic", "akima", or \
 "pchip" or pass a subclass of SciPy's `CubicHermiteSpline` class.
 
@@ -632,14 +632,14 @@ supported interpolation method.  Please select "linear", "cubic", "akima", or \
         >>> PPoly.from_data(xs=[], ys=[])
         Traceback (most recent call last):
         ...
-        ValueError: While trying to derive polynomials from the vectors `x` ([]) and \
-`y` ([]), the following error occurred: Vectors `x` and `y` must not be empty.
+        ValueError: While trying to derive polynomials from the vectors `x` (`[]`) \
+and `y` (`[]`), the following error occurred: Vectors `x` and `y` must not be empty.
 
         >>> PPoly.from_data(xs=[0.0, 1.0], ys=[1.0, 2.0, 3.0])
         Traceback (most recent call last):
         ...
-        ValueError: While trying to derive polynomials from the vectors `x` ([0.0 and \
-1.0]) and `y` ([1.0, 2.0, and 3.0]), the following error occurred: The lenghts of \
+        ValueError: While trying to derive polynomials from the vectors `x` (`[0.0, \
+1.0]`) and `y` (`[1.0, 2.0, 3.0]`), the following error occurred: The lengths of \
 vectors `x` (2) and `y` (3) must be identical.
         """
         self = cls._make_self()
@@ -681,7 +681,7 @@ vectors `x` (2) and `y` (3) must be identical.
             ys = numpy.asarray(ys, dtype=config.NP_FLOAT)
             if len(xs) != len(ys):
                 raise ValueError(
-                    f"The lenghts of vectors `x` ({len(xs)}) and `y` ({len(ys)}) "
+                    f"The lengths of vectors `x` ({len(xs)}) and `y` ({len(ys)}) "
                     f"must be identical."
                 )
             if len(xs) == 0:
@@ -718,8 +718,8 @@ vectors `x` (2) and `y` (3) must be identical.
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to derive polynomials from the vectors `x` "
-                f"([{objecttools.enumeration(xs, objecttools.repr_)}]) and `y` "
-                f"([{objecttools.enumeration(ys, objecttools.repr_)}])"
+                f"(`{objecttools.repr_list(xs)}`) and `y` "
+                f"(`{objecttools.repr_list(ys)}`)"
             )
 
     def _get_nmb_inputs(self) -> Literal[1]:

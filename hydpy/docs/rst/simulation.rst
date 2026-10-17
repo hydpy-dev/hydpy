@@ -455,7 +455,7 @@ Specifying the relevant script function is not enough, as |xml_validate|
 
 >>> subprocess = run_subprocess("hyd.py xml_validate")  # doctest: +ELLIPSIS
 Invoking hyd.py with argument `xml_validate` resulted in the following error:
-Function `xml_validate` requires `1` positional arguments (xmlpath), but `0` are given.
+Function `xml_validate` requires one positional argument (`xmlpath`), but none are given.
 ...
 
 After adding the relative or absolute path, |xml_validate| informs us by a message and

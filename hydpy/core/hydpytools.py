@@ -1031,7 +1031,7 @@ first.
         >>> pub.selections
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: Attribute selections of module \
+        hydpy.core.exceptiontools.AttributeNotReady: Attribute `selections` of module \
 `pub` is not defined at the moment.
 
         By calling the method |HydPy.prepare_network|, one loads all three network

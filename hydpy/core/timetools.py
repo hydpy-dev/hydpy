@@ -342,7 +342,7 @@ supported format styles.
         Traceback (most recent call last):
         ...
         ValueError: While trying to apply the time zone offset defined by string \
-`1997-11-01 +0000001`, the following error occurred: wrong number of offset characters
+`1997-11-01 +0000001`, the following error occurred: Wrong number of offset characters.
 
         >>> Date.from_string("1997-11-01 +0X:00")
         Traceback (most recent call last):
@@ -417,7 +417,7 @@ base 10: '0X'
             elif len(offset) <= 4:
                 minutes = int(offset[:-2]) * 60 + int(offset[-2:])
             else:
-                raise ValueError("wrong number of offset characters")
+                raise ValueError("Wrong number of offset characters.")
             delta = datetime_.timedelta(
                 minutes=factor * minutes - hydpy.pub.options.utcoffset
             )
@@ -778,8 +778,8 @@ decimal fraction of a second than "0" allowed.
         >>> date1.refmonth = 0
         Traceback (most recent call last):
         ...
-        ValueError: The reference month must be a value between one (January) and \
-twelve (December) but `0` is given
+        ValueError: The reference month must be a value between 1 (January) and 12 \
+(December), but `0` is given.
 
         >>> date1.refmonth = "wrong"
         Traceback (most recent call last):
@@ -818,8 +818,8 @@ twelve (December) but `0` is given
                 ) from None
         if not 0 < refmonth < 13:
             raise ValueError(
-                f"The reference month must be a value between one (January) and "
-                f"twelve (December) but `{value}` is given"
+                f"The reference month must be a value between 1 (January) and 12 "
+                f"(December), but `{value}` is given."
             )
         type(self)._firstmonth_wateryear = refmonth
 
@@ -2080,7 +2080,7 @@ indexed timegrid `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`.
         Traceback (most recent call last):
         ...
         IndexError: To define a Timegrid instance via an array, 13 numbers are \
-required, but the given array consist of 12 entries/rows only.
+required, but the given array consists of 12 entries only.
 
         The inverse method |Timegrid.to_array| creates a new |numpy| |numpy.ndarray|
         based on the current |Timegrid| object:
@@ -2098,8 +2098,8 @@ required, but the given array consist of 12 entries/rows only.
         except IndexError:
             raise IndexError(
                 f"To define a Timegrid instance via an array, 13 numbers are "
-                f"required, but the given array consist of {len(array)} entries/rows "
-                f"only."
+                f"required, but the given array consists of "
+                f"{objecttools.Inflect.count(len(array), 'entry')} only."
             ) from None
 
     def to_array(self) -> NDArrayFloat:
@@ -2327,7 +2327,7 @@ inhomogeneous part.
         ...
         ValueError: When converting an array to a sequence, the lengths of the \
 timegrid and the given array must be equal, but the length of the timegrid object is \
-`4` and the length of the array object is `2`.
+4 and the length of the array object is 2.
         """
         try:
             array = numpy.asarray(array, dtype=config.NP_FLOAT)
@@ -2339,8 +2339,8 @@ timegrid and the given array must be equal, but the length of the timegrid objec
             raise ValueError(
                 f"When converting an array to a sequence, the lengths of the timegrid "
                 f"and the given array must be equal, but the length of the timegrid "
-                f"object is `{len(self)}` and the length of the array object is "
-                f"`{len(array)}`."
+                f"object is {len(self)} and the length of the array object is "
+                f"{len(array)}."
             )
         shape = list(array.shape)
         shape[0] += 13
@@ -2669,25 +2669,31 @@ class Timegrids:
     Traceback (most recent call last):
     ...
     TypeError: While trying to define a new `Timegrids` object based on the arguments \
-`1, 2, 3, and 4`, the following error occurred: Initialising `Timegrids` objects \
-requires one, two, or three arguments but `4` are given.
+`1`, `2`, `3`, and `4`, the following error occurred: Initialising `Timegrids` objects \
+requires one, two, or three arguments, but four are given.
+
+    >>> Timegrids()
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to define a new `Timegrids` object based on no arguments, \
+the following error occurred: Initialising `Timegrids` objects requires one, two, or \
+three arguments, but none are given.
 
     >>> Timegrids("wrong")
     Traceback (most recent call last):
     ...
-    ValueError: While trying to define a new `Timegrids` object based on the \
-arguments `wrong`, the following error occurred: Initialising a `Timegrids` object \
-either requires one, two, or three `Timegrid` objects or two dates objects (of type \
-`Date`, `datetime`, or `str`) and one period object (of type `Period`, `timedelta`, \
-or `str`), but objects of the types `str, None, and None` are given.
+    ValueError: While trying to define a new `Timegrids` object based on the argument \
+`wrong`, the following error occurred: Initialising a `Timegrids` object either \
+requires one, two, or three `Timegrid` objects or two dates objects (of type `Date`, \
+`datetime`, or `str`) and one period object (of type `Period`, `timedelta`, or \
+`str`), but objects of the types `str`, `None`, and `None` are given.
 
     >>> Timegrids(wrong=Timegrid("2000-01-01", "2001-01-01", "1d"))
     Traceback (most recent call last):
     ...
-    TypeError: While trying to define a new `Timegrids` object based on the arguments \
+    TypeError: While trying to define a new `Timegrids` object based on the argument \
 `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`, the following error \
-occurred: Initialising class `Timegrids` does not support the following given \
-keywords: `wrong`.
+occurred: Initialising class `Timegrids` does not support the given keyword `wrong`.
 
     >>> Timegrids(
     ...     Timegrid("2000-01-01", "2001-01-01", "1d"),
@@ -2695,8 +2701,8 @@ keywords: `wrong`.
     Traceback (most recent call last):
     ...
     TypeError: While trying to define a new `Timegrids` object based on the arguments \
-`Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d") and \
-Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`, the following error \
+`Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")` and \
+`Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`, the following error \
 occurred: There is a conflict between the given positional and keyword arguments.
 
     Two |Timegrids| objects are equal if all handled |Timegrid| objects are equal:
@@ -2770,7 +2776,9 @@ occurred: There is a conflict between the given positional and keyword arguments
             if not 1 <= len(values) <= 3:
                 raise TypeError(
                     f"Initialising `Timegrids` objects requires one, two, or three "
-                    f"arguments but `{len(values)}` are given."
+                    f"arguments, but "
+                    f"{objecttools.Inflect.cardinal(len(values), zero='none')} are "
+                    f"given."
                 )
             arguments: list[None | Timegrid | DateConstrArg | PeriodConstrArg] = [
                 None,
@@ -2798,8 +2806,8 @@ occurred: There is a conflict between the given positional and keyword arguments
                         )
             if kwargs:
                 raise TypeError(
-                    f"Initialising class `Timegrids` does not support the following "
-                    f"given keywords: `{objecttools.enumeration(kwargs.keys())}`."
+                    f"Initialising class `Timegrids` does not support the given "
+                    f"{objecttools.Inflect.listing('keyword', kwargs.keys())}."
                 )
             arg1, arg2, arg3 = arguments
             if (
@@ -2826,20 +2834,31 @@ occurred: There is a conflict between the given positional and keyword arguments
                 self.eval_ = Timegrid(arg1, arg2, arg3)
             else:
                 types_ = objecttools.enumeration(
-                    "None" if arg is None else type(arg).__name__ for arg in arguments
+                    (
+                        "None" if arg is None else type(arg).__name__
+                        for arg in arguments
+                    ),
+                    backticks=True,
                 )
                 raise ValueError(
                     f"Initialising a `Timegrids` object either requires one, two, or "
                     f"three `Timegrid` objects or two dates objects (of type `Date`, "
                     f"`datetime`, or `str`) and one period object (of type `Period`, "
-                    f"`timedelta`, or `str`), but objects of the types `{types_}` are "
+                    f"`timedelta`, or `str`), but objects of the types {types_} are "
                     f"given."
                 )
             self.verify()
         except BaseException:
+            if values:
+                arguments_ = (
+                    f"the {objecttools.Inflect.plural('argument', len(values))} "
+                    f"{objecttools.enumeration(values, backticks=True)}"
+                )
+            else:
+                arguments_ = "no arguments"
             objecttools.augment_excmessage(
-                f"While trying to define a new `Timegrids` object based on the "
-                f"arguments `{objecttools.enumeration(values)}`"
+                f"While trying to define a new `Timegrids` object based on "
+                f"{arguments_}"
             )
 
     def _get_stepsize(self) -> Period:
@@ -2900,8 +2919,8 @@ occurred: There is a conflict between the given positional and keyword arguments
         Traceback (most recent call last):
         ...
         ValueError: While trying to define a new `Timegrids` object based on the \
-arguments `Timegrid("2001-01-01 00:00:00", "2002-01-01 00:00:00", "1d") and \
-Timegrid("2000-01-01 00:00:00", "2002-01-01 00:00:00", "1d")`, the following error \
+arguments `Timegrid("2001-01-01 00:00:00", "2002-01-01 00:00:00", "1d")` and \
+`Timegrid("2000-01-01 00:00:00", "2002-01-01 00:00:00", "1d")`, the following error \
 occurred: The first date of the initialisation period (`2001-01-01 00:00:00`) must \
 not be later than the first date of the simulation period (`2000-01-01 00:00:00`).
 
@@ -3205,7 +3224,7 @@ been set to `2`, but the given value is `30`.
     Traceback (most recent call last):
     ...
     AttributeError: TOY (time of year) objects only allow to set the properties \
-month, day, hour, minute, and second, but `microsecond` is given.
+`month`, `day`, `hour`, `minute`, and `second`, but `microsecond` is given.
 
     You can pass any objects that are convertible to integers:
 
@@ -3341,8 +3360,8 @@ must not be the given value `4`, as the day has already been set to `31`.
         if name not in self._PROPERTIES:
             raise AttributeError(
                 f"TOY (time of year) objects only allow to set the properties "
-                f"{objecttools.enumeration(self._PROPERTIES.keys())}, but `{name}` is "
-                f"given."
+                f"{objecttools.enumeration(self._PROPERTIES.keys(), backticks=True)}, "
+                f"but `{name}` is given."
             )
         try:
             value = int(value)

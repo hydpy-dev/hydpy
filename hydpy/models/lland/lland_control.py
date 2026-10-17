@@ -857,9 +857,9 @@ class DMin(lland_parameters.ParameterSoil):
         >>> dmin(rdmin=10.0)
         Traceback (most recent call last):
         ...
-        TypeError: While trying to set the values of parameter `dmin` of \
-element `?` based on keyword arguments `rdmin`, the following error occurred: \
-Keyword `rdmin` is not among the available model constants.
+        TypeError: While trying to set the values of parameter `dmin` of element `?` \
+based on keyword argument `rdmin`, the following error occurred: Keyword `rdmin` is \
+not among the available model constants.
 
     .. testsetup::
 
@@ -934,9 +934,9 @@ class DMax(lland_parameters.ParameterSoil):
         >>> dmax(rdmax=10.0)
         Traceback (most recent call last):
         ...
-        TypeError: While trying to set the values of parameter `dmax` of \
-element `?` based on keyword arguments `rdmax`, the following error occurred: \
-Keyword `rdmax` is not among the available model constants.
+        TypeError: While trying to set the values of parameter `dmax` of element `?` \
+based on keyword argument `rdmax`, the following error occurred: Keyword `rdmax` is \
+not among the available model constants.
 
     .. testsetup::
 

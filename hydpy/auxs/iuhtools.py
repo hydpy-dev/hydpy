@@ -173,13 +173,20 @@ class IUH(metaclass=MetaIUH):
             for key, value in kwargs.items():
                 setattr(self, key, value)
         else:
+            i = objecttools.Inflect
+            if given:
+                given_ = (
+                    f"the {i.listing('keyword', given)} {i.plural('was', len(given))}"
+                )
+            else:
+                given_ = "no keywords were"
             raise ValueError(
-                f"When passing primary parameter values as initialization arguments of "
-                f"the instantaneous unit hydrograph class `{type(self).__name__}`, or "
-                f"when using method `set_primary_parameters`, one has to to define all "
-                f"values at once via keyword arguments.  But instead of the primary "
-                f"parameter names `{objecttools.enumeration(required)}` the following "
-                f"keywords were given: {objecttools.enumeration(given)}."
+                f"When passing primary parameter values as initialization arguments "
+                f"of the instantaneous unit hydrograph class `{type(self).__name__}`, "
+                f"or when using method `set_primary_parameters`, one has to define "
+                f"all values at once via keyword arguments.  But instead of the "
+                f"primary parameter names "
+                f"{objecttools.enumeration(required, backticks=True)}, {given_} given."
             )
 
     @property
@@ -403,9 +410,18 @@ the instantaneous unit hydrograph parameter `x`.
     ...
     ValueError: When passing primary parameter values as initialization arguments of \
 the instantaneous unit hydrograph class `TranslationDiffusionEquation`, or when using \
-method `set_primary_parameters`, one has to to define all values at once via keyword \
-arguments.  But instead of the primary parameter names `d, u, and x` the following \
-keywords were given: d and u.
+method `set_primary_parameters`, one has to define all values at once via keyword \
+arguments.  But instead of the primary parameter names `d`, `u`, and `x`, the \
+keywords `d` and `u` were given.
+
+    >>> tde.set_primary_parameters()
+    Traceback (most recent call last):
+    ...
+    ValueError: When passing primary parameter values as initialization arguments of \
+the instantaneous unit hydrograph class `TranslationDiffusionEquation`, or when using \
+method `set_primary_parameters`, one has to define all values at once via keyword \
+arguments.  But instead of the primary parameter names `d`, `u`, and `x`, no keywords \
+were given.
     """
 
     u = PrimaryParameterIUH("u", doc="Wave velocity [L/T].")

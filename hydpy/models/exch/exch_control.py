@@ -89,14 +89,13 @@ class XPoints(parametertools.Parameter):
     Traceback (most recent call last):
     ...
     ValueError: Branching via linear interpolation requires at least two supporting \
-points, but parameter `xpoints` of element `?` received 1 value(s).
+points, but parameter `xpoints` of element `?` received one value.
 
     >>> xpoints(1.0, 2.0, 2.0, 3.0)
     Traceback (most recent call last):
     ...
     ValueError: The values of parameter `xpoints` of element `?` must be arranged \
-strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0, and \
-3.0`.
+strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0, 3.0`.
     """
 
     NDIM: Final[Literal[1]] = 1
@@ -108,14 +107,14 @@ strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0
             raise ValueError(
                 f"Branching via linear interpolation requires at least two supporting "
                 f"points, but parameter {objecttools.elementphrase(self)} received "
-                f"{shape} value(s)."
+                f"{objecttools.Inflect.count(shape, 'value')}."
             )
         super().__call__(*args, **kwargs)
         if min(numpy.diff(self.value)) <= 0.0:
             raise ValueError(
                 f"The values of parameter {objecttools.elementphrase(self)} must be "
                 f"arranged strictly monotonously, which is not the case for the given "
-                f"values `{objecttools.enumeration(self.value)}`."
+                f"values `{objecttools.repr_values(self.value)}`."
             )
 
 
@@ -162,8 +161,8 @@ this via keyword arguments, as explained in the documentation.
     Traceback (most recent call last):
     ...
     ValueError: Each branch requires the same number of supporting points as given \
-for parameter `xpoints`, which is 3, but for branch `branch1` of parameter `ypoints` \
-of element `?`, 2 values are provided.
+for parameter `xpoints`, which is three, but for branch `branch1` of parameter \
+`ypoints` of element `?`, two values are provided.
 
     >>> xpoints(1.0, 2.0)
 
@@ -258,9 +257,10 @@ sequence and connect it to the respective outlet nodes properly.
                 if shape[1] != len(value):
                     raise ValueError(
                         f"Each branch requires the same number of supporting points "
-                        f"as given for parameter `xpoints`, which is {shape[1]}, but "
-                        f"for branch `{key}` of parameter "
-                        f"{objecttools.elementphrase(self)}, {len(value)} values are "
+                        f"as given for parameter `xpoints`, which is "
+                        f"{objecttools.Inflect.cardinal(shape[1])}, but for branch "
+                        f"`{key}` of parameter {objecttools.elementphrase(self)}, "
+                        f"{objecttools.Inflect.count(len(value), 'value', 'is')} "
                         f"provided."
                     ) from None
                 objecttools.augment_excmessage(

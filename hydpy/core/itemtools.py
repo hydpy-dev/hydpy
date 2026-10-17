@@ -458,8 +458,8 @@ class ChangeItem(ExchangeItem):
         >>> item.value
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem \
-`ic` has/have not been prepared so far.
+        hydpy.core.exceptiontools.AttributeNotReady: The values of the SetItem `ic` \
+have not been prepared so far.
 
         >>> item.value = 1.0
         >>> round_(item.value)
@@ -468,7 +468,7 @@ class ChangeItem(ExchangeItem):
         >>> item.value = 1.0, 2.0
         Traceback (most recent call last):
         ...
-        ValueError: When trying to convert the value(s) `(1.0, 2.0)` assigned to \
+        ValueError: While trying to convert the value(s) `(1.0, 2.0)` assigned to \
 SetItem `ic` to a numpy array of shape `()` and type `float`, the following error \
 occurred: could not broadcast input array from shape (2,) into shape ()
 
@@ -486,14 +486,14 @@ occurred: could not broadcast input array from shape (2,) into shape ()
         >>> item.value = 1.0, 2.0
         Traceback (most recent call last):
         ...
-        ValueError: When trying to convert the value(s) `(1.0, 2.0)` assigned to \
+        ValueError: While trying to convert the value(s) `(1.0, 2.0)` assigned to \
 SetItem `t` to a numpy array of shape `(2, 4)` and type `float`, the following error \
 occurred: could not broadcast input array from shape (2,) into shape (2,4)
         """
         if self._value is None:
             raise exceptiontools.AttributeNotReady(
-                f"The value(s) of the {type(self).__name__} `{self.name}` has/have "
-                f"not been prepared so far."
+                f"The values of the {type(self).__name__} `{self.name}` have not "
+                f"been prepared so far."
             )
         return self._value
 
@@ -504,7 +504,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
             self._value = numpy.full(shape, value, dtype=config.NP_FLOAT)
         except BaseException:
             objecttools.augment_excmessage(
-                f"When trying to convert the value(s) `{value}` assigned to "
+                f"While trying to convert the value(s) `{value}` assigned to "
                 f"{type(self).__name__} `{self.name}` to a numpy array of shape "
                 f"`{shape}` and type `float`"
             )
@@ -695,7 +695,7 @@ keyword for an exchange item, its aggregation level cannot be `subunit`.
         >>> item.update_variables()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        TypeError: When trying to update a target variable of ChangeItem `alpha` with \
+        TypeError: While trying to update a target variable of ChangeItem `alpha` with \
 the value(s) `wrong`, the following error occurred: While trying to set the value(s) \
 of variable `alpha` of element `land_dill_assl`, the following error occurred: The \
 given value `wrong` cannot be converted to type `float`.
@@ -714,7 +714,7 @@ given value `wrong` cannot be converted to type `float`.
                 variable(**dict(keywordarguments))
         except BaseException:
             objecttools.augment_excmessage(
-                f"When trying to update a target variable of {type(self).__name__} "
+                f"While trying to update a target variable of {type(self).__name__} "
                 f"`{self.name}` with the value(s) `{value}`"
             )
 
@@ -1248,17 +1248,17 @@ elements so far.  So, it is not possible to aggregate to the selection level.
         >>> with warn_later():
         ...     test("device")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`uz`, the following error occured: While trying to calculate the mean value of the \
+`uz`, the following error occurred: While trying to calculate the mean value of the \
 internal time series of sequence `uz` of element `land_dill_assl`, the following error \
 occurred: Sequence `uz` of element `land_dill_assl` is not requested to make any time \
 series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`ic`, the following error occured: While trying to calculate the mean value of the \
+`ic`, the following error occurred: While trying to calculate the mean value of the \
 internal time series of sequence `ic` of element `land_dill_assl`, the following error \
 occurred: Sequence `ic` of element `land_dill_assl` is not requested to make any time \
 series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`wc`, the following error occured: While trying to calculate the mean value of the \
+`wc`, the following error occurred: While trying to calculate the mean value of the \
 internal time series of sequence `wc` of element `land_dill_assl`, the following error \
 occurred: Sequence `wc` of element `land_dill_assl` is not requested to make any time \
 series data available.
@@ -1267,51 +1267,51 @@ series data available.
         ...     print_vector(series)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `uz` \
-has/have not been prepared so far.
+        hydpy.core.exceptiontools.AttributeNotReady: The values of the SetItem `uz` \
+have not been prepared so far.
         >>> for series in ic.value:
         ...     print_vector(series)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `ic` \
-has/have not been prepared so far.
+        hydpy.core.exceptiontools.AttributeNotReady: The values of the SetItem `ic` \
+have not been prepared so far.
         >>> for series in wc.value:
         ...     print_vector(series)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `wc` \
-has/have not been prepared so far.
+        hydpy.core.exceptiontools.AttributeNotReady: The values of the SetItem `wc` \
+have not been prepared so far.
 
         >>> with warn_later():
         ...     test("subunit")
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`uz`, the following error occured: Sequence `uz` of element `land_dill_assl` is not \
+`uz`, the following error occurred: Sequence `uz` of element `land_dill_assl` is not \
 requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`ic`, the following error occured: Sequence `ic` of element `land_dill_assl` is not \
+`ic`, the following error occurred: Sequence `ic` of element `land_dill_assl` is not \
 requested to make any time series data available.
         AttributeNotReadyWarning: While trying to query the values of exchange item \
-`wc`, the following error occured: Sequence `wc` of element `land_dill_assl` is not \
+`wc`, the following error occurred: Sequence `wc` of element `land_dill_assl` is not \
 requested to make any time series data available.
 
         >>> for series in uz.value:
         ...     print_vector(series)  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `uz` \
-has/have not been prepared so far.
+        hydpy.core.exceptiontools.AttributeNotReady: The values of the SetItem `uz` \
+have not been prepared so far.
         >>> for series in ic.value:  # doctest: +ELLIPSIS
         ...     print_vector(series)
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `ic` \
-has/have not been prepared so far.
+        hydpy.core.exceptiontools.AttributeNotReady: The values of the SetItem `ic` \
+have not been prepared so far.
         >>> for series in wc.value:  # doctest: +ELLIPSIS
         ...     print_vector(series)
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The value(s) of the SetItem `wc` \
-has/have not been prepared so far.
+        hydpy.core.exceptiontools.AttributeNotReady: The values of the SetItem `wc` \
+have not been prepared so far.
         """
         series = self.targetspecs.series
         shape = self.seriesshape if series else self.shape
@@ -1327,7 +1327,7 @@ has/have not been prepared so far.
                         self._value = None
                         warnings.warn(
                             f"While trying to query the values of exchange item "
-                            f"`{self.name}`, the following error occured: {exc}",
+                            f"`{self.name}`, the following error occurred: {exc}",
                             exceptiontools.AttributeNotReadyWarning,
                         )
                         return
@@ -1354,7 +1354,7 @@ has/have not been prepared so far.
                         self._value = None
                         warnings.warn(
                             f"While trying to query the values of exchange item "
-                            f"`{self.name}`, the following error occured: {exc}",
+                            f"`{self.name}`, the following error occurred: {exc}",
                             exceptiontools.AttributeNotReadyWarning,
                         )
                         return
@@ -1590,7 +1590,7 @@ class AddItem(MathItem):
         >>> item.update_variables()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ValueError: When trying to add the value(s) `(0.1, 0.2)` of AddItem `sfcf` \
+        ValueError: While trying to add the value(s) `(0.1, 0.2)` of AddItem `sfcf` \
 and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element \
 `land_dill_assl`, the following error occurred: operands could not be broadcast \
 together with shapes (12,) (2,)...
@@ -1600,7 +1600,7 @@ together with shapes (12,) (2,)...
             result = base.value + value
         except BaseException:
             objecttools.augment_excmessage(
-                f"When trying to add the value(s) `{value}` of AddItem "
+                f"While trying to add the value(s) `{value}` of AddItem "
                 f"`{self.name}` and the value(s) `{base.value}` of variable "
                 f"{objecttools.devicephrase(base)}"
             )
@@ -1662,7 +1662,7 @@ class MultiplyItem(MathItem):
         >>> item.update_variables()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ValueError: When trying to multiply the value(s) `(0.1, 0.2)` of AddItem \
+        ValueError: While trying to multiply the value(s) `(0.1, 0.2)` of AddItem \
 `sfcf` and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element \
 `land_dill_assl`, the following error occurred: operands could not be broadcast \
 together with shapes (12,) (2,)...
@@ -1672,7 +1672,7 @@ together with shapes (12,) (2,)...
             result = base.value * value
         except BaseException:
             objecttools.augment_excmessage(
-                f"When trying to multiply the value(s) `{value}` of AddItem "
+                f"While trying to multiply the value(s) `{value}` of AddItem "
                 f"`{self.name}` and the value(s) `{base.value}` of variable "
                 f"{objecttools.devicephrase(base)}"
             )

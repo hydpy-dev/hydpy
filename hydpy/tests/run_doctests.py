@@ -14,7 +14,6 @@ import doctest
 import warnings
 
 import click
-import matplotlib
 
 
 def print_(*args: str) -> None:
@@ -106,7 +105,6 @@ def main(  # pylint: disable=too-many-branches
 
     import hydpy
     from hydpy import config
-    from hydpy import pub
     from hydpy.core import devicetools
     from hydpy.core import testtools
 
@@ -114,6 +112,9 @@ def main(  # pylint: disable=too-many-branches
     # documentation features, even if the main process does (e.g. for measuring the
     # coverage of these features):
     os.environ.pop("HYDPY_USEAUTODOC", None)
+    # Script `run_doctests.py` prepares the doctests itself, which must not happen a
+    # second time when importing HydPy in subprocesses:
+    os.environ.pop("HYDPY_PREPARE_TESTING", None)
 
     filter_filenames = _FilterFilenames(file_doctests)
     pingtime: float = time.perf_counter()
@@ -160,28 +161,13 @@ def main(  # pylint: disable=too-many-branches
                     if exc.args[-1] != "has no docstrings":
                         raise exc
                 else:
-                    matplotlib.use("Agg")
-                    del pub.projectname
-                    del pub.timegrids
-                    pub.options.prepare_testing(
-                        usecython=mode == "Cython", threads=threads
-                    )
-                    testtools.IntegrationTest.plotting_options = (
-                        testtools.PlottingOptions()
-                    )
                     if name[-4:] in (".rst", ".pyx"):
                         name = name[name.find("hydpy" + os.sep) :]
                     with warnings.catch_warnings(), open(
                         os.devnull, "w", encoding=config.ENCODING
                     ) as file_, devicetools.clear_registries_temporarily():
-                        warnings.filterwarnings(action="error", module="hydpy")
-                        warnings.filterwarnings(
-                            action="ignore",
-                            category=DeprecationWarning,
-                            message=(
-                                "Setting the shape on a NumPy array has been "
-                                "deprecated in NumPy 2.5."
-                            ),
+                        testtools.prepare_testing(
+                            usecython=mode == "Cython", threads=threads
                         )
                         runner = unittest.TextTestRunner(stream=file_)
                         result = runner.run(suite)

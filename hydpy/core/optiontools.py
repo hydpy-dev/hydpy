@@ -3,6 +3,8 @@
 from __future__ import annotations
 import types
 
+import typing_extensions
+
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import propertytools
@@ -1058,14 +1060,26 @@ class Options:
 
         .. testsetup::
 
-            >>> pub.options.prepare_testing(usecython=usecython, threads=threads)
+            >>> from hydpy.core.testtools import prepare_testing
+            >>> prepare_testing(usecython=usecython, threads=threads)
         """
         for name, member in vars(type(self)).items():
             if isinstance(member, OptionPropertyBase):
                 delattr(self, name)
 
+    @typing_extensions.deprecated(
+        "Method `prepare_testing` of class `Options` is deprecated and will be removed "
+        "in HydPy 8.0.  Please use function `prepare_testing` of module `testtools` "
+        "instead.",
+        category=exceptiontools.HydPyDeprecationWarning,
+    )
     def prepare_testing(self, *, usecython: bool, threads: int) -> None:
         """Set all options to the values usually used during testing.
+
+        .. deprecated:: 6.5
+
+           Method |Options.prepare_testing| of class |Options| will be removed in HydPy
+           8.0.  Please use function |prepare_testing| of module |testtools| instead.
 
         .. testsetup::
 
@@ -1074,20 +1088,21 @@ class Options:
             >>> usecython = pub.options.usecython
 
         >>> from hydpy import pub
-        >>> pub.options.checkseries = False
+        >>> from hydpy.core.testtools import warn_later
         >>> pub.options.reprdigits = 2
-        >>> pub.options.threads = 0
-        >>> pub.options.usecython = True
-        >>> pub.options.prepare_testing(usecython=False, threads=4)
-        >>> assert pub.options.checkseries
+        >>> with warn_later():
+        ...     pub.options.prepare_testing(usecython=False, threads=4)
+        HydPyDeprecationWarning: Method `prepare_testing` of class `Options` is \
+deprecated and will be removed in HydPy 8.0.  Please use function `prepare_testing` \
+of module `testtools` instead.
         >>> assert pub.options.reprdigits == 6
         >>> assert pub.options.threads == 4
         >>> assert not pub.options.usecython
 
         .. testsetup::
 
-            >>> pub.options.prepare_testing(usecython=usecython, threads=threads)
-
+            >>> from hydpy.core.testtools import prepare_testing
+            >>> prepare_testing(usecython=usecython, threads=threads)
         """
         self.reset_defaults()
         self.checkprojectstructure = False

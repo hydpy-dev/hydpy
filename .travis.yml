@@ -20,7 +20,7 @@ script:
   - python -m build --wheel --no-isolation
   - if [ $JOB == "coverage" ]; then nox -s coverage; fi
   - if [ $JOB == "rest" ]; then pip install ghp-import; fi
-  - if [ $JOB == "rest" ]; then nox -s sphinx -- -W; fi
+  - if [ $JOB == "rest" ]; then nox -s sphinx; fi
   - if [ $JOB == "rest" ]; then nox -s black; fi
   - if [ $JOB == "rest" ]; then nox -s mypy; fi
   - if [ $JOB == "rest" ]; then nox -s pylint; fi

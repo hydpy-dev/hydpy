@@ -2193,6 +2193,137 @@ def warn_later() -> Iterator[None]:
         print(record.category.__name__, record.message, sep=": ")
 
 
+def prepare_testing(*, usecython: bool, threads: int = 0) -> None:
+    """Prepare the global state for executing the doctests of a single module or
+    documentation file.
+
+    Script `run_doctests.py` calls |prepare_testing| before executing the doctests of
+    each module and documentation file.  |prepare_testing| removes the current project
+    name and |Timegrids| object, selects the non-interactive `Agg` backend of
+    `matplotlib`, resets the plotting options of class |IntegrationTest|, and turns all
+    warnings emitted by HydPy into errors.  It also resets all options to their
+    defaults, except that it disables |Options.checkprojectstructure|,
+    |Options.printprogress|, |Options.warnsimulationstep|, and |Options.warntrim|,
+    sets |Options.ellipsis| to zero and |Options.reprdigits| to six, and applies the
+    given values for |Options.usecython| and |Options.threads|:
+
+    .. testsetup::
+
+        >>> from hydpy import pub
+        >>> usecython, threads = pub.options.usecython, pub.options.threads
+
+    >>> from hydpy import pub
+    >>> from hydpy.core.testtools import prepare_testing
+    >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+    >>> pub.options.checkseries = False
+    >>> pub.options.printprogress = True
+    >>> pub.options.reprdigits = 2
+    >>> prepare_testing(usecython=False, threads=4)
+    >>> from hydpy.core.filetools import check_projectstructure
+    >>> check_projectstructure("missing_project")  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    UserWarning: The project root directory `...missing_project` does not exists.
+    >>> assert pub.options.checkseries
+    >>> assert not pub.options.printprogress
+    >>> assert pub.options.reprdigits == 6
+    >>> assert pub.options.threads == 4
+    >>> assert not pub.options.usecython
+    >>> pub.timegrids
+    Traceback (most recent call last):
+    ...
+    hydpy.core.exceptiontools.AttributeNotReady: Attribute `timegrids` of module \
+`pub` is not defined at the moment.
+    >>> import matplotlib
+    >>> matplotlib.get_backend().lower()
+    'agg'
+
+    .. testsetup::
+
+        >>> prepare_testing(usecython=usecython, threads=threads)
+    """
+    matplotlib.use("Agg")
+    del hydpy.pub.projectname
+    del hydpy.pub.timegrids
+    options = hydpy.pub.options
+    options.reset_defaults()
+    options.checkprojectstructure = False
+    options.ellipsis = 0
+    options.printprogress = False
+    options.reprdigits = 6
+    options.threads = threads
+    options.usecython = usecython
+    options.warnsimulationstep = False
+    options.warntrim = False
+    IntegrationTest.plotting_options = PlottingOptions()
+    warnings.filterwarnings(action="error", module="hydpy")
+    warnings.filterwarnings(
+        action="ignore",
+        category=DeprecationWarning,
+        message="Setting the shape on a NumPy array has been deprecated in NumPy 2.5.",
+    )
+
+
+def prepare_testing_via_environment() -> None:
+    """Apply function |prepare_testing| if the environment variable
+    `HYDPY_PREPARE_TESTING` is set.
+
+    HydPy calls |prepare_testing_via_environment| at the end of its initialisation,
+    which allows executing individual doctests with tools other than script
+    `run_doctests.py` (for example, with the doctest runner of an IDE like `PyCharm`)
+    under the same conditions.  Set `HYDPY_PREPARE_TESTING` to `python` or `cython` to
+    select the mode:
+
+    .. testsetup::
+
+        >>> from hydpy import pub
+        >>> usecython, threads = pub.options.usecython, pub.options.threads
+
+    >>> import os
+    >>> from hydpy import pub
+    >>> from hydpy.core.testtools import prepare_testing_via_environment
+
+    >>> os.environ["HYDPY_PREPARE_TESTING"] = "python"
+    >>> pub.options.reprdigits = 2
+    >>> prepare_testing_via_environment()
+    >>> assert pub.options.reprdigits == 6
+    >>> assert not pub.options.usecython
+
+    >>> os.environ["HYDPY_PREPARE_TESTING"] = "cython"
+    >>> prepare_testing_via_environment()
+    >>> assert pub.options.usecython
+
+    Other values result in the following error:
+
+    >>> os.environ["HYDPY_PREPARE_TESTING"] = "pyton"
+    >>> prepare_testing_via_environment()
+    Traceback (most recent call last):
+    ...
+    ValueError: The environment variable `HYDPY_PREPARE_TESTING` must be either \
+`python` or `cython`, but `pyton` is given.
+
+    Without `HYDPY_PREPARE_TESTING`, |prepare_testing_via_environment| does nothing:
+
+    >>> del os.environ["HYDPY_PREPARE_TESTING"]
+    >>> pub.options.reprdigits = 2
+    >>> prepare_testing_via_environment()
+    >>> assert pub.options.reprdigits == 2
+
+    .. testsetup::
+
+        >>> from hydpy.core.testtools import prepare_testing
+        >>> prepare_testing(usecython=usecython, threads=threads)
+    """
+    if (mode := os.environ.get("HYDPY_PREPARE_TESTING")) is None:
+        return
+    if (mode_ := mode.strip().lower()) not in ("python", "cython"):
+        raise ValueError(
+            f"The environment variable `HYDPY_PREPARE_TESTING` must be either "
+            f"`python` or `cython`, but `{mode}` is given."
+        )
+    prepare_testing(usecython=mode_ == "cython")
+
+
 def print_filestructure(dirpath: str) -> None:
     """Print the file structure of the given directory path in alphabetical order.
 

@@ -607,8 +607,8 @@ correctly refer to one of the available XML schema files \
 
         .. testsetup::
 
-            >>> del pub.timegrids
-            >>> pub.options.prepare_testing(usecython=usecython, threads=threads)
+            >>> from hydpy.core.testtools import prepare_testing
+            >>> prepare_testing(usecython=usecython, threads=threads)
         """
         options = hydpy.pub.options
         for option in self.find("options", optional=False):

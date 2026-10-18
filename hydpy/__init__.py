@@ -50,6 +50,7 @@ from hydpy.core.testtools import (
     UnitTest,
     update_integrationtests,
 )
+from hydpy.core import testtools
 from hydpy.core.variabletools import INT_NAN, sort_variables
 from hydpy.auxs.armatools import ARMA, MA
 from hydpy.auxs.anntools import ANN
@@ -249,6 +250,8 @@ __all__ = [
 ]
 
 sequence2alias: dict[sequencetools.InOutSequenceTypes, str] = {}
+
+testtools.prepare_testing_via_environment()
 
 if config.USEAUTODOC:
     from hydpy.core import autodoctools

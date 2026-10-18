@@ -170,14 +170,8 @@ def sphinx(session: nox.Session) -> None:
     """Build the HTML documentation and report warnings as errors.
 
     The `sphinx` session is more about building than testing.  However, it also checks
-    for completeness, substitutions' correctness, and things like that.  Hence, we
-    leave it here until we find a strong reason for moving it somewhere else.
-
-    This session passes session-specific arguments to `sphinx-build`.  For example,
-    when building the official documentation on Travis-CI, we want to ensure that
-    everything is correct, so we pass the `-W` flag to convert warnings into errors:
-
-    nox -s sphinx -- -W
+    file completeness, substitution correctness, and similar things.  So we leave it
+    here until we have a strong reason to move it elsewhere.
     """
     _install_hydpy(session)
     session.install(
@@ -196,7 +190,7 @@ def sphinx(session: nox.Session) -> None:
         "sphinx-build",
         "hydpy/docs/auto",
         "hydpy/docs/auto/build",
-        *session.posargs,
+        "-W",
         env=env,
     )
     session.run(

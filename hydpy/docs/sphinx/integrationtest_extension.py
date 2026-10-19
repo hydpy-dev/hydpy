@@ -1,6 +1,6 @@
 """Sphinx extension introducing `.. integration-test::` directives."""
 
-from typing import Any
+from typing import Any, cast
 
 from docutils import nodes
 from sphinx.application import Sphinx
@@ -46,7 +46,7 @@ def visit_html(self: HTML5Translator, node: IntegrationTestNode) -> None:
     counter += 1
 
     try:
-        self.visit_literal_block(node)
+        self.visit_literal_block(cast(nodes.literal_block, node))
     except nodes.SkipNode:
         pass
 

@@ -142,7 +142,9 @@ def black(session: nox.Session) -> None:
 def pylint(session: nox.Session) -> None:
     """Use `pylint` to evaluate the code style."""
     _install_hydpy(session)
-    session.install("pylint", "coverage", "ghp_import", "sphinx")
+    session.install(
+        "pylint", "coverage", "ghp_import", "sphinx", "sphinxcontrib-bibtex"
+    )
     session.run("pylint", "hydpy")
 
 
@@ -154,7 +156,9 @@ def mypy(session: nox.Session) -> None:
     Our long-term goal is to meet the requirements of Mypy's strict mode.
     """
     _install_hydpy(session)
-    session.install("mypy", "types-docutils")
+    session.install(
+        "mypy", "types-docutils", "sphinx", "sphinxcontrib-bibtex", "coverage"
+    )
     session.run("mypy", "hydpy")
 
 
@@ -187,11 +191,7 @@ def sphinx(session: nox.Session) -> None:
     env = {"HYDPY_USEAUTODOC": "1"}
     session.run("python", "hydpy/docs/prepare.py", env=env)
     session.run(
-        "sphinx-build",
-        "hydpy/docs/auto",
-        "hydpy/docs/auto/build",
-        "-W",
-        env=env,
+        "sphinx-build", "hydpy/docs/auto", "hydpy/docs/auto/build", "-W", env=env
     )
     session.run(
         "python",

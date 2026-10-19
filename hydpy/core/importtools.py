@@ -813,7 +813,9 @@ following error occurred: The given `lland_knauf` instance is not considered sha
             if (str_ := self._soiltype_refindices) is not None:  # pragma: no cover
                 shared["soiltype_refindices"] = getattr(control, str_.name)
             if (rw := self._refweights) is not None:
-                if (rw_ := getattr(control, rw.name, None)) is None:
+                if rw.name in control.names:
+                    rw_ = getattr(control, rw.name)
+                else:
                     rw_ = getattr(model.parameters.derived, rw.name)
                 shared["refweights"] = rw_
 

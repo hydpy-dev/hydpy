@@ -3793,7 +3793,7 @@ changed, but this was attempted for element `?`.
 
     @shape.setter
     def shape(self, shape: ShapeHookSet) -> None:
-        if exceptiontools.attrready(self, "shape"):
+        if self._shapeready:
             raise AttributeError(
                 f"The shape of sequence `{self.name}` cannot be changed, but this was "
                 f"attempted for element `{objecttools.devicename(self)}`."
@@ -4018,7 +4018,7 @@ requested, but not prepared yet via `set_pointer`.
     @shape.setter
     def shape(self, shape: ShapeHookSet) -> None:
         try:
-            old_shape = exceptiontools.getattr_(self, "shape", None)
+            old_shape = self.shape if (not self.NDIM or self._shapeready) else None
             proxy = super(__class__, type(self))  # type: ignore[name-defined]
             proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
             if (shape != old_shape) and (self.NDIM == 1):

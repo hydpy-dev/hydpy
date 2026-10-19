@@ -148,10 +148,7 @@ def prepare_parameters(
 ) -> parametertools.Parameters[modeltools.Model]:
     """Prepare a |Parameters| object based on the given dictionary
     information and return it."""
-    cls_parameters: type[parametertools.Parameters[modeltools.Model]] = dict_.get(
-        "Parameters", parametertools.Parameters
-    )
-    return cls_parameters(
+    return parametertools.Parameters(
         model=dict_["model"],
         cls_control=dict_.get("ControlParameters"),
         cls_derived=dict_.get("DerivedParameters"),
@@ -167,10 +164,7 @@ def prepare_sequences(
 ) -> sequencetools.Sequences[modeltools.Model]:
     """Prepare a |Sequences| object based on the given dictionary
     information and return it."""
-    cls_sequences: type[sequencetools.Sequences[modeltools.Model]] = dict_.get(
-        "Sequences", sequencetools.Sequences
-    )
-    return cls_sequences(
+    return sequencetools.Sequences(
         model=dict_["model"],
         cls_inlets=dict_.get("InletSequences"),
         cls_observers=dict_.get("ObserverSequences"),

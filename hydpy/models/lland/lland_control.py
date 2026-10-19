@@ -3,13 +3,11 @@
 """
 
 from __future__ import annotations
-import math
 import warnings
 
 import numpy
 
 import hydpy
-from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -514,100 +512,48 @@ therefore, please consider updating your model setup.
 
 
 class PWMax(lland_parameters.ParameterLand):
-    """Maximalverhältnis Gesamt- zu Trockenschnee (maximum ratio of the
-    total and the frozen water equivalent stored in the snow cover) [-].
+    r"""Maximalverhältnis Gesamt- zu Trockenschnee (maximum ratio of the total and the
+    frozen water equivalent stored in the snow cover) [-].
 
-    In addition to the |parametertools| call method, it
-    is possible to set the value of parameter |PWMax| in accordance to
-    the keyword arguments `rhot0` and `rhodkrit`.
+    You can alternatively define |PWMax| via the keyword arguments `rhot0` and
+    `rhodkrit`:
 
-    Basic Equation:
-        :math:`PWMax = \\frac{1.474 \\cdot rhodkrit}
-        {rhot0 + 0.474 \\cdot rhodkrit}`
+        :math:`PWMax = \frac{1.474 \cdot rhodkrit}{rhot0 + 0.474 \cdot rhodkrit}`
 
     Example:
 
-        Using the common values for both `rhot0` and `rhodkrit`...
+        Using the common values for both `rhot0` and `rhodkrit` results in the default
+        value of |PWMax|, meaning the relative portion of liquid water in the snow cover
+        cannot exceed 30 %:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
-        >>> nhru(1)
+        >>> nhru(2)
         >>> lnk(ACKER)
         >>> pwmax(rhot0=0.2345, rhodkrit=0.42)
-
-        ...results in:
-
         >>> pwmax
-        pwmax(1.427833)
-
-        This is also the default value of |PWMax|, meaning the relative
-        portion of liquid water in the snow cover cannot exceed 30 %.
-
-        Additional error messages try to clarify how to pass parameters:
-
-        >>> pwmax(rhot0=0.2345)
-        Traceback (most recent call last):
-        ...
-        ValueError: For the calculating parameter `pwmax`, both keyword \
-arguments `rhot0` and `rhodkrit` are required.
-
-        >>> pwmax(rho_t_0=0.2345)
-        Traceback (most recent call last):
-        ...
-        ValueError: Parameter `pwmax` can be set by directly passing a \
-single value or a list of values, by assigning single values to landuse \
-keywords, or by calculating a value based on the keyword arguments \
-`rhot0` and `rhodkrit`.
-
-        Passing landuse specific parameter values is also supported
-        (but not in combination with `rhot0` and `rhodkrit`):
-
-        >>> pwmax(acker=2.0, vers=3.0)
-        >>> pwmax
-        pwmax(2.0)
-
-        The "normal" input error management still works:
-
-        >>> pwmax()
-        Traceback (most recent call last):
-        ...
-        ValueError: For parameter `pwmax` of element `?` neither \
-a positional nor a keyword argument is given.
+        pwmax(rhot0=0.2345, rhodkrit=0.42)
+        >>> from hydpy import print_vector
+        >>> print_vector(pwmax.values)
+        1.427833, 1.427833
     """
 
     TYPE: Final = float
     SPAN = (1.0, None)
     INIT = 1.4278333871488538
 
-    def __call__(self, *args, **kwargs) -> None:
-        """The prefered way to pass values to |PWMax| instances within parameter
-        control files.
-        """
-        rhot0 = float(kwargs.pop("rhot0", numpy.nan))
-        rhodkrit = float(kwargs.pop("rhodkrit", numpy.nan))
-        missing = int(math.isnan(rhot0)) + int(math.isnan(rhodkrit))
-        try:
-            super().__call__(*args, **kwargs)
-            return
-        except TypeError:
-            pass
-        except BaseException as exc:
-            if missing == 2:
-                raise exc
-        if not missing:
-            self(1.474 * rhodkrit / (rhot0 + 0.474 * rhodkrit))
-        elif missing == 1:
-            raise ValueError(
-                "For the calculating parameter `pwmax`, both keyword "
-                "arguments `rhot0` and `rhodkrit` are required."
-            )
-        else:
-            raise ValueError(
-                "Parameter `pwmax` can be set by directly passing a "
-                "single value or a list of values, by assigning single "
-                "values to landuse keywords, or by calculating a value "
-                "based on the keyword arguments `rhot0` and `rhodkrit`."
-            )
+    def _set_rho(self, *, rhot0: float, rhodkrit: float) -> dict[str, float]:
+        rhot0, rhodkrit = float(rhot0), float(rhodkrit)
+        self(1.474 * rhodkrit / (rhot0 + 0.474 * rhodkrit))
+        return {"rhot0": rhot0, "rhodkrit": rhodkrit}
+
+    KEYWORDS = parametertools.KeywordGroups(
+        parametertools.KeywordGroup(
+            parametertools.Keyword("rhot0"),
+            parametertools.Keyword("rhodkrit"),
+            setter=_set_rho,
+        )
+    )
 
 
 class RefreezeFlag(parametertools.Parameter):
@@ -688,9 +634,22 @@ class FK(lland_parameters.ParameterSoilThreshold):
     """Feldkapazität / Mindestbodenfeuchte für die Interflowentstehung (field
     capacity / threshold value of soil moisture for interflow generation) [mm].
 
-    Note that one can define the values of parameter |FK| via the
-    keyword argument `relative`, as explained in the documentation
-    on class |ParameterSoilThreshold|.
+    You can alternatively define |FK| as a portion of the current values of |WMax| via
+    the keyword argument `relative`.
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> lnk(ACKER)
+        >>> wmax(100.0, 200.0)
+        >>> fk(relative=0.5)
+        >>> fk
+        fk(relative=0.5)
+        >>> from hydpy import print_vector
+        >>> print_vector(fk.values)
+        50.0, 100.0
     """
 
     TYPE: Final = float
@@ -721,13 +680,26 @@ class FK(lland_parameters.ParameterSoilThreshold):
 
 
 class PWP(lland_parameters.ParameterSoilThreshold):
-    """Permanenter Welkepunkt / Mindestbodenfeuchte für die
-    Basisabflussentstehung (permanent wilting point threshold value of soil
-    moisture for base flow generation) [mm].
+    """Permanenter Welkepunkt / Mindestbodenfeuchte für die Basisabflussentstehung
+    (permanent wilting point threshold value of soil moisture for base flow generation)
+    [mm].
 
-    Note that one can define the values of parameter |PWP| via the
-    keyword argument `relative`, as explained in the documentation
-    on class |ParameterSoilThreshold|.
+    You can alternatively define |PWP| as a portion of the current values of |WMax| via
+    the keyword argument `relative`.
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> lnk(ACKER)
+        >>> wmax(100.0, 200.0)
+        >>> pwp(relative=0.1)
+        >>> pwp
+        pwp(relative=0.1)
+        >>> from hydpy import print_vector
+        >>> print_vector(pwp.values)
+        10.0, 20.0
     """
 
     TYPE: Final = float
@@ -827,15 +799,14 @@ class BSFF(parametertools.Parameter):
 
 
 class DMin(lland_parameters.ParameterSoil):
-    """Drainageindex des mittleren Bodenspeichers (flux rate for
-    releasing interflow from the middle soil compartment) [mm/T].
+    r"""Drainageindex des mittleren Bodenspeichers (flux rate for releasing interflow
+    from the middle soil compartment) [mm/T].
 
-    In addition to the |ParameterSoil| `__call__` method, it is
-    possible to set the value of parameter |DMin| in accordance
-    to the keyword argument `r_dmin` due to compatibility reasons
-    with the original LARSIM implementation:
+    For compatibility with the original `LARSIM`_ implementation, you can alternatively
+    define |DMin| via the keyword argument `r_dmin`, where `hours` is the length of the
+    simulation step in hours:
 
-        :math:`Dmin = 0.001008 \\cdot hours \\cdot r_dmin`
+        :math:`DMin = 0.001008 \cdot hours \cdot r\_dmin`
 
     Example:
 
@@ -843,23 +814,14 @@ class DMin(lland_parameters.ParameterSoil):
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> from hydpy.models.lland import *
         >>> parameterstep("1h")
-        >>> nhru(1)
+        >>> nhru(2)
         >>> lnk(ACKER)
         >>> dmin(r_dmin=10.0)
         >>> dmin
-        dmin(0.01008)
+        dmin(r_dmin=10.0)
         >>> from hydpy import print_vector
         >>> print_vector(dmin.values)
-        0.24192
-
-        A wrong keyword results in the right answer:
-
-        >>> dmin(rdmin=10.0)
-        Traceback (most recent call last):
-        ...
-        TypeError: While trying to set the values of parameter `dmin` of element `?` \
-based on keyword argument `rdmin`, the following error occurred: Keyword `rdmin` is \
-not among the available model constants.
+        0.24192, 0.24192
 
     .. testsetup::
 
@@ -871,19 +833,16 @@ not among the available model constants.
     SPAN = (0.0, None)
     INIT = 0.0
 
-    def __call__(self, *args, **kwargs) -> None:
-        """The prefered way to pass values to |DMin| instances
-        within parameter control files.
-        """
-        try:
-            lland_parameters.ParameterSoil.__call__(self, *args, **kwargs)
-        except TypeError:
-            if (r := kwargs.get("r_dmin")) is not None:
-                hours = hydpy.pub.timegrids.init.stepsize.hours
-                self.value = 0.001008 * hours * numpy.asarray(r)
-                self.trim()
-            else:
-                objecttools.augment_excmessage()
+    def _set_r_dmin(self, *, r_dmin: float) -> dict[str, float]:
+        r_dmin = float(r_dmin)
+        self.value = 0.001008 * hydpy.pub.timegrids.init.stepsize.hours * r_dmin
+        return {"r_dmin": r_dmin}
+
+    KEYWORDS = parametertools.KeywordGroups(
+        parametertools.KeywordGroup(
+            parametertools.Keyword("r_dmin"), setter=_set_r_dmin
+        )
+    )
 
     def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`DMin \\leq DMax`.
@@ -904,39 +863,29 @@ not among the available model constants.
 
 
 class DMax(lland_parameters.ParameterSoil):
-    """Drainageindex des oberen Bodenspeichers (additional flux rate for
-    releasing interflow from the upper soil compartment) [mm/T].
+    r"""Drainageindex des oberen Bodenspeichers (additional flux rate for releasing
+    interflow from the upper soil compartment) [mm/T].
 
-    In addition to the |ParameterSoil| `__call__` method, it is
-    possible to set the value of parameter |DMax| in accordance
-    to the keyword argument `r_dmax` due to compatibility reasons
-    with the original LARSIM implemetation.
+    For compatibility with the original `LARSIM`_ implementation, you can alternatively
+    define |DMax| via the keyword argument `r_dmax`, where `hours` is the length of the
+    simulation step in hours:
 
-    Basic Equation:
-        :math:`Dmax = 2.4192 \\cdot r_dmax`
+        :math:`DMax = 0.1008 \cdot hours \cdot r\_dmax`
 
     Example:
 
-        >>> from hydpy import print_vector, pub
+        >>> from hydpy import pub
         >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"
         >>> from hydpy.models.lland import *
         >>> parameterstep("1h")
-        >>> nhru(1)
+        >>> nhru(2)
         >>> lnk(ACKER)
         >>> dmax(r_dmax=10.0)
         >>> dmax
-        dmax(1.008)
+        dmax(r_dmax=10.0)
+        >>> from hydpy import print_vector
         >>> print_vector(dmax.values)
-        24.192
-
-        A wrong keyword results in the right answer:
-
-        >>> dmax(rdmax=10.0)
-        Traceback (most recent call last):
-        ...
-        TypeError: While trying to set the values of parameter `dmax` of element `?` \
-based on keyword argument `rdmax`, the following error occurred: Keyword `rdmax` is \
-not among the available model constants.
+        24.192, 24.192
 
     .. testsetup::
 
@@ -947,22 +896,16 @@ not among the available model constants.
     TIME = True
     INIT = 1.0
 
-    def __call__(self, *args, **kwargs) -> None:
-        """The prefered way to pass values to |DMax| instances
-        within parameter control files.
-        """
-        try:
-            lland_parameters.ParameterSoil.__call__(self, *args, **kwargs)
-        except TypeError:
-            if (r := kwargs.get("r_dmax")) is not None:
-                self.value = (
-                    0.1008
-                    * hydpy.pub.timegrids.init.stepsize.hours
-                    * numpy.asarray(r, config.NP_FLOAT)
-                )
-                self.trim()
-            else:
-                objecttools.augment_excmessage()
+    def _set_r_dmax(self, *, r_dmax: float) -> dict[str, float]:
+        r_dmax = float(r_dmax)
+        self.value = 0.1008 * hydpy.pub.timegrids.init.stepsize.hours * r_dmax
+        return {"r_dmax": r_dmax}
+
+    KEYWORDS = parametertools.KeywordGroups(
+        parametertools.KeywordGroup(
+            parametertools.Keyword("r_dmax"), setter=_set_r_dmax
+        )
+    )
 
     def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`DMax \\geq DMin`.
@@ -1017,17 +960,16 @@ class KapGrenz(parametertools.Parameter):
     Parameter |KapGrenz| actually consists of two types of parameter values.
     Both are thresholds and related to the soil water content.  If the
     actual soil water content is smaller than or equal to the first threshold,
-    capillary rise reaches its maximum value.   If the actual water content
+    capillary rise reaches its maximum value.  If the actual water content
     is larger than or equal to the second threshold, there is no capillary
     rise at all.  In between, the soil water content and the capillary rise
     are inversely related (linear interpolation).
 
-    In the following example, the we set the lower threshold of all three
+    In the following example, we set the lower threshold of all three
     hydrological response units to 10 mm and the upper one to 40 mm:
 
     >>> from hydpy.models.lland import *
-    >>> parameterstep("1d")
-    >>> simulationstep ("12h")
+    >>> parameterstep()
     >>> nhru(3)
     >>> kapgrenz(10.0, 40.0)
     >>> kapgrenz
@@ -1035,20 +977,10 @@ class KapGrenz(parametertools.Parameter):
               [10.0, 40.0],
               [10.0, 40.0]])
 
-    The next example shows how assign different threshold pairs to each
-    response unit:
+    The next example shows how to assign different threshold pairs to each response
+    unit:
 
     >>> kapgrenz([10.0, 40.0], [20., 60.0], [30., 80.0])
-    >>> kapgrenz
-    kapgrenz([[10.0, 40.0],
-              [20.0, 60.0],
-              [30.0, 80.0]])
-
-    It works equally well to pass a complete matrix, of course:
-
-    >>> kapgrenz([[10.0, 40.0],
-    ...           [20.0, 60.0],
-    ...           [30.0, 80.0]])
     >>> kapgrenz
     kapgrenz([[10.0, 40.0],
               [20.0, 60.0],
@@ -1061,10 +993,9 @@ class KapGrenz(parametertools.Parameter):
     >>> kapgrenz
     kapgrenz(30.0)
 
-    For convenience and better compatibility with the original `LARSIM`_
-    model, we provide the keyword argument `option`.  Simply pass an option
-    name and then parameter |KapGrenz| itself calculates suitable threshold
-    values based on soil properties.
+    For compatibility with the original `LARSIM`_ implementation, you can
+    alternatively define |KapGrenz| via the keyword argument `option`, which lets
+    |KapGrenz| calculate suitable threshold values based on soil properties.
 
     The first possible string is `FK`.  When passing this string, the current
     value of parameter |FK| serves both as the lower and the upper threshold,
@@ -1075,7 +1006,7 @@ class KapGrenz(parametertools.Parameter):
     >>> kapgrenz
     kapgrenz(option="FK")
     >>> from hydpy import print_matrix
-    >>> print_matrix(kapgrenz.value)
+    >>> print_matrix(kapgrenz.values)
     | 60.0, 60.0 |
     | 120.0, 120.0 |
     | 180.0, 180.0 |
@@ -1106,57 +1037,17 @@ class KapGrenz(parametertools.Parameter):
     | 60.0, 120.0 |
     | 90.0, 180.0 |
 
-    If we set the values directly and they comply with the previously set option,
-    the string representation will show the previously set option:
+    |KapGrenz| does not update its values when the values of |FK| or |WMax| change
+    later.  Then, its string representation shows the actual threshold values instead
+    of the outdated option:
 
-    >>> kapgrenz.values = [[30.0, 60.0], [60.0, 120.0], [90.0, 180.0]]
-    >>> kapgrenz
-    kapgrenz(option="FK/2_FK")
-
-    If we change the values and they do not comply with the option, the string
-    representation will show the modified values instead of the outdated option:
-
-    >>> kapgrenz.values = 100.0
-    >>> kapgrenz
-    kapgrenz(100.0)
-
-    If we change the parameter |FK|, on which |KapGrenz| depends, |KapGrenz| will not
-    be updated, but will remain at its old values. The option is no longer printed
-    because it is not valid anymore:
-
-    >>> kapgrenz(option="FK/2_FK")
-    >>> kapgrenz
-    kapgrenz(option="FK/2_FK")
-    >>> print_matrix(kapgrenz.values)
-    | 30.0, 60.0 |
-    | 60.0, 120.0 |
-    | 90.0, 180.0 |
-    >>> fk(100)
+    >>> fk(100.0)
     >>> kapgrenz
     kapgrenz([[30.0, 60.0],
               [60.0, 120.0],
               [90.0, 180.0]])
 
-    The option will also not be printed if it leads to |numpy.nan| values:
-
-    >>> fk(numpy.nan)
-    >>> kapgrenz(option="FK/2_FK")
-    >>> kapgrenz
-    kapgrenz(nan)
-
-    Wrong keyword arguments result in errors like the following:
-
-    >>> kapgrenz(option1="FK", option2="0_WMax/10")
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: The value(s) of parameter `kapgrenz` of element `?` \
-could not be set based on the given keyword arguments.
-
-    >>> kapgrenz(option1="FK")
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: The value(s) of parameter `kapgrenz` of element `?` \
-could not be set based on the given keyword arguments.
+    Unknown options result in the following error:
 
     >>> kapgrenz(option="NFk")
     Traceback (most recent call last):
@@ -1184,54 +1075,38 @@ could not be set based on the given keyword arguments.
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
     INIT = 0.0
-    KEYWORDS = {"option": parametertools.Keyword(name="option")}
 
-    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
-        if isinstance(p, NHRU):
-            self.__hydpy__change_shape_if_necessary__((p.value, 2))
-
-    def __call__(self, *args, **kwargs) -> None:
-        self._keywordarguments = parametertools.KeywordArguments(False)
-        idx = self._find_kwargscombination(args, kwargs, ({"option"},))
-        if idx is None:
-            super().__call__(*args, **kwargs)
-        else:
-            self._keywordarguments = parametertools.KeywordArguments(
-                option=kwargs["option"]
-            )
-            self.values = self._get_values_according_to_option()
-
-    def _get_values_according_to_option(self) -> MatrixFloat:
+    def _set_option(self, *, option: str) -> dict[str, str]:
         con = self.subpars
         values = numpy.zeros(self.shape)
-        kwargs = self._keywordarguments
-        if kwargs["option"] == "FK/2_FK":
+        if option == "FK/2_FK":
             values[:, 0] = 0.5 * con.fk
             values[:, 1] = con.fk
-        elif kwargs["option"] == "0_WMax/10":
+        elif option == "0_WMax/10":
             values[:, 0] = 0.0
             values[:, 1] = 0.1 * con.wmax
-        elif kwargs["option"] == "FK":
+        elif option == "FK":
             values[:, 0] = con.fk
             values[:, 1] = con.fk
         else:
             raise ValueError(
-                f"Parameter {objecttools.elementphrase(self)} supports "
-                f"the options `FK`, `0_WMax/10`, and `FK/2_FK`, but "
-                f"`{kwargs['option']}` is given."
-            ) from None
-        return values
+                f"Parameter {objecttools.elementphrase(self)} supports the options "
+                f"`FK`, `0_WMax/10`, and `FK/2_FK`, but `{option}` is given."
+            )
+        self.values = values
+        return {"option": option}
 
-    def __repr__(self) -> str:
-        if self._keywordarguments.valid:
-            values = self._get_values_according_to_option()
-            if (values == self.values).all():
-                strings = []
-                for name, value in self._keywordarguments:
-                    strings.append(f'{name}="{objecttools.repr_(value)}"')
-                return f"{self.name}({', '.join(strings)})"
+    KEYWORDS = parametertools.KeywordGroups(
+        parametertools.KeywordGroup(
+            parametertools.Keyword("option", type_=str),
+            dependencies=("fk", "wmax"),
+            setter=_set_option,
+        )
+    )
 
-        return super().__repr__()
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        if isinstance(p, NHRU):
+            self.__hydpy__change_shape_if_necessary__((p.value, 2))
 
 
 class RBeta(parametertools.Parameter):
@@ -1359,76 +1234,57 @@ class A2(parametertools.Parameter):
 class TInd(parametertools.Parameter):
     """Fließzeitindex (factor related to the time of concentration) [T].
 
-    In addition to the |Parameter| call method, it
-    is possible to set the value of parameter |TInd| in accordance to
-    the keyword arguments `tal` (talweg, [km]), `hot` (higher reference
-    altitude, [m]), and `hut` (lower reference altitude, [m]).  This is
-    supposed to decrease the time of runoff concentration in small and/or
-    steep catchments.  Note that |TInd| does not only affect direct
-    runoff, but interflow and base flow as well.  Hence it seems advisable
-    to use this regionalization strategy with caution.
+    You can alternatively define |TInd| via the keyword arguments `tal` (talweg,
+    [km]), `hot` (higher reference altitude, [m]), and `hut` (lower reference
+    altitude, [m]).  This is supposed to decrease the time of runoff concentration in
+    small and/or steep catchments.  Note that |TInd| does not only affect direct
+    runoff, but interflow and base flow as well.  Hence it seems advisable to use this
+    regionalisation strategy with caution:
 
-    Basic Equation:
         :math:`TInd[h] = (0.868 \\cdot \\frac{Tal^3}{HOT-HUT})^{0.385}`
 
     Examples:
 
-        Using typical values:
+        Using typical values results in a value of 0.104335 days, which corresponds
+        to 0.20867 for the selected simulation step size of 12 hours:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep("1d")
         >>> simulationstep("12h")
         >>> tind(tal=5.0, hot=210.0, hut=200.0)
         >>> tind
-        tind(0.104335)
-
-        Note that this result is related to the selected parameter step size
-        of one day.  The value related to the selected simulation step size
-        of 12 hours is:
-
+        tind(tal=5.0, hot=210.0, hut=200.0)
         >>> from hydpy import round_
         >>> round_(tind.value)
         0.20867
 
-        Unplausible input values lead to the following exceptions:
+        `tal` must be positive, and `hot` must be greater than `hut`:
 
         >>> tind(tal=5.0, hot=200.0, hut=200.0)
         Traceback (most recent call last):
         ...
-        ValueError: For the alternative calculation of parameter `tind`, \
-the value assigned to keyword argument `tal` must be greater then zero and \
-the one of `hot` must be greater than the one of `hut`.  However, for \
-element ?, the values `5.0`, `200.0` and `200.0` were given respectively.
+        ValueError: For the alternative calculation of parameter `tind`, the value \
+assigned to keyword argument `tal` must be greater then zero and the one of `hot` \
+must be greater than the one of `hut`.  However, for element ?, the values `tal=5.0`, \
+`hot=200.0` and `hut=200.0` were given respectively.
 
         >>> tind(tal=0.0, hot=210.0, hut=200.0)
         Traceback (most recent call last):
         ...
-        ValueError: For the alternative calculation of parameter `tind`, \
-the value assigned to keyword argument `tal` must be greater then zero and \
-the one of `hot` must be greater than the one of `hut`.  However, for \
-element ?, the values `0.0`, `210.0` and `200.0` were given respectively.
+        ValueError: For the alternative calculation of parameter `tind`, the value \
+assigned to keyword argument `tal` must be greater then zero and the one of `hot` \
+must be greater than the one of `hut`.  However, for element ?, the values `tal=0.0`, \
+`hot=210.0` and `hut=200.0` were given respectively.
 
-        However, it is hard to define exact bounds for the value of
-        |TInd| itself.  Whenever it is below 0.001 or above 1000 days,
-        the following warning is given:
+        It is hard to define exact bounds for the value of |TInd| itself.  Whenever it
+        is below 0.001 or above 1000 hours, the following warning is given:
 
         >>> tind(tal=0.001, hot=210.0, hut=200.0)
         Traceback (most recent call last):
         ...
-        UserWarning: Due to the given values for the keyword arguments \
-`tal` (0.001), `hot` (210.0) and `hut` (200.0), parameter `tind` of \
-element `?` has been set to an unrealistic value of 0.000134 hours.
-
-        Additionally, exceptions for missing (or wrong) keywords are
-        implemented
-
-        >>> tind(tal=5.0, hot=210.0)
-        Traceback (most recent call last):
-        ...
-        ValueError: For the alternative calculation of parameter `tind`, \
-values for all three keyword keyword arguments `tal`, `hot`, and `hut` \
-must be given.
-
+        UserWarning: Due to the given values for the keyword arguments `tal` (0.001), \
+`hot` (210.0) and `hut` (200.0), parameter `tind` of element `?` has been set to an \
+unrealistic value of 0.000134 hours.
     """
 
     NDIM: Final[Literal[0]] = 0
@@ -1437,40 +1293,37 @@ must be given.
     SPAN = (0.0, None)
     INIT = 1.0
 
-    def __call__(self, *args, **kwargs) -> None:
-        try:
-            super().__call__(*args, **kwargs)
-        except NotImplementedError:
-            try:
-                tal = float(kwargs["tal"])
-                hot = float(kwargs["hot"])
-                hut = float(kwargs["hut"])
-            except KeyError:
-                raise ValueError(
-                    "For the alternative calculation of parameter `tind`, "
-                    "values for all three keyword keyword arguments `tal`, "
-                    "`hot`, and `hut` must be given."
-                ) from None
-            if (tal <= 0.0) or (hot <= hut):
-                raise ValueError(
-                    f"For the alternative calculation of parameter `tind`, "
-                    f"the value assigned to keyword argument `tal` must be "
-                    f"greater then zero and the one of `hot` must be greater "
-                    f"than the one of `hut`.  However, for element "
-                    f"{objecttools.devicename(self)}, the values `{tal}`, "
-                    f"`{hot}` and `{hut}` were given respectively."
-                ) from None
-            self.value = (0.868 * tal**3 / (hot - hut)) ** 0.385
-            if (self > 1000.0) or (self < 0.001):
-                warnings.warn(
-                    f"Due to the given values for the keyword arguments "
-                    f"`tal` ({tal}), `hot` ({hot}) and `hut` ({hut}), "
-                    f"parameter `tind` of element "
-                    f"`{objecttools.devicename(self)}` has been set to an "
-                    f"unrealistic value of {objecttools.repr_(self.value)} "
-                    f"hours."
-                )
-            self.value *= timetools.Period("1h") / hydpy.pub.options.simulationstep
+    def _set_tal_hot_hut(
+        self, *, tal: float, hot: float, hut: float
+    ) -> dict[str, float]:
+        tal, hot, hut = float(tal), float(hot), float(hut)
+        if (tal <= 0.0) or (hot <= hut):
+            raise ValueError(
+                f"For the alternative calculation of parameter `tind`, the value "
+                f"assigned to keyword argument `tal` must be greater then zero and "
+                f"the one of `hot` must be greater than the one of `hut`.  However, "
+                f"for element {objecttools.devicename(self)}, the values "
+                f"`tal={tal}`, `hot={hot}` and `hut={hut}` were given respectively."
+            )
+        hours = (0.868 * tal**3 / (hot - hut)) ** 0.385
+        self.value = hours * (timetools.Period("1h") / hydpy.pub.options.simulationstep)
+        if (hours > 1000.0) or (hours < 0.001):
+            warnings.warn(
+                f"Due to the given values for the keyword arguments `tal` ({tal}), "
+                f"`hot` ({hot}) and `hut` ({hut}), parameter `tind` of element "
+                f"`{objecttools.devicename(self)}` has been set to an unrealistic "
+                f"value of {objecttools.repr_(hours)} hours."
+            )
+        return {"tal": tal, "hot": hot, "hut": hut}
+
+    KEYWORDS = parametertools.KeywordGroups(
+        parametertools.KeywordGroup(
+            parametertools.Keyword("tal"),
+            parametertools.Keyword("hot"),
+            parametertools.Keyword("hut"),
+            setter=_set_tal_hot_hut,
+        )
+    )
 
 
 class EQB(parametertools.Parameter):

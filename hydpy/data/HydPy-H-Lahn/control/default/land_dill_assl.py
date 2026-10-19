@@ -54,4 +54,4 @@ with model.add_aetmodel_v1(evap_aet_hbv96):
         precipitationfactor(0.02)
         evapotranspirationfactor(1.0)
 with model.add_rconcmodel_v1(rconc_uh):
-    uh("triangle", tb=0.36728)
+    uh(option="triangle", tb=0.36728)

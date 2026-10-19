@@ -76,7 +76,7 @@ the example given by :cite:t:`ref-airGRManual`:
 >>> x5(0.434)
 
 >>> with model.add_rconcmodel_v1("rconc_uh"):
-...     uh("gr_uh2", x4=2.198)
+...     uh(option="gr_uh2", x4=2.198)
 
 >>> test.inits = (
 ...     (states.i, 0.0),

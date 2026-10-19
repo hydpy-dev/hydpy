@@ -649,10 +649,53 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         >>> item.collect_variables(pub.selections)
         Traceback (most recent call last):
         ...
-        ValueError: Incorrect configuration for exchange item `lag`: When defining a \
-keyword for an exchange item, its aggregation level cannot be `subunit`.
+        ValueError: While trying to collect the variables handled by exchange item \
+`lag`, the following error occurred: When defining a keyword for an exchange item, \
+its aggregation level cannot be `subunit`.
+
+        Only "exchangeable" keyword arguments are allowed (see method
+        |KeywordHandler.check_exchangeable|):
+
+        >>> item = SetItem(name="lag", master="musk", target="control.nmbsegments",
+        ...                keyword="wrong", level="global")
+        >>> item.collect_variables(pub.selections)
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to collect the variables handled by exchange item \
+`lag`, the following error occurred: Parameter `nmbsegments` of element \
+`stream_dill_assl_lahn_leun` does not support the keyword argument `wrong`.
+
+        Only parameters support keyword arguments:
+
+        >>> item = SetItem(name="lz", master="hland", target="states.lz",
+        ...                keyword="lz", level="global")
+        >>> item.collect_variables(pub.selections)
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to collect the variables handled by exchange item \
+`lz`, the following error occurred: Variable `lz` of element `land_dill_assl` does \
+not support keyword arguments.
         """
         super().collect_variables(selections)
+        if (keyword := self.targetspecs.keyword) is not None:
+            try:
+                if self.level == "subunit":
+                    raise ValueError(
+                        "When defining a keyword for an exchange item, its aggregation "
+                        "level cannot be `subunit`."
+                    )
+                for target in self.device2target.values():
+                    if not isinstance(target, parametertools.Parameter):
+                        raise ValueError(
+                            f"Variable {objecttools.elementphrase(target)} does not "
+                            f"support keyword arguments."
+                        )
+                    target.keywordhandler.check_exchangeable(keyword)
+            except ValueError:
+                objecttools.augment_excmessage(
+                    f"While trying to collect the variables handled by exchange item "
+                    f"`{self.name}`"
+                )
         if self.level == "global":
             self._shape = ()
         elif self.level == "selection":
@@ -660,12 +703,6 @@ keyword for an exchange item, its aggregation level cannot be `subunit`.
         elif self.level == "device":
             self._shape = (len(self.device2target),)
         elif self.level == "subunit":
-            if self.targetspecs.keyword is not None:
-                raise ValueError(
-                    f"Incorrect configuration for exchange item `{self.name}`: When "
-                    f"defining a keyword for an exchange item, its aggregation level "
-                    f"cannot be `subunit`."
-                )
             self._shape = (
                 sum(target.numberofvalues for target in self.device2target.values()),
             )
@@ -704,14 +741,11 @@ given value `wrong` cannot be converted to type `float`.
             if self.targetspecs.series:
                 assert isinstance(variable, sequencetools.IOSequence)
                 variable.simseries = value
-            elif self.targetspecs.keyword is None:
-                variable(value)
-            else:
+            elif (keyword := self.targetspecs.keyword) is not None:
                 assert isinstance(variable, parametertools.Parameter)
-                keywordarguments = variable.keywordarguments
-                keywordarguments.valid = True
-                keywordarguments[self.targetspecs.keyword] = value.item()
-                variable(**dict(keywordarguments))
+                variable.keywordhandler.set_value(keyword, value.item())
+            else:
+                variable(value)
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to update a target variable of {type(self).__name__} "
@@ -1335,9 +1369,9 @@ have not been prepared so far.
                     itemvalues[idx] = variable.average_values()
                 else:
                     assert isinstance(variable, parametertools.Parameter)
-                    itemvalues[idx] = variable.keywordarguments[
+                    itemvalues[idx] = variable.keywordhandler.get_value(
                         self.targetspecs.keyword
-                    ]
+                    )
         elif self.level == "subunit":
             idx0 = 0
             for variable in self.device2target.values():
@@ -1600,7 +1634,7 @@ together with shapes (12,) (2,)...
             result = base.value + value
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to add the value(s) `{value}` of AddItem "
+                f"While trying to add the value(s) `{value}` of {type(self).__name__} "
                 f"`{self.name}` and the value(s) `{base.value}` of variable "
                 f"{objecttools.devicephrase(base)}"
             )
@@ -1662,19 +1696,19 @@ class MultiplyItem(MathItem):
         >>> item.update_variables()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ValueError: While trying to multiply the value(s) `(0.1, 0.2)` of AddItem \
-`sfcf` and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of element \
-`land_dill_assl`, the following error occurred: operands could not be broadcast \
-together with shapes (12,) (2,)...
+        ValueError: While trying to multiply the value(s) `(0.1, 0.2)` of \
+MultiplyItem `sfcf` and the value(s) `[1.04283 ... 1.04283]` of variable `rfcf` of \
+element `land_dill_assl`, the following error occurred: operands could not be \
+broadcast together with shapes (12,) (2,)...
         """
         base = self.target2base[variable]
         try:
             result = base.value * value
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to multiply the value(s) `{value}` of AddItem "
-                f"`{self.name}` and the value(s) `{base.value}` of variable "
-                f"{objecttools.devicephrase(base)}"
+                f"While trying to multiply the value(s) `{value}` of "
+                f"{type(self).__name__} `{self.name}` and the value(s) `{base.value}` "
+                f"of variable {objecttools.devicephrase(base)}"
             )
         super().update_variable(variable, result)
 

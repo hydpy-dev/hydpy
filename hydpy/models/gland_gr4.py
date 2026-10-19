@@ -98,9 +98,9 @@ that, for non-daily simulations, you might also want to adjust the other functio
 argument `beta`, which defaults to 2.5):
 
 >>> with model.add_rconcmodel_directflow_v1("rconc_uh"):
-...     uh("gr_uh2", x4=2.208)
+...     uh(option="gr_uh2", x4=2.208)
 >>> with model.add_rconcmodel_routingstore_v1("rconc_uh"):
-...     uh("gr_uh1", x4=2.208)
+...     uh(option="gr_uh1", x4=2.208)
 
 Now that all models have been selected and parameterised, we can define their initial
 conditions:

@@ -54,8 +54,8 @@ def trim_kwarg(
     parameter values via parameter-specific keyword arguments.  Due to the individual
     nature of calculating parameter values from keyword arguments, using |trim_kwarg|
     is less standardisable than using |trim|.  Hence, model developers must include it
-    manually into the `__call__` methods of their |Parameter| subclasses when trimming
-    keyword arguments is required.
+    manually into the setter functions of their keyword groups (see attribute
+    |KeywordGroup.setter|) when trimming keyword arguments is required.
 
     The following tests show that |trim_kwarg| returns the eventually trimmed value,
     and, like |trim|, emits warnings only in case of boundary violations beyond the
@@ -791,22 +791,361 @@ class SpecialParameters(ParameterSubset[TypeSubParameters_co, "SpecialParameter"
 
 
 class Keyword(NamedTuple):
-    """Helper class to describe parameter-specific keyword arguments for defining
-    values by "calling" a parameter object."""
+    """Helper class to describe parameter-specific keyword arguments for defining values
+    by "calling" a parameter object.
+
+    In contrast to the standard behaviour of `NamedTuple`, string representations
+    include only those arguments that deviate from their default values:
+
+    >>> from hydpy.core.parametertools import Keyword
+    >>> Keyword("a")
+    Keyword(name='a')
+    >>> Keyword("b", type_=int, time=False, span=(0.0, None), optional=True)
+    Keyword(name='b', type_=int, time=False, span=(0.0, None), optional=True)
+
+    See the documentation on class |KeywordGroups| for further information.
+    """
 
     name: str
     """The keyword argument's name."""
-    type_: type[float | int] = float
-    """The keyword argument's type (equivalent to the |Variable.TYPE| attribute of 
-    class |Variable|)."""
+    type_: type[float | int | str] = float
+    """The keyword argument's type (equivalent to the |Variable.TYPE| attribute of class
+    |Variable|, but also allowing for strings)."""
     time: bool | None = None
-    """Type of the keyword argument's time dependency (equivalent to the 
+    """Type of the keyword argument's time dependency (equivalent to the
     |Parameter.TIME| attribute of class |Parameter|).
     """
     span: tuple[float | None, float | None] = (None, None)
-    """The keyword argument's lower and upper boundary (equivalent to the 
+    """The keyword argument's lower and upper boundary (equivalent to the
     |Variable.SPAN| attribute of class |Variable|).
     """
+    optional: bool = False
+    """Flag indicating whether the keyword argument is optional within its group."""
+
+    def __repr__(self) -> str:
+        defaults = self._field_defaults
+        args = []
+        for field, value in zip(self._fields, self):
+            if (field in defaults) and (value == defaults[field]):
+                continue
+            if field == "type_":
+                args.append(f"{field}={self.type_.__name__}")
+            else:
+                args.append(f"{field}={value!r}")
+        return f"{type(self).__name__}({', '.join(args)})"
+
+
+class KeywordGroup:
+    """A group of |Keyword| objects describing keyword arguments that a parameter
+    accepts in combination.
+
+    Each |KeywordGroup| object requires a function that sets the parameter values based
+    on the group's keyword arguments (see attribute |KeywordGroup.setter| and method
+    |KeywordHandler.apply|).  The following setter function `_set_sum` sums all given
+    values:
+
+    >>> from hydpy.core.parametertools import Keyword, KeywordGroup
+    >>> def _set_sum(parameter, **kwargs):
+    ...     parameter.value = sum(kwargs.values())
+    ...     return kwargs
+    >>> group = KeywordGroup(Keyword("b"), Keyword("c", optional=True), setter=_set_sum)
+    >>> group.setter is _set_sum
+    True
+    >>> len(group)
+    2
+
+    The string representation omits the setter function, as it is an implementation
+    detail:
+
+    >>> group
+    KeywordGroup(Keyword(name='b'), Keyword(name='c', optional=True))
+
+    If the parameter values calculated from the group's keyword arguments depend on the
+    values of other parameters of the same subgroup, pass their names via the
+    keyword-only argument `dependencies` (see property |KeywordHandler.uptodate|):
+
+    >>> KeywordGroup(Keyword("b"), setter=_set_sum, dependencies=("fk", "wmax"))
+    KeywordGroup(Keyword(name='b'), dependencies=('fk', 'wmax'))
+
+    See the documentation on class |KeywordGroups| for further information.
+    """
+
+    keywords: tuple[Keyword, ...]
+    """The |Keyword| objects of the group."""
+
+    dependencies: tuple[str, ...]
+    """The names of the parameters on which the values calculated from the group's
+    keyword arguments depend."""
+
+    setter: Callable[..., Mapping[str, Any]]
+    """The function that sets the parameter values based on the group's keyword
+    arguments and returns the keyword arguments to be recorded."""
+
+    def __init__(
+        self,
+        *keywords: Keyword,
+        setter: Callable[..., Mapping[str, Any]],
+        dependencies: Iterable[str] = (),
+    ) -> None:
+        self.keywords = keywords
+        self.dependencies = tuple(dependencies)
+        self.setter = setter
+
+    def get_keyword(self, name: str) -> Keyword | None:
+        """Return the |Keyword| object with the given name or |None| if there is no such
+        object.
+
+        >>> from hydpy.core.parametertools import Keyword, KeywordGroup
+        >>> keywords = KeywordGroup(
+        ...     Keyword("a"), Keyword("b", optional=True), setter=lambda p, **k: k
+        ... )
+        >>> keywords.get_keyword("b")
+        Keyword(name='b', optional=True)
+        >>> keywords.get_keyword("c")
+        """
+        for keyword in self.keywords:
+            if keyword.name == name:
+                return keyword
+        return None
+
+    @property
+    def names(self) -> tuple[str, ...]:
+        """The names of all keyword arguments of the group.
+
+        >>> from hydpy.core.parametertools import Keyword, KeywordGroup
+        >>> group = KeywordGroup(
+        ...     Keyword("c"), Keyword("b", optional=True), setter=lambda p, **k: k
+        ... )
+        >>> group.names
+        ('c', 'b')
+        """
+        return tuple(keyword.name for keyword in self.keywords)
+
+    @property
+    def required_names(self) -> tuple[str, ...]:
+        """The names of all non-optional keyword arguments of the group.
+
+        >>> from hydpy.core.parametertools import Keyword, KeywordGroup
+        >>> group = KeywordGroup(
+        ...     Keyword("b"), Keyword("c", optional=True), setter=lambda p, **k: k
+        ... )
+        >>> group.required_names
+        ('b',)
+        """
+        return tuple(keyword.name for keyword in self.keywords if not keyword.optional)
+
+    def matches(self, names: Iterable[str]) -> bool:
+        """Return |True| if the given names include all required and only known keyword
+        argument names.
+
+        >>> from hydpy.core.parametertools import Keyword, KeywordGroup
+        >>> group = KeywordGroup(
+        ...     Keyword("b"), Keyword("c", optional=True), setter=lambda p, **k: k
+        ... )
+        >>> group.matches(["b"]), group.matches(["b", "c"])
+        (True, True)
+        >>> group.matches(["c"]), group.matches(["b", "d"])
+        (False, False)
+        """
+        return set(self.required_names) <= set(names) <= set(self.names)
+
+    def __iter__(self) -> Iterator[Keyword]:
+        return iter(self.keywords)
+
+    def __len__(self) -> int:
+        return len(self.keywords)
+
+    def __repr__(self) -> str:
+        strings = [repr(keyword) for keyword in self.keywords]
+        if self.dependencies:
+            strings.append(f"dependencies={self.dependencies}")
+        return f"{type(self).__name__}({', '.join(strings)})"
+
+
+class KeywordGroups:
+    """The parameter-specific keyword arguments of a |Parameter| subclass, divided into
+    groups of keyword arguments that can be used together.
+
+    Some parameters allow you to define their values not only directly but also using
+    special keyword arguments.  |KeywordGroups| objects describe these keywords and
+    allow handling them consistently.  Each |KeywordGroups| object is stored in the
+    class attribute |Parameter.KEYWORDS| of its parameter, and contains an arbitrary
+    number of keyword groups, which can be used in combination.
+
+    >>> from hydpy.core.parametertools import Keyword, KeywordGroup, KeywordGroups
+    >>> KeywordGroups(
+    ...     KeywordGroup(Keyword("a", type_=str), Keyword("b"), setter=lambda p, **k: k)
+    ... )
+    KeywordGroups(
+       KeywordGroup(Keyword(name='a', type_=str), Keyword(name='b'))
+    )
+    >>> keywords = KeywordGroups(
+    ...     KeywordGroup(
+    ...         Keyword("a", type_=str),
+    ...         Keyword("b"),
+    ...         setter=lambda p, **k: k,
+    ...     ),
+    ...     KeywordGroup(
+    ...         Keyword("a", type_=str),
+    ...         Keyword("c", type_=int, optional=True),
+    ...         setter=lambda p, **k: k,
+    ...     ),
+    ... )
+    >>> keywords
+    KeywordGroups(
+       KeywordGroup(Keyword(name='a', type_=str), Keyword(name='b')),
+       KeywordGroup(Keyword(name='a', type_=str), Keyword(name='c', type_=int, \
+optional=True)),
+    )
+    >>> len(keywords)
+    2
+    >>> for group in keywords:
+    ...     print(group.names)
+    ('a', 'b')
+    ('a', 'c')
+
+    A keyword argument name must have the same meaning in all groups.  Only its
+    |Keyword.optional| flag may differ between groups:
+
+    >>> KeywordGroups(
+    ...     KeywordGroup(Keyword("a", time=True), setter=lambda p, **k: k),
+    ...     KeywordGroup(
+    ...         Keyword("a", time=False), Keyword("b"), setter=lambda p, **k: k
+    ...     ),
+    ... )
+    Traceback (most recent call last):
+    ...
+    ValueError: The keyword argument `a` is defined differently in different \
+groups: Keyword(name='a', time=True) and Keyword(name='a', time=False).
+    """
+
+    groups: tuple[KeywordGroup, ...]
+    """The groups of keyword arguments that can be used together."""
+
+    def __init__(self, *groups: KeywordGroup) -> None:
+        name2keyword: dict[str, Keyword] = {}
+        for group in groups:
+            for keyword in group:
+                new = keyword._replace(optional=False)
+                old = name2keyword.setdefault(keyword.name, new)
+                if old != new:
+                    raise ValueError(
+                        f"The keyword argument `{keyword.name}` is defined "
+                        f"differently in different groups: {old!r} and {new!r}."
+                    )
+        self.groups = groups
+
+    def get_keyword(self, name: str) -> Keyword | None:
+        """Return the |Keyword| object with the given name or |None| if there is no such
+        object.
+
+        >>> from hydpy.core.parametertools import Keyword, KeywordGroup, KeywordGroups
+        >>> keywords = KeywordGroups(
+        ...     KeywordGroup(Keyword("a"), setter=lambda p, **k: k),
+        ...     KeywordGroup(Keyword("b", time=True), setter=lambda p, **k: k),
+        ... )
+        >>> keywords.get_keyword("b")
+        Keyword(name='b', time=True)
+        >>> keywords.get_keyword("c")
+        """
+        for group in self.groups:
+            if (keyword := group.get_keyword(name)) is not None:
+                return keyword
+        return None
+
+    def find_group(self, names: Iterable[str]) -> int | None:
+        """Return the index of the first group that agrees with the given keyword
+        argument names (see method |KeywordGroup.matches|) or |None| if there is no such
+        group.
+
+        >>> from hydpy.core.parametertools import Keyword, KeywordGroup, KeywordGroups
+        >>> keywords = KeywordGroups(
+        ...     KeywordGroup(Keyword("a"), setter=lambda p, **k: k),
+        ...     KeywordGroup(
+        ...         Keyword("b"), Keyword("c", optional=True), setter=lambda p, **k: k
+        ...     ),
+        ... )
+        >>> keywords.find_group(["a"]), keywords.find_group(["b"])
+        (0, 1)
+        >>> keywords.find_group(["b", "c"]), keywords.find_group(["c"])
+        (1, None)
+        >>> keywords.find_group(["a", "b"]), keywords.find_group([])
+        (None, None)
+        """
+        names = tuple(names)
+        for idx, group in enumerate(self.groups):
+            if group.matches(names):
+                return idx
+        return None
+
+    def find_groups(self, name: str) -> tuple[int, ...]:
+        """Return the indices of all groups containing the keyword argument with the
+        given name.
+
+        >>> from hydpy.core.parametertools import Keyword, KeywordGroup, KeywordGroups
+        >>> keywords = KeywordGroups(
+        ...     KeywordGroup(Keyword("a"), Keyword("b"), setter=lambda p, **k: k),
+        ...     KeywordGroup(Keyword("a"), Keyword("c"), setter=lambda p, **k: k),
+        ... )
+        >>> keywords.find_groups("a"), keywords.find_groups("c")
+        ((0, 1), (1,))
+        >>> keywords.find_groups("d")
+        ()
+        """
+        return tuple(
+            idx for idx, group in enumerate(self.groups) if name in group.names
+        )
+
+    def describe(self, idxs: Iterable[int] | None = None) -> str:
+        """Describe the composition of all or the selected groups for error messages.
+
+        >>> from hydpy.core.parametertools import Keyword, KeywordGroup, KeywordGroups
+        >>> keywords = KeywordGroups(
+        ...     KeywordGroup(
+        ...         Keyword("a"),
+        ...         Keyword("b"),
+        ...         Keyword("c", optional=True),
+        ...         setter=lambda p, **k: k,
+        ...     ),
+        ...     KeywordGroup(Keyword("d"), setter=lambda p, **k: k),
+        ...     KeywordGroup(Keyword("a"), Keyword("e"), setter=lambda p, **k: k),
+        ... )
+        >>> keywords.describe()
+        'of `a`, `b`, and `c` (optional), of `d` only, or of `a` and `e`'
+        >>> keywords.describe([1, 2])
+        'of `d` only or of `a` and `e`'
+        >>> keywords.describe([1])
+        'of `d` only'
+        """
+        if idxs is None:
+            groups = self.groups
+        else:
+            groups = tuple(self.groups[idx] for idx in idxs)
+        descriptions = []
+        for group in groups:
+            if len(group) == 1:
+                descriptions.append(f"of `{group.names[0]}` only")
+            else:
+                names = (
+                    f"`{k.name}` (optional)" if k.optional else f"`{k.name}`"
+                    for k in group
+                )
+                descriptions.append(f"of {objecttools.enumeration(names)}")
+        return objecttools.enumeration(descriptions, conjunction="or")
+
+    def __iter__(self) -> Iterator[KeywordGroup]:
+        return iter(self.groups)
+
+    def __len__(self) -> int:
+        return len(self.groups)
+
+    def __repr__(self) -> str:
+        lines = [f"{type(self).__name__}("]
+        lines.extend(f"   {repr(group)}," for group in self.groups)
+        if len(self.groups) == 1:
+            lines[-1] = lines[-1][:-1]
+        lines.append(")")
+        return "\n".join(lines)
 
 
 class KeywordArgumentsError(RuntimeError):
@@ -824,21 +1163,20 @@ class KeywordArguments(Generic[T_inv]):
 
     The purpose of class |KeywordArguments| is to simplify handling instances of
     |Parameter| subclasses which allow setting values by calling them with keyword
-    arguments.  When useful, instances of |Parameter| subclasses should return a
-    valid |KeywordArguments| object via property |Parameter.keywordarguments|.
-    This object should contain the keyword arguments that, when passed to the same
-    parameter instance or another parameter instance of the same type, sets it into
-    an equal state.  This is best explained by the following example based on
-    parameter |lland_control.TRefT| of application model |lland_dd| (see the
-    documentation on property |ZipParameter.keywordarguments| of class |ZipParameter|
-    for additional information):
+    arguments.  If possible, |Parameter| objects provide a valid |KeywordArguments|
+    object via property |KeywordHandler.arguments|.  This object contains the keyword
+    arguments that, when passed to the same parameter instance or another parameter
+    instance of the same type, sets it into an equal state.  This is best explained by
+    the following example based on parameter |lland_control.TRefT| of application
+    model |lland_dd| (see the documentation on property |ZipKeywordHandler.arguments|
+    of class |ZipKeywordHandler| for additional information):
 
     >>> from hydpy.models.lland_dd import *
     >>> parameterstep()
     >>> nhru(4)
     >>> lnk(ACKER, LAUBW, WASSER, ACKER)
     >>> treft(acker=2.0, laubw=1.0)
-    >>> treft.keywordarguments
+    >>> treft.keywordhandler.arguments
     KeywordArguments(acker=2.0, laubw=1.0)
 
     You can initialise a |KeywordArguments| object on your own:
@@ -871,9 +1209,9 @@ class KeywordArguments(Generic[T_inv]):
     >>> lnk(WASSER)
     >>> treft
     treft(nan)
-    >>> treft.keywordarguments
+    >>> treft.keywordhandler.arguments
     KeywordArguments()
-    >>> treft.keywordarguments.valid
+    >>> treft.keywordhandler.arguments.valid
     True
 
     Class |KeywordArguments| supports features like iteration but raises the
@@ -1163,7 +1501,7 @@ raise_exception=False)
             for element in elements:
                 try:
                     control = element.model.parameters.control
-                    other = control.regular[name_parameter].keywordarguments
+                    other = control.regular[name_parameter].keywordhandler.arguments
                     for name_keyword, value in other:
                         self.add(name_keyword, value)
                 except KeywordArgumentsError:
@@ -1258,6 +1596,976 @@ raise_exception=False)
 
     def __repr__(self) -> str:
         return objecttools.apply_black(type(self).__name__, **self._name2value)
+
+
+class KeywordHandler:
+    """Handles the parameter-specific keyword arguments of a |Parameter| object.
+
+    Each |Parameter| object owns a |KeywordHandler| object (see attribute
+    |Parameter.keywordhandler|).  Its methods rely on the keyword groups defined by the
+    |KeywordGroups| object of the respective |Parameter| subclass (see attribute
+    |Parameter.KEYWORDS|).  If necessary, |Parameter| subclasses can select a
+    specialised |KeywordHandler| subclass via the class attribute
+    |Parameter.KEYWORDHANDLER|, as class |ZipParameter| does (see class
+    |ZipKeywordHandler|).
+
+    The following test parameter supports two groups of keyword arguments, of which
+    the second one consists of two required and an optional keyword argument.  The
+    setter function of each group calculates the parameter value and returns the
+    keyword arguments to be recorded (see method |KeywordHandler.apply| and property
+    |KeywordHandler.recorded|):
+
+    >>> from hydpy.core.parametertools import (
+    ...     Keyword, KeywordGroup, KeywordGroups, Parameter
+    ... )
+    >>> class Par(Parameter):
+    ...     NDIM = 0
+    ...     TYPE = float
+    ...
+    ...     def _set_a(self, *, a):
+    ...         self.value = 2.0 * a
+    ...         return {"a": a}
+    ...
+    ...     def _set_b_c_d(self, *, b, c, d=None):
+    ...         self.value = b + c
+    ...         kwargs = {"b": b, "c": c}
+    ...         if d is not None:
+    ...             self.value += d
+    ...             kwargs["d"] = d
+    ...         return kwargs
+    ...
+    ...     KEYWORDS = KeywordGroups(
+    ...         KeywordGroup(Keyword("a"), setter=_set_a),
+    ...         KeywordGroup(
+    ...             Keyword("b"), Keyword("c"), Keyword("d", optional=True),
+    ...             setter=_set_b_c_d,
+    ...         ),
+    ...     )
+
+    The string representation of the parameter reflects the recorded keyword arguments,
+    if available:
+
+    >>> par = Par(None)
+    >>> par(1.0)
+    >>> par, par.value
+    (par(1.0), 1.0)
+
+    >>> par(a=1.0)
+    >>> par, par.value
+    (par(a=1.0), 2.0)
+
+    >>> par(b=1.0, c=2.0)
+    >>> par.value
+    3.0
+
+    >>> par(b=1, d=3.0, c=2.0)
+    >>> par, par.value
+    (par(b=1.0, c=2.0, d=3.0), 6.0)
+
+    The recorded keyword arguments become invalid as soon as the parameter values change
+    (see property |KeywordHandler.uptodate|):
+
+    >>> par.value = 4.0
+    >>> par, par.value
+    (par(4.0), 4.0)
+    """
+
+    parameter: Parameter
+    """The handled |Parameter| object."""
+
+    _recorded_keywordarguments: KeywordArguments[Any]
+    _recorded_group: KeywordGroup | None
+    _recorded_values: Any
+    _recorded_dependencies: dict[str, Any]
+
+    def __init__(self, parameter: Parameter) -> None:
+        self.parameter = parameter
+        del self.recorded
+
+    @property
+    def recorded(self) -> KeywordArguments[Any]:
+        """The keyword arguments of the parameter's last call.
+
+        Exchange items, calibration rules, and string representations rely on recorded
+        keyword arguments.  Method |KeywordHandler.apply| records the mapping returned
+        by the setter function of the matching keyword group (see attribute
+        |KeywordGroup.setter|).  The setter function returns the values as given, which
+        refer to the current parameter step size.  |KeywordHandler| converts the values
+        of time-dependent keyword arguments (see attribute |Keyword.time|) to the
+        simulation step size (see property |KeywordHandler.arguments|).  Then,
+        |KeywordHandler| memorises the current parameter values and the current values
+        of the parameters the matching keyword group depends on (see property
+        |KeywordHandler.uptodate|).  Delete |KeywordHandler.recorded| to discard the
+        recorded keyword arguments (see property |KeywordHandler.uptodate|).
+        """
+        return self._recorded_keywordarguments
+
+    @recorded.deleter
+    def recorded(self) -> None:
+        self._recorded_keywordarguments = KeywordArguments(False)
+        self._recorded_group = None
+        self._recorded_values = None
+        self._recorded_dependencies = {}
+
+    def _record(self, group: KeywordGroup, kwargs: Mapping[str, Any]) -> None:
+        self._recorded_group = group
+        kwargs = dict(kwargs)
+        for name, value in kwargs.items():
+            if (keyword := group.get_keyword(name)) is not None:
+                if keyword.time is True:
+                    kwargs[name] = value * self.parameter.get_timefactor()
+                elif keyword.time is False:
+                    kwargs[name] = value / self.parameter.get_timefactor()
+                else:
+                    kwargs[name] = keyword.type_(value)
+        self._recorded_keywordarguments = KeywordArguments(**kwargs)
+        values = exceptiontools.getattr_(self.parameter, "values", None)
+        self._recorded_values = copy.deepcopy(values)
+        subpars = self.parameter.subpars
+        self._recorded_dependencies = {
+            name: copy.deepcopy(
+                exceptiontools.getattr_(getattr(subpars, name), "values", None)
+            )
+            for name in group.dependencies
+        }
+
+    @property
+    def uptodate(self) -> bool:
+        """|True| if the recorded keyword arguments are available, valid and still agree
+        with the current parameter values, otherwise |False|.
+
+        The following test parameter supports a single keyword argument, named `a`:
+
+        >>> from hydpy.core.parametertools import (
+        ...     Keyword, KeywordGroup, KeywordGroups, Parameter
+        ... )
+        >>> class Par(Parameter):
+        ...     NDIM = 1
+        ...     TYPE = float
+        ...     def _set_a(self, *, a):
+        ...         self.values = a
+        ...         return {"a": a}
+        ...     KEYWORDS = KeywordGroups(KeywordGroup(Keyword("a"), setter=_set_a))
+
+        Before setting any values, |KeywordHandler.uptodate| returns |False|:
+
+        >>> par = Par(None)
+        >>> par.shape = 2
+        >>> handler = par.keywordhandler
+        >>> handler.uptodate
+        False
+
+        After recording keyword arguments via property |KeywordHandler.recorded|,
+        |KeywordHandler.uptodate| compares the current parameter values with the ones
+        memorised:
+
+        >>> par(a=1.0)
+        >>> handler.uptodate
+        True
+        >>> par.values[1] = 2.0
+        >>> handler.uptodate
+        False
+        >>> par.values[1] = 1.0
+        >>> handler.uptodate
+        True
+
+        |KeywordHandler.uptodate| also returns |False| if the parameter shape changed:
+
+        >>> par.shape = 3
+        >>> handler.uptodate
+        False
+
+        |numpy.nan| values count as equal:
+
+        >>> par(a=numpy.nan)
+        >>> handler.uptodate
+        True
+
+        After deleting the recorded keyword arguments, |KeywordHandler.uptodate| always
+        returns |False|:
+
+        >>> par(a=3.0)
+        >>> handler.uptodate
+        True
+        >>> del handler.recorded
+        >>> handler.uptodate
+        False
+
+        If the values calculated from a keyword group depend on other parameters (see
+        attribute |KeywordGroup.dependencies|), |KeywordHandler.uptodate| additionally
+        compares their current values with the ones memorised.  For example, parameter
+        |lland_control.PWP| calculates its values based on the keyword argument
+        `relative` and the current values of parameter |lland_control.WMax|:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(1)
+        >>> lnk(ACKER)
+        >>> wmax(100.0)
+        >>> pwp(relative=0.2)
+        >>> pwp.keywordhandler.uptodate
+        True
+        >>> wmax(200.0)
+        >>> pwp.keywordhandler.uptodate
+        False
+        >>> wmax(100.0)
+        >>> pwp.keywordhandler.uptodate
+        True
+
+        Dependencies that lack values when recording count as well.  Parameter
+        |lland_control.KapGrenz| depends on |lland_control.WMax| and
+        |lland_control.FK|, but its option `0_WMax/10` requires only the values of
+        |lland_control.WMax|.  Setting |lland_control.FK| afterwards nevertheless
+        invalidates the recorded keyword argument:
+
+        >>> kapgrenz(option="0_WMax/10")
+        >>> kapgrenz.keywordhandler.uptodate
+        True
+        >>> fk(50.0)
+        >>> kapgrenz.keywordhandler.uptodate
+        False
+
+        Irrelevant entries (here, for the response unit of type
+        |lland_constants.WASSER|) contain |numpy.nan| values, which count as equal:
+
+        >>> nhru(2)
+        >>> lnk(ACKER, WASSER)
+        >>> wmax(acker=100.0)
+        >>> pwp(relative=0.2)
+        >>> pwp.keywordhandler.uptodate
+        True
+        """
+        if not self.recorded.valid:
+            return False
+        values = exceptiontools.getattr_(self.parameter, "values", None)
+        recorded = self._recorded_values
+        if (values is None) or (recorded is None):
+            return False
+        if not numpy.array_equal(values, recorded, equal_nan=True):
+            return False
+        subpars = self.parameter.subpars
+        for name, old in self._recorded_dependencies.items():
+            new = exceptiontools.getattr_(getattr(subpars, name), "values", None)
+            if (old is None) or (new is None):
+                if (old is not None) or (new is not None):
+                    return False
+            elif not numpy.array_equal(old, new, equal_nan=True):
+                return False
+        return True
+
+    @property
+    def arguments(self) -> KeywordArguments[Any]:
+        """A |KeywordArguments| object providing the keyword arguments that, when passed
+        to the same parameter instance or another parameter instance of the same type,
+        sets it into an equal state.
+
+        The following test parameter supports the keyword arguments `x`, `y`, and `z`,
+        of which `y` and `z` are time-dependent (see attribute |Keyword.time|):
+
+        >>> from hydpy.core.parametertools import (
+        ...     Keyword, KeywordGroup, KeywordGroups, Parameter
+        ... )
+        >>> class Par(Parameter):
+        ...     NDIM = 0
+        ...     TYPE = float
+        ...     def _set_x_y_z(self, **kwargs):
+        ...         self.value = sum(kwargs.values())
+        ...         return kwargs
+        ...     KEYWORDS = KeywordGroups(
+        ...         KeywordGroup(
+        ...             Keyword("x"),
+        ...             Keyword("y", time=True),
+        ...             Keyword("z", time=False),
+        ...             setter=_set_x_y_z,
+        ...         )
+        ...     )
+
+        Without recorded keyword arguments, |KeywordHandler.arguments| returns an empty,
+        invalid |KeywordArguments| object:
+
+        >>> par = Par(None)
+        >>> par.keywordhandler.arguments
+        KeywordArguments()
+        >>> par.keywordhandler.arguments.valid
+        False
+
+        Property |KeywordHandler.recorded| stores the values of time-dependent keyword
+        arguments with respect to the simulation step size.  In contrast, the values of
+        the deep copy returned by |KeywordHandler.arguments| refer to the current
+        parameter step size.  Hence, the string representation of a parameter reflects
+        the parameter step size that is active when it is written:
+
+        >>> from hydpy import pub
+        >>> with pub.options.simulationstep("1d"):
+        ...     with pub.options.parameterstep("2d"):
+        ...         par(x=1.0, y=2.0, z=3.0)
+        ...         par.keywordhandler.recorded
+        ...         par.keywordhandler.arguments
+        ...     with pub.options.parameterstep("1d"):
+        ...         par.keywordhandler.recorded
+        ...         par.keywordhandler.arguments
+        KeywordArguments(x=1.0, y=1.0, z=6.0)
+        KeywordArguments(x=1.0, y=2.0, z=3.0)
+        KeywordArguments(x=1.0, y=1.0, z=6.0)
+        KeywordArguments(x=1.0, y=1.0, z=6.0)
+        """
+        if ((group := self._recorded_group) is None) or not self.uptodate:
+            return KeywordArguments(False)
+        arguments = copy.deepcopy(self.recorded)
+        parameter = self.parameter
+        for name, value in tuple(arguments):
+            if (keyword := group.get_keyword(name)) is not None:
+                if keyword.time is True:
+                    arguments[name] = value / parameter.get_timefactor()
+                elif keyword.time is False:
+                    arguments[name] = value * parameter.get_timefactor()
+        return arguments
+
+    def find_group(self, args: Sequence[Any], kwargs: Mapping[str, Any]) -> int | None:
+        """Return the index of the keyword group (see |KeywordGroups.find_group|) that
+        agrees with the given keyword arguments or |None| if there is no such group.
+
+        Method |KeywordHandler.find_group| of class |KeywordHandler| extends method
+        |KeywordGroups.find_group| of class |KeywordGroups| by returning |None| for
+        positional arguments and the special keyword argument `auxfile` and raises an
+        error if both positional and keyword arguments are given:
+
+        >>> from hydpy.core.parametertools import (
+        ...     Keyword, KeywordGroup, KeywordGroups, Parameter
+        ... )
+        >>> class Par(Parameter):
+        ...     NDIM = 0
+        ...     TYPE = float
+        ...     KEYWORDS = KeywordGroups(
+        ...         KeywordGroup(Keyword("a"), setter=lambda p, **k: k),
+        ...         KeywordGroup(
+        ...             Keyword("b"),
+        ...             Keyword("c", optional=True),
+        ...             setter=lambda p, **k: k,
+        ...         ),
+        ...     )
+        >>> handler = Par(None).keywordhandler
+        >>> handler.find_group((), {"a": 1.0})
+        0
+        >>> handler.find_group((), {"b": 1.0})
+        1
+        >>> handler.find_group((), {"b": 1.0, "c": 2.0})
+        1
+        >>> handler.find_group((), {"c": 2.0})
+        >>> handler.find_group((), {"a": 1.0, "b": 2.0})
+        >>> handler.find_group((1.0,), {})
+        >>> handler.find_group((), {"auxfile": "file"})
+        >>> handler.find_group((1.0,), {"a": 1.0})
+        Traceback (most recent call last):
+        ...
+        ValueError: For parameter `par` of element `?` both positional and keyword \
+arguments are given, which is ambiguous.
+        """
+        if kwargs and ("auxfile" not in kwargs):
+            if args:
+                # pylint: disable=protected-access
+                self.parameter._raise_args_and_kwargs_error()
+                # pylint: enable=protected-access
+            return self.parameter.KEYWORDS.find_group(kwargs)
+        return None
+
+    def apply(self, args: Sequence[Any], kwargs: Mapping[str, Any]) -> bool:
+        """Discard the recorded keyword arguments and, if the given arguments agree
+        with a keyword group, apply its setter function and return |True|, otherwise
+        |False|.
+
+        Method `__call__` of class |Parameter| calls |KeywordHandler.apply| first.
+        Hence, |Parameter| subclasses only need to define the setter functions of their
+        keyword groups (see attribute |KeywordGroup.setter|).  A setter function
+        receives the parameter and the keyword arguments of its group, sets the
+        parameter values, and returns the keyword arguments to be recorded (see property
+        |KeywordHandler.recorded|).  Afterwards, |KeywordHandler.apply| trims the
+        parameter values, so that trimming discards the recorded keyword arguments, as
+        do all other later modifications:
+
+        >>> from hydpy.core.parametertools import (
+        ...     Keyword, KeywordGroup, KeywordGroups, Parameter
+        ... )
+        >>> class Par(Parameter):
+        ...     NDIM = 0
+        ...     TYPE = float
+        ...     SPAN = (None, 5.0)
+        ...     def _set_a(self, *, a):
+        ...         self.value = 2.0 * a
+        ...         return {"a": a}
+        ...     KEYWORDS = KeywordGroups(KeywordGroup(Keyword("a"), setter=_set_a))
+        >>> par = Par(None)
+        >>> par(a=2.0)
+        >>> par
+        par(a=2.0)
+        >>> from hydpy import pub
+        >>> with pub.options.warntrim(False):
+        ...     par(a=3.0)
+        >>> par
+        par(5.0)
+
+        Without a matching keyword group, |KeywordHandler.apply| only discards the
+        recorded keyword arguments and returns |False|:
+
+        >>> par(a=2.0)
+        >>> par.keywordhandler.apply((), {"c": 1.0})
+        False
+        >>> par
+        par(4.0)
+        """
+        del self.recorded
+        if (idx := self.find_group(args, kwargs)) is None:
+            return False
+        group = self.parameter.KEYWORDS.groups[idx]
+        self._record(group, group.setter(self.parameter, **kwargs))
+        self.parameter.trim()
+        return True
+
+    @property
+    def exchangeable(self) -> tuple[str, ...]:
+        """The names of all keyword arguments that, for example, exchange items and
+        calibration rules can address.
+
+        Exchange items and calibration rules only modify floating-point values.  Hence,
+        the criterion for exchangeability is currently that the keyword argument's type
+        is |float|:
+
+        >>> from hydpy.core.parametertools import (
+        ...     Keyword, KeywordGroup, KeywordGroups, Parameter
+        ... )
+        >>> class Par(Parameter):
+        ...     NDIM = 0
+        ...     TYPE = float
+        ...     KEYWORDS = KeywordGroups(
+        ...         KeywordGroup(
+        ...             Keyword("a", type_=str), Keyword("b"), setter=lambda p, **k: k
+        ...         ),
+        ...         KeywordGroup(
+        ...             Keyword("a", type_=str),
+        ...             Keyword("c", type_=int),
+        ...             setter=lambda p, **k: k,
+        ...         ),
+        ...     )
+        >>> Par(None).keywordhandler.exchangeable
+        ('b',)
+        """
+        names = []
+        for group in self.parameter.KEYWORDS:
+            for keyword in group:
+                if (keyword.type_ is float) and (keyword.name not in names):
+                    names.append(keyword.name)
+        return tuple(names)
+
+    def check_exchangeable(self, name: str) -> None:
+        """Raise a |ValueError| if the given keyword argument is unusable (see property
+        |KeywordHandler.exchangeable|).
+
+        >>> from hydpy.core.parametertools import (
+        ...     Keyword, KeywordGroup, KeywordGroups, Parameter
+        ... )
+        >>> class Par(Parameter):
+        ...     NDIM = 0
+        ...     TYPE = float
+        ...     KEYWORDS = KeywordGroups(
+        ...         KeywordGroup(Keyword("a"), setter=lambda p, **k: k),
+        ...         KeywordGroup(Keyword("b", type_=int), setter=lambda p, **k: k),
+        ...     )
+        >>> handler = Par(None).keywordhandler
+        >>> handler.check_exchangeable("a")
+        >>> handler.check_exchangeable("b")
+        Traceback (most recent call last):
+        ...
+        ValueError: Keyword argument `b` of parameter `par` of element `?` is not \
+exchangeable.
+        >>> handler.check_exchangeable("c")
+        Traceback (most recent call last):
+        ...
+        ValueError: Parameter `par` of element `?` does not support the keyword \
+argument `c`.
+        """
+        if name in self.exchangeable:
+            return
+        phrase = objecttools.elementphrase(self.parameter)
+        if self.parameter.KEYWORDS.get_keyword(name) is None:
+            raise ValueError(
+                f"Parameter {phrase} does not support the keyword argument `{name}`."
+            )
+        raise ValueError(
+            f"Keyword argument `{name}` of parameter {phrase} is not exchangeable."
+        )
+
+    def get_value(self, name: str) -> Any:
+        """Return the current value of the given keyword argument.
+
+        >>> from hydpy.core.parametertools import (
+        ...     Keyword, KeywordGroup, KeywordGroups, Parameter
+        ... )
+        >>> class Par(Parameter):
+        ...     NDIM = 0
+        ...     TYPE = float
+        ...     def _set_sum(self, **kwargs):
+        ...         self.value = sum(kwargs.values())
+        ...         return kwargs
+        ...     KEYWORDS = KeywordGroups(
+        ...         KeywordGroup(Keyword("a"), setter=_set_sum),
+        ...         KeywordGroup(Keyword("b"), setter=_set_sum),
+        ...     )
+        >>> par = Par(None)
+        >>> par(a=1.0)
+        >>> par.keywordhandler.get_value("a")
+        1.0
+
+        |KeywordHandler.get_value| raises a |ValueError| if the parameter does not
+        support the requested keyword argument (see method
+        |KeywordHandler.check_exchangeable|):
+
+        >>> par.keywordhandler.get_value("c")
+        Traceback (most recent call last):
+        ...
+        ValueError: Parameter `par` of element `?` does not support the keyword \
+argument `c`.
+
+        It raises a |RuntimeError| if the current |KeywordHandler.arguments| object does
+        not provide the requested value:
+
+        >>> par.keywordhandler.get_value("b")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The current value of keyword argument `b` of parameter `par` of \
+element `?` is unknown, as the parameter's values have not been defined via this \
+keyword argument (or have been modified afterwards).
+
+        >>> par(2.0)
+        >>> par.keywordhandler.get_value("a")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The current value of keyword argument `a` of parameter `par` of \
+element `?` is unknown, as the parameter's values have not been defined via this \
+keyword argument (or have been modified afterwards).
+        """
+        self.check_exchangeable(name)
+        return self._get_value(name, self.arguments)
+
+    def _get_value(self, name: str, arguments: KeywordArguments[Any]) -> Any:
+        if arguments.valid:
+            for name_, value in arguments:
+                if name_ == name:
+                    return value
+        raise RuntimeError(
+            f"The current value of keyword argument `{name}` of parameter "
+            f"{objecttools.elementphrase(self.parameter)} is unknown, as the "
+            f"parameter's values have not been defined via this keyword argument (or "
+            f"have been modified afterwards)."
+        )
+
+    def set_value(self, name: str, value: Any) -> None:
+        """Modify the parameter values based on the given name and value of a keyword
+        argument.
+
+        We use the test class in the main documentation for class |KeywordHandler| as an
+        example:
+
+        >>> from hydpy.core.parametertools import (
+        ...     Keyword, KeywordGroup, KeywordGroups, Parameter
+        ... )
+        >>> class Par(Parameter):
+        ...     NDIM = 0
+        ...     TYPE = float
+        ...
+        ...     def _set_a(self, *, a):
+        ...         self.value = 2.0 * a
+        ...         return {"a": a}
+        ...
+        ...     def _set_b_c_d(self, **kwargs):
+        ...         self.value = sum(kwargs.values())
+        ...         return kwargs
+        ...
+        ...     KEYWORDS = KeywordGroups(
+        ...         KeywordGroup(Keyword("a"), setter=_set_a),
+        ...         KeywordGroup(
+        ...             Keyword("b"),
+        ...             Keyword("c"),
+        ...             Keyword("d", optional=True),
+        ...             setter=_set_b_c_d,
+        ...         ),
+        ...     )
+        ...
+        >>> par = Par(None)
+        >>> handler = par.keywordhandler
+
+        |KeywordHandler.set_value| takes the values of the other keyword arguments from
+        the current |KeywordHandler.arguments| object, but only if they form a valid
+        group together with the given keyword argument (see method
+        |KeywordGroups.find_group|):
+
+        >>> par(b=1.0, c=2.0)
+        >>> handler.set_value("b", 3.0)
+        >>> par.value, handler.arguments
+        (5.0, KeywordArguments(b=3.0, c=2.0))
+
+        >>> handler.set_value("d", 4.0)
+        >>> par.value, handler.arguments
+        (9.0, KeywordArguments(b=3.0, c=2.0, d=4.0))
+
+        If the given keyword argument belongs to another group than the current keyword
+        arguments, |KeywordHandler.set_value| discards the latter:
+
+        >>> handler.set_value("a", 4.0)
+        >>> par.value, handler.arguments
+        (8.0, KeywordArguments(a=4.0))
+
+        Setting a single value of a group requiring further values that are not
+        currently available is impossible:
+
+        >>> handler.set_value("d", 3.0)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Parameter `par` of element `?` cannot set the value of keyword \
+argument `d` because it belongs to another keyword group than the current keyword \
+arguments, and its group also requires the keyword arguments `b` and `c`.
+
+        >>> par(1.0)
+        >>> handler.set_value("b", 3.0)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Parameter `par` of element `?` cannot set the value of keyword \
+argument `b` because the current keyword arguments do not provide the required \
+keyword argument `c`.
+
+        If a keyword argument belongs to multiple groups, |KeywordHandler.set_value|
+        selects the one that agrees with the available keyword arguments, regardless of
+        the group order.  In the following example, the current keyword arguments `a`
+        and `b` agree with the first group, but setting `c` requires selecting the
+        second one:
+
+        >>> class Par(Parameter):
+        ...     NDIM = 0
+        ...     TYPE = float
+        ...
+        ...     def _set_sum(self, **kwargs):
+        ...         self.value = sum(kwargs.values())
+        ...         return kwargs
+        ...
+        ...     KEYWORDS = KeywordGroups(
+        ...         KeywordGroup(Keyword("a"), Keyword("b"), setter=_set_sum),
+        ...         KeywordGroup(
+        ...             Keyword("a"),
+        ...             Keyword("b", optional=True),
+        ...             Keyword("c"),
+        ...             setter=_set_sum,
+        ...         ),
+        ...         KeywordGroup(Keyword("d"), Keyword("e"), setter=_set_sum),
+        ...         KeywordGroup(Keyword("d"), Keyword("f"), setter=_set_sum),
+        ...     )
+        ...
+        >>> par = Par(None)
+        >>> handler = par.keywordhandler
+        >>> par(a=1.0, b=2.0)
+        >>> handler.set_value("c", 3.0)
+        >>> par.value, handler.arguments
+        (6.0, KeywordArguments(a=1.0, b=2.0, c=3.0))
+        >>> handler.set_value("a", 4.0)
+        >>> par.value, handler.arguments
+        (9.0, KeywordArguments(a=4.0, b=2.0, c=3.0))
+
+        If none of the relevant groups agrees, the error message lists the keyword
+        arguments each group requires additionally:
+
+        >>> handler.set_value("d", 5.0)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Parameter `par` of element `?` cannot set the value of keyword \
+argument `d` because it belongs to another keyword group than the current keyword \
+arguments, and its groups also require either the keyword argument `e` or the keyword \
+argument `f`.
+
+        >>> par(1.0)
+        >>> handler.set_value("d", 5.0)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Parameter `par` of element `?` cannot set the value of keyword \
+argument `d` because the current keyword arguments do not provide either the required \
+keyword argument `e` or the required keyword argument `f`.
+
+        Only exchangeable keyword arguments are supported (see method
+        |KeywordHandler.check_exchangeable|):
+
+        >>> handler.set_value("g", 3.0)
+        Traceback (most recent call last):
+        ...
+        ValueError: Parameter `par` of element `?` does not support the keyword \
+argument `g`.
+        """
+        self.check_exchangeable(name)
+        keywords = self.parameter.KEYWORDS
+        if (current := self.arguments).valid:
+            kwargs = dict(current)
+            kwargs[name] = value
+            if keywords.find_group(kwargs) is not None:
+                self.parameter(**kwargs)
+                return
+        if keywords.find_group((name,)) is not None:
+            self.parameter(**{name: value})
+            return
+        alternatives = []
+        for idx in keywords.find_groups(name):
+            missing = tuple(n for n in keywords.groups[idx].required_names if n != name)
+            argument = objecttools.Inflect.plural("argument", len(missing))
+            enumeration = objecttools.enumeration(missing, backticks=True)
+            alternatives.append(f"keyword {argument} {enumeration}")
+        either = "either " if len(alternatives) > 1 else ""
+        prefix = (
+            f"Parameter {objecttools.elementphrase(self.parameter)} cannot set the "
+            f"value of keyword argument `{name}` because"
+        )
+        if current.valid:
+            requires = "groups also require" if either else "group also requires"
+            raise RuntimeError(
+                f"{prefix} it belongs to another keyword group than the current "
+                f"keyword arguments, and its {requires} {either}the "
+                f"{' or the '.join(alternatives)}."
+            )
+        raise RuntimeError(
+            f"{prefix} the current keyword arguments do not provide {either}the "
+            f"required {' or the required '.join(alternatives)}."
+        )
+
+
+class ZipKeywordHandler(KeywordHandler):
+    """Keyword arguments handler for |ZipParameter| subclasses.
+
+    Besides the keyword arguments defined via |Parameter.KEYWORDS|, |ZipParameter|
+    objects support (lowercase) constant names as keyword arguments, which implicitly
+    form a keyword group of their own.
+    """
+
+    parameter: ZipParameter
+    """The handled |ZipParameter| object."""
+
+    @property
+    def arguments(self) -> KeywordArguments[float]:
+        """A |KeywordArguments| object providing the currently valid keyword arguments.
+
+        We take parameter |lland_control.TRefT| of application model |lland_dd| as an
+        example and set its shape (the number of hydrological response units defined by
+        parameter |lland_control.NHRU|) to four and prepare the land use types
+        |lland_constants.ACKER| (acre), |lland_constants.LAUBW| (deciduous forest), and
+        |lland_constants.WASSER| (water) via parameter |lland_control.Lnk|:
+
+        >>> from hydpy.models.lland_dd import *
+        >>> parameterstep()
+        >>> nhru(4)
+        >>> lnk(ACKER, LAUBW, WASSER, ACKER)
+
+        After defining all required values via keyword arguments (note that parameter
+        |lland_control.TRefT| does not need any values for response units of type
+        |lland_constants.WASSER|), property |ZipKeywordHandler.arguments| makes exactly
+        these keyword arguments available:
+
+        >>> treft(acker=2.0, laubw=1.0)
+        >>> treft.keywordhandler.arguments
+        KeywordArguments(acker=2.0, laubw=1.0)
+        >>> treft.keywordhandler.arguments.valid
+        True
+
+        In the following example, both the first and the fourth response unit are of
+        type |lland_constants.ACKER| but have different |lland_control.TRefT| values,
+        which cannot be the result of defining values via keyword arguments.  Hence, the
+        returned |KeywordArguments| object is invalid:
+
+        >>> treft(1.0, 2.0, 3.0, 4.0)
+        >>> treft.keywordhandler.arguments
+        KeywordArguments()
+        >>> treft.keywordhandler.arguments.valid
+        False
+
+        This is different from the situation where all response units are of type
+        |lland_constants.WASSER|, where one does not need to define any values for
+        parameter |lland_control.TRefT|.  Thus, the returned |KeywordArguments| object
+        is also empty but valid:
+
+        >>> lnk(WASSER)
+        >>> treft.keywordhandler.arguments
+        KeywordArguments()
+        >>> treft.keywordhandler.arguments.valid
+        True
+
+        Some masks of submodels refine the selection of the relevant entries based on
+        the main model's configuration (see method |IndexMask.get_refinement|).  For
+        example, |lland_dd| shares its land-use types with its evapotranspiration
+        submodel |evap_aet_minhas|, which, via parameter |evap_control.Soil|, considers
+        only those response units that possess a soil:
+
+        >>> lnk(ACKER, LAUBW, WASSER, VERS)
+        >>> ft(1.0)
+        >>> fhru(0.25)
+        >>> gh(100.0)
+        >>> wmax(200.0)
+        >>> with model.add_aetmodel_v1("evap_aet_minhas"):
+        ...     soil
+        soil(acker=True, laubw=True, vers=False, wasser=False)
+
+        The soil-related parameter |evap_control.DisseFactor| relies on such a refined
+        mask.  Hence, |ZipKeywordHandler.arguments| ignores the values of all response
+        units without soil:
+
+        >>> dissefactor = model.aetmodel.parameters.control.dissefactor
+        >>> dissefactor(1.0, 2.0, 3.0, 4.0)
+        >>> dissefactor.keywordhandler.arguments
+        KeywordArguments(acker=1.0, laubw=2.0)
+        >>> dissefactor.keywordhandler.arguments.valid
+        True
+
+        If a |ZipParameter| subclass defines additional keyword arguments via
+        |Parameter.KEYWORDS| and records them, |ZipKeywordHandler.arguments| prefers
+        them as long as they are up-to-date (see property |KeywordHandler.uptodate| and,
+        for example, parameter |lland_control.DMin|).
+        """
+
+        if self.uptodate:
+            return super().arguments
+        return self._get_constantarguments()
+
+    def _get_constantarguments(self) -> KeywordArguments[float]:
+        parameter = self.parameter
+        try:
+            mask = parameter.mask
+        except RuntimeError:
+            return KeywordArguments(False)
+        if (refinement := mask.refinement) is None:
+            refindices = mask.refindices.values
+        else:
+            refindices = mask.refindices.values.copy()
+            refindices[~refinement.values] = variabletools.INT_NAN
+        name2unique = KeywordArguments[float]()
+        if (relevant := parameter.relevant) is None:
+            relevant = mask.relevant
+        for name, value in sorted(
+            (key.lower(), value) for key, value in parameter.constants.items()
+        ):
+            if value in relevant:
+                unique = numpy.unique(parameter.values[refindices == value])
+                unique = parameter.revert_timefactor(unique)
+                length = len(unique)
+                if length == 1:
+                    name2unique[name] = unique[0]
+                elif length > 1:
+                    return KeywordArguments(False)
+        return name2unique
+
+    @property
+    def exchangeable(self) -> tuple[str, ...]:
+        """The names of all keyword arguments that, for example, exchange items and
+        calibration rules can address.
+
+        Besides the keyword arguments defined via |Parameter.KEYWORDS| (see property
+        |KeywordHandler.exchangeable|), |ZipKeywordHandler| supports all lowercase
+        constant names:
+
+        >>> from hydpy.models.lland_dd import *
+        >>> parameterstep()
+        >>> pwp.keywordhandler.exchangeable  # doctest: +ELLIPSIS
+        ('relative', 'acker', 'baumb', ..., 'wasser', 'weinb')
+        """
+        keywordnames = list(super().exchangeable)
+        constantnames = sorted(n.lower() for n in self.parameter.constants)
+        return tuple(keywordnames + constantnames)
+
+    def _is_constantkeyword(self, name: str) -> bool:
+        return (
+            (self.parameter.KEYWORDS.get_keyword(name) is None)
+            and name.islower()
+            and (name.upper() in self.parameter.constants)
+        )
+
+    def get_value(self, name: str) -> Any:
+        """Return the current value of the given keyword argument.
+
+        Besides the functionality explained in the documentation on method
+        |KeywordHandler.get_value|, |ZipKeywordHandler| allows querying the values
+        related to individual constants, even if the current parameter values have been
+        defined via other keyword arguments:
+
+        >>> from hydpy.models.lland_dd import *
+        >>> parameterstep()
+        >>> nhru(3)
+        >>> lnk(ACKER, LAUBW, ACKER)
+        >>> wmax(100.0, 200.0, 100.0)
+        >>> pwp(relative=0.2)
+        >>> from hydpy import round_
+        >>> round_(pwp.keywordhandler.get_value("relative"))
+        0.2
+        >>> round_(pwp.keywordhandler.get_value("acker"))
+        20.0
+        >>> round_(pwp.keywordhandler.get_value("laubw"))
+        40.0
+
+        Querying the value of an irrelevant constant or a constant related to unequal
+        values fails:
+
+        >>> pwp.keywordhandler.get_value("nadelw")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The current value of keyword argument `nadelw` of parameter \
+`pwp` of element `?` is unknown, as the parameter's values have not been defined via \
+this keyword argument (or have been modified afterwards).
+
+        >>> pwp(10.0, 20.0, 30.0)
+        >>> pwp.keywordhandler.get_value("acker")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The current value of keyword argument `acker` of parameter \
+`pwp` of element `?` is unknown, as the parameter's values have not been defined via \
+this keyword argument (or have been modified afterwards).
+        """
+        if self._is_constantkeyword(name):
+            return self._get_value(name, self._get_constantarguments())
+        return super().get_value(name)
+
+    def set_value(self, name: str, value: Any) -> None:
+        """Modify the parameter values based on the given name and value of a keyword
+        argument.
+
+        Besides the functionality explained in the documentation on method
+        |KeywordHandler.set_value|, |ZipKeywordHandler| allows changing the values
+        related to individual constants while keeping the other values (as far as they
+        have been previously defined via keyword arguments):
+
+        >>> from hydpy.models.lland_dd import *
+        >>> parameterstep()
+        >>> nhru(4)
+        >>> lnk(ACKER, LAUBW, WASSER, ACKER)
+        >>> treft(acker=2.0, laubw=1.0)
+        >>> treft.keywordhandler.set_value("laubw", 3.0)
+        >>> treft
+        treft(acker=2.0, laubw=3.0)
+
+        Assigning values to currently irrelevant constant names causes no error and
+        changes nothing:
+
+        >>> treft(4.0)
+        >>> treft.keywordhandler.set_value("nadelw", 3.0)
+        >>> treft
+        treft(4.0)
+        >>> treft.keywordhandler.arguments
+        KeywordArguments(acker=4.0, laubw=4.0)
+
+        For all other keyword arguments, |ZipKeywordHandler.set_value| works like
+        |KeywordHandler.set_value|:
+
+        >>> wmax(100.0, 200.0, 300.0, 100.0)
+        >>> pwp(relative=0.2)
+        >>> pwp.keywordhandler.set_value("relative", 0.5)
+        >>> pwp
+        pwp(relative=0.5)
+        """
+        if not self._is_constantkeyword(name):
+            super().set_value(name, value)
+        else:
+            arguments = self._get_constantarguments()
+            arguments.valid = True
+            arguments[name] = value
+            self.parameter(**dict(arguments))
 
 
 class Parameter(variabletools.Variable, abc.ABC):
@@ -1355,14 +2663,33 @@ control files only.
     ValueError: It is not allowed to combine keyword `auxfile` with other keywords, \
 but for parameter `par` of element `?` also the keywords `x1`, `x2`, and `x3` are used.
 
-    Some |Parameter| subclasses support other keyword arguments.
-    The standard error message for unsupported arguments is the following:
+    Some |Parameter| subclasses support other keyword arguments.  The standard error
+    message for unsupported arguments is the following:
 
     >>> par(wrong=1.0)
     Traceback (most recent call last):
     ...
-    NotImplementedError: The value(s) of parameter `par` of element `?` \
-could not be set based on the given keyword arguments.
+    NotImplementedError: The value(s) of parameter `par` of element `?` could not be \
+set based on the given keyword argument `wrong`.
+
+    For parameters that support parameter-specific keyword arguments (see attribute
+    |Parameter.KEYWORDS|), the error message lists the available keyword groups:
+
+    >>> from hydpy.core.parametertools import Keyword, KeywordGroup, KeywordGroups
+    >>> Par.KEYWORDS = KeywordGroups(
+    ...     KeywordGroup(
+    ...         Keyword("a"), Keyword("b", optional=True), setter=lambda p, **k: k
+    ...     ),
+    ...     KeywordGroup(Keyword("c"), setter=lambda p, **k: k),
+    ... )
+    >>> par(a=1.0, c=2.0)
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: The value(s) of parameter `par` of element `?` could not be \
+set based on the given keyword arguments `a` and `c`.  The keyword groups consist of \
+`a` and `b` (optional) or of `c` only, which cannot be combined with other keyword \
+arguments.
+    >>> del Par.KEYWORDS
 
     Passing a wrong number of positional arguments results in the
     following error:
@@ -1506,21 +2833,28 @@ broadcast input array from shape (2,) into shape (2,3)
     """
 
     TIME: TypeTIME = None
-    KEYWORDS: Mapping[str, Keyword] = {}
+    KEYWORDS: ClassVar[KeywordGroups] = KeywordGroups()
+    """The parameter-specific keyword arguments, divided into groups that can or must be
+    used in combination.
+
+    :meta hide-value:
+    """
+    KEYWORDHANDLER: ClassVar[type[KeywordHandler]] = KeywordHandler
+    """The type of the keyword arguments handler."""
 
     subvars: SubParameters[modeltools.Model]
     """The subgroup to which the parameter belongs."""
     subpars: SubParameters[modeltools.Model]
     """Alias for |Parameter.subvars|."""
+    keywordhandler: KeywordHandler
+    """The actual keyword arguments handler."""
 
     _CLS_FASTACCESS_PYTHON = FastAccessParameter
-
-    _keywordarguments: KeywordArguments[Any]
 
     def __init__(self, subvars: SubParameters[modeltools.Model]) -> None:
         super().__init__(subvars)
         self.subpars = subvars
-        self._keywordarguments = KeywordArguments(False)
+        self.keywordhandler = self.KEYWORDHANDLER(self)
 
     def _raise_args_and_kwargs_error(self) -> NoReturn:
         raise ValueError(
@@ -1541,15 +2875,26 @@ broadcast input array from shape (2,) into shape (2,3)
             f"{objecttools.Inflect.listing('keyword', kwargs.keys(), 'is')} used."
         )
 
-    def _raise_wrong_kwargs_error(self) -> NoReturn:
+    def _raise_wrong_kwargs_error(self, kwargs: Mapping[str, Any]) -> NoReturn:
+        argument = objecttools.Inflect.plural("argument", len(kwargs))
+        message = (
+            f"The value(s) of parameter {objecttools.elementphrase(self)} could not "
+            f"be set based on the given keyword {argument} "
+            f"{objecttools.enumeration(kwargs, backticks=True)}."
+        )
+        if keywords := self.KEYWORDS:
+            groups = "group consists" if len(keywords) == 1 else "groups consist"
+            message = (
+                f"{message}  The keyword {groups} {keywords.describe()}, which cannot "
+                f"be combined with other keyword arguments."
+            )
         # ToDo: we should stop using `NotImplementedError` this way
         # To trick pylint:
-        raise getattr(builtins, "NotImplementedError")(
-            f"The value(s) of parameter {objecttools.elementphrase(self)} could not "
-            f"be set based on the given keyword arguments."
-        )
+        raise getattr(builtins, "NotImplementedError")(message)
 
     def __call__(self, *args, **kwargs) -> None:
+        if self.keywordhandler.apply(args, kwargs):
+            return
         if args and kwargs:
             self._raise_args_and_kwargs_error()
         if not args and not kwargs:
@@ -1564,7 +2909,7 @@ broadcast input array from shape (2,) into shape (2,3)
                 args = args[0]
             self.values = self.apply_timefactor(numpy.asarray(args))
         else:
-            self._raise_wrong_kwargs_error()
+            self._raise_wrong_kwargs_error(kwargs)
         self.trim()
 
     def _get_values_from_auxiliaryfile(self, auxfile: str):
@@ -1606,21 +2951,6 @@ broadcast input array from shape (2,) into shape (2,3)
                 f"While trying to extract information for parameter "
                 f"`{self.name}` from file `{auxfile}`"
             )
-
-    def _find_kwargscombination(
-        self,
-        given_args: Sequence[Any],
-        given_kwargs: dict[str, Any],
-        allowed_combinations: tuple[set[str], ...],
-    ) -> int | None:
-        if given_kwargs and ("auxfile" not in given_kwargs):
-            if given_args:
-                self._raise_args_and_kwargs_error()
-            try:
-                return allowed_combinations.index(set(given_kwargs))
-            except ValueError:
-                return None
-        return None
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
@@ -1803,7 +3133,7 @@ parameter and a simulation time step size first.
         4.0
 
         |True| means the effective parameter value is proportional to
-        the simulation step size (e.g. travel time). Hence,
+        the simulation step size (e.g. storage coefficient). Hence,
         |Parameter.apply_timefactor| returns a reduced value in the
         next example (where the simulation step size is smaller than
         the parameter step size):
@@ -1813,8 +3143,8 @@ parameter and a simulation time step size first.
         1.0
 
         |False| means the effective parameter value is inversely
-        proportional to the simulation step size (e.g. storage
-        coefficient). Hence, |Parameter.apply_timefactor| returns
+        proportional to the simulation step size (e.g. travel
+        time). Hence, |Parameter.apply_timefactor| returns
         an increased value in the next example:
 
         >>> Par.TIME = False
@@ -1872,67 +3202,6 @@ parameter and a simulation time step size first.
                 f"updating your model setup.",
                 category=exceptiontools.HydPyDeprecationWarning,
             )
-
-    @property
-    def keywordarguments(self) -> KeywordArguments[Any]:
-        """A |KeywordArguments| object.
-
-        By default, instances of |Parameter| subclasses return empty, invalid
-        |KeywordArguments| objects:
-
-        >>> from hydpy.core.parametertools import Keyword, KeywordArguments, Parameter
-        >>> class Par(Parameter):
-        ...     NDIM = 0
-        ...     TYPE = float
-        >>> par = Par(None)
-        >>> kwa = par.keywordarguments
-        >>> kwa
-        KeywordArguments()
-        >>> kwa.valid
-        False
-
-        See class |ZipParameter| for an implementation example of a |Parameter|
-        subclass overriding this behaviour.  Another example is class
-        |musk_control.NmbSegments|, which relies on the following mechanism.
-
-        Model developers can use the private `_keywordarguments` attribute.  Property
-        |Parameter.keywordarguments| returns a deep copy of the |KeywordArguments|
-        object stored here:
-
-        >>> par._keywordarguments = KeywordArguments(x=1.0, y=2.0, z=3.0)
-        >>> par.keywordarguments
-        KeywordArguments(x=1.0, y=2.0, z=3.0)
-        >>> par.keywordarguments is par._keywordarguments
-        False
-
-        We assume that the values of time-dependent keyword arguments stored under the
-        private attribute refer to the simulation step size.  However, the values of
-        the |KeywordArguments| object returned by |Parameter.keywordarguments| must
-        refer to the current parameter step size.  If the relevant |Parameter| class
-        provides |Keyword| instances that describe the individual keyword arguments,
-        |Parameter.keywordarguments| can perform the necessary adjustments
-        automatically:
-
-        >>> par.KEYWORDS = {"x": Keyword(name="x", time=None),
-        ...                 "y": Keyword(name="y", time=True),
-        ...                 "z": Keyword(name="z", time=False)}
-        >>> from hydpy import pub
-        >>> with pub.options.simulationstep("1d"), pub.options.parameterstep("2d"):
-        ...     par.keywordarguments
-        KeywordArguments(x=1.0, y=4.0, z=1.5)
-        """
-        keywordarguments = copy.deepcopy(self._keywordarguments)
-        for name, keyword in self.KEYWORDS.items():
-            if keyword.time is not None:
-                try:
-                    value = keywordarguments[keyword.name]
-                except KeyError:
-                    continue
-                if keyword.time is True:
-                    keywordarguments[name] = value / self.get_timefactor()
-                else:
-                    keywordarguments[name] = value * self.get_timefactor()
-        return keywordarguments
 
     def compress_repr(self) -> str | None:
         """Try to find a compressed parameter value representation and return it.
@@ -2069,6 +3338,17 @@ parameter and a simulation time step size first.
         return None
 
     def __repr__(self) -> str:
+        if (arguments := self.keywordhandler.arguments).valid:
+            strings = []
+            for name, value in arguments:
+                if isinstance(value, str):
+                    strings.append(f'{name}="{value}"')
+                else:
+                    strings.append(f"{name}={objecttools.repr_(value)}")
+            string = objecttools.assignrepr_values(
+                values=strings, prefix=f"{self.name}(", width=70
+            )
+            return f"{string})"
         if self.NDIM:
             values = self.compress_repr()
             if values is None:
@@ -2459,6 +3739,37 @@ class ZipParameter(_MixinModifiableParameter, Parameter, abc.ABC):
 on keyword arguments `soil`, `glacier`, and `wrong`, the following error occurred: \
 Keyword `wrong` is not among the available model constants.
 
+    If the keyword is one of the parameter-specific keyword arguments (see attribute
+    |Parameter.KEYWORDS|), the error message explains how to use it instead:
+
+    >>> from hydpy.core.parametertools import Keyword, KeywordGroup, KeywordGroups
+    >>> Par.KEYWORDS = KeywordGroups(
+    ...     KeywordGroup(Keyword("a"), Keyword("b"), setter=lambda p, **k: k)
+    ... )
+    >>> par(soil=4.0, a=8.0)
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to set the values of parameter `par` of element `?` based \
+on keyword arguments `soil` and `a`, the following error occurred: Keyword `a` is not \
+among the available model constants but a parameter-specific keyword argument, which \
+can only be used together with the other keyword arguments of its group and without \
+any other keyword arguments.  The keyword group of `a` consists of `a` and `b`.
+
+    >>> Par.KEYWORDS = KeywordGroups(
+    ...     KeywordGroup(Keyword("a"), Keyword("b"), setter=lambda p, **k: k),
+    ...     KeywordGroup(Keyword("a"), setter=lambda p, **k: k),
+    ... )
+    >>> par(soil=4.0, a=8.0)
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to set the values of parameter `par` of element `?` based \
+on keyword arguments `soil` and `a`, the following error occurred: Keyword `a` is not \
+among the available model constants but a parameter-specific keyword argument, which \
+can only be used together with the other keyword arguments of one of its groups and \
+without any other keyword arguments.  The keyword groups of `a` consist of `a` and `b` \
+or of `a` only.
+    >>> del Par.KEYWORDS
+
     The same is true when passing incomplete information:
 
     >>> par(soil=4.0)
@@ -2502,6 +3813,11 @@ convert string to float: 'test'
     """
 
     NDIM: Final[Literal[1]] = 1
+    KEYWORDHANDLER: ClassVar[type[ZipKeywordHandler]] = ZipKeywordHandler
+    """The type of the keyword arguments handler."""
+
+    keywordhandler: ZipKeywordHandler
+    """The actual keyword arguments handler."""
     constants: dict[str, int]
     """Mapping of the constants' names and values."""
     refindices: NameParameter | None = None
@@ -2644,88 +3960,28 @@ index parameter.
                     values[allidxs == selidx] = value
                     counter += 1
             except KeyError:
-                raise TypeError(
-                    f"Keyword `{key}` is not among the " f"available model constants."
-                ) from None
+                message = f"Keyword `{key}` is not among the available model constants"
+                if idxs := self.KEYWORDS.find_groups(key):
+                    groups = self.KEYWORDS.describe(idxs)
+                    if len(idxs) == 1:
+                        group = "its group"
+                        consists = f"group of `{key}` consists"
+                    else:
+                        group = "one of its groups"
+                        consists = f"groups of `{key}` consist"
+                    message = (
+                        f"{message} but a parameter-specific keyword argument, which "
+                        f"can only be used together with the other keyword arguments "
+                        f"of {group} and without any other keyword arguments.  The "
+                        f"keyword {consists} {groups}"
+                    )
+                raise TypeError(f"{message}.") from None
         if check and (counter < len(relidxs)):
             raise TypeError(
                 "The given keywords are incomplete and no default value is available."
             )
         values[:] = self.apply_timefactor(values)
         self.trim()
-
-    @property
-    def keywordarguments(self) -> KeywordArguments[float]:
-        """A |KeywordArguments| object providing the currently valid keyword arguments.
-
-        We take parameter |lland_control.TRefT| of application model |lland_dd| as an
-        example and set its shape (the number of hydrological response units defined by
-        parameter |lland_control.NHRU|) to four and prepare the land use types
-        |lland_constants.ACKER| (acre), |lland_constants.LAUBW| (deciduous forest), and
-        |lland_constants.WASSER| (water) via parameter |lland_control.Lnk|:
-
-        >>> from hydpy.models.lland_dd import *
-        >>> parameterstep()
-        >>> nhru(4)
-        >>> lnk(ACKER, LAUBW, WASSER, ACKER)
-
-        After defining all required values via keyword arguments (note that parameter
-        |lland_control.TRefT| does not need any values for response units of type
-        |lland_constants.WASSER|), property |ZipParameter.keywordarguments| makes
-        exactly these keyword arguments available:
-
-        >>> treft(acker=2.0, laubw=1.0)
-        >>> treft.keywordarguments
-        KeywordArguments(acker=2.0, laubw=1.0)
-        >>> treft.keywordarguments.valid
-        True
-
-        In the following example, both the first and the fourth response unit are of
-        type |lland_constants.ACKER| but have different |lland_control.TRefT| values,
-        which cannot be the result of defining values via keyword arguments.  Hence, the
-        returned |KeywordArguments| object is invalid:
-
-        >>> treft(1.0, 2.0, 3.0, 4.0)
-        >>> treft.keywordarguments
-        KeywordArguments()
-        >>> treft.keywordarguments.valid
-        False
-
-        This is different from the situation where all response units are of type
-        |lland_constants.WASSER|, where one does not need to define any values for
-        parameter |lland_control.TRefT|.  Thus, the returned |KeywordArguments| object
-        is also empty but valid:
-
-        >>> lnk(WASSER)
-        >>> treft.keywordarguments
-        KeywordArguments()
-        >>> treft.keywordarguments.valid
-        True
-
-        ToDo: document "refinement" asa lland_dd uses the AETModel_V1 interface
-        """
-        try:
-            mask = self.mask
-        except BaseException:
-            return KeywordArguments(False)
-        if (refinement := mask.refinement) is None:
-            refindices = mask.refindices.values
-        else:
-            refindices = mask.refindices.values.copy()
-            refindices[~refinement.values] = variabletools.INT_NAN
-        name2unique = KeywordArguments[float]()
-        if (relevant := self.relevant) is None:
-            relevant = mask.relevant
-        for key, value in self.constants.items():
-            if value in relevant:
-                unique = numpy.unique(self.values[refindices == value])
-                unique = self.revert_timefactor(unique)
-                length = len(unique)
-                if length == 1:
-                    name2unique[key.lower()] = unique[0]
-                elif length > 1:
-                    return KeywordArguments(False)
-        return name2unique
 
     def __getattr__(self, name: str) -> float:
         name_ = name.upper()
@@ -2763,19 +4019,10 @@ index parameter.
             super().__setattr__(name, value)
 
     def __repr__(self) -> str:
-        string = self.compress_repr()
-        if string is not None:
-            return f"{self.name}({string})"
-        keywordarguments = self.keywordarguments
-        if not keywordarguments.valid:
-            return super().__repr__()
-        results = [
-            f"{name}={objecttools.repr_(value)}" for name, value in keywordarguments
-        ]
-        string = objecttools.assignrepr_values(
-            values=sorted(results), prefix=f"{self.name}(", width=70
-        )
-        return f"{string})"
+        if not self.keywordhandler.uptodate:
+            if (string := self.compress_repr()) is not None:
+                return f"{self.name}({string})"
+        return super().__repr__()
 
     def __dir__(self) -> list[str]:
         """

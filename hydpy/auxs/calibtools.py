@@ -622,6 +622,10 @@ following error occurred: Rule type `Replace` supports only regular parameters, 
 
         def _add_parameter(element: hydpy.Element, parameter: TypeParameter, /) -> None:
             self.check_parameter(parameter)
+            if (keyword is not None) and isinstance(
+                parameter, parametertools.Parameter
+            ):
+                parameter.keywordhandler.check_exchangeable(keyword)
             if hasattr(self, "parametertype"):
                 if not isinstance(parameter, self.parametertype):
                     type1 = type(parameter)
@@ -777,7 +781,7 @@ following error occurred: Rule type `Replace` supports only regular parameters, 
         with hydpy.pub.options.parameterstep(self.parameterstep):
             if self.keyword is None:
                 return tuple(par.revert_timefactor(par.value) for par in pars)
-            return tuple(par.keywordarguments[self.keyword] for par in pars)
+            return tuple(par.keywordhandler.get_value(self.keyword) for par in pars)
 
     @property
     def value(self) -> float:
@@ -854,10 +858,7 @@ value `200.0` instead.
         if self.keyword is None:
             parameter(value)
         else:
-            keywordarguments = parameter.keywordarguments
-            keywordarguments.valid = True
-            keywordarguments[self.keyword] = value
-            parameter(**dict(keywordarguments))
+            parameter.keywordhandler.set_value(self.keyword, value)
 
     def reset_parameters(self) -> None:
         """Reset all relevant parameter objects to their original states.
@@ -900,7 +901,7 @@ value `200.0` instead.
         elif self.keyword is None:
             time_ = self.parametertype.TIME
         else:
-            keyword = self.parametertype.KEYWORDS.get(self.keyword, None)
+            keyword = self.parametertype.KEYWORDS.get_keyword(self.keyword)
             time_ = self.parametertype.TIME if keyword is None else keyword.time
         if time_ is None:
             self._parameterstep = None
@@ -1144,6 +1145,20 @@ hp.elements.stream_lahn_marb_lahn_leun.model.parameters.control.nmbsegments
     >>> rule.apply_value()
     >>> nmbsegments
     nmbsegments(lag=2.583)
+
+    Rules support only "exchangeable" keyword arguments (see method
+    |KeywordHandler.check_exchangeable|):
+
+    >>> Add(name="lag",
+    ...     parameter="nmbsegments",
+    ...     value=1.0,
+    ...     keyword="wrong",
+    ...     model="musk_classic")
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to initialise the `Add` rule object `lag`, the following \
+error occurred: Parameter `nmbsegments` of element `stream_dill_assl_lahn_leun` does \
+not support the keyword argument `wrong`.
     """
 
     def apply_value(self) -> None:

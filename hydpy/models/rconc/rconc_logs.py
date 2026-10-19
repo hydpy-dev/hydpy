@@ -18,7 +18,7 @@ class QUH(sequencetools.LogSequence):
     >>> from hydpy.models.rconc import *
     >>> parameterstep("1h")
     >>> simulationstep("1h")
-    >>> uh("triangle", tb=3.0)
+    >>> uh(option="triangle", tb=3.0)
     >>> logs.quh(1.0, 2.0, 1.0)
     >>> logs.quh
     quh(1.0, 2.0, 0.0)

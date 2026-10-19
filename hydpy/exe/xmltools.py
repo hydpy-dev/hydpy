@@ -2865,18 +2865,19 @@ class XSDWriter:
 
         >>> from hydpy.exe.xmltools import XSDWriter
         >>> print(XSDWriter.get_keyworditemsinsertion(1))  # doctest: +ELLIPSIS
-            <simpleType name="lland_control_kapgrenz_keywordType">
+            <simpleType name="hland_control_sfdist_keywordType">
                 <restriction base="string">
-                    <enumeration value="option"/>
+                    <enumeration value="linear"/>
+                    <enumeration value="lognormal"/>
                 </restriction>
             </simpleType>
         <BLANKLINE>
-            <complexType name="lland_control_kapgrenz_setitemType">
+            <complexType name="hland_control_sfdist_setitemType">
                 <complexContent>
                     <extension base="hpcb:setitemType">
                         <sequence>
                             <element name="keyword"
-                                     type="hpcb:lland_control_kapgrenz_keywordType"
+                                     type="hpcb:hland_control_sfdist_keywordType"
                                      minOccurs = "0"/>
                         </sequence>
                     </extension>
@@ -2890,7 +2891,7 @@ class XSDWriter:
             model = importtools.prepare_model(modelname, ignore_deprecated=True)
             for subvars in cls._get_subvars(model, conditions=False):
                 for var in cls._get_variables(subvars):
-                    if isinstance(var, parametertools.Parameter) and var.KEYWORDS:
+                    if keywords := cls._get_exchangeablekeywords(var):
                         prefix = f"{modelname.split('_')[0]}_{subvars.name}_{var.name}_"
                         subs.extend(
                             [
@@ -2898,7 +2899,7 @@ class XSDWriter:
                                 f'{blanks}    <restriction base="string">',
                             ]
                         )
-                        for keyword in var.KEYWORDS:
+                        for keyword in keywords:
                             subs.append(
                                 f'{blanks}        <enumeration value="{keyword}"/>'
                             )
@@ -3154,6 +3155,15 @@ class XSDWriter:
         else:
             yield from subvars
 
+    @staticmethod
+    def _get_exchangeablekeywords(variable: variabletools.Variable, /) -> list[str]:
+        if not isinstance(variable, parametertools.Parameter):
+            return []
+        # ToDo: So far, only the keyword arguments defined via `Parameter.KEYWORDS` are
+        #       supported, not the constant names that `ZipKeywordHandler` adds.  Hence,
+        #       we ask the base handler, which does not know them:
+        return list(parametertools.KeywordHandler(variable).exchangeable)
+
     @classmethod
     def get_subgroupiteminsertion(
         cls,
@@ -3258,7 +3268,7 @@ class XSDWriter:
                 name = f"{var.name}.series" if series else var.name
                 subs.append(f'{blanks1}            <element name="{name}"')
                 if itemgroup == "setitems":
-                    if isinstance(var, parametertools.Parameter) and var.KEYWORDS:
+                    if cls._get_exchangeablekeywords(var):
                         type_ = (
                             f"{model.name.split('_')[0]}_{subgroup.name}_"
                             f"{var.name}_setitemType"

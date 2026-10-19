@@ -239,7 +239,7 @@ submodel's parameters as explained above.  The discussed control file uses the
 instance (and configures its Unit Hydrograph ordinates in a triangle shape):
 
 >>> with model.add_rconcmodel_v1(rconc_uh):
-...    uh("triangle", tb=0.36728)
+...    uh(option="triangle", tb=0.36728)
 >>> from hydpy import print_vector
 >>> print_vector(model.rconcmodel.parameters.control.uh.values)
 0.02574, 0.077221, 0.128701, 0.180182, 0.213581, 0.170644, 0.119163,

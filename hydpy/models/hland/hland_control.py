@@ -11,7 +11,6 @@ import numpy
 
 from hydpy import config
 from hydpy.core import exceptiontools
-from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
@@ -244,7 +243,7 @@ class SFDist(hland_variables.MixinSnowClasses, parametertools.Parameter):
     1.0, 1.0, 1.0, 1.0, 1.0
 
     For the highest possible value, 1.0, the first snow class receives no snowfall,
-    while the last snow receives twice the zone's average snowfall.  |SFDist|
+    while the last snow class receives twice the zone's average snowfall.  |SFDist|
     interpolates the factors of the other snow classes linearly:
 
     >>> test(linear=1.0)
@@ -264,11 +263,10 @@ class SFDist(hland_variables.MixinSnowClasses, parametertools.Parameter):
     0.5, 0.833333, 1.166667, 1.5
     0.5, 0.75, 1.0, 1.25, 1.5
 
-    The first available keyword is `lognormal`.  Here, |SFDist| calculates factors
+    The second available keyword is `lognormal`.  Here, |SFDist| calculates factors
     resulting in a lognormal distribution of snowfall, similarly as implemented in
-    the COSERO model :cite:p:`ref-Frey2015CoseroSnow`.   Again, the lowest possible
-    value,
-    0.0, results in uniform snow distributions:
+    the COSERO model :cite:p:`ref-Frey2015CoseroSnow`.  Again, the lowest possible
+    value, 0.0, results in uniform snow distributions:
 
     >>> test(lognormal=0.0)
     1.0
@@ -301,28 +299,19 @@ class SFDist(hland_variables.MixinSnowClasses, parametertools.Parameter):
     0.188069, 0.446552, 0.854969, 2.51041
     0.163826, 0.361372, 0.612984, 1.047213, 2.814604
 
-    Theoretically, higher scale factors are allowed. However, 1.0 results in highly
+    Theoretically, higher scale factors are allowed.  However, 1.0 results in highly
     heterogeneous snow distributions already.
 
-    Wrong usage results in the usual error messages:
+    The string representation reflects the given keyword argument:
 
-    >>> sfdist(normal=1.0)
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: The value(s) of parameter `sfdist` of element `?` could not \
-be set based on the given keyword arguments.
-
-    >>> sfdist(linear=1.0, lognormal=1.0)
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: The value(s) of parameter `sfdist` of element `?` could not \
-be set based on the given keyword arguments.
-
-    >>> sfdist(1.0, lognormal=1.0)
-    Traceback (most recent call last):
-    ...
-    ValueError: For parameter `sfdist` of element `?` both positional and keyword \
-arguments are given, which is ambiguous.
+    >>> sfdist
+    sfdist(lognormal=1.0)
+    >>> sclass(3)
+    >>> sfdist
+    sfdist(?)
+    >>> sfdist(linear=0.2)
+    >>> sfdist
+    sfdist(linear=0.2)
     """
 
     NDIM: Final[Literal[1]] = 1
@@ -330,16 +319,32 @@ arguments are given, which is ambiguous.
     SPAN = (0.0, None)
     INIT = 1.0
 
+    def _set_linear(self, *, linear: float) -> dict[str, float]:
+        self.values = self._linear(linear, self.shape[0])
+        self._normalise()
+        return {"linear": linear}
+
+    def _set_lognormal(self, *, lognormal: float) -> dict[str, float]:
+        self.values = self._lognormal(self.shape[0], lognormal)
+        self._normalise()
+        return {"lognormal": lognormal}
+
+    KEYWORDS = parametertools.KeywordGroups(
+        parametertools.KeywordGroup(
+            parametertools.Keyword("linear"), setter=_set_linear
+        ),
+        parametertools.KeywordGroup(
+            parametertools.Keyword("lognormal"), setter=_set_lognormal
+        ),
+    )
+
     def __call__(self, *args, **kwargs) -> None:
-        sclass = self.shape[0]
-        idx = self._find_kwargscombination(args, kwargs, ({"linear"}, {"lognormal"}))
-        if idx is None:
-            super().__call__(*args, **kwargs)
-        elif idx == 0:
-            super().__call__(self._linear(kwargs["linear"], sclass))
-        else:
-            super().__call__(self._lognormal(sclass, kwargs["lognormal"]))
-        self.value /= sum(self.value) / sclass
+        super().__call__(*args, **kwargs)
+        if not self.keywordhandler.recorded.valid:
+            self._normalise()
+
+    def _normalise(self) -> None:
+        self.values /= sum(self.values) / self.shape[0]
 
     @staticmethod
     @functools.lru_cache
@@ -482,59 +487,49 @@ least one cycle: `(3, 5)` and `(5, 3)`.
     >>> derived.sredorder
     sredorder(0, 1)
 
-    Parameter |SRed| provides two options to define the weighting factors with little
-    effort.  The first option works by specifying the number of target zones.  If we
-    set the number of target zones to one, |SRed| determines the next lower target for
-    each zone that is not a dead-end:
+    You can alternatively define the weighting factors via the keyword arguments
+    `n_zones` and `d_height`.  The first option works by specifying the number of
+    target zones.  If we set the number of target zones to one, |SRed| determines the
+    next lower target for each zone that is not a dead-end:
 
     >>> zonetype(GLACIER, FIELD, FOREST, SEALED, ILAKE, FOREST)
     >>> zonez(6.0, 5.0, 4.0, 3.0, 2.0, 1.0)
     >>> zonearea.values = 1.0
     >>> sred(n_zones=1)
-
-    For brevity, parameter |SRed| returns string representations based on these options
-    when possible:
-
     >>> sred
     sred(n_zones=1)
-
-    Clear the contents of the |KeywordArguments| object returned by property
-    |SRed.keywordarguments| to see the actual parameter values:
-
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+    >>> from hydpy import print_matrix
+    >>> print_matrix(sred.values)
+    | 0.0, 1.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
 
     For two target zones (and identical zone areas), the weights of the next two lower
     zones are 0.5:
 
     >>> sred(n_zones=2)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.5, 0.5, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+    >>> print_matrix(sred.values)
+    | 0.0, 0.5, 0.5, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.5, 0.5, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.5, 0.0, 0.5 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
 
-    You can specify an arbitrarily high numbes of target zones.  Parameter |SRed|
+    You can specify an arbitrarily high number of target zones.  Parameter |SRed|
     adjusts the given value to the number of actually available target zones:
 
     >>> sred(n_zones=999)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 0.25, 0.25, 0.25, 0.0, 0.25],
-          [0.0, 0.0, 0.333333, 0.333333, 0.0, 0.333333],
-          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+    >>> print_matrix(sred.values)
+    | 0.0, 0.25, 0.25, 0.25, 0.0, 0.25 |
+    | 0.0, 0.0, 0.333333, 0.333333, 0.0, 0.333333 |
+    | 0.0, 0.0, 0.0, 0.5, 0.0, 0.5 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
 
     After defining the same elevation for the second and the third zone, the first zone
     redistributes the same snow amount to both of them.  Additionally, both zones
@@ -543,53 +538,44 @@ least one cycle: `(3, 5)` and `(5, 3)`.
     >>> zonez(6.0, 5.0, 5.0, 3.0, 2.0, 1.0)
 
     >>> sred(n_zones=1)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+    >>> print_matrix(sred.values)
+    | 0.0, 0.5, 0.5, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
 
     >>> sred(n_zones=2)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
-          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+    >>> print_matrix(sred.values)
+    | 0.0, 0.5, 0.5, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.5, 0.0, 0.5 |
+    | 0.0, 0.0, 0.0, 0.5, 0.0, 0.5 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
 
     >>> sred(n_zones=999)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 0.25, 0.25, 0.25, 0.0, 0.25],
-          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
-          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])
+    >>> print_matrix(sred.values)
+    | 0.0, 0.25, 0.25, 0.25, 0.0, 0.25 |
+    | 0.0, 0.0, 0.0, 0.5, 0.0, 0.5 |
+    | 0.0, 0.0, 0.0, 0.5, 0.0, 0.5 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
 
-    For all zones lying on the same elevation, no redistribution occurs:
+    For all zones lying on the same elevation, no redistribution occurs, regardless of
+    the number of target zones:
 
     >>> zonez(1.0)
-
-    >>> sred(n_zones=1)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred(0.0)
-
-    >>> sred(n_zones=2)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred(0.0)
-
     >>> sred(n_zones=999)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred(0.0)
+    >>> print_matrix(sred.values)
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
 
     The following examples demonstrate that the weights' calculation works well for
     unsorted elevations:
@@ -598,34 +584,31 @@ least one cycle: `(3, 5)` and `(5, 3)`.
     >>> zonez(5.0, 4.0, 1.0, 2.0, 6.0, 3.0)
 
     >>> sred(n_zones=1)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
+    >>> print_matrix(sred.values)
+    | 0.0, 1.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 |
 
     >>> sred(n_zones=2)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 0.5, 0.0, 0.0, 0.0, 0.5],
-          [0.0, 0.0, 0.5, 0.0, 0.0, 0.5],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.5, 0.5, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
+    >>> print_matrix(sred.values)
+    | 0.0, 0.5, 0.0, 0.0, 0.0, 0.5 |
+    | 0.0, 0.0, 0.5, 0.0, 0.0, 0.5 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.5, 0.5, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 |
 
     >>> sred(n_zones=999)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 0.333333, 0.333333, 0.0, 0.0, 0.333333],
-          [0.0, 0.0, 0.5, 0.0, 0.0, 0.5],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.25, 0.25, 0.25, 0.0, 0.0, 0.25],
-          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
+    >>> print_matrix(sred.values)
+    | 0.0, 0.333333, 0.333333, 0.0, 0.0, 0.333333 |
+    | 0.0, 0.0, 0.5, 0.0, 0.0, 0.5 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.25, 0.25, 0.25, 0.0, 0.0, 0.25 |
+    | 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 |
 
     For unequal zone areas, the calculated weights reflect the relations between the
     respective source and target zones.  The idea is that larger target zones have
@@ -635,36 +618,33 @@ least one cycle: `(3, 5)` and `(5, 3)`.
     >>> zonearea.values = 1.0, 2.0, 3.0, 4.0, 5.0, 6.0
 
     >>> sred(n_zones=1)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
+    >>> print_matrix(sred.values)
+    | 0.0, 1.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 |
 
     >>> sred(n_zones=2)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 0.25, 0.0, 0.0, 0.0, 0.75],
-          [0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
+    >>> print_matrix(sred.values)
+    | 0.0, 0.25, 0.0, 0.0, 0.0, 0.75 |
+    | 0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 |
 
     >>> sred(n_zones=999)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 0.181818, 0.272727, 0.0, 0.0, 0.545455],
-          [0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.083333, 0.166667, 0.25, 0.0, 0.0, 0.5],
-          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
+    >>> print_matrix(sred.values)
+    | 0.0, 0.181818, 0.272727, 0.0, 0.0, 0.545455 |
+    | 0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.083333, 0.166667, 0.25, 0.0, 0.0, 0.5 |
+    | 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 |
 
-    Instead of supplying the number of target zones directly, on can define the maximum
+    Instead of supplying the number of target zones directly, one can define the maximum
     height of redistribution.  For a source zone at an elevation `x`, parameter |SRed|
     searches for zones that lie within the interval :math:`[x - d\\_height, x)`.  If it
     does not find one, it selects at least the next lower target zone(s), if existing:
@@ -674,27 +654,39 @@ least one cycle: `(3, 5)` and `(5, 3)`.
     >>> sred(d_height=0.0)
     >>> sred
     sred(d_height=0.0)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
+    >>> print_matrix(sred.values)
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 |
 
     >>> sred(d_height=2.0)
-    >>> sred.keywordarguments.clear()
-    >>> sred
-    sred([[0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-          [0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0],
-          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
+    >>> print_matrix(sred.values)
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 |
 
     >>> sred(d_height=10.0)
-    >>> sred.keywordarguments.clear()
+    >>> print_matrix(sred.values)
+    | 0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667 |
+    | 0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 |
+    | 0.083333, 0.166667, 0.25, 0.0, 0.0, 0.5 |
+    | 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 |
+
+    |SRed| does not update its values when the values of |NmbZones|, |ZoneArea|,
+    |ZoneType|, or |ZoneZ| change later.  Then, its string representation shows the
+    actual weighting factors instead of the outdated option:
+
+    >>> sred
+    sred(d_height=10.0)
+    >>> zonearea.values[0] = 0.0
     >>> sred
     sred([[0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],
           [0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],
@@ -702,21 +694,6 @@ least one cycle: `(3, 5)` and `(5, 3)`.
           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
           [0.083333, 0.166667, 0.25, 0.0, 0.0, 0.5],
           [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
-
-    Passing multiple keyword arguments or a positional and a keyword argument at once
-    results in the following error messages:
-
-    >>> sred(n_zones=1, d_height=0.0)
-    Traceback (most recent call last):
-    ...
-    ValueError: Parameter `sred` of element `?` accepts at most a single keyword \
-argument, but two are given.
-
-    >>> sred(0.0, d_height=0.0)
-    Traceback (most recent call last):
-    ...
-    ValueError: For parameter `sred` of element `?` both positional and keyword \
-arguments are given, which is ambiguous.
     """
 
     NDIM: Final[Literal[2]] = 2
@@ -724,33 +701,26 @@ arguments are given, which is ambiguous.
     SPAN = (0.0, None)
     INIT = 0.0
 
-    _keywordarguments = parametertools.KeywordArguments(False)
+    def _set_n_zones(self, *, n_zones: int) -> dict[str, int]:
+        self(self._prepare_nzones(n_zones))
+        return {"n_zones": n_zones}
 
-    def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]) -> None:
-        super().__init__(subvars)
-        self._keywordarguments = parametertools.KeywordArguments(False)
+    def _set_d_height(self, *, d_height: float) -> dict[str, float]:
+        self(self._prepare_dheight(d_height))
+        return {"d_height": d_height}
 
-    def __call__(self, *args, **kwargs) -> None:
-        self._keywordarguments.clear()
-        if ("n_zones" in kwargs) or ("d_height" in kwargs):
-            if args:
-                super().__call__(*args, **kwargs)
-            if len(kwargs) > 1:
-                raise ValueError(
-                    f"Parameter {objecttools.elementphrase(self)} accepts at most a "
-                    f"single keyword argument, but "
-                    f"{objecttools.Inflect.cardinal(len(kwargs))} are given."
-                )
-            self._keywordarguments.add(*tuple(kwargs.items())[0])
-        try:
-            if "n_zones" in kwargs:
-                args = (self._prepare_nzones(kwargs.pop("n_zones")),)
-            elif "d_height" in kwargs:
-                args = (self._prepare_dheight(kwargs.pop("d_height")),)
-            super().__call__(*args, **kwargs)
-        except BaseException as exc:
-            self._keywordarguments.clear()
-            raise exc
+    KEYWORDS = parametertools.KeywordGroups(
+        parametertools.KeywordGroup(
+            parametertools.Keyword("n_zones", type_=int),
+            dependencies=("nmbzones", "zonearea", "zonetype", "zonez"),
+            setter=_set_n_zones,
+        ),
+        parametertools.KeywordGroup(
+            parametertools.Keyword("d_height"),
+            dependencies=("nmbzones", "zonearea", "zonetype", "zonez"),
+            setter=_set_d_height,
+        ),
+    )
 
     def _prepare_nzones(self, nzones: int) -> MatrixFloat:
         return self._prepare(self.subpars.nmbzones.value * (nzones,))
@@ -843,93 +813,6 @@ arguments are given, which is ambiguous.
                     f"lake zones must be zero, which is not the case for "
                     f"{objecttools.Inflect.listing(string, idxs, backticks=False)}."
                 )
-
-    @property
-    def keywordarguments(self) -> parametertools.KeywordArguments[float]:
-        """A |KeywordArguments| object, providing the currently valid keyword argument.
-
-        We reuse one of the example configurations of the main documentation on class
-        |SRed|:
-
-        >>> from hydpy.models.hland import *
-        >>> simulationstep("12h")
-        >>> parameterstep("1d")
-        >>> nmbzones(6)
-        >>> zonetype(GLACIER, FIELD, FOREST, SEALED, ILAKE, FOREST)
-        >>> zonez(6.0, 5.0, 4.0, 3.0, 2.0, 1.0)
-        >>> zonearea.values = 1.0
-
-        After defining the values of parameter |SRed| via option `n_zones` or
-        `d_height`, the returned |KeywordArguments| object contains the given
-        name-value pair and indicates its validity by its |True|
-        |KeywordArguments.valid| attribute:
-
-        >>> sred(n_zones=1)
-        >>> sred.keywordarguments
-        KeywordArguments(n_zones=1)
-        >>> sred.keywordarguments.valid
-        True
-
-        Property |SRed.keywordarguments| checks if the last passed option still results
-        in the currently defined parameter values and sets the |KeywordArguments.valid|
-        flag to |False| if this is not the case.  We show this by modifying the zone
-        heights specified by parameter |ZoneZ|:
-
-        >>> zonez(4.0, 5.0, 4.0, 3.0, 2.0, 1.0)
-        >>> sred.keywordarguments
-        KeywordArguments(n_zones=1)
-        >>> sred.keywordarguments.valid
-        False
-
-        After resetting the original values of |ZoneZ|, the |KeywordArguments.valid|
-        flag of the returned |KeywordArguments| object is |True| again:
-
-        >>> zonez(6.0, 5.0, 4.0, 3.0, 2.0, 1.0)
-        >>> sred.keywordarguments
-        KeywordArguments(n_zones=1)
-        >>> sred.keywordarguments.valid
-        True
-
-        After defining the parameter values directly, the |KeywordArguments| object is
-        always empty and invalid:
-
-        >>> sred(sred.values)
-        >>> sred.keywordarguments
-        KeywordArguments()
-        >>> sred.keywordarguments.valid
-        False
-
-        The same holds for erroneous keyword arguments:
-
-        >>> sred(n_zones=None)
-        Traceback (most recent call last):
-        ...
-        TypeError: '>=' not supported between instances of 'int' and 'NoneType'
-        >>> sred.keywordarguments
-        KeywordArguments()
-        >>> sred.keywordarguments.valid
-        False
-        """
-        kwa = self._keywordarguments
-        kwa.valid = True
-        if len(kwa) != 1:
-            kwa.valid = False
-        else:
-            for name, value in kwa:
-                if name == "n_zones":
-                    values = self._prepare_nzones(value)
-                else:
-                    values = self._prepare_dheight(value)
-            if self != values:
-                kwa.valid = False
-        return kwa
-
-    def __repr__(self) -> str:
-        keywordarguments = self.keywordarguments
-        if keywordarguments.valid:
-            name, value = tuple(keywordarguments)[0]
-            return f"{self.name}({name}={objecttools.repr_(value)})"
-        return super().__repr__()
 
 
 class TT(hland_parameters.ParameterComplete):
@@ -1086,61 +969,33 @@ class Alpha(parametertools.Parameter):
 class K(parametertools.Parameter):
     """Recession coefficient of the upper zone layer [1/T/mm^alpha].
 
-    In addition to the |Parameter| call method, it is possible to
-    set the value of parameter |K| in accordance to the keyword arguments
-    `khq`, `hq` and (optionally) `alpha`:
-
-    Parameter |K| allows defining its value via the keyword arguments `khq`, `hq` and
+    You can alternatively define |K| via the keyword arguments `khq`, `hq`, and
     (optionally) `alpha`:
 
         :math:`K = \\frac{HQ}{(HQ/KHQ)^{1+Alpha}}`
 
     Examples:
 
-        When directly setting the value of parameter |K|, one should be be aware of
-        its time dependence:
-
         >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
         >>> simulationstep("12h")
-        >>> k(2.0)
-        >>> k
-        k(2.0)
-        >>> k.value
-        1.0
-
-        Alternatively, one can specify the mentioned three keyword arguments:
-
         >>> k(hq=10.0, khq=2.0, alpha=1.0)
         >>> k
-        k(0.4)
-        >>> k.value
+        k(khq=2.0, hq=10.0, alpha=1.0)
+        >>> from hydpy import round_
+        >>> round_(k.value)
         0.2
 
         If a value for keyword argument `alpha` is missing, parameter |K| tries to
-        query it from parameter |Alpha|.
+        query it from parameter |Alpha|.  The string representation then includes
+        the queried value so that it does not depend on later changes of |Alpha|:
 
         >>> alpha(2.0)
         >>> k(hq=10.0, khq=2.0)
         >>> k
-        k(0.08)
-        >>> k.value
+        k(khq=2.0, hq=10.0, alpha=2.0)
+        >>> round_(k.value)
         0.04
-
-        The following exceptions occur for wrong combinations of keyword arguments or
-        when |Alpha| is not ready (still has the value |numpy.nan|):
-
-        >>> k(wrong=1)
-        Traceback (most recent call last):
-        ...
-        ValueError: For parameter `k` of element `?` a value can be set directly or \
-indirectly by using the keyword arguments `khq` and `hq`.
-
-        >>> k(hq=10.0)
-        Traceback (most recent call last):
-        ...
-        ValueError: For the alternative calculation of parameter `k` of element `?`, \
-at least the keyword arguments `khq` and `hq` must be given.
 
         >>> import numpy
         >>> alpha(numpy.nan)
@@ -1151,12 +1006,13 @@ at least the keyword arguments `khq` and `hq` must be given.
 either the keyword argument `alpha` must be given or the value of parameter `alpha` \
 must be defined beforehand.
 
-        The default value for k of 0.009633 results from the default
-        values for `alpha`, `hq` and `khq` given in HBV96:
+        The default value for k of 0.009633 (for a parameter step of one day) results
+        from the default values for `alpha`, `hq` and `khq` given in HBV96 (the actual
+        value is half as large due to the simulation step of 12 hours):
 
         >>> k(hq=3.0, khq=0.17, alpha=1.0)
-        >>> k
-        k(0.009633)
+        >>> round_(k.value)
+        0.004817
     """
 
     NDIM: Final[Literal[0]] = 0
@@ -1165,39 +1021,31 @@ must be defined beforehand.
     SPAN = (0.0, None)
     INIT = 0.009633
 
-    def __call__(self, *args, **kwargs) -> None:
-        try:
-            super().__call__(*args, **kwargs)
-        except NotImplementedError as exc:
-            counter = ("khq" in kwargs) + ("hq" in kwargs)
-            if counter == 0:
-                raise ValueError(
-                    f"For parameter {objecttools.elementphrase(self)} a "
-                    f"value can be set directly or indirectly by using "
-                    f"the keyword arguments `khq` and `hq`."
-                ) from exc
-            if counter == 1:
-                raise ValueError(
-                    f"For the alternative calculation of parameter "
-                    f"{objecttools.elementphrase(self)}, at least the keyword "
-                    f"arguments `khq` and `hq` must be given."
-                ) from exc
-            alpha = float(
-                kwargs.get(
-                    "alpha",
-                    exceptiontools.getattr_(self.subpars.alpha, "value", numpy.nan),
-                )
+    def _set_khq_hq(
+        self, *, khq: float, hq: float, alpha: float | None = None
+    ) -> dict[str, float]:
+        if alpha is None:
+            alpha = exceptiontools.getattr_(self.subpars.alpha, "value", numpy.nan)
+        alpha = float(alpha)
+        if math.isnan(alpha):
+            raise RuntimeError(
+                f"For the alternative calculation of parameter "
+                f"{objecttools.elementphrase(self)}, either the keyword argument "
+                f"`alpha` must be given or the value of parameter `alpha` must be "
+                f"defined beforehand."
             )
-            if math.isnan(alpha):
-                raise RuntimeError(
-                    f"For the alternative calculation of parameter "
-                    f"{objecttools.elementphrase(self)}, either the "
-                    f"keyword argument `alpha` must be given or the value "
-                    f"of parameter `alpha` must be defined beforehand."
-                ) from exc
-            khq = float(kwargs["khq"])
-            hq = float(kwargs["hq"])
-            self(hq / ((hq / khq) ** (alpha + 1.0)))
+        khq, hq = float(khq), float(hq)
+        self(hq / ((hq / khq) ** (alpha + 1.0)))
+        return {"khq": khq, "hq": hq, "alpha": alpha}
+
+    KEYWORDS = parametertools.KeywordGroups(
+        parametertools.KeywordGroup(
+            parametertools.Keyword("khq", time=True),
+            parametertools.Keyword("hq", time=True),
+            parametertools.Keyword("alpha", optional=True),
+            setter=_set_khq_hq,
+        )
+    )
 
 
 class SGR(hland_parameters.ParameterUpperZone):

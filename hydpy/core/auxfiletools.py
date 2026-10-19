@@ -252,9 +252,11 @@ nor does it handle a model named `lland_dd`...
         >>> from hydpy import Auxfiler
         >>> auxfiler = Auxfiler("lland_dd", "lland_knauf")
         >>> auxfiler.lland_dd.add_parameter(eqd1, filename="file1")
-        >>> auxfiler.lland_dd.add_parameter(parameter=tgr,
-        ...                                 filename="file1",
-        ...                                 keywordarguments=tgr.keywordarguments)
+        >>> auxfiler.lland_dd.add_parameter(
+        ...     parameter=tgr,
+        ...     filename="file1",
+        ...     keywordarguments=tgr.keywordhandler.arguments,
+        ... )
         >>> auxfiler.lland_knauf.add_parameters(eqd1, eqd2, filename="file2")
 
         Class |Auxfiler| takes the target path from the |ControlManager| object stored
@@ -484,16 +486,17 @@ handled by model `kinw_williams`.
         |Parameter| subclasses requiring that the shape and all values are equal might
         often be too strict.
 
-        The auxiliary file functionalities of *HydPy* allow using the
-        |Parameter.keywordarguments| property of a parameter to check for equality
-        instead (put more concretely, method |SubAuxfiler.get_parameterstrings| uses
-        method |KeywordArguments.subset_of| of class |KeywordArguments| for
-        comparisons). If we want to apply this feature for the instances of the
-        |ZipParameter| subclass |lland_control.TGr|, we need to additionally pass a
-        |KeywordArguments| object to method |SubAuxfiler.add_parameter|:
+        The auxiliary file functionalities of HydPy allow using the
+        |KeywordHandler.arguments| property of a parameter's keyword handler to check
+        for equality instead (put more concretely, method
+        |SubAuxfiler.get_parameterstrings| uses method |KeywordArguments.subset_of| of
+        class |KeywordArguments| for comparisons). If we want to apply this feature for
+        the instances of the |ZipParameter| subclass |lland_control.TGr|, we need to
+        additionally pass a |KeywordArguments| object to method
+        |SubAuxfiler.add_parameter|:
 
         >>> auxfiler.lland_dd.add_parameter(
-        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordhandler.arguments)
         >>> auxfiler.lland_dd.tgr
         (KeywordArguments(acker=2.0, laubw=1.0),)
 
@@ -646,7 +649,7 @@ handled by the actual `SubAuxfiler` object.
         >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordhandler.arguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
@@ -778,7 +781,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordhandler.arguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
@@ -822,7 +825,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordhandler.arguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
@@ -876,7 +879,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordhandler.arguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
@@ -956,7 +959,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordhandler.arguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
@@ -1016,7 +1019,7 @@ error occurred: 'NoneType' object has no attribute 'items'
         >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordhandler.arguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 
@@ -1062,24 +1065,24 @@ error occurred: 'NoneType' object has no attribute 'items'
         arguments of parameter |lland_control.TGr|:
 
         >>> subauxfiler.add_parameter(
-        ...     tgr, filename="file2", keywordarguments=tgr.keywordarguments)
+        ...     tgr, filename="file2", keywordarguments=tgr.keywordhandler.arguments)
 
         Now, the keyword arguments of |lland_control.TGr| are a subset of both
         registered |KeywordArguments| objects:
 
-        >>> tgr.keywordarguments
+        >>> tgr.keywordhandler.arguments
         KeywordArguments(acker=2.0)
         >>> kwargs = subauxfiler.get_references(
         ...     parametertype=type(tgr), filename="file1")[0]
         >>> kwargs
         KeywordArguments(acker=2.0, laubw=1.0)
-        >>> tgr.keywordarguments.subset_of(kwargs)
+        >>> tgr.keywordhandler.arguments.subset_of(kwargs)
         True
         >>> kwargs = subauxfiler.get_references(
         ...     parametertype=type(tgr), filename="file2")[0]
         >>> kwargs
         KeywordArguments(acker=2.0)
-        >>> tgr.keywordarguments.subset_of(kwargs)
+        >>> tgr.keywordhandler.arguments.subset_of(kwargs)
         True
 
         Method |SubAuxfiler.get_filename| emits a warning when it finds multiple
@@ -1105,7 +1108,7 @@ and `file2`.
         for filename, reference in filename2reference.items():
             if (
                 isinstance(reference, parametertools.KeywordArguments)
-                and parameter.keywordarguments.subset_of(reference)
+                and parameter.keywordhandler.arguments.subset_of(reference)
             ) or (parameter == reference):
                 filenames.append(filename)
         if not filenames:
@@ -1155,7 +1158,7 @@ and `file2`.
         >>> subauxfiler = auxfiler.lland_dd
         >>> subauxfiler.add_parameters(eqb, eqi1, filename="file1")
         >>> subauxfiler.add_parameter(
-        ...     tgr, filename="file1", keywordarguments=tgr.keywordarguments)
+        ...     tgr, filename="file1", keywordarguments=tgr.keywordhandler.arguments)
         >>> eqb *= 2.0
         >>> subauxfiler.add_parameters(eqb, eqd1, filename="file2")
 

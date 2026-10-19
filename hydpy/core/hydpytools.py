@@ -1394,7 +1394,7 @@ deprecated.  Use method `prepare_models` instead.
                 precipitationfactor(0.01)
                 airtemperaturefactor(0.1)
         with model.add_rconcmodel_v1(rconc_uh):
-            uh("triangle", tb=0.18364)
+            uh(option="triangle", tb=0.18364)
         <BLANKLINE>
 
         When delegating parameter value definitions to auxiliary files, it makes no
@@ -1406,7 +1406,7 @@ deprecated.  Use method `prepare_models` instead.
         ...     control.airtemperaturefactor(field=0.2, forest=0.1)
         >>> auxfiler.evap_pet_hbv96.add_parameter(
         ...     control.airtemperaturefactor, filename="evap",
-        ...     keywordarguments=control.airtemperaturefactor.keywordarguments)
+        ...     keywordarguments=control.airtemperaturefactor.keywordhandler.arguments)
         >>> with TestIO():
         ...     hp.save_controls(
         ...         auxfiler=auxfiler, parameterstep="2d", simulationstep="1h")
@@ -1435,7 +1435,7 @@ deprecated.  Use method `prepare_models` instead.
                 precipitationfactor(0.01)
                 airtemperaturefactor(auxfile="evap")
         with model.add_rconcmodel_v1(rconc_uh):
-            uh("triangle", tb=0.18364)
+            uh(option="triangle", tb=0.18364)
         <BLANKLINE>
 
         >>> with TestIO():

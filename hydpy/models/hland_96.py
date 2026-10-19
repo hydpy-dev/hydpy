@@ -145,7 +145,7 @@ unit hydrograph method and provides a convenient way to set the required ordinat
 the triangle shape typical for HBV96:
 
 >>> with model.add_rconcmodel_v1("rconc_uh"):
-...     uh("triangle", tb=3.0)
+...     uh(option="triangle", tb=3.0)
 
 We initialise a test function object, which prepares and runs the tests and prints
 their results for the given sequences:
@@ -458,7 +458,7 @@ There is no indication of an error in the water balance:
 For the next tests, we use the rconc submodel again:
 
 >>> with model.add_rconcmodel_v1("rconc_uh"):
-...     uh("triangle", tb=3.0)
+...     uh(option="triangle", tb=3.0)
 
 .. _hland_96_resparea:
 

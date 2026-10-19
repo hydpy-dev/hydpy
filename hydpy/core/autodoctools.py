@@ -570,7 +570,115 @@ def _gain_and_insert_additional_information_into_docstrings(
             )
             insertions.append("\n")
 
+        insertions.extend(_get_keywordinsertions(value))
+
         _insert_links_into_docstring(value, "\n".join(insertions))
+
+
+def _get_keywordinsertions(value: object) -> list[str]:
+    """Describe the keyword arguments defined by the |Parameter.KEYWORDS| attribute of
+    the given object (if available).
+
+    >>> from hydpy.core.autodoctools import _get_keywordinsertions
+    >>> from hydpy.models.lland.lland_control import PWMax
+    >>> for line in _get_keywordinsertions(PWMax):
+    ...     print(line)
+        Settable via the keyword arguments:
+          `rhot0` and `rhodkrit`
+    <BLANKLINE>
+    <BLANKLINE>
+        Keyword argument specifications:
+          * `rhot0`: type :class:`float`
+          * `rhodkrit`: type :class:`float`
+    <BLANKLINE>
+    <BLANKLINE>
+
+    Keywords that occur in multiple groups are specified only once.  The specifications
+    include the time dependency and the boundaries if defined:
+
+    >>> from hydpy.core.parametertools import Keyword, KeywordGroup, KeywordGroups
+    >>> class Test:
+    ...     KEYWORDS = KeywordGroups(
+    ...         KeywordGroup(
+    ...             Keyword("a", type_=str), Keyword("b"), setter=lambda p, **k: k
+    ...         ),
+    ...         KeywordGroup(
+    ...             Keyword("a", type_=str),
+    ...             Keyword("c", type_=int, time=True, span=(0, None), optional=True),
+    ...             Keyword("d", time=False, span=(0.0, 1.0), optional=True),
+    ...             Keyword("e", span=(None, 2.0), optional=True),
+    ...             setter=lambda p, **k: k,
+    ...         ),
+    ...     )
+    >>> for line in _get_keywordinsertions(Test):
+    ...     print(line)
+        Settable via the keyword argument combinations:
+          * `a` and `b`
+          * `a`, `c` (optional), `d` (optional), and `e` (optional)
+    <BLANKLINE>
+    <BLANKLINE>
+        Keyword argument specifications:
+          * `a`: type :class:`str`
+          * `b`: type :class:`float`
+          * `c`: type :class:`int`, proportional to the simulation step size, lower \
+bound 0
+          * `d`: type :class:`float`, inversely proportional to the simulation step \
+size, lower bound 0.0, upper bound 1.0
+          * `e`: type :class:`float`, upper bound 2.0
+    <BLANKLINE>
+    <BLANKLINE>
+
+    >>> Test.KEYWORDS = KeywordGroups()
+    >>> _get_keywordinsertions(Test)
+    []
+    >>> _get_keywordinsertions(None)
+    []
+    """
+    if not inspect.isclass(value):
+        return []
+    groups = getattr(value, "KEYWORDS", None)
+    if not isinstance(groups, parametertools.KeywordGroups) or (len(groups) == 0):
+        return []
+    descriptions = []
+    for group in groups:
+        names = (
+            f"`{keyword.name}` (optional)" if keyword.optional else f"`{keyword.name}`"
+            for keyword in group
+        )
+        descriptions.append(objecttools.enumeration(names))
+    if len(groups) == 1:
+        group = tuple(groups)[0]
+        insertions = [
+            f"    Settable via the {_plural('keyword argument', group)}:",
+            f"      {descriptions[0]}",
+        ]
+    else:
+        insertions = ["    Settable via the keyword argument combinations:"]
+        insertions.extend(f"      * {description}" for description in descriptions)
+    insertions.append("\n")
+    insertions.append("    Keyword argument specifications:")
+    described: set[str] = set()
+    for group in groups:
+        for keyword in group:
+            if keyword.name not in described:
+                described.add(keyword.name)
+                insertions.append(f"      * {_describe_keyword(keyword)}")
+    insertions.append("\n")
+    return insertions
+
+
+def _describe_keyword(keyword: parametertools.Keyword) -> str:
+    specs = [f"type :class:`{keyword.type_.__name__}`"]
+    if keyword.time is True:
+        specs.append("proportional to the simulation step size")
+    elif keyword.time is False:
+        specs.append("inversely proportional to the simulation step size")
+    lower, upper = keyword.span
+    if lower is not None:
+        specs.append(f"lower bound {lower}")
+    if upper is not None:
+        specs.append(f"upper bound {upper}")
+    return f"`{keyword.name}`: {', '.join(specs)}"
 
 
 def _get_collectionclassnames(spec2capt: dict[str, str]) -> list[str]:

@@ -5,7 +5,6 @@ from __future__ import annotations
 import abc
 
 from hydpy.core import objecttools
-from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.wland import wland_constants
@@ -38,92 +37,38 @@ class SoilParameter(parametertools.Parameter, abc.ABC):
     >>> round_(b.value)
     4.05
 
-    You are free to ignore the default values and to set anything you like:
-
-    >>> b.value = 3.0
-    >>> b
-    b(3.0)
-
-    The string representation relies on the `soil` keyword only when used to define the
-    value directly beforehand:
-
-    >>> b(4.05)
-    >>> b
-    b(4.05)
-
     For a list of the available defaults, see the respective parameter's documentation
-    or the error message that class |SoilParameter|  raises if one passes a wrong
-    value:
+    or the error message that class |SoilParameter| raises if one passes a wrong value:
 
     >>> b(soil=0)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to set the value of parameter `b` of element `?`, the \
-following error occurred: The given soil constant `0` is not among the available \
-ones.  Please use one of the following constants: `SAND` (1), `LOAMY_SAND` (2), \
-`SANDY_LOAM` (3), `SILT_LOAM` (4), `LOAM` (5), `SANDY_CLAY_LOAM` (6), \
-`SILT_CLAY_LOAM` (7), `CLAY_LOAM` (8), `SANDY_CLAY` (9), `SILTY_CLAY` (10), and \
+    ValueError: Parameter `b` of element `?` received the soil constant `0`, which is \
+not among the available ones.  Please use one of the following constants: `SAND` (1), \
+`LOAMY_SAND` (2), `SANDY_LOAM` (3), `SILT_LOAM` (4), `LOAM` (5), `SANDY_CLAY_LOAM` \
+(6), `SILT_CLAY_LOAM` (7), `CLAY_LOAM` (8), `SANDY_CLAY` (9), `SILTY_CLAY` (10), and \
 `CLAY` (11).
-
-    Combining the `soil` keyword with other keywords is not allowed:
-
-    >>> b(soil=SAND, landuse='acre')
-    Traceback (most recent call last):
-    ...
-    TypeError: While trying to set the value of parameter `b` of element `?`, the \
-following error occurred: It is not allowed to combine keyword `soil` with other \
-keywords, but the keyword `landuse` is also used.
-
-    >>> b(landuse='acre')
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: While trying to set the value of parameter `b` of element \
-`?`, the following error occurred: The value(s) of parameter `b` of element `?` could \
-not be set based on the given keyword arguments.
     """
 
     _SOIL2VALUE: dict[int, float]
-    _soil: int | None
 
-    def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]) -> None:
-        super().__init__(subvars)
-        self._soil = None
+    def _set_soil(self, *, soil: int) -> dict[str, int]:
+        if (value := self._SOIL2VALUE.get(soil)) is None:
+            value2name = wland_constants.CONSTANTS.value2name
+            names = (f"`{value2name[v]}` ({v})" for v in self._SOIL2VALUE)
+            raise ValueError(
+                f"Parameter {objecttools.elementphrase(self)} received the soil "
+                f"constant `{soil}`, which is not among the available ones.  Please "
+                f"use one of the following constants: {objecttools.enumeration(names)}."
+            )
+        self.value = value
+        return {"soil": soil}
 
-    def __call__(self, *args, **kwargs) -> None:
-        self._soil = None
-        try:
-            super().__call__(*args, **kwargs)
-        except NotImplementedError as exc:
-            try:
-                soil = kwargs.pop("soil", None)
-                if soil is None:
-                    raise exc
-                if kwargs:
-                    listing = objecttools.Inflect.listing
-                    raise TypeError(
-                        f"It is not allowed to combine keyword `soil` with other "
-                        f"keywords, but the "
-                        f"{listing('keyword', kwargs.keys(), 'is')} also used."
-                    ) from None
-                try:
-                    self(self._SOIL2VALUE[soil])
-                    self._soil = soil
-                except KeyError:
-                    value2name = wland_constants.CONSTANTS.value2name
-                    names = (
-                        f"`{value2name[value]}` ({value})"
-                        for value in self._SOIL2VALUE.keys()
-                    )
-                    raise ValueError(
-                        f"The given soil constant `{soil}` is not among the available "
-                        f"ones.  Please use one of the following constants: "
-                        f"{objecttools.enumeration(names)}."
-                    ) from None
-            except BaseException:
-                objecttools.augment_excmessage(
-                    f"While trying to set the value of parameter "
-                    f"{objecttools.elementphrase(self)}"
-                )
+    KEYWORDS = parametertools.KeywordGroups(
+        parametertools.KeywordGroup(
+            parametertools.Keyword("soil", type_=int), setter=_set_soil
+        )
+    )
 
     @classmethod
     def print_defaults(cls) -> None:
@@ -137,12 +82,10 @@ not be set based on the given keyword arguments.
             objecttools.round_(value)
 
     def __repr__(self) -> str:
-        soil = self._soil
-        value = self.value
-        if soil and (self._SOIL2VALUE[soil] == value):
-            name = wland_constants.SOIL_CONSTANTS.value2name[soil]
+        if (arguments := self.keywordhandler.arguments).valid:
+            name = wland_constants.SOIL_CONSTANTS.value2name[arguments["soil"]]
             return f"{self.name}(soil={name})"
-        return f"{self.name}({objecttools.repr_(value)})"
+        return super().__repr__()
 
 
 class LanduseParameterLand(

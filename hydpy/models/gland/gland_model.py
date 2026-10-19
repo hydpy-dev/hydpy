@@ -537,7 +537,7 @@ class Calc_Q9_V1(modeltools.Method):
         `gr_uh1` option:
 
         >>> with model.add_rconcmodel_routingstore_v1("rconc_uh"):
-        ...     uh("gr_uh1", x4=3.0)
+        ...     uh(option="gr_uh1", x4=3.0)
         ...     logs.quh = 1.0, 3.0, 0.0
         >>> fluxes.pr9 = 2.0
         >>> model.calc_q9_v1()
@@ -583,7 +583,7 @@ class Calc_Q1_V1(modeltools.Method):
         `gr_uh2` option:
 
         >>> with model.add_rconcmodel_directflow_v1("rconc_uh"):
-        ...     uh("gr_uh2", x4=1.5)
+        ...     uh(option="gr_uh2", x4=1.5)
         ...     logs.quh = 1.0, 3.0, 0.0
         >>> fluxes.pr1 = 2.0
         >>> model.calc_q1_v1()
@@ -629,7 +629,7 @@ class Calc_Q10_V1(modeltools.Method):
         `gr_uh2` option:
 
         >>> with model.add_rconcmodel_v1("rconc_uh"):
-        ...     uh("gr_uh2", x4=1.5)
+        ...     uh(option="gr_uh2", x4=1.5)
         ...     logs.quh = 1.0, 3.0, 0.0
         >>> fluxes.pr = 2.0
         >>> model.calc_q10_v1()
@@ -1369,9 +1369,9 @@ class Main_RConcModel_V1(modeltools.AdHocModel):
         >>> simulationstep("1d")
         >>> parameterstep("1d")
         >>> with model.add_rconcmodel_v1("rconc_uh"):
-        ...     uh("gr_uh2", x4=3.0)
+        ...     uh(option="gr_uh2", x4=3.0)
         >>> model.rconcmodel.parameters.control.uh
-        uh("gr_uh2", x4=3.0)
+        uh(option="gr_uh2", x4=3.0)
         """
 
     def _get_rconcmodel_waterbalance(
@@ -1412,9 +1412,9 @@ class Main_RConcModel_V2(modeltools.AdHocModel):
         >>> simulationstep("1d")
         >>> parameterstep("1d")
         >>> with model.add_rconcmodel_routingstore_v1("rconc_uh"):
-        ...     uh("gr_uh1", x4=2.0)
+        ...     uh(option="gr_uh1", x4=2.0)
         >>> model.rconcmodel_routingstore.parameters.control.uh
-        uh("gr_uh1", x4=2.0)
+        uh(option="gr_uh1", x4=2.0)
         """
 
     @importtools.prepare_submodel(
@@ -1431,9 +1431,9 @@ class Main_RConcModel_V2(modeltools.AdHocModel):
         >>> simulationstep("1d")
         >>> parameterstep("1d")
         >>> with model.add_rconcmodel_directflow_v1("rconc_uh"):
-        ...     uh("gr_uh2", x4=3.0)
+        ...     uh(option="gr_uh2", x4=3.0)
         >>> model.rconcmodel_directflow.parameters.control.uh
-        uh("gr_uh2", x4=3.0)
+        uh(option="gr_uh2", x4=3.0)
         """
 
     def _get_rconcmodel_waterbalance_routingstore(

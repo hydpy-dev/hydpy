@@ -1,6 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
@@ -60,25 +59,21 @@ class NmbSegments(parametertools.NmbParameter):
     """
 
     SPAN = (0, None)
-    KEYWORDS = {"lag": parametertools.Keyword(name="lag", time=False)}
+
+    def _set_lag(self, *, lag: float) -> dict[str, float]:
+        lag = parametertools.trim_kwarg(self, "lag", lag, lower=0.0)
+        self.value = int(round(lag / self.get_timefactor()))
+        return {"lag": lag}
+
+    KEYWORDS = parametertools.KeywordGroups(
+        parametertools.KeywordGroup(
+            parametertools.Keyword("lag", time=False), setter=_set_lag
+        )
+    )
 
     def __call__(self, *args, **kwargs) -> None:
-        self._keywordarguments = parametertools.KeywordArguments(False)
-        idx = self._find_kwargscombination(args, kwargs, ({"lag"},))
-        if idx is None:
-            super().__call__(*args, **kwargs)
-        else:
-            lag = parametertools.trim_kwarg(self, "lag", kwargs["lag"], lower=0.0)
-            lag /= self.get_timefactor()
-            super().__call__(int(round(lag)))
-            self._keywordarguments = parametertools.KeywordArguments(lag=lag)
+        super().__call__(*args, **kwargs)
         self.subpars.pars.model.nmb_segments = self.value
-
-    def __repr__(self) -> str:
-        if self._keywordarguments.valid:
-            lag = self.get_timefactor() * self._keywordarguments["lag"]
-            return f"{self.name}(lag={objecttools.repr_(lag)})"
-        return super().__repr__()
 
 
 class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
@@ -115,6 +110,10 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
     ...     coefficients(damp=-1.0)
     UserWarning: For parameter `coefficients` of element `?` the keyword argument \
 `damp` with value `-1.0` needed to be trimmed to `0.0`.
+    >>> coefficients
+    coefficients(damp=0.0)
+    >>> print_vector(coefficients.values)
+    0.0, 1.0, 0.0
 
     Higher values do not change the translation time but increase wave attenuation.
     The highest possible value with non-negative coefficients is one:
@@ -138,7 +137,7 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
     and is more flexible as it offers two parameters.  `k` is the translation time
     (defined with respect to the current parameter step size), and `x` is a weighting
     factor.  Note that both parameters hold for a single channel segment, so that, for
-    example, a `k` value of one day results in an efficient translation time of two
+    example, a `k` value of one day results in an effective translation time of two
     days for a channel divided into two segments.
 
     The calculation of the coefficients follows the classic Muskingum method:
@@ -149,15 +148,8 @@ class Coefficients(variabletools.MixinFixedShape, parametertools.Parameter):
 
       :math:`c_3 = \\frac{2 \\cdot k (1 - x) - 1}{2 \\cdot k (1 - x) + 1}`
 
-    For a `k` value of zero, travel time and diffusion are zero:
-
-    >>> coefficients(k=0.0, x=0.0)
-    >>> coefficients
-    coefficients(k=0.0, x=0.0)
-    >>> print_vector(coefficients.values)
-    1.0, 1.0, -1.0
-
-    Negative `k` values are trimmed:
+    For a `k` value of zero, travel time and diffusion are zero.  Negative `k` values
+    are trimmed to zero:
 
     >>> with warn_later():
     ...     coefficients(k=-1.0, x=0.0)
@@ -199,12 +191,15 @@ with value `-1.0` needed to be trimmed to `0.0`.
       \\leq min \\left( \\frac{1}{2 \\cdot k}, 1 - \\frac{1}{2 \\cdot k} \\right)
       \\leq \\frac{1}{2}`
 
+    The string representation shows the originally given value of `x`, which results
+    in the same coefficients but also in the same warning when executed again:
+
     >>> with warn_later():
     ...     coefficients(k=0.5, x=1.0)
     UserWarning: For parameter `coefficients` of element `?` the keyword argument `x` \
 with value `1.0` needed to be trimmed to `0.5`.
     >>> coefficients
-    coefficients(k=0.5, x=0.5)
+    coefficients(k=0.5, x=1.0)
     >>> print_vector(coefficients.values)
     0.0, 1.0, 0.0
 
@@ -212,8 +207,6 @@ with value `1.0` needed to be trimmed to `0.5`.
     ...     coefficients(k=1.0, x=1.0)
     UserWarning: For parameter `coefficients` of element `?` the keyword argument `x` \
 with value `1.0` needed to be trimmed to `0.25`.
-    >>> coefficients
-    coefficients(k=1.0, x=0.25)
     >>> print_vector(coefficients.values)
     0.0, 0.5, 0.5
 
@@ -221,54 +214,54 @@ with value `1.0` needed to be trimmed to `0.25`.
     ...     coefficients(k=0.25, x=1.0)
     UserWarning: For parameter `coefficients` of element `?` the keyword argument `x` \
 with value `1.0` needed to be trimmed to `0.0`.
-    >>> coefficients
-    coefficients(k=0.25, x=0.0)
     >>> print_vector(coefficients.values)
     0.5, 0.5, 0.0
+
+    Hence, when exchange items or calibration rules change `k` (see method
+    |KeywordHandler.set_value|), |Coefficients| trims `x` based on its originally given
+    value and not on the result of a previous trimming:
+
+    >>> with warn_later():
+    ...     coefficients(k=1.0, x=0.4)
+    UserWarning: For parameter `coefficients` of element `?` the keyword argument `x` \
+with value `0.4` needed to be trimmed to `0.25`.
+    >>> coefficients.keywordhandler.set_value("k", 0.5)
+    >>> coefficients
+    coefficients(k=0.5, x=0.4)
     """
 
     TYPE: Final = float
     SHAPE = (3,)
-    KEYWORDS = {
-        "damp": parametertools.Keyword(name="damp"),
-        "k": parametertools.Keyword(name="k", time=False),
-        "x": parametertools.Keyword(name="x"),
-    }
 
-    def __call__(self, *args, **kwargs) -> None:
-        self._keywordarguments = parametertools.KeywordArguments(False)
-        idx = self._find_kwargscombination(args, kwargs, ({"damp"}, {"k", "x"}))
-        if idx is None:
-            super().__call__(*args, **kwargs)
-        elif idx == 0:
-            damp = parametertools.trim_kwarg(self, "damp", kwargs["damp"], lower=0.0)
-            c13 = damp / (1.0 + damp)
-            c2 = 1.0 - 2.0 * c13
-            self.values = c13, c2, c13
-            self._keywordarguments = parametertools.KeywordArguments(damp=damp)
-        else:
-            k = parametertools.trim_kwarg(self, "k", kwargs["k"], lower=0.0)
-            k /= self.get_timefactor()
-            x = kwargs["x"]
-            if k > 0.0:
-                upper = min(1.0 / 2.0 / k, 1.0 - 1.0 / 2.0 / k)
-                x = parametertools.trim_kwarg(self, "x", x, upper=upper)
-            denom = 2.0 * k * (1.0 - x) + 1.0
-            c1 = (1.0 - 2.0 * k * x) / denom
-            c2 = (1.0 + 2.0 * k * x) / denom
-            c3 = (2.0 * k * (1.0 - x) - 1.0) / denom
-            self.values = c1, c2, c3
-            self._keywordarguments = parametertools.KeywordArguments(k=k, x=x)
+    def _set_damp(self, *, damp: float) -> dict[str, float]:
+        damp = parametertools.trim_kwarg(self, "damp", damp, lower=0.0)
+        c13 = damp / (1.0 + damp)
+        c2 = 1.0 - 2.0 * c13
+        self.values = c13, c2, c13
+        return {"damp": damp}
 
-    def __repr__(self) -> str:
-        if self._keywordarguments.valid:
-            strings = []
-            for name, value in self._keywordarguments:
-                if name == "k":
-                    value *= self.get_timefactor()
-                strings.append(f"{name}={objecttools.repr_(value)}")
-            return f"{self.name}({', '.join(strings)})"
-        return super().__repr__()
+    def _set_k_x(self, *, k: float, x: float) -> dict[str, float]:
+        k = parametertools.trim_kwarg(self, "k", k, lower=0.0)
+        k_sim = k / self.get_timefactor()
+        x_given = float(x)
+        if k_sim > 0.0:
+            upper = min(1.0 / 2.0 / k_sim, 1.0 - 1.0 / 2.0 / k_sim)
+            x = parametertools.trim_kwarg(self, "x", x, upper=upper)
+        denom = 2.0 * k_sim * (1.0 - x) + 1.0
+        c1 = (1.0 - 2.0 * k_sim * x) / denom
+        c2 = (1.0 + 2.0 * k_sim * x) / denom
+        c3 = (2.0 * k_sim * (1.0 - x) - 1.0) / denom
+        self.values = c1, c2, c3
+        return {"k": k, "x": x_given}
+
+    KEYWORDS = parametertools.KeywordGroups(
+        parametertools.KeywordGroup(parametertools.Keyword("damp"), setter=_set_damp),
+        parametertools.KeywordGroup(
+            parametertools.Keyword("k", time=False),
+            parametertools.Keyword("x"),
+            setter=_set_k_x,
+        ),
+    )
 
 
 class Length(parametertools.Parameter):

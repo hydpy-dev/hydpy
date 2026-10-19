@@ -80,9 +80,9 @@ the example given by :cite:t:`ref-airGRManual`:
 >>> x6(4.759)
 
 >>> with model.add_rconcmodel_directflow_v1("rconc_uh"):
-...     uh("gr_uh2", x4=2.218)
+...     uh(option="gr_uh2", x4=2.218)
 >>> with model.add_rconcmodel_routingstore_v1("rconc_uh"):
-...     uh("gr_uh1", x4=2.218)
+...     uh(option="gr_uh1", x4=2.218)
 
 >>> test.inits = (
 ...     (states.i, 0.0),

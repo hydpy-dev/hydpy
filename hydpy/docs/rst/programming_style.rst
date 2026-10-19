@@ -263,11 +263,12 @@ already include the required backticks (see below):
 >>> from hydpy.core import objecttools
 >>> objecttools.elementphrase(k)
 '`k` of element `e1`'
->>> k(hq=10.0)  # doctest: +NORMALIZE_WHITESPACE
+>>> k(hq=10.0, khq=2.0)  # doctest: +NORMALIZE_WHITESPACE
 Traceback (most recent call last):
 ...
-ValueError: For the alternative calculation of parameter `k` of element `e1`, at least
-the keyword arguments `khq` and `hq` must be given.
+RuntimeError: For the alternative calculation of parameter `k` of element `e1`, either
+the keyword argument `alpha` must be given or the value of parameter `alpha` must be
+defined beforehand.
 
 Another recommended approach is exception chaining via function |augment_excmessage|,
 which adds context information to an error raised by code you call.  Call it within

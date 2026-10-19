@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.exch_branch_io &#8212; HydPy 7.0dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=72aa22fa" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=a3767c0e"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/toctree.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 7.0dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.exch_branch_io</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.exch_branch_io</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=line-too-long, unused-wildcard-import</span>
+<span class="sd">"""</span>
+<span class="sd">|exch_branch_io| modifies the flow through a stream by transferring water based on</span>
+<span class="sd">externally defined requests.  These are usually positive (withdrawals) but can also be</span>
+<span class="sd">negative (supplies).  If external requests are missing, it estimates the water transfer</span>
+<span class="sd">using season-dependent interpolation rules.</span>
+
+<span class="sd">|exch_branch_io| is compatible with the LARSIM routines for modelling simple (VERZ) and</span>
+<span class="sd">extended (ERWV) branching of river discharge, while offering some additional</span>
+<span class="sd">functionalities:</span>
+
+<span class="sd"> * Handling of negative inflow (reverse flow) is possible.</span>
+<span class="sd"> * Water transfers can be positive (withdrawals) and negative (supplies).</span>
+<span class="sd"> * Configuration of minimum and maximum flows that must not be violated by externally</span>
+<span class="sd">   requested water transfers (including different modes of transfer adjustment).</span>
+<span class="sd"> * Inflow-dependent piecewise interpolation (for the fallback calculations) can be</span>
+<span class="sd">   linear or non-linear (spline interpolation).</span>
+<span class="sd"> * The transition between season-dependent interpolation rules is usually smoothed by</span>
+<span class="sd">   linear interpolation over time.</span>
+
+<span class="sd">Before reading the following integration tests, it is advisable to review the</span>
+<span class="sd">documentation for method |Pass_ActualTransfer_StreamOutflow_V1|, which is the core of</span>
+<span class="sd">|exch_branch_io|.</span>
+
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">We perform the following examples over a simulation period of 11 days:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import pub, Nodes, Element</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = "2000-01-01", "2000-01-12", "1d"</span>
+
+<span class="sd">|exch_branch_io| has no parameter whose values depend on the simulation time step, so</span>
+<span class="sd">we do not need to define the parameter time step size here:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models.exch_branch_io import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">According to the following setting, |exch_branch_io| queries inflow from two inlet</span>
+<span class="sd">nodes and passes the branched outflow to two outlet nodes:</span>
+
+<span class="sd">&gt;&gt;&gt; nodes = Nodes("inflow1", "inflow2", "river", "diversion")</span>
+<span class="sd">&gt;&gt;&gt; branch = Element(</span>
+<span class="sd">...     "branch", inlets=["inflow1", "inflow2"], outlets=["river", "diversion"]</span>
+<span class="sd">... )</span>
+
+<span class="sd">There may be fewer or more inlet nodes, but the number of outlet nodes must be exactly</span>
+<span class="sd">two.</span>
+
+<span class="sd">The |Node.variable| types of the respective |Node| instances do not matter.  Instead,</span>
+<span class="sd">|exch_branch_io| lumps all inlet nodes together as inflow providers and builds</span>
+<span class="sd">different connections to the two outlet nodes, for which it uses the node names passed</span>
+<span class="sd">to parameter |Targets|:</span>
+
+<span class="sd">&gt;&gt;&gt; targets(stream="river", transfer="diversion")</span>
+<span class="sd">&gt;&gt;&gt; branch.model = model</span>
+
+<span class="sd">By assigning "river" to the keyword `stream` and "diversion" to the keyword `transfer`,</span>
+<span class="sd">the roles of the two outlet nodes become clear.  The "transfer" node will receive the</span>
+<span class="sd">calculated water transfer, while the "river" node will receive the remaining (or</span>
+<span class="sd">enhanced) streamflow.</span>
+
+<span class="sd">We do not have to define any initial values in the test settings because</span>
+<span class="sd">|exch_branch_io| has no memory:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import IntegrationTest</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(branch)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = "%d Jan."</span>
+
+<span class="sd">Instead of defining a realistic inflow series, the sum of the inlet nodes' values</span>
+<span class="sd">increases linearly:</span>
+
+<span class="sd">&gt;&gt;&gt; import numpy</span>
+<span class="sd">&gt;&gt;&gt; nodes.inflow1.sequences.sim.series = numpy.arange(0.0, 11.0)</span>
+<span class="sd">&gt;&gt;&gt; nodes.inflow2.sequences.sim.series = -1.0</span>
+
+<span class="sd">.. _exch_branch_io_requested_transfer:</span>
+
+<span class="sd">requested transfer</span>
+<span class="sd">__________________</span>
+
+<span class="sd">|exch_branch_io|'s priority is to withdraw water from or supply water to the main</span>
+<span class="sd">stream based on externally requested transfers, given as an input time series.  In this</span>
+<span class="sd">example, these requests are positive (withdrawals) in the first half and negative</span>
+<span class="sd">(supplies) in the second half of the simulation period:</span>
+
+<span class="sd">&gt;&gt;&gt; inputs.requestedtransfer.series = 6 * [2.0] + 5 * [-2.0]</span>
+
+<span class="sd">Withdrawals could cause too-low (and even negative) flows.  To prevent this, we set</span>
+<span class="sd">parameter |MinStream| to 1 m³/s:</span>
+
+<span class="sd">&gt;&gt;&gt; minstream(1.0)</span>
+
+<span class="sd">Likewise, supplies could cause too-high flows, which we prevent by setting parameter</span>
+<span class="sd">|MaxStream| to 8 m³/s:</span>
+
+<span class="sd">&gt;&gt;&gt; maxstream(8.0)</span>
+
+<span class="sd">Parameter |KeepWaterBalance| configures the exact behaviour during possible violations</span>
+<span class="sd">of |MinStream| and |MaxStream|, which is explained in detail in the documentation on</span>
+<span class="sd">method |Pass_ActualTransfer_StreamOutflow_V1|.  Here, we set the more intuitive</span>
+<span class="sd">behaviour of reducing transfers as strongly as necessary to maintain the water balance:</span>
+
+<span class="sd">&gt;&gt;&gt; keepwaterbalance(True)</span>
+
+<span class="sd">As the simulation results show, the transfer is reduced to zero if necessary.  Still,</span>
+<span class="sd">withdrawals are never turned into supplies for already too-low inflows and supplies are</span>
+<span class="sd">never turned into withdrawals for already too-high inflows:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test("exch_branch_io_requested_transfer")</span>
+<span class="sd">    |    date | requestedtransfer | inflow | diversion | inflow1 | inflow2 | river |</span>
+<span class="sd">    --------------------------------------------------------------------------------</span>
+<span class="sd">    | 01 Jan. |               2.0 |   -1.0 |       0.0 |     0.0 |    -1.0 |  -1.0 |</span>
+<span class="sd">    | 02 Jan. |               2.0 |    0.0 |       0.0 |     1.0 |    -1.0 |   0.0 |</span>
+<span class="sd">    | 03 Jan. |               2.0 |    1.0 |       0.0 |     2.0 |    -1.0 |   1.0 |</span>
+<span class="sd">    | 04 Jan. |               2.0 |    2.0 |       1.0 |     3.0 |    -1.0 |   1.0 |</span>
+<span class="sd">    | 05 Jan. |               2.0 |    3.0 |       2.0 |     4.0 |    -1.0 |   1.0 |</span>
+<span class="sd">    | 06 Jan. |               2.0 |    4.0 |       2.0 |     5.0 |    -1.0 |   2.0 |</span>
+<span class="sd">    | 07 Jan. |              -2.0 |    5.0 |      -2.0 |     6.0 |    -1.0 |   7.0 |</span>
+<span class="sd">    | 08 Jan. |              -2.0 |    6.0 |      -2.0 |     7.0 |    -1.0 |   8.0 |</span>
+<span class="sd">    | 09 Jan. |              -2.0 |    7.0 |      -1.0 |     8.0 |    -1.0 |   8.0 |</span>
+<span class="sd">    | 10 Jan. |              -2.0 |    8.0 |       0.0 |     9.0 |    -1.0 |   8.0 |</span>
+<span class="sd">    | 11 Jan. |              -2.0 |    9.0 |       0.0 |    10.0 |    -1.0 |   9.0 |</span>
+
+<span class="sd">.. _exch_branch_io_internal_estimates:</span>
+
+<span class="sd">internal estimates</span>
+<span class="sd">__________________</span>
+
+<span class="sd">If external requests are unavailable (preferably indicated by |numpy.inf| or</span>
+<span class="sd">alternatively by |numpy.nan|), |exch_branch_io| must fall back to its internal routine</span>
+<span class="sd">for calculating requested transfers:</span>
+
+<span class="sd">&gt;&gt;&gt; inputs.requestedtransfer.series = numpy.inf</span>
+
+<span class="sd">Configuring this internal routine means defining piecewise linear or polynomial</span>
+<span class="sd">interpolation functions and passing them to parameter |FlowTransferRules|.  The</span>
+<span class="sd">documentation for parameter |FlowTransferRules| explains the available degrees of</span>
+<span class="sd">freedom for doing so. However, here we restrict ourselves to simple |PPoly| instances,</span>
+<span class="sd">each interpolating the water transfer for a specific time of year:</span>
+
+<span class="sd">&gt;&gt;&gt; flowtransferrules(</span>
+<span class="sd">...     toy_01_01_12=PPoly(xs=[0.0, 2.0, 4.0, 6.0], ys=[0.0, 0.0, 1.0, 1.0]),</span>
+<span class="sd">...     toy_01_09_12=PPoly(xs=[0.0, 2.0, 4.0, 6.0], ys=[0.0, 0.0, 1.0, 1.0]),</span>
+<span class="sd">...     toy_01_11_12=PPoly(xs=[0.0, 2.0, 4.0, 6.0], ys=[0.0, 0.0, 2.0, 2.0]),</span>
+<span class="sd">... )</span>
+
+<span class="sd">From 1 to 9 Jan, the first rule (defined twice) applies, which diverts up to 1 m³/s.</span>
+<span class="sd">After that, there is a continuous transition from the first to the second rule, which</span>
+<span class="sd">diverts up to 2 m³/s:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test("exch_branch_io_internal_estimates")</span>
+<span class="sd">    |    date | requestedtransfer | inflow | diversion | inflow1 | inflow2 | river |</span>
+<span class="sd">    --------------------------------------------------------------------------------</span>
+<span class="sd">    | 01 Jan. |               inf |   -1.0 |       0.0 |     0.0 |    -1.0 |  -1.0 |</span>
+<span class="sd">    | 02 Jan. |               inf |    0.0 |       0.0 |     1.0 |    -1.0 |   0.0 |</span>
+<span class="sd">    | 03 Jan. |               inf |    1.0 |       0.0 |     2.0 |    -1.0 |   1.0 |</span>
+<span class="sd">    | 04 Jan. |               inf |    2.0 |       0.0 |     3.0 |    -1.0 |   2.0 |</span>
+<span class="sd">    | 05 Jan. |               inf |    3.0 |       0.5 |     4.0 |    -1.0 |   2.5 |</span>
+<span class="sd">    | 06 Jan. |               inf |    4.0 |       1.0 |     5.0 |    -1.0 |   3.0 |</span>
+<span class="sd">    | 07 Jan. |               inf |    5.0 |       1.0 |     6.0 |    -1.0 |   4.0 |</span>
+<span class="sd">    | 08 Jan. |               inf |    6.0 |       1.0 |     7.0 |    -1.0 |   5.0 |</span>
+<span class="sd">    | 09 Jan. |               inf |    7.0 |       1.0 |     8.0 |    -1.0 |   6.0 |</span>
+<span class="sd">    | 10 Jan. |               inf |    8.0 |       1.5 |     9.0 |    -1.0 |   6.5 |</span>
+<span class="sd">    | 11 Jan. |               inf |    9.0 |       2.0 |    10.0 |    -1.0 |   7.0 |</span>
+
+<span class="sd">.. testsetup::</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import Node</span>
+<span class="sd">    &gt;&gt;&gt; del pub.timegrids</span>
+<span class="sd">    &gt;&gt;&gt; Node.clear_all()</span>
+<span class="sd">    &gt;&gt;&gt; Element.clear_all()</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs.anntools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs.ppolytools</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly</span><span class="p">,</span> <span class="n">PPoly</span><span class="p">,</span> <span class="n">PPolys</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.exch</span><span class="w"> </span><span class="kn">import</span> <span class="n">exch_control</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.exch</span><span class="w"> </span><span class="kn">import</span> <span class="n">exch_model</span>
+
+<span class="n">ADDITIONAL_CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_control</span><span class="o">.</span><span class="n">Targets</span><span class="p">,)</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../exch_branch_io.html#hydpy.models.exch_branch_io.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""|exch_branch_io.DOCNAME.complete|."""</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">"Exch-Branch-IO"</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"branch model using external water transfer requests"</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_model</span><span class="o">.</span><span class="n">Pick_Inflow_V1</span><span class="p">,)</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_model</span><span class="o">.</span><span class="n">Pass_ActualTransfer_StreamOutflow_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="n">__hydpy__targetnames__</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__hydpy__targetnames__</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">targetnames</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Names of the target nodes.</span>
+
+<span class="sd">        The first and the second name belong to the mainstream node and the transfer</span>
+<span class="sd">        node, respectively.  Note that this order can differ from the alphabetical</span>
+<span class="sd">        order of the outputs of parameter |FlowTransferRules| (see |StreamIndex|).</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">targetnames</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hydpy__targetnames__</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"The names of the target nodes are still unknown.  Please define "</span>
+                <span class="sa">f</span><span class="s2">"them via parameter `</span><span class="si">{</span><span class="n">exch_control</span><span class="o">.</span><span class="n">Targets</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">` first."</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">targetnames</span>
+
+<div class="viewcode-block" id="Model.connect">
+<a class="viewcode-back" href="../../../exch_branch_io.html#hydpy.models.exch_branch_io.Model.connect">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Connect all available inlet nodes to the inlet sequence</span>
+<span class="sd">        |exch_inlets.Inflow|, and connect correctly named target outlet nodes to the</span>
+<span class="sd">        outlet sequences |ActualTransfer| and |StreamOutflow|.</span>
+
+<span class="sd">        The following test configuration involves two inlet nodes (`inflow1` and</span>
+<span class="sd">        `inflow2`) and two outlet nodes (`diversion` and `river`):</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Element, Nodes, pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = "2000-01-01", "2000-01-12", "1d"</span>
+<span class="sd">        &gt;&gt;&gt; diversion, inflow1, inflow2, river = Nodes(</span>
+<span class="sd">        ...     "diversion", "inflow1", "inflow2", "river"</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; branch = Element(</span>
+<span class="sd">        ...     "branch", inlets=[inflow1, inflow2], outlets=[diversion, river]</span>
+<span class="sd">        ... )</span>
+
+<span class="sd">        Without giving |exch_branch_io| more information about the outlet nodes' roles,</span>
+<span class="sd">        you cannot build connections to them:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.exch_branch_io import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; branch.model = model</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to connect model `exch_branch_io` with element \</span>
+<span class="sd">`branch`, the following error occurred: The names of the target nodes are still \</span>
+<span class="sd">unknown.  Please define them via parameter `targets` first.</span>
+
+<span class="sd">        Providing this information works via parameter |Targets|, which requires the</span>
+<span class="sd">        (correct) target node names:</span>
+
+<span class="sd">        &gt;&gt;&gt; targets(stream="channel", transfer="diversion")</span>
+<span class="sd">        &gt;&gt;&gt; model.connect()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to connect model `exch_branch_io` with element \</span>
+<span class="sd">`branch`, the following error occurred: The target node names `channel` and \</span>
+<span class="sd">`diversion` do not agree with the available outlet nodes `diversion` and `river`.</span>
+
+<span class="sd">        With consistent definitions, the transfer and the mainstream outflow reach the</span>
+<span class="sd">        nodes `diversion` and `river` as intended:</span>
+
+<span class="sd">        &gt;&gt;&gt; targets(stream="river", transfer="diversion")</span>
+<span class="sd">        &gt;&gt;&gt; flowtransferrules(PPoly(xs=[0.0, 3.0], ys=[0.0, 2.0]))</span>
+<span class="sd">        &gt;&gt;&gt; derived.toy.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.streamindex.update()</span>
+<span class="sd">        &gt;&gt;&gt; model.connect()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inflow = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; model.update_outlets()</span>
+<span class="sd">        &gt;&gt;&gt; river.sequences.sim</span>
+<span class="sd">        sim(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; diversion.sequences.sim</span>
+<span class="sd">        sim(2.0)</span>
+
+<span class="sd">        .. testsetup::</span>
+
+<span class="sd">            &gt;&gt;&gt; from hydpy import Node</span>
+<span class="sd">            &gt;&gt;&gt; del pub.timegrids</span>
+<span class="sd">            &gt;&gt;&gt; Node.clear_all()</span>
+<span class="sd">            &gt;&gt;&gt; Element.clear_all()</span>
+<span class="sd">        """</span>
+
+        <span class="k">try</span><span class="p">:</span>
+
+            <span class="n">inlets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">inlets</span>
+            <span class="n">inflow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">inflow</span>
+            <span class="n">inflow</span><span class="o">.</span><span class="n">node2idx</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">inflow</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inlets</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">inlet</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inlets</span><span class="p">):</span>
+                <span class="n">inflow</span><span class="o">.</span><span class="n">set_pointer</span><span class="p">(</span><span class="n">inlet</span><span class="o">.</span><span class="n">get_double</span><span class="p">(</span><span class="s2">"inlets"</span><span class="p">),</span> <span class="n">idx</span><span class="p">)</span>
+                <span class="n">inflow</span><span class="o">.</span><span class="n">node2idx</span><span class="p">[</span><span class="n">inlet</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span>
+
+            <span class="n">targetnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">targetnames</span>
+            <span class="n">outlets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">outlets</span>
+            <span class="k">if</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">targetnames</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">outlets</span><span class="o">.</span><span class="n">names</span><span class="p">):</span>
+                <span class="n">listing</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">Inflect</span><span class="o">.</span><span class="n">listing</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"The target node </span><span class="si">{</span><span class="n">listing</span><span class="p">(</span><span class="s1">'name'</span><span class="p">,</span><span class="w"> </span><span class="n">targetnames</span><span class="p">,</span><span class="w"> </span><span class="s1">'does'</span><span class="p">)</span><span class="si">}</span><span class="s2"> not "</span>
+                    <span class="sa">f</span><span class="s2">"agree with the available outlet "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">listing</span><span class="p">(</span><span class="s1">'node'</span><span class="p">,</span><span class="w"> </span><span class="n">outlets</span><span class="o">.</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
+                <span class="p">)</span>
+            <span class="n">sequences</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">outlets</span>
+            <span class="k">for</span> <span class="n">targetname</span><span class="p">,</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">targetnames</span><span class="p">,</span> <span class="p">(</span><span class="n">sequences</span><span class="o">.</span><span class="n">streamoutflow</span><span class="p">,</span> <span class="n">sequences</span><span class="o">.</span><span class="n">actualtransfer</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="n">targetnode</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">outlets</span><span class="p">,</span> <span class="n">targetname</span><span class="p">)</span>
+                <span class="n">sequence</span><span class="o">.</span><span class="n">set_pointer</span><span class="p">(</span><span class="n">targetnode</span><span class="o">.</span><span class="n">get_double</span><span class="p">(</span><span class="s2">"outlets"</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">sequence</span><span class="o">.</span><span class="n">node2idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">targetnode</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"While trying to connect model `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` with element "</span>
+                <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">`"</span>
+            <span class="p">)</span></div>
+</div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 7.0dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.exch_branch_io</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

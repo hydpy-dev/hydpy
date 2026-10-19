@@ -1625,7 +1625,7 @@ broadcast input array from shape (2,) into shape (2,3)
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
         if self.NDIM:
-            if exceptiontools.attrready(self, "shape"):
+            if self._shapeready:
                 return
             setattr(self.fastaccess, self.name, None)
             return

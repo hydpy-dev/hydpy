@@ -1079,6 +1079,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
             "fastaccess",
             "fastaccess_old",
             "fastaccess_new",
+            "_shapeready",
         )
     )
     _CLS_FASTACCESS_PYTHON: ClassVar[type[FastAccess]]
@@ -1092,6 +1093,8 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     subvars: SubVariables[Any, Any, Any, Any]
     """The subgroup to which the variable belongs."""
 
+    _shapeready: bool
+    _valueready: bool
     _refweights: parametertools.Parameter | VectorFloat | None = None
 
     mask = masktools.DefaultMask(
@@ -1571,7 +1574,7 @@ as `var` can only be `()`, but `(2,)` is given.
         pass
 
     def __hydpy__change_shape_if_necessary__(self, new: tuple[int, ...], /) -> None:
-        if new != exceptiontools.getattr_(self, "shape", None):
+        if (self.NDIM and not self._shapeready) or (new != self.shape):
             self.shape = new
 
     @property
@@ -1619,9 +1622,9 @@ as `var` can only be `()`, but `(2,)` is given.
         """
         if self.NDIM == 0:
             return 1
-        if (shape := exceptiontools.getattr_(self, "shape", None)) is None:
+        if not self._shapeready:
             return 0
-        return int(numpy.cumprod(shape)[-1])
+        return int(numpy.cumprod(self.shape)[-1])
 
     def verify(self) -> None:
         """Raise a |RuntimeError| if at least one of the required values of a |Variable|
@@ -2294,6 +2297,7 @@ class MixinFixedShape:
     NDIM: Final[Literal[1]] = 1
     SHAPE: tuple[int, ...]
     name: str
+    _shapeready: bool
 
     def _finalise_connections(self) -> None:
         super()._finalise_connections()  # type: ignore[misc]
@@ -2330,11 +2334,10 @@ this was attempted for element `?`.
 
     @shape.setter
     def shape(self, shape: ShapeHookSet) -> None:
-        oldshape = exceptiontools.getattr_(self, "shape", None)
-        if oldshape is None:
+        if not self._shapeready:
             proxy = super(__class__, type(self))  # type: ignore[name-defined]
             proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
-        elif shape != oldshape:
+        elif shape != self.shape:
             raise AttributeError(
                 f"The shape of variable `{self.name}` cannot be changed but this was "
                 f"attempted for element `{objecttools.devicename(self)}`."

@@ -1,0 +1,624 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>exch_branch_rules &#8212; HydPy 7.0dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=72aa22fa" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=a3767c0e"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/toctree.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="exch_interp" href="exch_interp.html" />
+    <link rel="prev" title="exch_branch_io" href="exch_branch_io.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="exch_interp.html" title="exch_interp"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="exch_branch_io.html" title="exch_branch_io"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 7.0dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Exch.html" accesskey="U">HydPy-Exch</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">exch_branch_rules</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="exch.html">exch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="exch_branch_hbv96.html">exch_branch_hbv96</a></li>
+<li class="toctree-l4"><a class="reference internal" href="exch_branch_io.html">exch_branch_io</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">exch_branch_rules</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#integration-tests">Integration tests</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#independent-rules">independent rules</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#coordinated-rules">coordinated rules</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#seasonal-rules">seasonal rules</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#input-modifying-rules">input-modifying rules</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#method-features">Method features</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch_branch_rules.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch_branch_rules.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">DOCNAME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch_branch_rules.Model.targetnames"><code class="docutils literal notranslate"><span class="pre">targetnames</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch_branch_rules.Model.connect"><code class="docutils literal notranslate"><span class="pre">connect()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch_branch_rules.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#parameter-features">Parameter features</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch_branch_rules.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch_branch_rules.DerivedParameters"><code class="docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#sequence-features">Sequence features</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch_branch_rules.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch_branch_rules.InletSequences"><code class="docutils literal notranslate"><span class="pre">InletSequences</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch_branch_rules.OutletSequences"><code class="docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="exch_interp.html">exch_interp</a></li>
+<li class="toctree-l4"><a class="reference internal" href="exch_water_transfer_io.html">exch_water_transfer_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="exch_waterlevel.html">exch_waterlevel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="exch_weir_hbv96.html">exch_weir_hbv96</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Manager.html">HydPy-Manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="exch_branch_io.html"
+                          title="previous chapter">exch_branch_io</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="exch_interp.html"
+                          title="next chapter">exch_interp</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/exch_branch_rules.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/exch_branch_rules.html">6</a></li>
+<li><a href="../master/exch_branch_rules.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="exch-branch-rules">
+<span id="id1"></span><h1>HydPy-Exch-Branch-Rules (branching based on piecewise linear or polynomial interpolation rules)<a class="headerlink" href="#exch-branch-rules" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.exch_branch_rules"><a class="reference internal" href="#module-hydpy.models.exch_branch_rules" title="hydpy.models.exch_branch_rules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_rules</span></code></a> allows branching the summed input from some inlet nodes to an
+arbitrary number of outlet nodes.  It calculates the output of each branch based on
+seasonally varying, piecewise polynomial interpolation rules (see parameter <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.Rules" title="hydpy.models.exch.exch_control.Rules"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rules</span></code></a>).
+Branching discharge is the typical use case, but <a class="reference internal" href="#module-hydpy.models.exch_branch_rules" title="hydpy.models.exch_branch_rules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_rules</span></code></a> is suitable for
+splitting arbitrary variables.  These can be negative (e.g. representing reverse flow).</p>
+<section id="integration-tests">
+<h2>Integration tests<a class="headerlink" href="#integration-tests" title="Link to this heading">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When new to <em>HydPy</em>, consider reading section <a class="reference internal" href="how_to_read_the_reference_manual.html#integration-tests"><span class="std std-ref">Integration Tests</span></a> first.</p>
+</div>
+<p>We perform the following examples over a simulation period of 11 days:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span><span class="p">,</span> <span class="n">Nodes</span><span class="p">,</span> <span class="n">Element</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">"2000-01-01"</span><span class="p">,</span> <span class="s2">"2000-01-12"</span><span class="p">,</span> <span class="s2">"1d"</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#module-hydpy.models.exch_branch_rules" title="hydpy.models.exch_branch_rules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_rules</span></code></a> has no parameter whose values depend on the simulation time step,
+so we do not need to define the parameter time step size here:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.exch_branch_rules</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>In the following setup, <a class="reference internal" href="#module-hydpy.models.exch_branch_rules" title="hydpy.models.exch_branch_rules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_rules</span></code></a> queries input from two inlet nodes and
+passes the branched output to three outlet nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">"input1"</span><span class="p">,</span> <span class="s2">"input2"</span><span class="p">,</span> <span class="s2">"output1"</span><span class="p">,</span> <span class="s2">"output2"</span><span class="p">,</span> <span class="s2">"output3"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">branch</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">"branch"</span><span class="p">,</span>
+<span class="gp">... </span>                 <span class="n">inlets</span><span class="o">=</span><span class="p">[</span><span class="s2">"input1"</span><span class="p">,</span> <span class="s2">"input2"</span><span class="p">],</span>
+<span class="gp">... </span>                 <span class="n">outlets</span><span class="o">=</span><span class="p">[</span><span class="s2">"output1"</span><span class="p">,</span> <span class="s2">"output2"</span><span class="p">,</span> <span class="s2">"output3"</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node.variable" title="hydpy.core.devicetools.Node.variable"><code class="xref py py-const docutils literal notranslate"><span class="pre">variable</span></code></a> types of the respective <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> instances do not matter.  Instead,
+<a class="reference internal" href="#module-hydpy.models.exch_branch_rules" title="hydpy.models.exch_branch_rules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_rules</span></code></a> treats all inlet nodes as input providers and builds separate
+connections to its outlet nodes, relying on the outlet nodes’ names.  Hence, these
+names must be used as keyword arguments when passing the respective interpolation rules
+to parameter <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.Rules" title="hydpy.models.exch.exch_control.Rules"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rules</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rules</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">PPolys</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">output1</span><span class="o">=</span><span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]),</span>
+<span class="gp">... </span>        <span class="n">output2</span><span class="o">=</span><span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span>
+<span class="gp">... </span>        <span class="n">output3</span><span class="o">=</span><span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, as <a class="reference internal" href="#module-hydpy.models.exch_branch_rules" title="hydpy.models.exch_branch_rules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_rules</span></code></a> knows which interpolation rule applies to which outlet
+node, we can safely connect the model to these nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">branch</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<p>We do not have to define any initial values in the test settings because
+<a class="reference internal" href="#module-hydpy.models.exch_branch_rules" title="hydpy.models.exch_branch_rules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_rules</span></code></a> has no memory:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntegrationTest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">branch</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">"</span><span class="si">%d</span><span class="s2"> Jan."</span>
+</pre></div>
+</div>
+<p>The values of the inlet nodes <cite>input1</cite> and <cite>input2</cite> define no realistic input series.
+Instead, they show <a class="reference internal" href="#module-hydpy.models.exch_branch_rules" title="hydpy.models.exch_branch_rules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_rules</span></code></a>’s behaviour inside and outside the ranges
+covered by the interpolation rules’ supporting points:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">input1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">9.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">input2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">input2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+</pre></div>
+</div>
+<section id="independent-rules">
+<span id="exch-branch-rules-independent-rules"></span><h3>independent rules<a class="headerlink" href="#independent-rules" title="Link to this heading">¶</a></h3>
+<p>In the first example, we configure the interpolation rules of all outlet nodes
+independently.  <cite>output1</cite> shows linear continuations below and above the range of its
+supporting points.  <cite>output2</cite> points out that inverse relationships are allowed.
+<cite>output3</cite> shows that <a class="reference internal" href="#module-hydpy.models.exch_branch_rules" title="hydpy.models.exch_branch_rules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_rules</span></code></a> does not enforce equality between the total
+sum of input and output values (for example, the sum of all outputs is 14 instead of 8
+for 11 Jan):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">"exch_branch_rules_independent_rules"</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_141__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_141__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|    date | input_ | input1 | input2 | output1 | output2 | output3 |</span>
+<span class="go">--------------------------------------------------------------------</span>
+<span class="go">| 01 Jan. |   -1.0 |   -2.0 |    1.0 |    -0.5 |    -0.5 |     0.0 |</span>
+<span class="go">| 02 Jan. |   -1.0 |   -1.0 |    0.0 |    -0.5 |    -0.5 |     0.0 |</span>
+<span class="go">| 03 Jan. |    0.0 |    0.0 |    0.0 |     0.0 |     0.0 |     0.0 |</span>
+<span class="go">| 04 Jan. |    1.0 |    1.0 |    0.0 |     0.5 |     0.5 |     0.0 |</span>
+<span class="go">| 05 Jan. |    2.0 |    2.0 |    0.0 |     1.0 |     1.0 |     0.0 |</span>
+<span class="go">| 06 Jan. |    3.0 |    3.0 |    0.0 |     1.5 |     0.5 |     1.0 |</span>
+<span class="go">| 07 Jan. |    4.0 |    4.0 |    0.0 |     2.0 |     0.0 |     2.0 |</span>
+<span class="go">| 08 Jan. |    5.0 |    5.0 |    0.0 |     2.5 |     0.0 |     4.0 |</span>
+<span class="go">| 09 Jan. |    6.0 |    6.0 |    0.0 |     3.0 |     0.0 |     6.0 |</span>
+<span class="go">| 10 Jan. |    7.0 |    7.0 |    0.0 |     3.5 |     0.0 |     8.0 |</span>
+<span class="go">| 11 Jan. |    8.0 |    8.0 |    0.0 |     4.0 |     0.0 |    10.0 |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="coordinated-rules">
+<span id="exch-branch-rules-coordinated-rules"></span><h3>coordinated rules<a class="headerlink" href="#coordinated-rules" title="Link to this heading">¶</a></h3>
+<p>Often, maintaining the balance between input and outputs is essential.  Instead of
+carefully synchronising the interpolation rules of all outlet nodes, you can use the
+<a class="reference internal" href="ppolytools.html#hydpy.auxs.ppolytools.PPolys.REST" title="hydpy.auxs.ppolytools.PPolys.REST"><code class="xref py py-const docutils literal notranslate"><span class="pre">REST</span></code></a> option for one of them.  This node then receives everything not
+distributed to the other nodes.  In the following example, node <cite>output2</cite> starts
+receiving input when it exceeds 6.  Node <cite>output3</cite> provides a constant output of -1 for
+input values up to 0, which then changes linearly to zero for an input of 4
+(demonstrating that negative outputs are allowed, which might, for example, represent
+supplies).  Finally, node <cite>output1</cite> receives the rest:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rules</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">PPolys</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">output1</span><span class="o">=</span><span class="n">PPolys</span><span class="o">.</span><span class="n">REST</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">output2</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]),</span>
+<span class="gp">... </span>        <span class="n">output3</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Because we use <a class="reference internal" href="ppolytools.html#hydpy.auxs.ppolytools.PPolys.REST" title="hydpy.auxs.ppolytools.PPolys.REST"><code class="xref py py-const docutils literal notranslate"><span class="pre">REST</span></code></a>, the sum of all outputs equals the input at each time step
+(note that <cite>output1</cite> receives more than the total input when <cite>output3</cite> is negative):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">"exch_branch_rules_coordinated_rules"</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_142__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_142__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|    date | input_ | input1 | input2 | output1 | output2 | output3 |</span>
+<span class="go">--------------------------------------------------------------------</span>
+<span class="go">| 01 Jan. |   -1.0 |   -2.0 |    1.0 |     0.0 |     0.0 |    -1.0 |</span>
+<span class="go">| 02 Jan. |   -1.0 |   -1.0 |    0.0 |     0.0 |     0.0 |    -1.0 |</span>
+<span class="go">| 03 Jan. |    0.0 |    0.0 |    0.0 |     1.0 |     0.0 |    -1.0 |</span>
+<span class="go">| 04 Jan. |    1.0 |    1.0 |    0.0 |    1.75 |     0.0 |   -0.75 |</span>
+<span class="go">| 05 Jan. |    2.0 |    2.0 |    0.0 |     2.5 |     0.0 |    -0.5 |</span>
+<span class="go">| 06 Jan. |    3.0 |    3.0 |    0.0 |    3.25 |     0.0 |   -0.25 |</span>
+<span class="go">| 07 Jan. |    4.0 |    4.0 |    0.0 |     4.0 |     0.0 |     0.0 |</span>
+<span class="go">| 08 Jan. |    5.0 |    5.0 |    0.0 |     5.0 |     0.0 |     0.0 |</span>
+<span class="go">| 09 Jan. |    6.0 |    6.0 |    0.0 |     6.0 |     0.0 |     0.0 |</span>
+<span class="go">| 10 Jan. |    7.0 |    7.0 |    0.0 |     6.0 |     1.0 |     0.0 |</span>
+<span class="go">| 11 Jan. |    8.0 |    8.0 |    0.0 |     6.0 |     2.0 |     0.0 |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="seasonal-rules">
+<span id="exch-branch-rules-season-seasonal-rules"></span><h3>seasonal rules<a class="headerlink" href="#seasonal-rules" title="Link to this heading">¶</a></h3>
+<p>Parameter <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.Rules" title="hydpy.models.exch.exch_control.Rules"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rules</span></code></a> is a <a class="reference internal" href="interptools.html#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a>, so that you can define different
+interpolation rules for different times of the year.  In this example, we define two
+rules: the first passes half of the positive input to node <cite>output2</cite> and passes nothing
+to node <cite>output3</cite>.  The second rule does the opposite.  Node <cite>output1</cite> receives the
+rest in both cases:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rule1</span> <span class="o">=</span> <span class="n">PPolys</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">output1</span><span class="o">=</span><span class="n">PPolys</span><span class="o">.</span><span class="n">REST</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">output2</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="n">output3</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rule2</span> <span class="o">=</span> <span class="n">PPolys</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">output1</span><span class="o">=</span><span class="n">PPolys</span><span class="o">.</span><span class="n">REST</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">output2</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="n">output3</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]),</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We apply both rules twice, letting each control its respective time span without
+interference from the other:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rules</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">toy_01_01_12</span><span class="o">=</span><span class="n">rule1</span><span class="p">,</span> <span class="n">toy_01_05_12</span><span class="o">=</span><span class="n">rule1</span><span class="p">,</span> <span class="n">toy_01_10_12</span><span class="o">=</span><span class="n">rule2</span><span class="p">,</span> <span class="n">toy_12_30_12</span><span class="o">=</span><span class="n">rule2</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Between the two separate time spans of rule one (1 Jan to 5 Jan) and rule two (10 Jan
+to 31 Dec), <a class="reference internal" href="#module-hydpy.models.exch_branch_rules" title="hydpy.models.exch_branch_rules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_rules</span></code></a> linearly interpolates the results of both rules:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">"exch_branch_rules_season_seasonal_rules"</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_143__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_143__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|    date | input_ | input1 | input2 | output1 | output2 | output3 |</span>
+<span class="go">--------------------------------------------------------------------</span>
+<span class="go">| 01 Jan. |   -1.0 |   -2.0 |    1.0 |    -1.0 |     0.0 |     0.0 |</span>
+<span class="go">| 02 Jan. |   -1.0 |   -1.0 |    0.0 |    -1.0 |     0.0 |     0.0 |</span>
+<span class="go">| 03 Jan. |    0.0 |    0.0 |    0.0 |     0.0 |     0.0 |     0.0 |</span>
+<span class="go">| 04 Jan. |    1.0 |    1.0 |    0.0 |     0.5 |     0.5 |     0.0 |</span>
+<span class="go">| 05 Jan. |    2.0 |    2.0 |    0.0 |     1.0 |     1.0 |     0.0 |</span>
+<span class="go">| 06 Jan. |    3.0 |    3.0 |    0.0 |     1.5 |     1.2 |     0.3 |</span>
+<span class="go">| 07 Jan. |    4.0 |    4.0 |    0.0 |     2.0 |     1.2 |     0.8 |</span>
+<span class="go">| 08 Jan. |    5.0 |    5.0 |    0.0 |     2.5 |     1.0 |     1.5 |</span>
+<span class="go">| 09 Jan. |    6.0 |    6.0 |    0.0 |     3.0 |     0.6 |     2.4 |</span>
+<span class="go">| 10 Jan. |    7.0 |    7.0 |    0.0 |     3.5 |     0.0 |     3.5 |</span>
+<span class="go">| 11 Jan. |    8.0 |    8.0 |    0.0 |     4.0 |     0.0 |     4.0 |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="input-modifying-rules">
+<span id="exch-branch-rules-input-modifying-rules"></span><h3>input-modifying rules<a class="headerlink" href="#input-modifying-rules" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="#module-hydpy.models.exch_branch_rules" title="hydpy.models.exch_branch_rules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_rules</span></code></a> replaced the deprecated model <a class="reference internal" href="exch_branch_hbv96.html#module-hydpy.models.exch_branch_hbv96" title="hydpy.models.exch_branch_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_hbv96</span></code></a>, which only
+supported piecewise linear interpolation.  However, <a class="reference internal" href="exch_branch_hbv96.html#module-hydpy.models.exch_branch_hbv96" title="hydpy.models.exch_branch_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_hbv96</span></code></a> has additional
+parameters <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.Delta" title="hydpy.models.exch.exch_control.Delta"><code class="xref py py-class docutils literal notranslate"><span class="pre">Delta</span></code></a> and <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.Minimum" title="hydpy.models.exch.exch_control.Minimum"><code class="xref py py-class docutils literal notranslate"><span class="pre">Minimum</span></code></a>.  <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.Delta" title="hydpy.models.exch.exch_control.Delta"><code class="xref py py-class docutils literal notranslate"><span class="pre">Delta</span></code></a> adds or subtracts seasonally varying values
+from the input, and <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.Minimum" title="hydpy.models.exch.exch_control.Minimum"><code class="xref py py-class docutils literal notranslate"><span class="pre">Minimum</span></code></a> resets the result to an eventually violated threshold
+value.  We decided against adding such parameters to <a class="reference internal" href="#module-hydpy.models.exch_branch_rules" title="hydpy.models.exch_branch_rules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_rules</span></code></a>, because one
+can easily construct the interpolation rules to achieve the same behaviour.</p>
+<p>To demonstrate this, we take the only integration test of <a class="reference internal" href="exch_branch_hbv96.html#module-hydpy.models.exch_branch_hbv96" title="hydpy.models.exch_branch_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_hbv96</span></code></a> as an
+example.  It defines a <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.Delta" title="hydpy.models.exch.exch_control.Delta"><code class="xref py py-class docutils literal notranslate"><span class="pre">Delta</span></code></a> of -1 and a <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.Minimum" title="hydpy.models.exch.exch_control.Minimum"><code class="xref py py-class docutils literal notranslate"><span class="pre">Minimum</span></code></a> of -1.  For the <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.XPoints" title="hydpy.models.exch.exch_control.XPoints"><code class="xref py py-class docutils literal notranslate"><span class="pre">XPoints</span></code></a>
+<cite>[0.0, 2.0, 4.0, 6.0]</cite>, the <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.YPoints" title="hydpy.models.exch.exch_control.YPoints"><code class="xref py py-class docutils literal notranslate"><span class="pre">YPoints</span></code></a> are <cite>[0.0, 1.0, 2.0, 3.0]</cite>,
+<cite>[0.0, 1.0, 0.0, 0.0]</cite>, and <cite>[0.0, 0.0, 2.0, 6.0]</cite> for nodes <cite>output1</cite>, <cite>output2</cite>, and
+<cite>output3</cite>, respectively. This translates into:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rules</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">PPolys</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">output1</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span>
+<span class="gp">... </span>        <span class="n">output2</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span>
+<span class="gp">... </span>        <span class="n">output3</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As expected, the following results are identical to those of the <a class="reference internal" href="exch_branch_hbv96.html#module-hydpy.models.exch_branch_hbv96" title="hydpy.models.exch_branch_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_hbv96</span></code></a>
+example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">"exch_branch_rules_input_modifying_rules"</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_144__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_144__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|    date | input_ | input1 | input2 | output1 | output2 | output3 |</span>
+<span class="go">--------------------------------------------------------------------</span>
+<span class="go">| 01 Jan. |   -1.0 |   -2.0 |    1.0 |    -0.5 |    -0.5 |     0.0 |</span>
+<span class="go">| 02 Jan. |   -1.0 |   -1.0 |    0.0 |    -0.5 |    -0.5 |     0.0 |</span>
+<span class="go">| 03 Jan. |    0.0 |    0.0 |    0.0 |    -0.5 |    -0.5 |     0.0 |</span>
+<span class="go">| 04 Jan. |    1.0 |    1.0 |    0.0 |     0.0 |     0.0 |     0.0 |</span>
+<span class="go">| 05 Jan. |    2.0 |    2.0 |    0.0 |     0.5 |     0.5 |     0.0 |</span>
+<span class="go">| 06 Jan. |    3.0 |    3.0 |    0.0 |     1.0 |     1.0 |     0.0 |</span>
+<span class="go">| 07 Jan. |    4.0 |    4.0 |    0.0 |     1.5 |     0.5 |     1.0 |</span>
+<span class="go">| 08 Jan. |    5.0 |    5.0 |    0.0 |     2.0 |     0.0 |     2.0 |</span>
+<span class="go">| 09 Jan. |    6.0 |    6.0 |    0.0 |     2.5 |     0.0 |     4.0 |</span>
+<span class="go">| 10 Jan. |    7.0 |    7.0 |    0.0 |     3.0 |     0.0 |     6.0 |</span>
+<span class="go">| 11 Jan. |    8.0 |    8.0 |    0.0 |     3.5 |     0.0 |     8.0 |</span>
+</pre></div></div></div></pre></div></div></section>
+</section>
+<section id="method-features">
+<h2>Method features<a class="headerlink" href="#method-features" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch_branch_rules.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch_branch_rules.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/exch_branch_rules.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch_branch_rules.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.AdHocModel" title="hydpy.core.modeltools.AdHocModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdHocModel</span></code></a></p>
+<p>HydPy-Exch-Branch-Rules (branching based on piecewise linear or polynomial interpolation rules).</p>
+<dl class="simple">
+<dt>The following “inlet update methods” are called in the given sequence at the beginning of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_model.Pick_Input_V1" title="hydpy.models.exch.exch_model.Pick_Input_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_Input_V1</span></code></a> Sum all individual input values.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence at the end of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_model.Pass_Branched_V1" title="hydpy.models.exch.exch_model.Pass_Branched_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Branched_V1</span></code></a> Branch the current input by applying the (seasonally varying) interpolation rules.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch_branch_rules.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('Exch-Branch-Rules',</span> <span class="pre">'branching</span> <span class="pre">based</span> <span class="pre">on</span> <span class="pre">piecewise</span> <span class="pre">linear</span> <span class="pre">or</span> <span class="pre">polynomial</span> <span class="pre">interpolation</span> <span class="pre">rules')</span></span><a class="headerlink" href="#hydpy.models.exch_branch_rules.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.models.exch_branch_rules.Model.targetnames">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">targetnames</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.models.exch_branch_rules.Model.targetnames" title="Link to this definition">¶</a></dt>
+<dd><p>Names of the target nodes.</p>
+<p>The names are sorted alphabetically, which agrees with the order of the
+outputs of parameter <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.Rules" title="hydpy.models.exch.exch_control.Rules"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rules</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.models.exch_branch_rules.Model.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/models/exch_branch_rules.html#Model.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch_branch_rules.Model.connect" title="Link to this definition">¶</a></dt>
+<dd><p>Connect all available inlet nodes to the inlet sequence <a class="reference internal" href="exch.html#hydpy.models.exch.exch_inlets.Total" title="hydpy.models.exch.exch_inlets.Total"><code class="xref py py-class docutils literal notranslate"><span class="pre">Total</span></code></a> and all
+target outlet nodes to the outlet sequence <a class="reference internal" href="exch.html#hydpy.models.exch.exch_outlets.Branched" title="hydpy.models.exch.exch_outlets.Branched"><code class="xref py py-class docutils literal notranslate"><span class="pre">Branched</span></code></a>.</p>
+<p>The following test configuration involves two inlet nodes (<cite>inflow1</cite> and
+<cite>inflow2</cite>) and two outlet nodes (<cite>diversion</cite> and <cite>river</cite>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Nodes</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">"2000-01-01"</span><span class="p">,</span> <span class="s2">"2000-01-03"</span><span class="p">,</span> <span class="s2">"1d"</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">diversion</span><span class="p">,</span> <span class="n">inflow1</span><span class="p">,</span> <span class="n">inflow2</span><span class="p">,</span> <span class="n">river</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">"diversion"</span><span class="p">,</span> <span class="s2">"inflow1"</span><span class="p">,</span> <span class="s2">"inflow2"</span><span class="p">,</span> <span class="s2">"river"</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">branch</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">"branch"</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="p">[</span><span class="n">inflow1</span><span class="p">,</span> <span class="n">inflow2</span><span class="p">],</span> <span class="n">outlets</span><span class="o">=</span><span class="p">[</span><span class="n">diversion</span><span class="p">,</span> <span class="n">river</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#module-hydpy.models.exch_branch_rules" title="hydpy.models.exch_branch_rules"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_branch_rules</span></code></a> takes the target node names from parameter <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.Rules" title="hydpy.models.exch.exch_control.Rules"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rules</span></code></a>.
+Hence, you cannot build connections before defining the interpolation rules:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.exch_branch_rules</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">branch</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to connect model `exch_branch_rules` with element `branch`, the following error occurred: The names of the target nodes are still unknown.  Please define them via parameter `rules` first.</span>
+</pre></div>
+</div>
+<p>The target node names must agree with the outlet nodes’ names:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rules</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">PPolys</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">channel</span><span class="o">=</span><span class="n">PPolys</span><span class="o">.</span><span class="n">REST</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">diversion</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to connect model `exch_branch_rules` with element `branch`, the following error occurred: The target node names `channel` and `diversion` do not agree with the available outlet nodes `diversion` and `river`.</span>
+</pre></div>
+</div>
+<p>With consistent definitions, the branched flows reach the nodes <cite>diversion</cite>
+and <cite>river</cite> as intended:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">rules</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">PPolys</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">river</span><span class="o">=</span><span class="n">PPolys</span><span class="o">.</span><span class="n">REST</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">diversion</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inflow1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inflow2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">toy</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">update_inlets</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">update_outlets</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">river</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="go">sim(1.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">diversion</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="go">sim(2.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch_branch_rules.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.exch_branch_rules.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="parameter-features">
+<h2>Parameter features<a class="headerlink" href="#parameter-features" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch_branch_rules.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch_branch_rules.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TM_co</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.15)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch_branch_rules.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.ControlParameters" title="hydpy.core.parametertools.ControlParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></p>
+<p>Control parameters of model exch_branch_rules.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.Rules" title="hydpy.models.exch.exch_control.Rules"><code class="xref py py-class docutils literal notranslate"><span class="pre">Rules</span></code></a> Seasonally varying interpolation rules for branching the input [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch_branch_rules.DerivedParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch_branch_rules.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TM_co</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.15)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch_branch_rules.DerivedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.DerivedParameters" title="hydpy.core.parametertools.DerivedParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></p>
+<p>Derived parameters of model exch_branch_rules.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_derived.TOY" title="hydpy.models.exch.exch_derived.TOY"><code class="xref py py-class docutils literal notranslate"><span class="pre">TOY</span></code></a> References the <a class="reference internal" href="indextools.html#hydpy.core.indextools.Indexer.timeofyear" title="hydpy.core.indextools.Indexer.timeofyear"><code class="xref py py-const docutils literal notranslate"><span class="pre">timeofyear</span></code></a> index array provided by the instance of class <a class="reference internal" href="indextools.html#hydpy.core.indextools.Indexer" title="hydpy.core.indextools.Indexer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Indexer</span></code></a> available in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="sequence-features">
+<h2>Sequence features<a class="headerlink" href="#sequence-features" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch_branch_rules.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch_branch_rules.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TM_co</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.15)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch_branch_rules.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model exch_branch_rules.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_fluxes.Input_" title="hydpy.models.exch.exch_fluxes.Input_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Input_</span></code></a> Total input [e.g. m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch_branch_rules.InletSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch_branch_rules.</span></span><span class="sig-name descname"><span class="pre">InletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TM_co</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.15)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch_branch_rules.InletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InletSequences" title="hydpy.core.sequencetools.InletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequences</span></code></a></p>
+<p>Inlet sequences of model exch_branch_rules.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_inlets.Total" title="hydpy.models.exch.exch_inlets.Total"><code class="xref py py-class docutils literal notranslate"><span class="pre">Total</span></code></a> Total input [e.g. m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch_branch_rules.OutletSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch_branch_rules.</span></span><span class="sig-name descname"><span class="pre">OutletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TM_co</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.15)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch_branch_rules.OutletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></p>
+<p>Outlet sequences of model exch_branch_rules.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_outlets.Branched" title="hydpy.models.exch.exch_outlets.Branched"><code class="xref py py-class docutils literal notranslate"><span class="pre">Branched</span></code></a> Branched outputs [e.g. m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="exch_interp.html" title="exch_interp"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="exch_branch_io.html" title="exch_branch_io"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 7.0dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Exch.html" >HydPy-Exch</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">exch_branch_rules</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

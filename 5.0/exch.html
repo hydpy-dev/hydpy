@@ -1,0 +1,1197 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>exch &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>window.MathJax = {"chtml": {"displayAlign": "left"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="exch_v001" href="exch_v001.html" />
+    <link rel="prev" title="HydPy-Exch" href="HydPy-Exch.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="exch_v001.html" title="exch_v001"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="HydPy-Exch.html" title="HydPy-Exch"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-Exch.html" accesskey="U">HydPy-Exch</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">exch</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework Tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modelcollection.html">Model Collection</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="HydPy-A.html">HydPy-A (RIMO/RIDO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-C.html">HydPy-C (Conv)</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">exch</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#method-features">Method Features</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch.exch_model.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch.exch_model.Pic_LoggedWaterLevel_V1"><code class="docutils literal notranslate"><span class="pre">Pic_LoggedWaterLevel_V1</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch.exch_model.Update_WaterLevel_V1"><code class="docutils literal notranslate"><span class="pre">Update_WaterLevel_V1</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1"><code class="docutils literal notranslate"><span class="pre">Calc_DeltaWaterLevel_V1</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_PotentialExchange_V1"><code class="docutils literal notranslate"><span class="pre">Calc_PotentialExchange_V1</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_ActualExchange_V1"><code class="docutils literal notranslate"><span class="pre">Calc_ActualExchange_V1</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch.exch_model.Pass_ActualExchange_V1"><code class="docutils literal notranslate"><span class="pre">Pass_ActualExchange_V1</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#parameter-features">Parameter Features</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#control-parameters">Control parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestHeight"><code class="docutils literal notranslate"><span class="pre">CrestHeight</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestHeight.NDIM"><code class="docutils literal notranslate"><span class="pre">CrestHeight.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestHeight.TYPE"><code class="docutils literal notranslate"><span class="pre">CrestHeight.TYPE</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestHeight.TIME"><code class="docutils literal notranslate"><span class="pre">CrestHeight.TIME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestHeight.SPAN"><code class="docutils literal notranslate"><span class="pre">CrestHeight.SPAN</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestHeight.name"><code class="docutils literal notranslate"><span class="pre">CrestHeight.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestHeight.unit"><code class="docutils literal notranslate"><span class="pre">CrestHeight.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestWidth"><code class="docutils literal notranslate"><span class="pre">CrestWidth</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestWidth.NDIM"><code class="docutils literal notranslate"><span class="pre">CrestWidth.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestWidth.TYPE"><code class="docutils literal notranslate"><span class="pre">CrestWidth.TYPE</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestWidth.TIME"><code class="docutils literal notranslate"><span class="pre">CrestWidth.TIME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestWidth.SPAN"><code class="docutils literal notranslate"><span class="pre">CrestWidth.SPAN</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestWidth.name"><code class="docutils literal notranslate"><span class="pre">CrestWidth.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestWidth.unit"><code class="docutils literal notranslate"><span class="pre">CrestWidth.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowCoefficient"><code class="docutils literal notranslate"><span class="pre">FlowCoefficient</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowCoefficient.NDIM"><code class="docutils literal notranslate"><span class="pre">FlowCoefficient.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowCoefficient.TYPE"><code class="docutils literal notranslate"><span class="pre">FlowCoefficient.TYPE</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowCoefficient.TIME"><code class="docutils literal notranslate"><span class="pre">FlowCoefficient.TIME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowCoefficient.SPAN"><code class="docutils literal notranslate"><span class="pre">FlowCoefficient.SPAN</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowCoefficient.INIT"><code class="docutils literal notranslate"><span class="pre">FlowCoefficient.INIT</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowCoefficient.name"><code class="docutils literal notranslate"><span class="pre">FlowCoefficient.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowCoefficient.unit"><code class="docutils literal notranslate"><span class="pre">FlowCoefficient.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowExponent"><code class="docutils literal notranslate"><span class="pre">FlowExponent</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowExponent.NDIM"><code class="docutils literal notranslate"><span class="pre">FlowExponent.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowExponent.TYPE"><code class="docutils literal notranslate"><span class="pre">FlowExponent.TYPE</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowExponent.TIME"><code class="docutils literal notranslate"><span class="pre">FlowExponent.TIME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowExponent.SPAN"><code class="docutils literal notranslate"><span class="pre">FlowExponent.SPAN</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowExponent.INIT"><code class="docutils literal notranslate"><span class="pre">FlowExponent.INIT</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowExponent.name"><code class="docutils literal notranslate"><span class="pre">FlowExponent.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowExponent.unit"><code class="docutils literal notranslate"><span class="pre">FlowExponent.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch.exch_control.AllowedExchange"><code class="docutils literal notranslate"><span class="pre">AllowedExchange</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.AllowedExchange.NDIM"><code class="docutils literal notranslate"><span class="pre">AllowedExchange.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.AllowedExchange.TYPE"><code class="docutils literal notranslate"><span class="pre">AllowedExchange.TYPE</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.AllowedExchange.TIME"><code class="docutils literal notranslate"><span class="pre">AllowedExchange.TIME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.AllowedExchange.SPAN"><code class="docutils literal notranslate"><span class="pre">AllowedExchange.SPAN</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.AllowedExchange.INIT"><code class="docutils literal notranslate"><span class="pre">AllowedExchange.INIT</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.AllowedExchange.name"><code class="docutils literal notranslate"><span class="pre">AllowedExchange.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_control.AllowedExchange.unit"><code class="docutils literal notranslate"><span class="pre">AllowedExchange.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#sequence-features">Sequence Features</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#factor-sequences">Factor sequences</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch.exch_factors.WaterLevel"><code class="docutils literal notranslate"><span class="pre">WaterLevel</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_factors.WaterLevel.NDIM"><code class="docutils literal notranslate"><span class="pre">WaterLevel.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_factors.WaterLevel.SHAPE"><code class="docutils literal notranslate"><span class="pre">WaterLevel.SHAPE</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_factors.WaterLevel.name"><code class="docutils literal notranslate"><span class="pre">WaterLevel.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_factors.WaterLevel.unit"><code class="docutils literal notranslate"><span class="pre">WaterLevel.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch.exch_factors.DeltaWaterLevel"><code class="docutils literal notranslate"><span class="pre">DeltaWaterLevel</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_factors.DeltaWaterLevel.NDIM"><code class="docutils literal notranslate"><span class="pre">DeltaWaterLevel.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_factors.DeltaWaterLevel.name"><code class="docutils literal notranslate"><span class="pre">DeltaWaterLevel.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_factors.DeltaWaterLevel.unit"><code class="docutils literal notranslate"><span class="pre">DeltaWaterLevel.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#flux-sequences">Flux sequences</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.PotentialExchange"><code class="docutils literal notranslate"><span class="pre">PotentialExchange</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.PotentialExchange.NDIM"><code class="docutils literal notranslate"><span class="pre">PotentialExchange.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.PotentialExchange.NUMERIC"><code class="docutils literal notranslate"><span class="pre">PotentialExchange.NUMERIC</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.PotentialExchange.name"><code class="docutils literal notranslate"><span class="pre">PotentialExchange.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.PotentialExchange.unit"><code class="docutils literal notranslate"><span class="pre">PotentialExchange.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.ActualExchange"><code class="docutils literal notranslate"><span class="pre">ActualExchange</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.ActualExchange.NDIM"><code class="docutils literal notranslate"><span class="pre">ActualExchange.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.ActualExchange.NUMERIC"><code class="docutils literal notranslate"><span class="pre">ActualExchange.NUMERIC</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.ActualExchange.name"><code class="docutils literal notranslate"><span class="pre">ActualExchange.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.ActualExchange.unit"><code class="docutils literal notranslate"><span class="pre">ActualExchange.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#log-sequences">Log sequences</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel"><code class="docutils literal notranslate"><span class="pre">LoggedWaterLevel</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel.NUMERIC"><code class="docutils literal notranslate"><span class="pre">LoggedWaterLevel.NUMERIC</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel.SHAPE"><code class="docutils literal notranslate"><span class="pre">LoggedWaterLevel.SHAPE</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel.name"><code class="docutils literal notranslate"><span class="pre">LoggedWaterLevel.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel.unit"><code class="docutils literal notranslate"><span class="pre">LoggedWaterLevel.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#outlet-sequences">Outlet sequences</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch.exch_outlets.E"><code class="docutils literal notranslate"><span class="pre">E</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_outlets.E.NDIM"><code class="docutils literal notranslate"><span class="pre">E.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_outlets.E.NUMERIC"><code class="docutils literal notranslate"><span class="pre">E.NUMERIC</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_outlets.E.name"><code class="docutils literal notranslate"><span class="pre">E.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_outlets.E.unit"><code class="docutils literal notranslate"><span class="pre">E.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#receiver-sequences">Receiver sequences</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch.exch_receivers.L"><code class="docutils literal notranslate"><span class="pre">L</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_receivers.L.NDIM"><code class="docutils literal notranslate"><span class="pre">L.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_receivers.L.NUMERIC"><code class="docutils literal notranslate"><span class="pre">L.NUMERIC</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_receivers.L.name"><code class="docutils literal notranslate"><span class="pre">L.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.exch.exch_receivers.L.unit"><code class="docutils literal notranslate"><span class="pre">L.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.models.exch.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.models.exch.FactorSequences"><code class="docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.models.exch.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.models.exch.LogSequences"><code class="docutils literal notranslate"><span class="pre">LogSequences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.models.exch.OutletSequences"><code class="docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.models.exch.ReceiverSequences"><code class="docutils literal notranslate"><span class="pre">ReceiverSequences</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="exch_v001.html">exch_v001 (weir)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-D.html">HydPy-D (DAM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-T.html">HydPy-T (TESTING)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="HydPy-Exch.html"
+                          title="previous chapter">HydPy-Exch</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="exch_v001.html"
+                          title="next chapter">exch_v001</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/exch.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/exch.html">6</a></li>
+<li><a href="../5.0/exch.html">5.0</a></li>
+<li><a href="../master/exch.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="exch">
+<span id="id1"></span><h1>exch<a class="headerlink" href="#exch" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.exch">The <cite>HydPy-Exch</cite> base model provides features to implement helper models that enable
+other models to exchange data more freely.</p>
+<section id="method-features">
+<h2>Method Features<a class="headerlink" href="#method-features" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_model.Model">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_model.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/exch/exch_model.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_model.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.AdHocModel" title="hydpy.core.modeltools.AdHocModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdHocModel</span></code></a></p>
+<p>HydPy-Exch base model.</p>
+<dl class="simple">
+<dt>The following “receiver update methods” are called in the given sequence before performing a simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Pic_LoggedWaterLevel_V1" title="hydpy.models.exch.exch_model.Pic_LoggedWaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pic_LoggedWaterLevel_V1</span></code></a> Pic the logged water level from a receiver node.</p></li>
+</ul>
+</dd>
+<dt>The following “run methods” are called in the given sequence during each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Update_WaterLevel_V1" title="hydpy.models.exch.exch_model.Update_WaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_WaterLevel_V1</span></code></a> Update the factor sequence <a class="reference internal" href="#hydpy.models.exch.exch_factors.WaterLevel" title="hydpy.models.exch.exch_factors.WaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevel</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1" title="hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_DeltaWaterLevel_V1</span></code></a> Calculate the effective difference of both water levels.</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_PotentialExchange_V1" title="hydpy.models.exch.exch_model.Calc_PotentialExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialExchange_V1</span></code></a> Calculate the potential exchange that strictly follows the weir formula without taking any other limitations into account.</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_ActualExchange_V1" title="hydpy.models.exch.exch_model.Calc_ActualExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ActualExchange_V1</span></code></a> Calculate the actual exchange.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence at the end of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Pass_ActualExchange_V1" title="hydpy.models.exch.exch_model.Pass_ActualExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_ActualExchange_V1</span></code></a> Pass the actual exchange to an outlet node.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.exch.exch_model">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_model.Pic_LoggedWaterLevel_V1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_model.</span></span><span class="sig-name descname"><span class="pre">Pic_LoggedWaterLevel_V1</span></span><a class="reference internal" href="_modules/hydpy/models/exch/exch_model.html#Pic_LoggedWaterLevel_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_model.Pic_LoggedWaterLevel_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Pic the logged water level from a receiver node.</p>
+<dl class="simple">
+<dt>Requires the receiver sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_receivers.L" title="hydpy.models.exch.exch_receivers.L"><code class="xref py py-class docutils literal notranslate"><span class="pre">L</span></code></a></p>
+</dd>
+<dt>Calculates the log sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel" title="hydpy.models.exch.exch_logs.LoggedWaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">LoggedWaterLevel</span></code></a></p>
+</dd>
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(LoggedWaterLevel = L\)</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_model.Update_WaterLevel_V1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_model.</span></span><span class="sig-name descname"><span class="pre">Update_WaterLevel_V1</span></span><a class="reference internal" href="_modules/hydpy/models/exch/exch_model.html#Update_WaterLevel_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_model.Update_WaterLevel_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Update the factor sequence <a class="reference internal" href="#hydpy.models.exch.exch_factors.WaterLevel" title="hydpy.models.exch.exch_factors.WaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevel</span></code></a>.</p>
+<dl class="simple">
+<dt>Requires the log sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel" title="hydpy.models.exch.exch_logs.LoggedWaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">LoggedWaterLevel</span></code></a></p>
+</dd>
+<dt>Calculates the factor sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_factors.WaterLevel" title="hydpy.models.exch.exch_factors.WaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevel</span></code></a></p>
+</dd>
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(WaterLevel = LoggedWaterLevel\)</span></p>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.exch</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">loggedwaterlevel</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">update_waterlevel_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">factors</span><span class="o">.</span><span class="n">waterlevel</span>
+<span class="go">waterlevel(2.0, 4.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_model.</span></span><span class="sig-name descname"><span class="pre">Calc_DeltaWaterLevel_V1</span></span><a class="reference internal" href="_modules/hydpy/models/exch/exch_model.html#Calc_DeltaWaterLevel_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Calculate the effective difference of both water levels.</p>
+<dl class="simple">
+<dt>Requires the control parameter:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestHeight" title="hydpy.models.exch.exch_control.CrestHeight"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrestHeight</span></code></a></p>
+</dd>
+<dt>Requires the factor sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_factors.WaterLevel" title="hydpy.models.exch.exch_factors.WaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevel</span></code></a></p>
+</dd>
+<dt>Calculates the factor sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_factors.DeltaWaterLevel" title="hydpy.models.exch.exch_factors.DeltaWaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">DeltaWaterLevel</span></code></a></p>
+</dd>
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(DeltaWaterLevel =
+max(WaterLevel_0, CrestHeight) - max(WaterLevel_1, CrestHeight)\)</span></p>
+</dd>
+</dl>
+<p>Examples:</p>
+<blockquote>
+<div><p>“Effective difference” means that only the height above the crest counts.
+The first example illustrates this for fixed water levels and a variable
+crest height:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.exch</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">UnitTest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">UnitTest</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">method</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">calc_deltawaterlevel_v1</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">last_example</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">parseqs</span><span class="o">=</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">crestheight</span><span class="p">,</span> <span class="n">factors</span><span class="o">.</span><span class="n">deltawaterlevel</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">nexts</span><span class="o">.</span><span class="n">crestheight</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">factors</span><span class="o">.</span><span class="n">waterlevel</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<span class="go">| ex. | crestheight | deltawaterlevel |</span>
+<span class="go">---------------------------------------</span>
+<span class="go">|   1 |         1.0 |             2.0 |</span>
+<span class="go">|   2 |         2.0 |             2.0 |</span>
+<span class="go">|   3 |         3.0 |             1.0 |</span>
+<span class="go">|   4 |         4.0 |             0.0 |</span>
+<span class="go">|   5 |         5.0 |             0.0 |</span>
+</pre></div>
+</div>
+<p>Method <a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1" title="hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_DeltaWaterLevel_V1</span></code></a> modifies the basic equation given above to
+also work for an inverse gradient:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">factors</span><span class="o">.</span><span class="n">waterlevel</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<span class="go">| ex. | crestheight | deltawaterlevel |</span>
+<span class="go">---------------------------------------</span>
+<span class="go">|   1 |         1.0 |            -2.0 |</span>
+<span class="go">|   2 |         2.0 |            -2.0 |</span>
+<span class="go">|   3 |         3.0 |            -1.0 |</span>
+<span class="go">|   4 |         4.0 |             0.0 |</span>
+<span class="go">|   5 |         5.0 |             0.0 |</span>
+</pre></div>
+</div>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_model.Calc_PotentialExchange_V1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_model.</span></span><span class="sig-name descname"><span class="pre">Calc_PotentialExchange_V1</span></span><a class="reference internal" href="_modules/hydpy/models/exch/exch_model.html#Calc_PotentialExchange_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_model.Calc_PotentialExchange_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Calculate the potential exchange that strictly follows the weir formula without
+taking any other limitations into account.</p>
+<dl class="simple">
+<dt>Requires the control parameters:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestWidth" title="hydpy.models.exch.exch_control.CrestWidth"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrestWidth</span></code></a>
+<a class="reference internal" href="#hydpy.models.exch.exch_control.FlowCoefficient" title="hydpy.models.exch.exch_control.FlowCoefficient"><code class="xref py py-class docutils literal notranslate"><span class="pre">FlowCoefficient</span></code></a>
+<a class="reference internal" href="#hydpy.models.exch.exch_control.FlowExponent" title="hydpy.models.exch.exch_control.FlowExponent"><code class="xref py py-class docutils literal notranslate"><span class="pre">FlowExponent</span></code></a></p>
+</dd>
+<dt>Requires the factor sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_factors.DeltaWaterLevel" title="hydpy.models.exch.exch_factors.DeltaWaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">DeltaWaterLevel</span></code></a></p>
+</dd>
+<dt>Calculates the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.PotentialExchange" title="hydpy.models.exch.exch_fluxes.PotentialExchange"><code class="xref py py-class docutils literal notranslate"><span class="pre">PotentialExchange</span></code></a></p>
+</dd>
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(PotentialExchange =
+FlowCoefficient \cdot CrestWidth \cdot DeltaWaterLevel ^ {FlowExponent}\)</span></p>
+</dd>
+</dl>
+<p>Examples:</p>
+<blockquote>
+<div><p>Method <a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_PotentialExchange_V1" title="hydpy.models.exch.exch_model.Calc_PotentialExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialExchange_V1</span></code></a> modifies the given basic equation to work
+for positive and negative gradients:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.exch</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crestwidth</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flowcoefficient</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flowexponent</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">factors</span><span class="o">.</span><span class="n">deltawaterlevel</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_potentialexchange_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">potentialexchange</span>
+<span class="go">potentialexchange(6.0)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">factors</span><span class="o">.</span><span class="n">deltawaterlevel</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_potentialexchange_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">potentialexchange</span>
+<span class="go">potentialexchange(-6.0)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_model.Calc_ActualExchange_V1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_model.</span></span><span class="sig-name descname"><span class="pre">Calc_ActualExchange_V1</span></span><a class="reference internal" href="_modules/hydpy/models/exch/exch_model.html#Calc_ActualExchange_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_model.Calc_ActualExchange_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Calculate the actual exchange.</p>
+<dl class="simple">
+<dt>Requires the control parameter:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_control.AllowedExchange" title="hydpy.models.exch.exch_control.AllowedExchange"><code class="xref py py-class docutils literal notranslate"><span class="pre">AllowedExchange</span></code></a></p>
+</dd>
+<dt>Requires the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.PotentialExchange" title="hydpy.models.exch.exch_fluxes.PotentialExchange"><code class="xref py py-class docutils literal notranslate"><span class="pre">PotentialExchange</span></code></a></p>
+</dd>
+<dt>Calculates the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.ActualExchange" title="hydpy.models.exch.exch_fluxes.ActualExchange"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActualExchange</span></code></a></p>
+</dd>
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(ActualExchange = min(PotentialExchange, AllowedExchange)\)</span></p>
+</dd>
+</dl>
+<p>Examples:</p>
+<blockquote>
+<div><p>Method <a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_ActualExchange_V1" title="hydpy.models.exch.exch_model.Calc_ActualExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ActualExchange_V1</span></code></a> modifies the given basic equation to work
+for positive and negative gradients:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.exch</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allowedexchange</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">potentialexchange</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_actualexchange_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">actualexchange</span>
+<span class="go">actualexchange(1.0)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">potentialexchange</span> <span class="o">=</span> <span class="mf">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_actualexchange_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">actualexchange</span>
+<span class="go">actualexchange(2.0)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">potentialexchange</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_actualexchange_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">actualexchange</span>
+<span class="go">actualexchange(-1.0)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">potentialexchange</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_actualexchange_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">actualexchange</span>
+<span class="go">actualexchange(-2.0)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_model.Pass_ActualExchange_V1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_model.</span></span><span class="sig-name descname"><span class="pre">Pass_ActualExchange_V1</span></span><a class="reference internal" href="_modules/hydpy/models/exch/exch_model.html#Pass_ActualExchange_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_model.Pass_ActualExchange_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Pass the actual exchange to an outlet node.</p>
+<dl class="simple">
+<dt>Requires the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.ActualExchange" title="hydpy.models.exch.exch_fluxes.ActualExchange"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActualExchange</span></code></a></p>
+</dd>
+<dt>Calculates the outlet sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_outlets.E" title="hydpy.models.exch.exch_outlets.E"><code class="xref py py-class docutils literal notranslate"><span class="pre">E</span></code></a></p>
+</dd>
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(E = ActualExchange\)</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="parameter-features">
+<h2>Parameter Features<a class="headerlink" href="#parameter-features" title="Link to this heading">¶</a></h2>
+<section id="control-parameters">
+<h3>Control parameters<a class="headerlink" href="#control-parameters" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model exch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestHeight" title="hydpy.models.exch.exch_control.CrestHeight"><code class="xref py py-func docutils literal notranslate"><span class="pre">CrestHeight()</span></code></a> Crest height [m].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestWidth" title="hydpy.models.exch.exch_control.CrestWidth"><code class="xref py py-func docutils literal notranslate"><span class="pre">CrestWidth()</span></code></a> Crest width [m].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowCoefficient" title="hydpy.models.exch.exch_control.FlowCoefficient"><code class="xref py py-func docutils literal notranslate"><span class="pre">FlowCoefficient()</span></code></a> Flow coefficient [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowExponent" title="hydpy.models.exch.exch_control.FlowExponent"><code class="xref py py-func docutils literal notranslate"><span class="pre">FlowExponent()</span></code></a> Flow exponent [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_control.AllowedExchange" title="hydpy.models.exch.exch_control.AllowedExchange"><code class="xref py py-func docutils literal notranslate"><span class="pre">AllowedExchange()</span></code></a> The highest water exchange allowed [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.exch.exch_control">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestHeight">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_control.</span></span><span class="sig-name descname"><span class="pre">CrestHeight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/exch/exch_control.html#CrestHeight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestHeight" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Crest height [m].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1" title="hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_DeltaWaterLevel_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestHeight.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestHeight.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestHeight.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestHeight.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestHeight.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestHeight.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestHeight.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestHeight.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestHeight.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'crestheight'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestHeight.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestHeight.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'m'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestHeight.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestWidth">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_control.</span></span><span class="sig-name descname"><span class="pre">CrestWidth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/exch/exch_control.html#CrestWidth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestWidth" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Crest width [m].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_PotentialExchange_V1" title="hydpy.models.exch.exch_model.Calc_PotentialExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialExchange_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestWidth.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestWidth.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestWidth.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestWidth.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestWidth.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestWidth.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestWidth.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestWidth.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestWidth.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'crestwidth'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestWidth.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.CrestWidth.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'m'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.CrestWidth.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowCoefficient">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_control.</span></span><span class="sig-name descname"><span class="pre">FlowCoefficient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/exch/exch_control.html#FlowCoefficient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowCoefficient" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Flow coefficient [-].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_PotentialExchange_V1" title="hydpy.models.exch.exch_model.Calc_PotentialExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialExchange_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowCoefficient.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowCoefficient.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowCoefficient.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowCoefficient.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowCoefficient.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowCoefficient.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowCoefficient.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowCoefficient.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowCoefficient.INIT">
+<span class="sig-name descname"><span class="pre">INIT</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.62</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowCoefficient.INIT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowCoefficient.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'flowcoefficient'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowCoefficient.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowCoefficient.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'-'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowCoefficient.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowExponent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_control.</span></span><span class="sig-name descname"><span class="pre">FlowExponent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/exch/exch_control.html#FlowExponent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowExponent" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Flow exponent [-].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_PotentialExchange_V1" title="hydpy.models.exch.exch_model.Calc_PotentialExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialExchange_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowExponent.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowExponent.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowExponent.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowExponent.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowExponent.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowExponent.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowExponent.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowExponent.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowExponent.INIT">
+<span class="sig-name descname"><span class="pre">INIT</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.5</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowExponent.INIT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowExponent.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'flowexponent'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowExponent.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.FlowExponent.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'-'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.FlowExponent.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.AllowedExchange">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_control.</span></span><span class="sig-name descname"><span class="pre">AllowedExchange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/exch/exch_control.html#AllowedExchange"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_control.AllowedExchange" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>The highest water exchange allowed [m³/s].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_ActualExchange_V1" title="hydpy.models.exch.exch_model.Calc_ActualExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ActualExchange_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.AllowedExchange.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.AllowedExchange.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.AllowedExchange.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.exch.exch_control.AllowedExchange.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.AllowedExchange.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.AllowedExchange.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.AllowedExchange.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.AllowedExchange.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.AllowedExchange.INIT">
+<span class="sig-name descname"><span class="pre">INIT</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.5</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.AllowedExchange.INIT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.AllowedExchange.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'allowedexchange'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.AllowedExchange.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_control.AllowedExchange.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'m³/s'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_control.AllowedExchange.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="sequence-features">
+<h2>Sequence Features<a class="headerlink" href="#sequence-features" title="Link to this heading">¶</a></h2>
+<section id="factor-sequences">
+<h3>Factor sequences<a class="headerlink" href="#factor-sequences" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.</span></span><span class="sig-name descname"><span class="pre">FactorSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FactorSequences" title="hydpy.core.sequencetools.FactorSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></p>
+<p>Factor sequences of model exch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_factors.WaterLevel" title="hydpy.models.exch.exch_factors.WaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterLevel()</span></code></a> Water level [m].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_factors.DeltaWaterLevel" title="hydpy.models.exch.exch_factors.DeltaWaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">DeltaWaterLevel()</span></code></a> Effective difference of the two water levels [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.exch.exch_factors">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_factors.WaterLevel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_factors.</span></span><span class="sig-name descname"><span class="pre">WaterLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><span class="pre">ModelSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><span class="pre">ModelSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><span class="pre">FastAccess</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/exch/exch_factors.html#WaterLevel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_factors.WaterLevel" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.MixinFixedShape" title="hydpy.core.variabletools.MixinFixedShape"><code class="xref py py-class docutils literal notranslate"><span class="pre">MixinFixedShape</span></code></a>, <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FactorSequence" title="hydpy.core.sequencetools.FactorSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FactorSequence</span></code></a></p>
+<p>Water level [m].</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Update_WaterLevel_V1" title="hydpy.models.exch.exch_model.Update_WaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_WaterLevel_V1</span></code></a></p>
+</dd>
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1" title="hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_DeltaWaterLevel_V1</span></code></a></p>
+</dd>
+</dl>
+<p>After each simulation step, the value of <a class="reference internal" href="#hydpy.models.exch.exch_factors.WaterLevel" title="hydpy.models.exch.exch_factors.WaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevel</span></code></a> corresponds to the value
+of the <a class="reference internal" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel" title="hydpy.models.exch.exch_logs.LoggedWaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">LoggedWaterLevel</span></code></a> of the previous simulation step.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_factors.WaterLevel.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#hydpy.models.exch.exch_factors.WaterLevel.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_factors.WaterLevel.SHAPE">
+<span class="sig-name descname"><span class="pre">SHAPE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(2,)</span></em><a class="headerlink" href="#hydpy.models.exch.exch_factors.WaterLevel.SHAPE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_factors.WaterLevel.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'waterlevel'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_factors.WaterLevel.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_factors.WaterLevel.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'m'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_factors.WaterLevel.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_factors.DeltaWaterLevel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_factors.</span></span><span class="sig-name descname"><span class="pre">DeltaWaterLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><span class="pre">ModelSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><span class="pre">ModelSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><span class="pre">FastAccess</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/exch/exch_factors.html#DeltaWaterLevel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_factors.DeltaWaterLevel" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FactorSequence" title="hydpy.core.sequencetools.FactorSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FactorSequence</span></code></a></p>
+<p>Effective difference of the two water levels [m].</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1" title="hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_DeltaWaterLevel_V1</span></code></a></p>
+</dd>
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_PotentialExchange_V1" title="hydpy.models.exch.exch_model.Calc_PotentialExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialExchange_V1</span></code></a></p>
+</dd>
+</dl>
+<p>After each simulation step, the value of <a class="reference internal" href="#hydpy.models.exch.exch_factors.DeltaWaterLevel" title="hydpy.models.exch.exch_factors.DeltaWaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">DeltaWaterLevel</span></code></a> corresponds to the value
+of the <a class="reference internal" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel" title="hydpy.models.exch.exch_logs.LoggedWaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">LoggedWaterLevel</span></code></a> of the previous simulation step.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_factors.DeltaWaterLevel.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.exch.exch_factors.DeltaWaterLevel.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_factors.DeltaWaterLevel.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'deltawaterlevel'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_factors.DeltaWaterLevel.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_factors.DeltaWaterLevel.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'m'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_factors.DeltaWaterLevel.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="flux-sequences">
+<h3>Flux sequences<a class="headerlink" href="#flux-sequences" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model exch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.PotentialExchange" title="hydpy.models.exch.exch_fluxes.PotentialExchange"><code class="xref py py-func docutils literal notranslate"><span class="pre">PotentialExchange()</span></code></a> The potential bidirectional water exchange [m³/s].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.ActualExchange" title="hydpy.models.exch.exch_fluxes.ActualExchange"><code class="xref py py-func docutils literal notranslate"><span class="pre">ActualExchange()</span></code></a> The actual bidirectional water exchange [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.exch.exch_fluxes">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_fluxes.PotentialExchange">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_fluxes.</span></span><span class="sig-name descname"><span class="pre">PotentialExchange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><span class="pre">ModelSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><span class="pre">ModelSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><span class="pre">FastAccess</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/exch/exch_fluxes.html#PotentialExchange"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_fluxes.PotentialExchange" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequence" title="hydpy.core.sequencetools.FluxSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code></a></p>
+<p>The potential bidirectional water exchange [m³/s].</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_PotentialExchange_V1" title="hydpy.models.exch.exch_model.Calc_PotentialExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialExchange_V1</span></code></a></p>
+</dd>
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_ActualExchange_V1" title="hydpy.models.exch.exch_model.Calc_ActualExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ActualExchange_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_fluxes.PotentialExchange.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.exch.exch_fluxes.PotentialExchange.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_fluxes.PotentialExchange.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#hydpy.models.exch.exch_fluxes.PotentialExchange.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_fluxes.PotentialExchange.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'potentialexchange'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_fluxes.PotentialExchange.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_fluxes.PotentialExchange.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'m³/s'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_fluxes.PotentialExchange.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_fluxes.ActualExchange">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_fluxes.</span></span><span class="sig-name descname"><span class="pre">ActualExchange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><span class="pre">ModelSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><span class="pre">ModelSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><span class="pre">FastAccess</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/exch/exch_fluxes.html#ActualExchange"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_fluxes.ActualExchange" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequence" title="hydpy.core.sequencetools.FluxSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code></a></p>
+<p>The actual bidirectional water exchange [m³/s].</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Calc_ActualExchange_V1" title="hydpy.models.exch.exch_model.Calc_ActualExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ActualExchange_V1</span></code></a></p>
+</dd>
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Pass_ActualExchange_V1" title="hydpy.models.exch.exch_model.Pass_ActualExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_ActualExchange_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_fluxes.ActualExchange.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.exch.exch_fluxes.ActualExchange.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_fluxes.ActualExchange.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#hydpy.models.exch.exch_fluxes.ActualExchange.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_fluxes.ActualExchange.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'actualexchange'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_fluxes.ActualExchange.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_fluxes.ActualExchange.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'m³/s'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_fluxes.ActualExchange.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="log-sequences">
+<h3>Log sequences<a class="headerlink" href="#log-sequences" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.</span></span><span class="sig-name descname"><span class="pre">LogSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequences" title="hydpy.core.sequencetools.LogSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequences</span></code></a></p>
+<p>Log sequences of model exch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel" title="hydpy.models.exch.exch_logs.LoggedWaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">LoggedWaterLevel()</span></code></a> Logged water level [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.exch.exch_logs">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_logs.LoggedWaterLevel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_logs.</span></span><span class="sig-name descname"><span class="pre">LoggedWaterLevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><span class="pre">ModelSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><span class="pre">ModelSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><span class="pre">FastAccess</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/exch/exch_logs.html#LoggedWaterLevel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequenceFixed" title="hydpy.core.sequencetools.LogSequenceFixed"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequenceFixed</span></code></a></p>
+<p>Logged water level [m].</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Pic_LoggedWaterLevel_V1" title="hydpy.models.exch.exch_model.Pic_LoggedWaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pic_LoggedWaterLevel_V1</span></code></a></p>
+</dd>
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Update_WaterLevel_V1" title="hydpy.models.exch.exch_model.Update_WaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_WaterLevel_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_logs.LoggedWaterLevel.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_logs.LoggedWaterLevel.SHAPE">
+<span class="sig-name descname"><span class="pre">SHAPE</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel.SHAPE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_logs.LoggedWaterLevel.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'loggedwaterlevel'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_logs.LoggedWaterLevel.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'m'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="outlet-sequences">
+<h3>Outlet sequences<a class="headerlink" href="#outlet-sequences" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.</span></span><span class="sig-name descname"><span class="pre">OutletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></p>
+<p>Outlet sequences of model exch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_outlets.E" title="hydpy.models.exch.exch_outlets.E"><code class="xref py py-func docutils literal notranslate"><span class="pre">E()</span></code></a> Bidirectional water exchange [m³].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.exch.exch_outlets">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_outlets.E">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_outlets.</span></span><span class="sig-name descname"><span class="pre">E</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><span class="pre">ModelSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><span class="pre">ModelSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><span class="pre">FastAccess</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/exch/exch_outlets.html#E"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_outlets.E" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequence" title="hydpy.core.sequencetools.OutletSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequence</span></code></a></p>
+<p>Bidirectional water exchange [m³].</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Pass_ActualExchange_V1" title="hydpy.models.exch.exch_model.Pass_ActualExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_ActualExchange_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_outlets.E.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#hydpy.models.exch.exch_outlets.E.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_outlets.E.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#hydpy.models.exch.exch_outlets.E.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_outlets.E.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'e'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_outlets.E.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_outlets.E.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'m³'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_outlets.E.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="receiver-sequences">
+<h3>Receiver sequences<a class="headerlink" href="#receiver-sequences" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.</span></span><span class="sig-name descname"><span class="pre">ReceiverSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ReceiverSequences" title="hydpy.core.sequencetools.ReceiverSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReceiverSequences</span></code></a></p>
+<p>Receiver sequences of model exch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_receivers.L" title="hydpy.models.exch.exch_receivers.L"><code class="xref py py-func docutils literal notranslate"><span class="pre">L()</span></code></a> Water level [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.exch.exch_receivers">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_receivers.L">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.exch_receivers.</span></span><span class="sig-name descname"><span class="pre">L</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><span class="pre">ModelSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><span class="pre">ModelSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><span class="pre">FastAccess</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/exch/exch_receivers.html#L"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch.exch_receivers.L" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ReceiverSequence" title="hydpy.core.sequencetools.ReceiverSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReceiverSequence</span></code></a></p>
+<p>Water level [m].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.exch.exch_model.Pic_LoggedWaterLevel_V1" title="hydpy.models.exch.exch_model.Pic_LoggedWaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pic_LoggedWaterLevel_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_receivers.L.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#hydpy.models.exch.exch_receivers.L.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_receivers.L.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#hydpy.models.exch.exch_receivers.L.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_receivers.L.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'l'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_receivers.L.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch.exch_receivers.L.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'m'</span></em><a class="headerlink" href="#hydpy.models.exch.exch_receivers.L.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.ControlParameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model exch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestHeight" title="hydpy.models.exch.exch_control.CrestHeight"><code class="xref py py-func docutils literal notranslate"><span class="pre">CrestHeight()</span></code></a> Crest height [m].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_control.CrestWidth" title="hydpy.models.exch.exch_control.CrestWidth"><code class="xref py py-func docutils literal notranslate"><span class="pre">CrestWidth()</span></code></a> Crest width [m].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowCoefficient" title="hydpy.models.exch.exch_control.FlowCoefficient"><code class="xref py py-func docutils literal notranslate"><span class="pre">FlowCoefficient()</span></code></a> Flow coefficient [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_control.FlowExponent" title="hydpy.models.exch.exch_control.FlowExponent"><code class="xref py py-func docutils literal notranslate"><span class="pre">FlowExponent()</span></code></a> Flow exponent [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_control.AllowedExchange" title="hydpy.models.exch.exch_control.AllowedExchange"><code class="xref py py-func docutils literal notranslate"><span class="pre">AllowedExchange()</span></code></a> The highest water exchange allowed [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.FactorSequences">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.</span></span><span class="sig-name descname"><span class="pre">FactorSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch.FactorSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FactorSequences" title="hydpy.core.sequencetools.FactorSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></p>
+<p>Factor sequences of model exch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_factors.WaterLevel" title="hydpy.models.exch.exch_factors.WaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterLevel()</span></code></a> Water level [m].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_factors.DeltaWaterLevel" title="hydpy.models.exch.exch_factors.DeltaWaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">DeltaWaterLevel()</span></code></a> Effective difference of the two water levels [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.FluxSequences">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model exch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.PotentialExchange" title="hydpy.models.exch.exch_fluxes.PotentialExchange"><code class="xref py py-func docutils literal notranslate"><span class="pre">PotentialExchange()</span></code></a> The potential bidirectional water exchange [m³/s].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_fluxes.ActualExchange" title="hydpy.models.exch.exch_fluxes.ActualExchange"><code class="xref py py-func docutils literal notranslate"><span class="pre">ActualExchange()</span></code></a> The actual bidirectional water exchange [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.LogSequences">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.</span></span><span class="sig-name descname"><span class="pre">LogSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch.LogSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequences" title="hydpy.core.sequencetools.LogSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequences</span></code></a></p>
+<p>Log sequences of model exch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_logs.LoggedWaterLevel" title="hydpy.models.exch.exch_logs.LoggedWaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">LoggedWaterLevel()</span></code></a> Logged water level [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.OutletSequences">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.</span></span><span class="sig-name descname"><span class="pre">OutletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch.OutletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></p>
+<p>Outlet sequences of model exch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_outlets.E" title="hydpy.models.exch.exch_outlets.E"><code class="xref py py-func docutils literal notranslate"><span class="pre">E()</span></code></a> Bidirectional water exchange [m³].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch.ReceiverSequences">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch.</span></span><span class="sig-name descname"><span class="pre">ReceiverSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch.ReceiverSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ReceiverSequences" title="hydpy.core.sequencetools.ReceiverSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReceiverSequences</span></code></a></p>
+<p>Receiver sequences of model exch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.exch.exch_receivers.L" title="hydpy.models.exch.exch_receivers.L"><code class="xref py py-func docutils literal notranslate"><span class="pre">L()</span></code></a> Water level [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="exch_v001.html" title="exch_v001"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="HydPy-Exch.html" title="HydPy-Exch"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-Exch.html" >HydPy-Exch</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">exch</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

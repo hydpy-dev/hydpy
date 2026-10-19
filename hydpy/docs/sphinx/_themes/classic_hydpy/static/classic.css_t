@@ -156,6 +156,41 @@ div.sphinxsidebar input {
     font-size: 1em;
 }
 
+/* for the collapsible table of contents (see toctree.js) */
+div.sphinxsidebar li.toctree-parent {
+    position: relative;
+    list-style: none;
+}
+
+div.sphinxsidebar button.toctree-toggle {
+    position: absolute;
+    top: 0;
+    left: -1em;
+    width: 1em;
+    padding: 0;
+    border: none;
+    background: none;
+    color: {{ theme_sidebartextcolor }};
+    font: inherit;
+    line-height: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+div.sphinxsidebar button.toctree-toggle:hover {
+    color: {{ theme_sidebarlinkcolor }};
+}
+
+/* use one smaller font size for all sidebar entries within the current page */
+div.sphinxsidebar a[href^="#"]:not([href="#"]) {
+    font-size: 0.85em;
+}
+
+div.sphinxsidebar a[href^="#"]:not([href="#"]) code {
+    font-family: monospace, monospace;
+    font-size: 1em;
+}
+
 {% if theme_collapsiblesidebar|tobool %}
 {% if theme_rightsidebar|tobool %}
     {% set side = 'right' %}

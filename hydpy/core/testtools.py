@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import abc
+import ast
 import builtins
 import contextlib
 import copy
@@ -1640,7 +1641,9 @@ def update_integrationtests(
     <BLANKLINE>
     """
     module = importtools.load_modelmodule(applicationmodel)
-    assert (docstring := module.__doc__) is not None
+    # We cannot use `module.__doc__`, which `autodoc_applicationmodel` might extend:
+    tree = ast.parse(inspect.getsource(module))
+    assert (docstring := ast.get_docstring(tree, clean=False)) is not None
     stringio = io.StringIO
     with stringio() as file_, contextlib.redirect_stdout(file_):
         module.tester.perform_tests()

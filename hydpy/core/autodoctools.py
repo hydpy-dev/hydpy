@@ -214,6 +214,22 @@ def _add_title(title: str, marker: str) -> list[str]:
     return ["", title, marker * len(title)]
 
 
+def _get_collectionclassname(caption: str) -> str | None:
+    """Return the name of the collection class related to the given caption (if
+    available).
+
+    >>> from hydpy.core.autodoctools import _get_collectionclassname
+    >>> _get_collectionclassname("Control parameters")
+    'ControlParameters'
+    >>> _get_collectionclassname("Masks")
+    'Masks'
+    >>> _get_collectionclassname("Constants")
+    """
+    if caption.split()[-1] in ("parameters", "sequences", "Masks"):
+        return caption.title().replace(" ", "")
+    return None
+
+
 def _add_lines(specification: str, module: types.ModuleType) -> list[str]:
     """Return autodoc commands for a basemodels docstring.
 
@@ -223,11 +239,11 @@ def _add_lines(specification: str, module: types.ModuleType) -> list[str]:
     This differs from the order of their definition in the respective modules, but
     results in a better documentation structure.
     """
-    caption = _all_spec2capt.get(specification, "dummy")
-    if caption.split()[-1] in ("parameters", "sequences", "Masks"):
-        name_collectionclass = caption.title().replace(" ", "")
-    else:
-        name_collectionclass = None
+    name_collectionclass = (
+        None
+        if (caption := _all_spec2capt.get(specification)) is None
+        else _get_collectionclassname(caption)
+    )
     lines = []
     exc_mem = ", ".join(sorted(excluded_members))
     if specification == "model":
@@ -244,7 +260,6 @@ def _add_lines(specification: str, module: types.ModuleType) -> list[str]:
             f'.. autoclass:: {module.__name__.rpartition(".")[0]}'
             f".{name_collectionclass}",
             "    :members:",
-            "    :noindex:",
             "    :show-inheritance:",
             f"    :exclude-members: {exc_mem}",
         ]
@@ -365,7 +380,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
     methods: tuple[type[modeltools.Method], ...] = ()
     if modulename in modules:
         module = modules[modulename]
-        lines += _add_title("Method Features", "-")
+        lines += _add_title("Method features", "-")
         lines += _add_lines(specification, module)
         substituter.add_module(module)
         model = module.Model
@@ -378,10 +393,10 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
         member2applicationmodels=member2applicationmodels,
     )
     for title, spec2capt in (
-        ("Variable Features", _VAR_SPEC2CAPT),
-        ("Parameter Features", _PAR_SPEC2CAPT),
-        ("Sequence Features", _SEQ_SPEC2CAPT),
-        ("Auxiliary Features", _AUX_SPEC2CAPT),
+        ("Variable features", _VAR_SPEC2CAPT),
+        ("Parameter features", _PAR_SPEC2CAPT),
+        ("Sequence features", _SEQ_SPEC2CAPT),
+        ("Auxiliary features", _AUX_SPEC2CAPT),
     ):
         found_module = False
         new_lines = _add_title(title, "-")
@@ -558,13 +573,46 @@ def _gain_and_insert_additional_information_into_docstrings(
         _insert_links_into_docstring(value, "\n".join(insertions))
 
 
+def _get_collectionclassnames(spec2capt: dict[str, str]) -> list[str]:
+    names = (_get_collectionclassname(caption) for caption in spec2capt.values())
+    return [name for name in names if name is not None]
+
+
 def autodoc_applicationmodel(module: types.ModuleType) -> None:
     """Improves the docstrings of application models.
 
     |autodoc_applicationmodel| requires, similar to |autodoc_basemodel|, that both the
     application model and its base model are defined in the conventional way.
+
+    In contrast to |autodoc_basemodel|, |autodoc_applicationmodel| only lists the
+    collection classes (e.g. `Model` and `ControlParameters`) under the respective
+    feature titles.  These classes refer only to those methods and variables that are
+    actually used by the application model.
     """
     autodoc_tuple2doc(module)
+    exc_mem = ", ".join(sorted(excluded_members))
+    lines = []
+    for title, classnames in (
+        ("Method features", ["Model"]),
+        ("Parameter features", _get_collectionclassnames(_PAR_SPEC2CAPT)),
+        ("Sequence features", _get_collectionclassnames(_SEQ_SPEC2CAPT)),
+        ("Auxiliary features", _get_collectionclassnames(_AUX_SPEC2CAPT)),
+    ):
+        new_lines = []
+        for classname in classnames:
+            cls = getattr(module, classname, None)
+            if (cls is not None) and getattr(cls, "CLASSES", True):
+                new_lines += [
+                    "",
+                    f".. autoclass:: {module.__name__}.{classname}",
+                    "    :members:",
+                    "    :show-inheritance:",
+                    f"    :exclude-members: {exc_mem}",
+                ]
+        if new_lines:
+            lines += _add_title(title, "=")
+            lines += new_lines
+    module.__doc__ = (module.__doc__ or "") + "\n".join(lines)
     path_applicationmodel = module.__name__
     path_basemodel = path_applicationmodel.split("_")[0]
     module_basemodel = importlib.import_module(path_basemodel)
@@ -1389,14 +1437,10 @@ def autodoc_tuple2doc(module: types.ModuleType) -> None:
                 if logstring not in _loggedtuples:
                     _loggedtuples.add(logstring)
                     lst = [f"\n\n\n    {descr}:"]
-                    if tuplename == "CLASSES":
-                        type_ = "func"
-                    else:
-                        type_ = "class"
                     for cls in tuple_:
                         lst.append(
                             f"      * "
-                            f":{type_}:`~{cls.__module__}.{cls.__name__}`"
+                            f":class:`~{cls.__module__}.{cls.__name__}`"
                             f" {objecttools.description(cls)}"
                         )
                     doc = getattr(member, "__doc__")

@@ -64,6 +64,9 @@ extensions = [
     "submodelgraph_extension",
 ]
 
+# Write, for example, `NDIM` instead of `Area.NDIM` in the tables of contents:
+toc_object_entries_show_parents = "hide"
+
 autoclass_content = "class"
 autodoc_default_options = {"undoc-members": None}
 autodoc_member_order = "bysource"

@@ -263,7 +263,7 @@ client's point of view)."""
 
 
 class ServerState:
-    """Singleton class handling states like the current |HydPy| instance exchange items.
+    """Singleton class handling states like the current |HydPy| object exchange items.
 
     The instance of class |ServerState| is available as the member `state` of class
     |HydPyServer| after calling the function |start_server|.  You could create other
@@ -1065,7 +1065,7 @@ calculated so far.
 1.23040403, 0.73046025...
 
     Due to the steps above, the returned dictionary agrees with the current state of
-    the |HydPy| instance:
+    the |HydPy| object:
 
     >>> sequences = f"HydPyServer.state.hp.elements.land_dill_assl.model.sequences"
     >>> test("evaluate",
@@ -2044,8 +2044,8 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
             self._outputs[item] = self._array2output(value)
 
     def GET_save_internalconditions(self) -> None:
-        """Register the |StateSequence| and |LogSequence| values of the |HydPy|
-        instance for the current simulation endpoint under the given `id`."""
+        """Register the |StateSequence| and |LogSequence| values of the |HydPy| object
+        for the current simulation endpoint under the given `id`."""
         self.state.conditions[self._id] = self.state.conditions.get(self._id, {})
         self.state.conditions[self._id][self.state.idx2] = self.state.hp.conditions
 

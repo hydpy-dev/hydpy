@@ -192,7 +192,7 @@ reader and writer objects automatically by using the context managers
 |SequenceManager.netcdfreading| and |SequenceManager.netcdfwriting|.  Such comfort is
 only available for these and the similar methods of the classes |HydPy|, |Elements|,
 and |Nodes|.  If you, for example, apply the |IOSequence.load_series| or the
-|IOSequence.save_series| method of individual |IOSequence| instances, you must activate
+|IOSequence.save_series| method of individual |IOSequence| objects, you must activate
 |SequenceManager.netcdfreading| or |SequenceManager.netcdfwriting| manually.  This
 discomfort is intentional and should help prevent accidentally opening and closing
 the same NetCDF file repeatedly, which could result in an immense waste of computation
@@ -446,7 +446,7 @@ def write_ncfile(
 
     At least, you need to supply the filepath, the sequence's name (the name of the
     NetCDF variable that stores the actual time series data), the time series data (as
-    tuples of names and floating point vectors), and a |Timegrid| instance (for the
+    tuples of names and floating point vectors), and a |Timegrid| object (for the
     temporal referencing of the given time series):
 
     >>> from hydpy import TestIO, Timegrid, write_ncfile
@@ -511,8 +511,7 @@ def write_ncfile(
     series_1: 1.0, 2.0, 3.0
     series_2: 2.0, 3.0, 4.0
 
-    Function |write_ncfile| checks if all time series fit the given |Timegrid|
-    instance:
+    Function |write_ncfile| checks if all time series fit the given |Timegrid| object:
 
     >>> with TestIO():
     ...     write_ncfile(
@@ -1405,10 +1404,9 @@ class NetCDFVariableFlat(NetCDFVariable, abc.ABC):
     >>> from hydpy.core.testtools import prepare_io_example_1
     >>> nodes, (element1, element2, element3, element4) = prepare_io_example_1()
 
-    We define three |NetCDFVariableFlatWriter| instances with different
-    dimensionalities structures and log the |lland_inputs.Nied| and |lland_fluxes.NKor|
-    instances of the first two elements and the |hland_states.SP| instance of the
-    fourth element:
+    We define three |NetCDFVariableFlatWriter| objects with different dimensionality
+    structures and log the |lland_inputs.Nied| and |lland_fluxes.NKor| objects of the
+    first two elements and the |hland_states.SP| object of the fourth element:
 
     >>> from hydpy.core.netcdftools import NetCDFVariableFlatWriter
     >>> var_nied = NetCDFVariableFlatWriter("nied.nc")
@@ -1469,9 +1467,9 @@ already registered under the same column name(s) but with different time series 
     ...     seq.series = -777.0
     ...     assert numpy.any(seq.series != seq.testarray)
 
-    Now, we prepare three |NetCDFVariableFlatReader| instances and log the same
-    sequences as above, open the existing NetCDF file for reading, read its data, and
-    confirm that it has been correctly passed to the test sequences:
+    Now, we prepare three |NetCDFVariableFlatReader| objects and log the same sequences
+    as above, open the existing NetCDF file for reading, read its data, and confirm
+    that it has been correctly passed to the test sequences:
 
     >>> from hydpy.core.netcdftools import NetCDFVariableFlatReader
     >>> var_nied = NetCDFVariableFlatReader("nied.nc")
@@ -2248,9 +2246,8 @@ class NetCDFInterfaceBase(Generic[TypeNetCDFVariable]):
     lland_knauf_flux_nkor_mean, lland_knauf_input_nied,
     lland_knauf_input_nied_mean, sim_q, sim_q_mean, sim_t, sim_t_mean
 
-    |NetCDFInterfaceWriter| provides attribute access to its |NetCDFVariable|
-    instances, both via their filenames and the combination of their folder names and
-    filenames:
+    |NetCDFInterfaceWriter| provides attribute access to its |NetCDFVariable| objects,
+    both via their filenames and the combination of their folder names and filenames:
 
     >>> assert writer.sim_q is writer.default_sim_q
     >>> print_vector(sorted(set(dir(writer)) - set(object.__dir__(writer))))
@@ -2403,7 +2400,7 @@ named `lland_dd` nor does it define a member named `lland_dd`.
 
 class NetCDFInterfaceReader(NetCDFInterfaceBase[NetCDFVariableFlatReader]):
     """Interface between |SequenceManager| and multiple |NetCDFVariableFlatReader|
-    instances for reading data in one step.
+    objects for reading data in one step.
 
     For a general introduction to using |NetCDFInterfaceReader|, see the
     documentation on base class |NetCDFInterfaceBase|.
@@ -2433,7 +2430,7 @@ class NetCDFInterfaceWriter(
     NetCDFInterfaceBase[NetCDFVariableAggregated | NetCDFVariableFlatWriter]
 ):
     """Interface between |SequenceManager| and multiple |NetCDFVariableFlatWriter| or
-    |NetCDFVariableAggregated| instances for writing data in one step.
+    |NetCDFVariableAggregated| objects for writing data in one step.
 
     For a general introduction to using |NetCDFInterfaceWriter|, see the
     documentation on base class |NetCDFInterfaceBase|.
@@ -2470,7 +2467,7 @@ class NetCDFInterfaceWriter(
 
 class NetCDFInterfaceJIT(NetCDFInterfaceBase[FlatUnion]):
     """Interface between |SequenceManager| and multiple |NetCDFVariableFlatWriter|
-    instances for reading or writing data just in time.
+    objects for reading or writing data just in time.
 
     See the documentation on method |NetCDFInterfaceJIT.provide_jitaccess| for further
     information.

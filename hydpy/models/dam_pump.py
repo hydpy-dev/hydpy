@@ -38,7 +38,7 @@ level):
 >>> remote = Node("remote", variable=dam_receivers_RWL)
 >>> dam = Element("dam", inlets=inflow, outlets=outflow, receivers=(outer, remote))
 
-Next, we prepare a |dam_pump| instance and connect it to the |Element| instance:
+Next, we prepare a |dam_pump| instance and connect it to the |Element| object:
 
 >>> from hydpy.models.dam_pump import *
 >>> parameterstep()

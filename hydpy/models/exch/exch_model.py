@@ -1007,7 +1007,7 @@ class Pass_ActualTransfer_StreamOutflow_V1(modeltools.Method):
 
     Examples:
 
-        We prepare a 15-day simulation period and set up a |UnitTest| instance to
+        We prepare a 15-day simulation period and set up a |UnitTest| object to
         automatically use method |Pass_ActualTransfer_StreamOutflow_V1| with the
         corresponding input values (each example refers to the next day, starting
         with January 1):
@@ -1068,9 +1068,9 @@ class Pass_ActualTransfer_StreamOutflow_V1(modeltools.Method):
         unhindered through the main stream and transfers half of the "positive inflow"
         (normal flow).  Between the fourth and fourteenth day, the second rule, which
         does not order any water transfer, becomes gradually more important.  Because
-        of the "normal" way to configure |FlowTransferRules| via |PPoly| instances
-        instead of |PPolys| instances, the water balance (:math:`Inflow =
-        ActualTransfer + StreamOutflow`) is automatically kept:
+        of the "normal" way to configure |FlowTransferRules| via |PPoly| objects
+        instead of |PPolys| objects, the water balance (:math:`Inflow = ActualTransfer
+        + StreamOutflow`) is automatically kept:
 
         >>> test()
         | ex. | inflow | requestedtransfer | actualtransfer | streamoutflow |

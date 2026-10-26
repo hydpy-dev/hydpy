@@ -1856,7 +1856,7 @@ class SummaryRow(abc.ABC):
 
     |print_evaluationtable| calculates values for all node-criterion combinations and
     passes them to |SummaryRow.summarise_criteria|.  If the nodes passed to
-    |print_evaluationtable| and the |SummaryRow| instance are identical,
+    |print_evaluationtable| and the |SummaryRow| object are identical,
     |SummaryRowSimple| just calculates the average for each criterion:
 
     >>> print_vector(s.summarise_criteria(2, {n1: [1.0, 2.0], n2: [3.0, 6.0]}))
@@ -1868,8 +1868,8 @@ class SummaryRow(abc.ABC):
     >>> print_vector(s.summarise_criteria(1, {n1: [1.0], n2: [3.0], n3: [5.0]}))
     2.0
 
-    If the |SummaryRow| instance expects a node not passed to |print_evaluationtable|,
-    it raises the following error:
+    If the |SummaryRow| object expects a node not passed to |print_evaluationtable|, it
+    raises the following error:
 
     >>> print_vector(s.summarise_criteria(1, {n1: [1.0]}))
     Traceback (most recent call last):
@@ -1878,7 +1878,7 @@ class SummaryRow(abc.ABC):
 `SummaryRowSimple`, the following error occurred: Missing information for node `n2`.
 
     |SummaryRow.summarise_criteria| generally returns |numpy.nan| values for all
-    |SummaryRow| instances that select no nodes:
+    |SummaryRow| objects that select no nodes:
 
     >>> SummaryRowSimple("s", ()).summarise_criteria(2, {n1: [1.0, 2.0]})
     (nan, nan)
@@ -2172,7 +2172,7 @@ name are given.
     test2  -1.00      0.00
 
     The `summaryrows` argument is a more flexible alternative to the standard averaging
-    across nodes.  You can pass an arbitrary number of |SummaryRow| instances.  Their
+    across nodes.  You can pass an arbitrary number of |SummaryRow| objects.  Their
     names define the descriptions in the first column.  Here, we include additional
     lines giving the complete averages for all nodes, averages for a subset of nodes
     (in fact, the "average" for the single node `test2`), automatically weighted

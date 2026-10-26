@@ -79,12 +79,17 @@ ________
 
 An `instance` (or "object") is a concrete realisation of a :ref:`class`.  `1.5`, for
 example, is an instance of |float| with concrete data that makes it usable.  You can
-add two |float| instances with the value `1.5` to get the new float instance `3.0`.  In
+add two |float| objects with the value `1.5` to get the new float instance `3.0`.  In
 contrast, adding two classes does not make sense.  To give a HydPy example, class
 |hland_control.Area| defines how we define the area of a subcatchment and how we can
 use it when working with members of the :ref:`HydPy-H` model family. But when dealing
 with the concrete area of a specific subbasin, we work with a single instance of
 |hland_control.Area|.
+
+In this documentation, we usually write "|Element| object" (and not "|Element|
+instance") when referring to a concrete object of a specific class.  We reserve the
+term "instance" for emphasising the relationship to its class (as in "an instance of
+class |Element|") and for established terms like "model instance".
 
 .. _model:
 
@@ -274,7 +279,7 @@ consisting of more than one subbasin.  A `network` combines consistently coupled
 element
 _______
 
-`Element` instances are the central components of each HydPy :ref:`project's <project>`
+`Element` objects are the central components of each HydPy :ref:`project's <project>`
 :ref:`network`.  They usually represent places where something needs to be calculated,
 for example, the subbasin of a catchment (where we want to calculate runoff generation
 and concentration) or a river crossing a subbasin (where we want to calculate flood
@@ -305,7 +310,7 @@ handle all different model types.
 node
 ____
 
-`Node` instances are the second essential component of all :ref:`networks <network>`.
+`Node` objects are the second essential component of all :ref:`networks <network>`.
 They allow specifying which :ref:`model` instance passes which type of information in
 which direction.  The "direction" follows from the given connections to :ref:`element`
 instances (which handle the model instances).  The "type" can be set by the `node's`

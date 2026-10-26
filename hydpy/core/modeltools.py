@@ -185,7 +185,7 @@ class _SubmodelPropertyBase(Generic[TypeSubmodelInterface]):
 class SubmodelProperty(_SubmodelPropertyBase[TypeSubmodelInterface]):
     """Descriptor for submodel attributes.
 
-    |SubmodelProperty| instances link main models and their submodels.  They follow the
+    |SubmodelProperty| objects link main models and their submodels.  They follow the
     attribute convention described in the documentation on class |SubmodelInterface|.
     Behind the scenes, they build the required connections both on the Python and the
     Cython level and perform some type-related tests (to avoid errors due to selecting
@@ -831,7 +831,7 @@ occurred: The given submodel is not an instance of any of the supported interfac
 class SubmodelIsMainmodelProperty:
     """Descriptor for boolean "submodel_is_mainmodel" attributes.
 
-    |SubmodelIsMainmodelProperty| instances work like simple boolean attributes but
+    |SubmodelIsMainmodelProperty| objects work like simple boolean attributes but
     silently synchronise the equally named boolean attributes of the corresponding
     cython model, if available:
 
@@ -883,7 +883,7 @@ class SubmodelIsMainmodelProperty:
 class SubmodelTypeIDProperty:
     """Descriptor for integer "submodel_typeid" attributes.
 
-    |SubmodelTypeIDProperty| instances work like simple integer attributes but silently
+    |SubmodelTypeIDProperty| objects work like simple integer attributes but silently
     synchronise the equally named integer attributes of the corresponding cython model,
     if available:
 
@@ -1169,9 +1169,9 @@ class Model:
     def element(self) -> devicetools.Element:
         """The model instance's master element.
 
-        Usually, one assigns a |Model| instance to an |Element| instance, but the other
-        way round works as well (for more information, see the documentation on
-        property |Element.model| of class |Element|):
+        Usually, one assigns a |Model| object to an |Element| object, but the other way
+        round works as well (for more information, see the documentation on property
+        |Element.model| of class |Element|):
 
         >>> from hydpy import Element, prepare_model
         >>> from hydpy.core.modeltools import Model
@@ -2979,8 +2979,8 @@ the available directories (`calib_1` and `calib_2`).
 
         One can use the `aggregate_vectors` parameter to gain a better overview.
         Then, |Model.find_submodels| reports only the names of the respective
-        |SubmodelsProperty| instances with a suffixed wildcard to distinguish them
-        from |SubmodelProperty| instances:
+        |SubmodelsProperty| objects with a suffixed wildcard to distinguish them from
+        |SubmodelProperty| objects:
 
         >>> channel.find_submodels(aggregate_vectors=True)
         {'model.routingmodels_*': None, 'model.storagemodels_*': None}
@@ -4931,7 +4931,7 @@ def define_modelcoupler(
     [CoupleModels[TypeModel_co]], ModelCoupler[TypeModel_co, TypeModel_contra]
 ]:
     """Wrap a model-specific function for creating a composite model based given on
-    |Node| and |Element| objects and their handled "normal" |Model| instances."""
+    |Node| and |Element| objects and their handled "normal" |Model| objects."""
 
     def _define_modelcoupler(
         wrapped: CoupleModels[TypeModel_co],

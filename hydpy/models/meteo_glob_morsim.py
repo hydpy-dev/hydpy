@@ -32,7 +32,7 @@ their output can serve as input for the integration tests of |lland_knauf|.  Amo
 others, |lland_knauf| requires global radiation and possible sunshine duration as
 input, which is why we select the corresponding sequences
 |meteo_fluxes.GlobalRadiation| and |meteo_factors.PossibleSunshineDuration| as outputs.
-We hand them over to the |Node| instances `node1` and `node2`:
+We hand them over to the |Node| objects `node1` and `node2`:
 
 >>> from hydpy import Element, Node
 >>> from hydpy.aliases import meteo_fluxes_GlobalRadiation, meteo_factors_PossibleSunshineDuration
@@ -62,8 +62,8 @@ _______________________
 
 The first example takes place in a summer period, for which we calculate daily values
 of global radiation and possible sunshine duration.  Besides preparing an
-|IntegrationTest| instance for running the test, we only need to provide the time
-series of (measured) sunshine duration:
+|IntegrationTest| object for running the test, we only need to provide the time series
+of (measured) sunshine duration:
 
 >>> from hydpy import IntegrationTest, pub, round_
 >>> pub.timegrids = "1997-08-01", "1997-09-01", "1d"

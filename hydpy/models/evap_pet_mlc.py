@@ -22,7 +22,7 @@ cover types of grass, trees, and water to apply |evap_pet_mlc| as a stand-alone 
 
 Application model |evap_pet_mlc| requires no input from another model and does not
 supply any outlet sequence.  Hence, assigning a model instance to a blank |Element|
-instance is sufficient:
+object is sufficient:
 
 >>> from hydpy import Element
 >>> element = Element("element")

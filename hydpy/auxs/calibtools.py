@@ -200,13 +200,13 @@ class FactorAdaptor(Adaptor):
     gmelt(nan)
 
     Next, we call method |Replace.apply_value| of the |Replace| object to apply the
-    |FactorAdaptor| object on all relevant |hland_control.GMelt| instances of the `Lahn`
+    |FactorAdaptor| object on all relevant |hland_control.GMelt| objects of the `Lahn`
     catchment:
 
     >>> gmelt.adaptor(control.gmelt)
 
-    The string representation of the |hland_control.GMelt| instance of the Dill
-    catchment indicates nothing happened:
+    The string representation of the |hland_control.GMelt| object of the Dill catchment
+    indicates nothing happened:
 
     >>> control.gmelt
     gmelt(nan)
@@ -721,8 +721,8 @@ following error occurred: Rule type `Replace` supports only regular parameters, 
 
         Each |Rule| object calls |Rule.check_parameter| for all parameters it finds
         during initialisation.  By default, |Rule.check_parameter| accepts all regular
-        parameters (|Parameter| instances) but no special parameters (|SpecialParameter|
-        instances).  See the documentation on class |Rule| for an example.
+        parameters (|Parameter| objects) but no special parameters (|SpecialParameter|
+        objects).  See the documentation on class |Rule| for an example.
 
         Subclasses addressing other parameters (like |RuleIUH|) or requiring additional
         properties of the given parameters can override |Rule.check_parameter|
@@ -768,7 +768,7 @@ following error occurred: Rule type `Replace` supports only regular parameters, 
     @property
     def elements(self) -> hydpy.Elements:
         """The |Element| objects, which handle the relevant target |Parameter|
-        instances."""
+        objects."""
         return hydpy.Elements(self.element2parameters)
 
     def _iter_regular_parameters(self) -> Iterator[parametertools.Parameter]:
@@ -994,7 +994,7 @@ class LogReplace(Replace):
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
 
-    We define a |LogReplace| instance that replaces the values of parameter
+    We define a |LogReplace| object that replaces the values of parameter
     |hland_control.K4| of application model |hland_96|:
 
     >>> from hydpy import LogReplace
@@ -2590,7 +2590,7 @@ class RuleIUH(Rule["arma_control.Responses"], abc.ABC):
 
     def check_parameter(self, parameter: parametertools.AnyParameter, /) -> None:
         """Raise an error if the given parameter is not an |arma_control.Responses|
-        instance.
+        object.
 
         >>> from hydpy import Element, prepare_model, ReplaceIUH, Selection
         >>> element = Element("land", outlets="out")
@@ -2679,7 +2679,7 @@ class ReplaceIUH(RuleIUH):
         discharge thresholds.  Hence, the usage of class |ReplaceIUH| might change in
         the future.
 
-    So far, there is no example project containing |arma_rimorido| models instances.
+    So far, there is no example project containing |arma_rimorido| model instances.
     Therefore, we generate a simple one consisting of two |Element| objects only:
 
     >>> from hydpy import Element, prepare_model, Selection

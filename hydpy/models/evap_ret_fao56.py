@@ -22,7 +22,7 @@ Integration tests
 
 Application model |evap_ret_fao56| requires no input from an external model and does
 not supply  any data to an outlet sequence.  Hence, assigning a model instance to a
-blank |Element| instance is sufficient:
+blank |Element| object is sufficient:
 
 >>> from hydpy import Element
 >>> from hydpy.models.evap_ret_fao56 import *

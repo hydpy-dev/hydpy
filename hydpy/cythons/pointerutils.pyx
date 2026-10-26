@@ -12,8 +12,8 @@ manner as the immutable standard data type for floating-point operations
 (|float|). |Double| and |PDouble| should be preferred over |float| only
 when their pointer functionality is required.  At the moment, the only usage
 of |Double| and |PDouble| within *HydPy* is to directly share information
-between |NodeSequence| objects of |Node| instances and |LinkSequence|
-objects of |Model| instances handled by |Element| instances.
+between |NodeSequence| objects of |Node| objects and |LinkSequence|
+objects of |Model| objects handled by |Element| objects.
 
 The following examples try to give an idea of the purpose of using pointers
 in *HydPy*.
@@ -200,7 +200,7 @@ Always remember that, even if not immediately evident, you are working with
 pointers.
 
 You are allowed to initialise a |PDouble| object without giving a |Double|
-instance to the constructor, but do not do this unless you have an idea
+object to the constructor, but do not do this unless you have an idea
 how to specify the proper memory address later:
 
 >>> px = PDouble()
@@ -243,11 +243,11 @@ first, defining the number of |Double| objects to be taken into account:
 >>> ppdouble[0]
 Traceback (most recent call last):
 ...
-RuntimeError: The shape of the actual `PPDouble` instance has not been set yet, which is a necessary preparation before using it.
+RuntimeError: The shape of the actual `PPDouble` object has not been set yet, which is a necessary preparation before using it.
 >>> ppdouble[0] = 1.0
 Traceback (most recent call last):
 ...
-RuntimeError: The shape of the actual `PPDouble` instance has not been set yet, which is a necessary preparation before using it.
+RuntimeError: The shape of the actual `PPDouble` object has not been set yet, which is a necessary preparation before using it.
 
 >>> ppdouble.shape = 4
 >>> ppdouble.shape
@@ -262,20 +262,20 @@ like the following:
 >>> ppdouble[-1]
 Traceback (most recent call last):
 ...
-IndexError: The actual `PPDouble` instance is of length `3`.  Only index values between 0 and 2 are allowed, but the given index is `-1`.
+IndexError: The actual `PPDouble` object is of length `3`.  Only index values between 0 and 2 are allowed, but the given index is `-1`.
 >>> ppdouble[3] = 1.0
 Traceback (most recent call last):
 ...
-IndexError: The actual `PPDouble` instance is of length `3`.  Only index values between 0 and 2 are allowed, but the given index is `3`.
+IndexError: The actual `PPDouble` object is of length `3`.  Only index values between 0 and 2 are allowed, but the given index is `3`.
 
 >>> ppdouble[0]
 Traceback (most recent call last):
 ...
-RuntimeError: The pointer of the actual `PPDouble` instance at index `0` requested, but not prepared yet via `set_pointer`.
+RuntimeError: The pointer of the actual `PPDouble` object at index `0` requested, but not prepared yet via `set_pointer`.
 >>> ppdouble[0] = 1.0
 Traceback (most recent call last):
 ...
-RuntimeError: The pointer of the actual `PPDouble` instance at index `0` requested, but not prepared yet via `set_pointer`.
+RuntimeError: The pointer of the actual `PPDouble` object at index `0` requested, but not prepared yet via `set_pointer`.
 
 To finally prepare our |PPDouble| object, we need to assign |Double| objects
 to it via method `set_pointer`:
@@ -618,7 +618,7 @@ cdef class PPDouble:
 def check0(length):
     if length == 0:
         raise RuntimeError(
-            "The shape of the actual `PPDouble` instance "
+            "The shape of the actual `PPDouble` object "
             "has not been set yet, which is a necessary "
             "preparation before using it."
         )
@@ -626,7 +626,7 @@ def check0(length):
 def check1(length, idx):
     if not (0 <= idx < length):
         raise IndexError(
-            f"The actual `PPDouble` instance is of length "
+            f"The actual `PPDouble` object is of length "
             f"`{length}`.  Only index values between 0 and "
             f"{length-1} are allowed, but the given "
             f"index is `{idx}`."
@@ -635,7 +635,7 @@ def check1(length, idx):
 def check2(ready, idx):
     if not ready[idx]:
         raise RuntimeError(
-            f"The pointer of the actual `PPDouble` instance "
+            f"The pointer of the actual `PPDouble` object "
             f"at index `{idx}` requested, but not prepared yet "
             f"via `set_pointer`."
         )

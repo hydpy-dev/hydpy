@@ -142,7 +142,7 @@ following error occurred: hour must be in 0...
     >>> date - "1"
     Traceback (most recent call last):
     ...
-    TypeError: Object `1` of type `str` cannot be substracted from a `Date` instance.
+    TypeError: Object `1` of type `str` cannot be substracted from a `Date` object.
 
     The comparison operators work as expected:
 
@@ -235,7 +235,7 @@ following error occurred: hour must be in 0...
         >>> Date.from_datetime(datetime(2000, 1, 1, microsecond=2))
         Traceback (most recent call last):
         ...
-        ValueError: For `Date` instances, the microsecond must be zero, but for the \
+        ValueError: For `Date` objects, the microsecond must be zero, but for the \
 given `datetime` object it is `2` instead.
 
         Due to a different kind of handling time zone information, the time zone
@@ -251,8 +251,8 @@ given `datetime` object it is `2` instead.
         """
         if date.microsecond != 0:
             raise ValueError(
-                f"For `Date` instances, the microsecond must be zero, but for the "
-                f"given `datetime` object it is `{date.microsecond:d}` instead."
+                f"For `Date` objects, the microsecond must be zero, but for the given "
+                f"`datetime` object it is `{date.microsecond:d}` instead."
             )
         self = super().__new__(cls)
         utcoffset = date.utcoffset()
@@ -434,7 +434,7 @@ base 10: '0X'
 
     @classmethod
     def from_array(cls: type[TypeDate], array: NDArrayFloat) -> TypeDate:
-        """Return a |Date| instance based on date information (year, month, day, hour,
+        """Return a |Date| object based on date information (year, month, day, hour,
         minute, second) stored as the first entries of the successive rows of a
         |numpy.ndarray|.
 
@@ -754,8 +754,8 @@ decimal fraction of a second than "0" allowed.
         11
 
         Setting it, for example, to 10 (October is another typical reference month in
-        different countries) affects all |Date| instances, no matter if already
-        existing or created afterwards:
+        different countries) affects all |Date| objects, no matter if already existing
+        or created afterwards:
 
         >>> date2 = Date("2010-01-01")
         >>> date1.refmonth = 10
@@ -975,7 +975,7 @@ decimal fraction of a second than "0" allowed.
                 pass
         raise TypeError(
             f"Object `{other}` of type `{type(other).__name__}` cannot be substracted "
-            f"from a `Date` instance."
+            f"from a `Date` object."
         )
 
     def __rsub__(self, other: DateConstrArg) -> Period:
@@ -1150,7 +1150,7 @@ following error occurred: The supplied argument must be either an instance of \
     >>> period + "wrong"
     Traceback (most recent call last):
     ...
-    TypeError: Object `wrong` of type `str` cannot be added to a `Period` instance.
+    TypeError: Object `wrong` of type `str` cannot be added to a `Period` object.
 
     Subtraction works much like addition:
 
@@ -1167,7 +1167,7 @@ following error occurred: The supplied argument must be either an instance of \
     >>> "wrong" - period
     Traceback (most recent call last):
     ...
-    TypeError: A `Period` instance cannot be subtracted from object `wrong` of type \
+    TypeError: A `Period` object cannot be subtracted from object `wrong` of type \
 `str`.
 
     Use multiplication with a number to change the length of a |Period| object:
@@ -1292,8 +1292,8 @@ following error occurred: The supplied argument must be either an instance of \
         >>> Period.from_timedelta(timedelta(0, 0, 1))
         Traceback (most recent call last):
         ...
-        ValueError: For `Period` instances, microseconds must be zero.  \
-However, for the given `timedelta` object it is `1` instead.
+        ValueError: For `Period` objects, microseconds must be zero.  However, for \
+the given `timedelta` object it is `1` instead.
         """
         self = super().__new__(cls)
         vars(self)["timedelta"] = self._check_timedelta(period)
@@ -1303,8 +1303,8 @@ However, for the given `timedelta` object it is `1` instead.
     def _check_timedelta(period: datetime_.timedelta) -> datetime_.timedelta:
         if period.microseconds:
             raise ValueError(
-                f"For `Period` instances, microseconds must be zero.  However, for "
-                f"the given `timedelta` object it is `{period.microseconds}` instead."
+                f"For `Period` objects, microseconds must be zero.  However, for the "
+                f"given `timedelta` object it is `{period.microseconds}` instead."
             )
         return period
 
@@ -1588,8 +1588,8 @@ moment.
             except BaseException:
                 pass
         raise TypeError(
-            f"Object `{other}` of type `{type(other).__name__}` "
-            f"cannot be added to a `Period` instance."
+            f"Object `{other}` of type `{type(other).__name__}` cannot be added to a "
+            f"`Period` object."
         )
 
     @overload
@@ -1666,7 +1666,7 @@ moment.
             except BaseException:
                 pass
         raise TypeError(
-            f"A `Period` instance cannot be subtracted from object `{other}` of type "
+            f"A `Period` object cannot be subtracted from object `{other}` of type "
             f"`{type(other).__name__}`."
         )
 
@@ -1862,7 +1862,7 @@ indexed timegrid `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`.
     2000-12-31 00:00:00
     2001-01-01 00:00:00
 
-    You can check |Timegrid| instances for equality:
+    You can check |Timegrid| objects for equality:
 
     >>> timegrid == Timegrid("2000-01-01", "2001-01-01", "1d")
     True
@@ -1878,7 +1878,7 @@ indexed timegrid `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`.
     False
 
     Also, you can check if a date or even the whole timegrid lies within a span defined
-    by a |Timegrid| instance (note unaligned dates and time grids with different step
+    by a |Timegrid| object (note unaligned dates and time grids with different step
     sizes are considered unequal):
 
     >>> Date("2000-01-01") in timegrid
@@ -2053,8 +2053,8 @@ indexed timegrid `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`.
 
     @classmethod
     def from_array(cls: type[TypeTimegrid], array: NDArrayFloat) -> TypeTimegrid:
-        """Create a |Timegrid| instance based on information stored in the first 13
-        rows of a |numpy.ndarray| object and return it.
+        """Create a |Timegrid| object based on information stored in the first 13 rows
+        of a |numpy.ndarray| object and return it.
 
         In *HydPy*, external time series files do define the time-related reference of
         their data on their own.  For the |numpy| `npy` binary format, we achieve this
@@ -2082,7 +2082,7 @@ indexed timegrid `Timegrid("2000-01-01 00:00:00", "2001-01-01 00:00:00", "1d")`.
         >>> Timegrid.from_array(array_[:12])
         Traceback (most recent call last):
         ...
-        IndexError: To define a Timegrid instance via an array, 13 numbers are \
+        IndexError: To define a Timegrid object via an array, 13 numbers are \
 required, but the given array consists of 12 entries only.
 
         The inverse method |Timegrid.to_array| creates a new |numpy| |numpy.ndarray|
@@ -2100,8 +2100,8 @@ required, but the given array consists of 12 entries only.
             )
         except IndexError:
             raise IndexError(
-                f"To define a Timegrid instance via an array, 13 numbers are "
-                f"required, but the given array consists of "
+                f"To define a Timegrid object via an array, 13 numbers are required, "
+                f"but the given array consists of "
                 f"{objecttools.Inflect.count(len(array), 'entry')} only."
             ) from None
 
@@ -2567,7 +2567,7 @@ class Timegrids:
 
     In many cases, one either wants to perform simulations and evaluations covering the
     whole initialisation period or not perform any simulation or evaluation.  In these
-    situations, you can pass a single |Timegrid| instance to the constructor of class
+    situations, you can pass a single |Timegrid| object to the constructor of class
     |Timegrids|:
 
     >>> from hydpy import Timegrid, Timegrids
@@ -3279,7 +3279,7 @@ must not be the given value `4`, as the day has already been set to `31`.
     >>> t.day = 30
     >>> t.month = 4
 
-    It is possible to compare two |TOY| instances:
+    It is possible to compare two |TOY| objects:
 
     >>> t1, t2 = TOY("1"), TOY("2")
     >>> t1 < t1, t1 < t2, t2 < t1

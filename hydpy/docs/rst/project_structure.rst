@@ -144,7 +144,7 @@ Here, the parameter values are not set directly via positional arguments but by
 parameter-specific keyword arguments unique to the classes |musk_control.NmbSegments|
 and |musk_control.Coefficients|.  Note that the `lag` argument is time-dependent and
 so, according to the specified parameter step size, is given in days, while the "true"
-value of the |musk_control.NmbSegments| instance refers to the simulation step size of
+value of the |musk_control.NmbSegments| object refers to the simulation step size of
 one hour:
 
 >>> nmbsegments.value == round(24.0 * 0.417)
@@ -214,7 +214,7 @@ land type-specific, and subbasin-wide values:
 
 Often, one does not wish to define individual values for each control file but more
 general ones.  HydPy supports this via "auxiliary files".  In the discussed control
-file, the parameter |hland_control.PCorr| instance takes its value from the auxiliary
+file, the parameter |hland_control.PCorr| object takes its value from the auxiliary
 file "land.py" (to get this working in a doctest requires changing the working
 directory):
 
@@ -361,14 +361,14 @@ type (`p`), and property |NodeSequence.descr_sequence| of class |NodeSequence|, 
 combines the sequence type (`obs`) and the handled variable (`q`).
 
 Internally, each ASCII file starts with information about the covered data period and
-the temporal resolution, described via a |Timegrid| instance.  Consider the following
+the temporal resolution, described via a |Timegrid| object.  Consider the following
 example:
 
 >>> from hydpy import Timegrid
 >>> timegrid = Timegrid("1996-01-01", "1996-01-05", "1d")
 
 The two dates define the start of the first and the end of the last data interval.
-Hence, the example |Timegrid| instance would be suitable for a time series file
+Hence, the example |Timegrid| object would be suitable for a time series file
 containing, for example, the precipitation sums of four days:
 
 >>> assert len(timegrid) == 4

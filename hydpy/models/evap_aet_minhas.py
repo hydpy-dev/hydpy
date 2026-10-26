@@ -14,7 +14,7 @@ Integration tests
 
 According to the intended usage as a submodel, |evap_aet_minhas| requires no
 connections to any nodes.  Hence, assigning a model instance to a blank |Element|
-instance is sufficient:
+object is sufficient:
 
 >>> from hydpy import Element
 >>> from hydpy.models.evap_aet_minhas import *

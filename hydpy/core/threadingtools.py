@@ -175,7 +175,7 @@ class Queue(queue.LifoQueue[devicetools.NodeOrElement]):
 
     For most users, |Queue| is more of an implementation detail that is never directly
     used.  However, if you intend to quench the last bit of performance out of HydPy,
-    you can create custom |Queue| instances that fit better to your network and model
+    you can create custom |Queue| objects that fit better to your network and model
     configurations at hand, and pass them to method |HydPy.simulate_multithreaded|.
     """
 
@@ -219,7 +219,7 @@ class Queue(queue.LifoQueue[devicetools.NodeOrElement]):
     def from_devices(
         cls, *, nodes: devicetools.Nodes, elements: devicetools.Elements
     ) -> Self:
-        """Create a new |Queue| instance and determine its members from the given
+        """Create a new |Queue| object and determine its members from the given
         (parallelisable) devices."""
 
         upstream2downstream: dict[
@@ -268,11 +268,11 @@ class Queue(queue.LifoQueue[devicetools.NodeOrElement]):
 
     @classmethod
     def from_queue(cls, *, queue_: Self) -> Self:
-        """Create a new |Queue| instance and take its members from the given |Queue|
-        instance.
+        """Create a new |Queue| object and take its members from the given |Queue|
+        object.
 
-        This copy-like mechanism makes the information contained by old |Queue|
-        instances already used in a multi-threaded simulation run reusable.
+        This copy-like mechanism makes the information contained by old |Queue| objects
+        already used in a multi-threaded simulation run reusable.
         """
 
         return cls(
@@ -340,8 +340,8 @@ class Queue(queue.LifoQueue[devicetools.NodeOrElement]):
 
 
 class Worker(threading.Thread):
-    """A worker that interacts with the current |Queue| instance and is responsible
-    for processing nodes and elements in an individual thread."""
+    """A worker that interacts with the current |Queue| object and is responsible for
+    processing nodes and elements in an individual thread."""
 
     _queue: Queue
     _elements: devicetools.Elements
@@ -356,7 +356,7 @@ class Worker(threading.Thread):
         self._idx_start, self._idx_end = hydpy.pub.timegrids.simindices
 
     def run(self) -> None:
-        """Query the next device from the current |Queue| instance, update the relevant
+        """Query the next device from the current |Queue| object, update the relevant
         time series data, and perform a simulation if the device is an element."""
 
         if sys.version_info < (3, 13):

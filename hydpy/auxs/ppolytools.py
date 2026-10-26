@@ -238,7 +238,7 @@ class PPoly(interptools.InterpAlgorithm):
     >>> ppoly.verify()
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to verify the selected `PPoly` instance, the following \
+    RuntimeError: While trying to verify the selected `PPoly` object, the following \
 error occurred: The number of constants indicated by `nmb_ps` (1) does not agree with \
 the actual number of constants held by vector `x0s` (3).
 
@@ -285,7 +285,7 @@ the actual number of constants held by vector `x0s` (3).
     Traceback (most recent call last):
     ...
     TypeError: You must either define the piecewise polynomials directly by passing \
-`Poly` instances, or provide the data required for estimating them.
+`Poly` objects, or provide the data required for estimating them.
 
     You cannot pass |Poly| objects and x-y data at the same time:
 
@@ -293,7 +293,7 @@ the actual number of constants held by vector `x0s` (3).
     Traceback (most recent call last):
     ...
     TypeError: You must either define the piecewise polynomials directly by passing \
-`Poly` instances, or provide the data required for estimating them, but not both.
+`Poly` objects, or provide the data required for estimating them, but not both.
 
     Estimating polynomials requires both x and y data:
 
@@ -384,8 +384,8 @@ the actual number of constants held by vector `x0s` (3).
             if nmb_vectors > 0:
                 raise TypeError(
                     f"You must either define the piecewise polynomials directly by "
-                    f"passing `{Poly.__name__}` instances, or provide the data "
-                    f"required for estimating them, but not both."
+                    f"passing `{Poly.__name__}` objects, or provide the data required "
+                    f"for estimating them, but not both."
                 )
             self._use_polynomials(*polynomials)
         elif nmb_vectors == 1:
@@ -398,7 +398,7 @@ the actual number of constants held by vector `x0s` (3).
         else:
             raise TypeError(
                 f"You must either define the piecewise polynomials directly by passing "
-                f"`{Poly.__name__}` instances, or provide the data required for "
+                f"`{Poly.__name__}` objects, or provide the data required for "
                 f"estimating them."
             )
 
@@ -425,11 +425,11 @@ the actual number of constants held by vector `x0s` (3).
         >>> PPoly.from_polynomials()
         Traceback (most recent call last):
         ...
-        TypeError: You must provide at least one `Poly` instance.
+        TypeError: You must provide at least one `Poly` object.
         """
         if not polynomials:
             raise TypeError(
-                f"You must provide at least one `{Poly.__name__}` instance."
+                f"You must provide at least one `{Poly.__name__}` object."
             )
         self = cls._make_self()
         self._use_polynomials(*polynomials)
@@ -1003,7 +1003,7 @@ has not been prepared so far.
         >>> ppoly.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to verify the selected `PPoly` instance, the \
+        RuntimeError: While trying to verify the selected `PPoly` object, the \
 following error occurred: The constants held in vector `x0s` are not strictly \
 increasing, which is necessary as they also serve as breakpoints for selecting the \
 relevant polynomials.
@@ -1015,7 +1015,7 @@ relevant polynomials.
         >>> ppoly.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to verify the selected `PPoly` instance, the \
+        RuntimeError: While trying to verify the selected `PPoly` object, the \
 following error occurred: The highest number of coefficients indicated by `nmb_cs` \
 (3) is larger than the possible number of coefficients storable in the coefficient \
 matrix `cs` (2).
@@ -1024,7 +1024,7 @@ matrix `cs` (2).
         >>> ppoly.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to verify the selected `PPoly` instance, the \
+        RuntimeError: While trying to verify the selected `PPoly` object, the \
 following error occurred: The number of polynomials indicated by `nmb_ps` (2) does \
 not agree with the actual number of coefficient arrays held by matrix `cs` (1).
 
@@ -1032,7 +1032,7 @@ not agree with the actual number of coefficient arrays held by matrix `cs` (1).
         >>> ppoly.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to verify the selected `PPoly` instance, the \
+        RuntimeError: While trying to verify the selected `PPoly` object, the \
 following error occurred: The number of constants indicated by `nmb_ps` (2) does not \
 agree with the actual number of constants held by vector `x0s` (1).
         """
@@ -1066,7 +1066,7 @@ agree with the actual number of constants held by vector `x0s` (1).
             if add_prefix:
                 objecttools.augment_excmessage(
                     f"While trying to verify the selected `{type(self).__name__}` "
-                    f"instance"
+                    f"object"
                 )
             raise exc
 
@@ -1232,16 +1232,16 @@ class PPolysOptions(enum.IntEnum):
 
 
 class PPolys(interptools.InterpAlgorithm):
-    """Handler for multiple |PPoly| instances.
+    """Handler for multiple |PPoly| objects.
 
-    |PPolys| allows combining multiple |PPoly| instances into one multi-target
-    piecewise polynomial interpolator.  It allows, for example, to configure
-    |exch_branch_rules| so that it branches river flow in an arbitrary number of
-    directions based on different rules that all depend on the amount of current flow.
+    |PPolys| allows combining multiple |PPoly| objects into one multi-target piecewise
+    polynomial interpolator.  It allows, for example, to configure |exch_branch_rules|
+    so that it branches river flow in an arbitrary number of directions based on
+    different rules that all depend on the amount of current flow.
 
-    The assignment of the different |PPoly| instances relies on keyword arguments.  For
+    The assignment of the different |PPoly| objects relies on keyword arguments.  For
     |exch_branch_rules|, each keyword argument corresponds to the name of a different
-    outlet node.  The corresponding |PPoly| instances can be configured independently.
+    outlet node.  The corresponding |PPoly| objects can be configured independently.
     You can create them with different linear or spline interpolation methods, and the
     x points (in this case, representing inflow) can differ (the y values, which
     represent the branched outflow, usually differ too, of course).  The following
@@ -1263,11 +1263,11 @@ class PPolys(interptools.InterpAlgorithm):
     ...     ),
     ... )
 
-    |PPolys| sorts the given |PPoly| instances alphabetically by their names,
-    regardless of the order of the keyword arguments.  This ensures that each output
-    value always belongs to the same name, even when different |PPolys| instances are
-    defined with differently ordered keyword arguments.  Hence, the outputs of the
-    current example are sorted as follows:
+    |PPolys| sorts the given |PPoly| objects alphabetically by their names, regardless
+    of the order of the keyword arguments.  This ensures that each output value always
+    belongs to the same name, even when different |PPolys| objects are defined with
+    differently ordered keyword arguments.  Hence, the outputs of the current example
+    are sorted as follows:
 
     >>> tuple(ppolys.piecewisepolynomials)
     ('branch1', 'branch2', 'branch3', 'main')
@@ -1325,12 +1325,12 @@ class PPolys(interptools.InterpAlgorithm):
     31.0: 0.166667, 0.0, 0.0, 0.833333
     34.0: 0.166667, 0.0, 0.0, 0.833333
 
-    Configuring individual |PPoly| instances with spline techniques requires special
-    care in the extrapolation range and, when using methods prone to overshooting, even
-    in the interpolation range.  Synchronising multiple |PPoly| instances to maintain
-    the water balance can be even more demanding.  Therefore, |PPolys| offers the
-    |PPolys.REST| option.  If you use this constant instead of one |PPoly| instance,
-    |PPolys| applies all defined |PPoly| instances to interpolate their y values for a
+    Configuring individual |PPoly| objects with spline techniques requires special care
+    in the extrapolation range and, when using methods prone to overshooting, even in
+    the interpolation range.  Synchronising multiple |PPoly| objects to maintain the
+    water balance can be even more demanding.  Therefore, |PPolys| offers the
+    |PPolys.REST| option.  If you use this constant instead of one |PPoly| object,
+    |PPolys| applies all defined |PPoly| objects to interpolate their y values for a
     given x and calculates the remaining y so that the water balance closes
     (:math:`y_1 = x - \\sum_{i=2}^n y_i`).  The remaining derivative is calculated
     accordingly (:math:`\\frac{dy_1}{dx} = 1 - \\sum_{i=2}^n \\frac{dy_i}{dx}`, because
@@ -1383,7 +1383,7 @@ class PPolys(interptools.InterpAlgorithm):
     31.0: 0.166667, 0.0, 0.0, 0.833333, 0.0
     34.0: 0.166667, 0.0, 0.0, 0.833333, 0.0
 
-    The individual |PPoly| instances are accessible via item access:
+    The individual |PPoly| objects are accessible via item access:
 
     >>> ppolys["branch3"]
     PPoly(
@@ -1393,7 +1393,7 @@ class PPolys(interptools.InterpAlgorithm):
     >>> ppolys["branch4"]
     Traceback (most recent call last):
     ...
-    KeyError: 'The selected `PPolys` instance does not handle an interpolator named \
+    KeyError: 'The selected `PPolys` object does not handle an interpolator named \
 `branch4`.'
 
     Calling |PPolys| objects without any arguments results in the following error:
@@ -1439,7 +1439,7 @@ piecewise polynomial function by passing at least one `PPoly` object.
     def _check_cready(self, what: str, /) -> None:
         if not self._cready:
             raise exceptiontools.AttributeNotReady(
-                f"For the selected `{type(self).__name__}` instance, no interpolation "
+                f"For the selected `{type(self).__name__}` object, no interpolation "
                 f"rules have been defined so far, which is necessary before {what}."
             )
 
@@ -1461,7 +1461,7 @@ piecewise polynomial function by passing at least one `PPoly` object.
         """The current input value.
 
         Before accessing |PPolys.inputs|, you need to assign the required |PPoly|
-        instances:
+        objects:
 
         >>> from hydpy import PPolys, PPoly, print_vector
         >>> ppolys = PPolys()
@@ -1469,7 +1469,7 @@ piecewise polynomial function by passing at least one `PPoly` object.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
-instance, no interpolation rules have been defined so far, which is necessary before \
+object, no interpolation rules have been defined so far, which is necessary before \
 accessing property `inputs`.
 
         |PPolys| is univariate with respect to its inputs.  Hence, |PPolys.inputs|
@@ -1491,7 +1491,7 @@ accessing property `inputs`.
         """The number of output values.
 
         Before accessing |PPolys.nmb_outputs|, you need to assign the required |PPoly|
-        instances:
+        objects:
 
         >>> from hydpy import PPolys, PPoly, print_vector
         >>> ppolys = PPolys()
@@ -1499,10 +1499,10 @@ accessing property `inputs`.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
-instance, no interpolation rules have been defined so far, which is necessary before \
+object, no interpolation rules have been defined so far, which is necessary before \
 accessing property `nmb_outputs`.
 
-        There is one output value for each |PPoly| instance:
+        There is one output value for each |PPoly| object:
 
         >>> ppolys(
         ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
@@ -1520,7 +1520,7 @@ accessing property `nmb_outputs`.
         """The last calculated output value.
 
         Before accessing |PPolys.outputs|, you need to assign the required |PPoly|
-        instances:
+        objects:
 
         >>> from hydpy import PPolys, PPoly, print_vector
         >>> ppolys = PPolys()
@@ -1528,10 +1528,10 @@ accessing property `nmb_outputs`.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
-instance, no interpolation rules have been defined so far, which is necessary before \
+object, no interpolation rules have been defined so far, which is necessary before \
 accessing property `outputs`.
 
-        There is one output value for each |PPoly| instance:
+        There is one output value for each |PPoly| object:
 
         >>> ppolys(
         ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
@@ -1549,7 +1549,7 @@ accessing property `outputs`.
         """The last calculated first-order derivative.
 
         Before accessing |PPolys.output_derivatives|, you need to assign the required
-        |PPoly| instances:
+        |PPoly| objects:
 
         >>> from hydpy import PPolys, PPoly, print_vector
         >>> ppolys = PPolys()
@@ -1557,10 +1557,10 @@ accessing property `outputs`.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
-instance, no interpolation rules have been defined so far, which is necessary before \
+object, no interpolation rules have been defined so far, which is necessary before \
 accessing property `output_derivatives`.
 
-        There is one output derivative for each |PPoly| instance:
+        There is one output derivative for each |PPoly| object:
 
         >>> ppolys(
         ...     target2=PPoly.from_data(xs=[0.0, 1.1, 2.2], ys=[0.0, 2.2, 6.6]),
@@ -1580,7 +1580,7 @@ accessing property `output_derivatives`.
         """Calculate the output values based on the input value defined previously.
 
         Before using |PPolys.calculate_values|, you need to assign the required |PPoly|
-        instances:
+        objects:
 
         >>> from hydpy import PPolys, PPoly, print_vector
         >>> ppolys = PPolys()
@@ -1588,7 +1588,7 @@ accessing property `output_derivatives`.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
-instance, no interpolation rules have been defined so far, which is necessary before \
+object, no interpolation rules have been defined so far, which is necessary before \
 using method `calculate_values`.
 
         Usually, method |PPolys.calculate_values| just uses the respective
@@ -1613,7 +1613,7 @@ using method `calculate_values`.
         value.
 
         Before using |PPolys.calculate_derivatives|, you need to assign the required
-        |PPoly| instances:
+        |PPoly| objects:
 
         >>> from hydpy import PPolys, PPoly, print_vector
         >>> ppolys = PPolys()
@@ -1621,7 +1621,7 @@ using method `calculate_values`.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
-instance, no interpolation rules have been defined so far, which is necessary before \
+object, no interpolation rules have been defined so far, which is necessary before \
 using method `calculate_derivatives`.
 
         Usually, method |PPolys.calculate_derivatives| just uses the respective
@@ -1644,11 +1644,11 @@ using method `calculate_derivatives`.
 
     @property
     def piecewisepolynomials(self) -> Mapping[str, PPoly | PPolysOptions]:
-        """Mapping containing the names and |PPoly| instances of the respective
+        """Mapping containing the names and |PPoly| objects of the respective
         interpolation rules.
 
         Before accessing |PPolys.piecewisepolynomials|, you need to assign the required
-        |PPoly| instances:
+        |PPoly| objects:
 
         >>> from hydpy import PPolys, PPoly
         >>> ppolys = PPolys()
@@ -1656,7 +1656,7 @@ using method `calculate_derivatives`.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: For the selected `PPolys` \
-instance, no interpolation rules have been defined so far, which is necessary before \
+object, no interpolation rules have been defined so far, which is necessary before \
 accessing property `piecewisepolynomials`.
 
         >>> ppolys(
@@ -1704,7 +1704,7 @@ accessing property `piecewisepolynomials`.
         Traceback (most recent call last):
         ...
         RuntimeError: While trying to verify the `target2` interpolator of the \
-selected `PPolys` instance, the following error occurred: The constants held in \
+selected `PPolys` object, the following error occurred: The constants held in \
 vector `x0s` are not strictly increasing, which is necessary as they also serve as \
 breakpoints for selecting the relevant polynomials.
         """
@@ -1715,7 +1715,7 @@ breakpoints for selecting the relevant polynomials.
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to verify the `{name}` interpolator of the "
-                    f"selected `{type(self).__name__}` instance"
+                    f"selected `{type(self).__name__}` object"
                 )
 
     def assignrepr(self, prefix: str, indent: int = 0) -> str:
@@ -1771,6 +1771,6 @@ breakpoints for selecting the relevant polynomials.
         if key in self._ppolys:
             return self._ppolys[key]
         raise KeyError(
-            f"The selected `{type(self).__name__}` instance does not handle an "
+            f"The selected `{type(self).__name__}` object does not handle an "
             f"interpolator named `{key}`."
         )

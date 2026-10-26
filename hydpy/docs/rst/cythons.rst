@@ -22,9 +22,9 @@ generated when building HydPy locally.  You can find them in the `cythons` subpa
 `autogen`.  The same holds for the dll files of the "cythonized"  hydrological models.
 
 If you want to change a model in Python (for example, for testing) and also want to
-update its cythonized counterpart, use the responsible |Cythonizer| instance, which is
-a member of the subpackage (in case of a base model) or module (in case of an
-application model).
+update its cythonized counterpart, use the responsible |Cythonizer| object, which is a
+member of the subpackage (in case of a base model) or module (in case of an application
+model).
 
 Note that it is more effort to maintain Cython code than to maintain Python code.  So
 please refrain from writing Cython code when the expected computational time gain is

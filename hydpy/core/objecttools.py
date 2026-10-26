@@ -98,7 +98,7 @@ def _search_device(self: object) -> devicetools.Node | devicetools.Element | Non
 
 
 def devicename(self: object) -> str:
-    """Try to return the name of the (indirect) master |Node| or |Element| instance, if
+    """Try to return the name of the (indirect) master |Node| or |Element| object, if
     not possible return `?`.
 
     >>> from hydpy import prepare_model
@@ -1854,7 +1854,7 @@ class Inflect:
 
     Importing `inflect` takes time, so |Inflect| imports it and creates the required
     engine only when needed for the first time.  There is no need to create |Inflect|
-    instances; call its class methods directly:
+    objects; call its class methods directly:
 
     >>> from hydpy.core.objecttools import Inflect
     >>> Inflect.plural("value", 2)

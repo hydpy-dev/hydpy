@@ -50,7 +50,7 @@ nodes and passes the branched outflow to two outlet nodes:
 There may be fewer or more inlet nodes, but the number of outlet nodes must be exactly
 two.
 
-The |Node.variable| types of the respective |Node| instances do not matter.  Instead,
+The |Node.variable| types of the respective |Node| objects do not matter.  Instead,
 |exch_branch_io| lumps all inlet nodes together as inflow providers and builds
 different connections to the two outlet nodes, for which it uses the node names passed
 to parameter |Targets|:
@@ -141,7 +141,7 @@ for calculating requested transfers:
 Configuring this internal routine means defining piecewise linear or polynomial
 interpolation functions and passing them to parameter |FlowTransferRules|.  The
 documentation for parameter |FlowTransferRules| explains the available degrees of
-freedom for doing so. However, here we restrict ourselves to simple |PPoly| instances,
+freedom for doing so. However, here we restrict ourselves to simple |PPoly| objects,
 each interpolating the water transfer for a specific time of year:
 
 >>> flowtransferrules(

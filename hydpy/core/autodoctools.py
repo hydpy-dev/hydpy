@@ -235,9 +235,9 @@ def _add_lines(specification: str, module: types.ModuleType) -> list[str]:
 
     Note that `collection classes` (e.g. `Model`, `ControlParameters`, `InputSequences`
     are placed on top of the respective section and the `contained classes` (e.g. model
-    methods, `ControlParameter` instances, `InputSequence` instances at the bottom.
-    This differs from the order of their definition in the respective modules, but
-    results in a better documentation structure.
+    methods, `ControlParameter` objects, `InputSequence` objects at the bottom.  This
+    differs from the order of their definition in the respective modules, but results
+    in a better documentation structure.
     """
     name_collectionclass = (
         None

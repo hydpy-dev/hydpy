@@ -534,15 +534,15 @@ class Devices(Generic[TypeDevice]):
     ...               Node("nd", keywords=("group_a", "group_2")),
     ...               Node("ne", keywords=("group_b", "group_1")))
 
-    |Nodes| instances are containers supporting attribute and item access. You can
-    access each node directly by its name:
+    |Nodes| objects are containers supporting attribute and item access. You can access
+    each node directly by its name:
 
     >>> nodes.na
     Node("na", variable="Q")
     >>> nodes["na"]
     Node("na", variable="Q")
 
-    In many situations, a |Nodes| instance contains a single node only.  One can query
+    In many situations, a |Nodes| object contains a single node only.  One can query
     such a single node using zero as the index for convenience:
 
     >>> Nodes("na")[0]
@@ -556,7 +556,7 @@ class Devices(Generic[TypeDevice]):
     KeyError: 'Indexing with other numbers than `0` is not supported but `1` is given.'
 
     An automatic check prevents unexpected results when applying zero-based indexing on
-    |Nodes| instances containing multiple nodes:
+    |Nodes| objects containing multiple nodes:
 
     >>> Nodes("na", "nb")[0]
     Traceback (most recent call last):
@@ -617,7 +617,7 @@ and is thus not support, hence `NF` is rejected.
     ...
     TypeError: 'Nodes' object does not support item assignment
 
-    |Nodes| instances support iteration:
+    |Nodes| objects support iteration:
 
     >>> len(nodes)
     4
@@ -1335,7 +1335,7 @@ class Elements(Devices["Element"]):
     def collectives(self) -> dict[str | None, tuple[Element, ...]]:
         """The names and members of all currently relevant collectives.
 
-        Note that all |Element| instances not belonging to any |Element.collective| are
+        Note that all |Element| objects not belonging to any |Element.collective| are
         returned as a separate group:
 
         >>> from hydpy import Element, Elements
@@ -1399,7 +1399,7 @@ class Elements(Devices["Element"]):
         >>> elements = Elements(e_a, e_b, e_c1, e_c2, e_d)
 
         Method |Elements.unite_collectives| expects only those elements belonging to a
-        collective to come with a ready |Model| instance.  So we only need to prepare
+        collective to come with a ready |Model| object.  So we only need to prepare
         |sw1d_channel| instances for elements `b`, `c1`, and `c2`, including the
         required submodels:
 
@@ -1499,7 +1499,7 @@ the following error occurred: The input node `x_e1_e2` is an output node of anot
 element of the same collective, which is not supported.
 
         |Elements.unite_collectives| raises the following error if an element belonging
-        to a collective does not handle a |Model| instance:
+        to a collective does not handle a |Model| object:
 
         >>> e_d.collective = "D"
         >>> elements.unite_collectives()
@@ -1510,7 +1510,7 @@ elements belonging to collective `D`, the following error occurred: The model ob
 of element `e_d` has been requested but not been prepared so far.
 
         |Elements.unite_collectives| raises the following error if an element belonging
-        to a collective does handle an unsuitable |Model| instance:
+        to a collective does handle an unsuitable |Model| object:
 
         >>> e_d.model = prepare_model("musk_classic")
         >>> elements.unite_collectives()
@@ -2139,7 +2139,7 @@ following error occurred: Adding devices to immutable Elements objects is not al
                         assert_never(var)
                 raise ValueError(
                     f"The variable to be represented by a {type(self).__name__} "
-                    f"instance cannot be changed.  The {explanations[1]} of node "
+                    f"object cannot be changed.  The {explanations[1]} of node "
                     f"`{self.name}` is `{old}` instead of the {explanations[0]} "
                     f"`{new}`.  Keep in mind, that `name` is the unique identifier of "
                     f"node objects."
@@ -2212,7 +2212,7 @@ following error occurred: Adding devices to immutable Elements objects is not al
         >>> Node("test1", variable="WaterLevel")
         Traceback (most recent call last):
         ...
-        ValueError: The variable to be represented by a Node instance cannot be \
+        ValueError: The variable to be represented by a Node object cannot be \
 changed.  The text-based variable of node `test1` is `Q` instead of the text-based \
 variable `WaterLevel`.  Keep in mind, that `name` is the unique identifier of node \
 objects.
@@ -2222,7 +2222,7 @@ objects.
         >>> Node("test2", variable=stage)
         Traceback (most recent call last):
         ...
-        ValueError: The variable to be represented by a Node instance cannot be \
+        ValueError: The variable to be represented by a Node object cannot be \
 changed.  The text-based variable of node `test2` is `WaterLevel` instead of the \
 fused variable `stage`.  Keep in mind, that `name` is the unique identifier of node \
 objects.
@@ -2230,7 +2230,7 @@ objects.
         >>> Node("test2", variable=dam_factors_WaterLevel)
         Traceback (most recent call last):
         ...
-        ValueError: The variable to be represented by a Node instance cannot be \
+        ValueError: The variable to be represented by a Node object cannot be \
 changed.  The text-based variable of node `test2` is `WaterLevel` instead of the \
 normal variable `<class 'hydpy.models.dam.dam_factors.WaterLevel'>`.  Keep in mind, \
 that `name` is the unique identifier of node objects.
@@ -3188,7 +3188,7 @@ already a collective `NileRiver` member.
     """
 
     collective: str | None = None
-    """The collective the actual |Element| instance belongs to."""
+    """The collective the actual |Element| object belongs to."""
 
     _inlets: Nodes
     _outlets: Nodes
@@ -3600,7 +3600,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
 
     def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
         """Call method |Model.prepare_allseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.prepare_allseries(allocate_ram=allocate_ram, jit=jit)
 
@@ -3608,7 +3608,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_inputseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.prepare_inputseries(
                 allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
@@ -3618,7 +3618,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_factorseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.prepare_factorseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
@@ -3626,7 +3626,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_fluxseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
@@ -3634,7 +3634,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_stateseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
@@ -3642,79 +3642,79 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         self, allocate_ram: bool = True, write_jit: bool = False
     ) -> None:
         """Call method |Model.prepare_linkseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.prepare_linkseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     def load_allseries(self) -> None:
         """Call method |Model.load_allseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.load_allseries()
 
     def load_inputseries(self) -> None:
         """Call method |Model.load_inputseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.load_inputseries()
 
     def load_factorseries(self) -> None:
         """Call method |Model.load_factorseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.load_factorseries()
 
     def load_fluxseries(self) -> None:
         """Call method |Model.load_fluxseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.load_fluxseries()
 
     def load_stateseries(self) -> None:
         """Call method |Model.load_stateseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.load_stateseries()
 
     def load_linkseries(self) -> None:
         """Call method |Model.load_linkseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.load_linkseries()
 
     def save_allseries(self) -> None:
         """Call method |Model.save_allseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.save_allseries()
 
     def save_inputseries(self) -> None:
         """Call method |Model.save_inputseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.save_inputseries()
 
     def save_factorseries(self) -> None:
         """Call method |Model.save_factorseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.save_factorseries()
 
     def save_fluxseries(self) -> None:
         """Call method |Model.save_fluxseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.save_fluxseries()
 
     def save_stateseries(self) -> None:
         """Call method |Model.save_stateseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.save_stateseries()
 
     def save_linkseries(self) -> None:
         """Call method |Model.save_linkseries| of the currently handled |Model|
-        instance and its submodels."""
+        object and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.save_linkseries()
 

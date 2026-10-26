@@ -22,8 +22,8 @@ calculating net shortwave radiation.  Some also require
 |meteo_factors.PossibleSunshineDuration| or |meteo_fluxes.ClearSkySolarRadiation| to
 guess cloudiness for calculating net longwave radiation.  Here, we select
 |meteo_fluxes.GlobalRadiation| and |meteo_fluxes.ClearSkySolarRadiation| by importing
-their globally available aliases, which we hand over to the |Node| instances `node1`
-and `node2`:
+their globally available aliases, which we hand over to the |Node| objects `node1`and
+`node2`:
 
 >>> from hydpy import Element, Node
 >>> from hydpy.aliases import meteo_fluxes_GlobalRadiation, meteo_fluxes_ClearSkySolarRadiation

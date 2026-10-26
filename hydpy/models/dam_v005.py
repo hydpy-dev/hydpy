@@ -79,7 +79,7 @@ water at the cross-section downstream that it cannot currently release itself.
 
 
 To enable |dam_v005| to connect the different involved sequences and nodes correctly,
-we need to give suitable |Node.variable| values to the |Node| instances.  We use the
+we need to give suitable |Node.variable| values to the |Node| objects.  We use the
 string literal "Q" for the inflow and the outflow node, "S" for both supply nodes, "R"
 for both relief nodes, and "D" for node `demand`.  See the documentation on method
 |Model.connect| for alternatives and more detailed explanations.

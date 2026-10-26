@@ -10,8 +10,8 @@ Integration tests
 .. how_to_understand_integration_tests::
 
 Application model |evap_pet_m| requires no input from another model and does not supply
-any outlet sequence.  Hence, assigning a model instance to a blank |Element| instance
-is sufficient:
+any outlet sequence.  Hence, assigning a model instance to a blank |Element| object is
+sufficient:
 
 >>> from hydpy.models.evap_pet_m import *
 >>> parameterstep("1d")

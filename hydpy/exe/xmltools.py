@@ -1830,7 +1830,7 @@ during a simulation run is not supported but tried for sequence `p` of element \
 
 class XMLExchange(XMLBase):
     """Helper class for |XMLInterface| responsible for interpreting exchange items,
-    accessible via different |XMLItemgroup| instances."""
+    accessible via different |XMLItemgroup| objects."""
 
     def __init__(self, master: XMLInterface, root: ElementTree.Element) -> None:
         self.master: XMLInterface = master

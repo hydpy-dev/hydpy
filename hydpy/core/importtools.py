@@ -433,7 +433,7 @@ def prepare_submodel(
     SubmodelAdder[TD, TM_contra, TI_contra],
 ]:
     """Wrap a model-specific method for preparing a submodel into a |SubmodelAdder|
-    instance."""
+    object."""
 
     def _prepare_submodel(
         wrapped: PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra],
@@ -517,7 +517,7 @@ class SubmodelAdder(_DoctestAdder, Generic[TD, TM_contra, TI_contra]):
 following error occurred: Submodel `ga_garto_submodel1` does not comply with the \
 `AETModel_V1` interface.
 
-    Each |SubmodelAdder| instance provides access to the appropriate interface and the
+    Each |SubmodelAdder| object provides access to the appropriate interface and the
     interface methods the wrapped method uses (this information helps framework
     developers figure out which parameters the submodel prepares on its own):
 
@@ -585,9 +585,9 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     hydpy.core.exceptiontools.AttributeNotReady: While trying to add submodel \
 `meteo_glob_morsim` to the main model `lland_knauf`, the following error occurred: \
 While trying to update parameter `latituderad` of element `?`, the following error \
-occurred: While trying to multiply variable `latitude` and `float` instance \
-`0.017453`, the following error occurred: For variable `latitude`, no value has been \
-defined so far.
+occurred: While trying to multiply variable `latitude` and `float` object `0.017453`, \
+the following error occurred: For variable `latitude`, no value has been defined so \
+far.
 
     You can turn off this behaviour by setting `update` to |False|:
 
@@ -1000,7 +1000,7 @@ def define_targetparameter(
 ]:
     """Wrap a submodel-specific method that allows the main model to set the value
     of a single control parameter of the submodel into a |TargetParameterUpdater|
-    instance."""
+    object."""
 
     def _select_parameter(
         wrapped: Callable[Concatenate[TM_contra, P_], None],
@@ -1014,9 +1014,9 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P_]):
     """Wrapper that extends the functionality of a submodel-specific method that allows
     the main model to set the value of a single control parameter of the submodel.
 
-    When calling a |TargetParameterUpdater| instance, it calls the wrapped method with
+    When calling a |TargetParameterUpdater| object, it calls the wrapped method with
     unmodified arguments, so that model users might not even realise the
-    |TargetParameterUpdater| instance exists:
+    |TargetParameterUpdater| object exists:
 
     .. testsetup::
 
@@ -1030,7 +1030,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P_]):
     >>> model.parameters.control.nmbhru
     nmbhru(3)
 
-    However, each |TargetParameterUpdater| instance provides other framework functions
+    However, each |TargetParameterUpdater| object provides other framework functions
     access to the target control parameter type (the one the wrapped method prepares):
 
     >>> model.prepare_nmbzones.targetparameter.__name__
@@ -1041,7 +1041,7 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P_]):
     >>> model.prepare_nmbzones.values_orig  # doctest: +ELLIPSIS
     {evap_ret_tw2002: (((3,), {}), 3)}
 
-    With |TargetParameterUpdater.testmode| enabled, |TargetParameterUpdater| instances
+    With |TargetParameterUpdater.testmode| enabled, |TargetParameterUpdater| objects
     do not pass the given data to the wrapped method but memorise it together with the
     already available parameter values in another dictionary:
 
@@ -1060,15 +1060,14 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P_]):
     targetparameter: type[parametertools.Parameter]
     """The control parameter the wrapped method modifies."""
     testmode: ClassVar[bool] = False
-    """The mode of all |TargetParameterUpdater| instances.
+    """The mode of all |TargetParameterUpdater| objects.
     
-    |False| indicates the normal "active" mode, 
-    where |TargetParameterUpdater| instances actually change the values of their target 
-    parameters and save the input data and the resulting parameter values in the 
-    |TargetParameterUpdater.values_orig| dictionary.  |True| indicates the testing mode 
-    where |TargetParameterUpdater| instances just collect the input data and the 
-    already available parameter values in the |TargetParameterUpdater.values_test|
-    dictionary.
+    |False| indicates the normal "active" mode, where |TargetParameterUpdater| objects 
+    actually change the values of their target parameters and save the input data and 
+    the resulting parameter values in the |TargetParameterUpdater.values_orig| 
+    dictionary.  |True| indicates the testing mode where |TargetParameterUpdater| 
+    objects just collect the input data and the already available parameter values in 
+    the |TargetParameterUpdater.values_test| dictionary.
     """
     values_orig: dict[modeltools.Model, tuple[tuple[Any, Any], Any]]
     """Deep copies of the input data (separated by positional and keyword arguments) 

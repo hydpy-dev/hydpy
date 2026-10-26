@@ -2975,7 +2975,7 @@ class ModelIOSequence(ModelSequence, IOSequence, abc.ABC):
     subseqs: ModelIOSequences[modeltools.Model, ModelIOSequence, FastAccessIOSequence]
     """Alias for |ModelIOSequence.subvars|."""
     node2idx: dict[devicetools.Node, int | None]
-    """The connected |Node| instances and, for 1-dimensional link sequences, the 
+    """The connected |Node| objects and, for 1-dimensional link sequences, the 
     corresponding column's indices."""
 
     def __init__(
@@ -3435,7 +3435,7 @@ class ConditionSequence(ModelSequence, abc.ABC):
     _oldargs: tuple[Any, ...] | None = None
 
     def __call__(self, *args: CallHook) -> None:
-        """The prefered way to pass values to |Sequence_| instances within initial
+        """The prefered way to pass values to |Sequence_| objects within initial
         condition files."""
         super().__call__(*args)
         self.trim()
@@ -3602,7 +3602,7 @@ not broadcast input array from shape (3,) into shape (2,)
     fastaccess_new: FastAccessOutputSequence
     fastaccess_old: variabletools.FastAccess
 
-    def __call__(self, *args: CallHook) -> None:
+    def __call__(self, *args) -> None:
         """The prefered way to pass values to |Sequence_| instances within initial
         condition files."""
         super().__call__(*args)
@@ -4004,7 +4004,7 @@ be `()`, but `(1,)` is given.
         >>> model.sequences.inlets.q.pointervalue
         Traceback (most recent call last):
         ...
-        RuntimeError: The pointer of the actual `PPDouble` instance at index `0` \
+        RuntimeError: The pointer of the actual `PPDouble` object at index `0` \
 requested, but not prepared yet via `set_pointer`.
 
         .. testsetup::

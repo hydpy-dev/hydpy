@@ -1,0 +1,36 @@
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |Inflow| replace:: :class:`~hydpy.models.dam.dam_fluxes.Inflow`
+.. |IntegrationTest| replace:: :class:`~hydpy.core.testtools.IntegrationTest`
+.. |LoggedRequiredRemoteRelease| replace:: :class:`~hydpy.models.dam.dam_logs.LoggedRequiredRemoteRelease`
+.. |Model.connect| replace:: :func:`~hydpy.core.modeltools.Model.connect`
+.. |NearDischargeMinimumThreshold| replace:: :class:`~hydpy.models.dam.dam_control.NearDischargeMinimumThreshold`
+.. |Node.variable| replace:: :const:`~hydpy.core.devicetools.Node.variable`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PrecipModel_V2| replace:: :class:`~hydpy.interfaces.precipinterfaces.PrecipModel_V2`
+.. |ToleranceEvaporation| replace:: :class:`~hydpy.models.dam.dam_control.ToleranceEvaporation`
+.. |WaterLevelMinimumRemoteThreshold| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumRemoteThreshold`
+.. |WaterLevelMinimumRemoteTolerance| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumRemoteTolerance`
+.. |WaterLevelMinimumThreshold| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumThreshold`
+.. |WaterLevelMinimumTolerance| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumTolerance`
+.. |dam_v001| replace:: :mod:`~hydpy.models.dam_v001`
+.. |dam_v002| replace:: :mod:`~hydpy.models.dam_v002`
+.. |dam_v003.DOCNAME.complete| replace:: HydPy-Dam-V3 (dam model, version 3)
+.. |dam_v003| replace:: :mod:`~hydpy.models.dam_v003`
+.. |evap_ret_io| replace:: :mod:`~hydpy.models.evap_ret_io`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |dam_outlets.Q| replace:: :class:`~hydpy.models.dam.dam_outlets.Q`
+.. |dam_outlets.S| replace:: :class:`~hydpy.models.dam.dam_outlets.S`
+
+.. _dam_v003:
+
+dam_v003
+========
+
+.. automodule:: hydpy.models.dam_v003
+    :members:
+    :show-inheritance:
+    :exclude-members: ADD_METHODS, AbstractSet, AideSequences, Annotated, Any, AnyStr, AsyncContextManager, AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, BinaryIO, Buffer, ByteString, CLASSES, CONTROLPARAMETERS, Callable, CapsuleType, ChainMap, ClassVar, Collection, Concatenate, Container, ContextManager, ControlParameters, Coroutine, Counter, DERIVEDPARAMETERS, DefaultDict, Deque, DerivedParameters, Dict, Doc, FIXEDPARAMETERS, FULL_ODE_METHODS, FactorSequences, Final, FluxSequences, Format, ForwardRef, FrozenSet, Generator, Generic, Hashable, INLET_METHODS, INTERFACE_METHODS, IO, InletSequences, InputSequences, IntVar, ItemsView, Iterable, Iterator, KeysView, List, Literal, LiteralString, LogSequences, Mapping, MappingView, Match, Model, MutableMapping, MutableSequence, MutableSet, NamedTuple, Never, NewType, NoDefault, NoExtraItems, NoReturn, NotRequired, OBSERVER_METHODS, OUTLET_METHODS, ObserverSequences, Optional, OrderedDict, OutletSequences, PART_ODE_METHODS, POST_ODE_METHODS, ParamSpec, ParamSpecArgs, ParamSpecKwargs, Pattern, Protocol, RECEIVER_METHODS, REQUIREDSEQUENCES, RESULTSEQUENCES, RUN_METHODS, ReadOnly, Reader, ReceiverSequences, Required, Reversible, SENDER_METHODS, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELINTERFACES, SUBMODELS, Self, SenderSequences, Sentinel, Sequence, Set, Sized, SolverParameters, StateSequences, SupportsAbs, SupportsBytes, SupportsComplex, SupportsFloat, SupportsIndex, SupportsInt, SupportsRound, TYPE_CHECKING, Text, TextIO, Tuple, Type, TypeAlias, TypeAliasType, TypeForm, TypeGuard, TypeIs, TypeVar, TypeVarTuple, TypedDict, UPDATEDSEQUENCES, Union, Unpack, ValuesView, Writer, assert_never, assert_type, cast, clear_overloads, dataclass_transform, deprecated, disjoint_base, evaluate_forward_ref, fastaccess, fastaccess_new, fastaccess_old, final, get_annotations, get_args, get_origin, get_original_bases, get_overloads, get_protocol_members, get_type_hints, is_protocol, is_typeddict, no_type_check, no_type_check_decorator, overload, override, pars, reveal_type, runtime, runtime_checkable, sentinel, seqs, subpars, subseqs, subvars, type_repr

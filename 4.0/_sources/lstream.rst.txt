@@ -1,0 +1,68 @@
+.. |ALVDH| replace:: :class:`~hydpy.models.lstream.lstream_aides.ALVDH`
+.. |ALVRDH| replace:: :class:`~hydpy.models.lstream.lstream_aides.ALVRDH`
+.. |ALVR| replace:: :class:`~hydpy.models.lstream.lstream_aides.ALVR`
+.. |ALV| replace:: :class:`~hydpy.models.lstream.lstream_aides.ALV`
+.. |AMDH| replace:: :class:`~hydpy.models.lstream.lstream_aides.AMDH`
+.. |AM| replace:: :class:`~hydpy.models.lstream.lstream_aides.AM`
+.. |ARVDH| replace:: :class:`~hydpy.models.lstream.lstream_aides.ARVDH`
+.. |ARVRDH| replace:: :class:`~hydpy.models.lstream.lstream_aides.ARVRDH`
+.. |ARVR| replace:: :class:`~hydpy.models.lstream.lstream_aides.ARVR`
+.. |ARV| replace:: :class:`~hydpy.models.lstream.lstream_aides.ARV`
+.. |Calc_ALVR_ARVR_ULVR_URVR_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_ALVR_ARVR_ULVR_URVR_V1`
+.. |Calc_ALV_ARV_ULV_URV_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_ALV_ARV_ULV_URV_V1`
+.. |Calc_AM_UM_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_AM_UM_V1`
+.. |Calc_QLVR_QRVR_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_QLVR_QRVR_V1`
+.. |Calc_QLV_QRV_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_QLV_QRV_V1`
+.. |Calc_QM_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_QM_V1`
+.. |GTS| replace:: :class:`~hydpy.models.lstream.lstream_control.GTS`
+.. |HM| replace:: :class:`~hydpy.models.lstream.lstream_control.HM`
+.. |HRP| replace:: :class:`~hydpy.models.lstream.lstream_derived.HRP`
+.. |HR| replace:: :class:`~hydpy.models.lstream.lstream_control.HR`
+.. |HV| replace:: :class:`~hydpy.models.lstream.lstream_derived.HV`
+.. |H| replace:: :class:`~hydpy.models.lstream.lstream_states.H`
+.. |NumericalDifferentiator| replace:: :class:`~hydpy.core.testtools.NumericalDifferentiator`
+.. |Pegasus| replace:: :class:`~hydpy.auxs.roottools.Pegasus`
+.. |ProfileMixin.plot_profile| replace:: :func:`~hydpy.models.lstream.lstream_model.ProfileMixin.plot_profile`
+.. |QG| replace:: :class:`~hydpy.models.lstream.lstream_fluxes.QG`
+.. |QLVDH| replace:: :class:`~hydpy.models.lstream.lstream_aides.QLVDH`
+.. |QLVRDH| replace:: :class:`~hydpy.models.lstream.lstream_aides.QLVRDH`
+.. |QLVR| replace:: :class:`~hydpy.models.lstream.lstream_aides.QLVR`
+.. |QLV| replace:: :class:`~hydpy.models.lstream.lstream_aides.QLV`
+.. |QMDH| replace:: :class:`~hydpy.models.lstream.lstream_aides.QMDH`
+.. |QM| replace:: :class:`~hydpy.models.lstream.lstream_aides.QM`
+.. |QRVDH| replace:: :class:`~hydpy.models.lstream.lstream_aides.QRVDH`
+.. |QRVRDH| replace:: :class:`~hydpy.models.lstream.lstream_aides.QRVRDH`
+.. |QRVR| replace:: :class:`~hydpy.models.lstream.lstream_aides.QRVR`
+.. |QRV| replace:: :class:`~hydpy.models.lstream.lstream_aides.QRV`
+.. |RHLVR| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHLVR`
+.. |RHM| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHM`
+.. |RHRVR| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHRVR`
+.. |RHV| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHV`
+.. |Return_H_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Return_H_V1`
+.. |Return_QF_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Return_QF_V1`
+.. |ULVR| replace:: :class:`~hydpy.models.lstream.lstream_aides.ULVR`
+.. |ULV| replace:: :class:`~hydpy.models.lstream.lstream_aides.ULV`
+.. |UM| replace:: :class:`~hydpy.models.lstream.lstream_aides.UM`
+.. |URVR| replace:: :class:`~hydpy.models.lstream.lstream_aides.URVR`
+.. |URV| replace:: :class:`~hydpy.models.lstream.lstream_aides.URV`
+.. |WBMin| replace:: :class:`~hydpy.models.lstream.lstream_fixed.WBMin`
+.. |lstream_v001| replace:: :mod:`~hydpy.models.lstream_v001`
+.. |modeltools| replace:: :mod:`~hydpy.core.modeltools`
+.. |smooth_logistic2_derivative2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2_derivative2`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |smoothtools| replace:: :mod:`~hydpy.auxs.smoothtools`
+.. |lstream_model.ProfileMixin.calculate_agvector| replace:: :func:`~hydpy.models.lstream.lstream_model.ProfileMixin.calculate_agvector`
+.. |lstream_model.ProfileMixin.calculate_qgvector| replace:: :func:`~hydpy.models.lstream.lstream_model.ProfileMixin.calculate_qgvector`
+.. |lstream_model.ProfileMixin.calculate_vgvector| replace:: :func:`~hydpy.models.lstream.lstream_model.ProfileMixin.calculate_vgvector`
+.. |lstream_model.ProfileMixin.prepare_hvector| replace:: :func:`~hydpy.models.lstream.lstream_model.ProfileMixin.prepare_hvector`
+.. |lstream_v001.Model.calculate_characteristiclength| replace:: :func:`~hydpy.models.lstream_v001.Model.calculate_characteristiclength`
+
+.. _lstream:
+
+lstream
+=======
+
+.. automodule:: hydpy.models.lstream
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, ReceiverSequences, InputSequences, LogSequences, SenderSequences

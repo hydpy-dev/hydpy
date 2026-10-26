@@ -1,0 +1,520 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.dam_v008 &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam_v008</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.dam_v008</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=line-too-long, wildcard-import, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;Reservoir version of HydPy-Dam.</span>
+
+<span class="sd">.. _`LARSIM`: http://www.larsim.de/en/the-model/</span>
+
+<span class="sd">|dam_v008| is a relatively simple reservoir model, similar to the &quot;TALS&quot;</span>
+<span class="sd">model of `LARSIM`_.  It combines the features of |dam_v006| (&quot;controlled</span>
+<span class="sd">lake&quot;) and |dam_v007| (&quot;retention basin&quot;).  Additionally, it allows</span>
+<span class="sd">controlling the stored water volume via defining target values that can</span>
+<span class="sd">vary seasonally.</span>
+
+<span class="sd">Like |dam_v007|, |dam_v008| allows for combining controlled, &quot;harmless</span>
+<span class="sd">outflow&quot; (via parameter |AllowedRelease|) and uncontrolled, &quot;spillway</span>
+<span class="sd">outflow&quot; (via parameter |WaterLevel2FloodDischarge|), and like |dam_v006|,</span>
+<span class="sd">it allows to restrict the speed of the water level decrease during periods</span>
+<span class="sd">with little inflow via parameter |AllowedWaterLevelDrop| (only through</span>
+<span class="sd">reducing the controlled outflow, of course).  Before continuing, please</span>
+<span class="sd">first read the documentation on these two application models.</span>
+
+<span class="sd">The additional feature of |dam_v008| is that it tries to track target</span>
+<span class="sd">volumes that can vary seasonally.  Define these target volumes via</span>
+<span class="sd">parameter |TargetVolume|.  The parameters |VolumeTolerance|,</span>
+<span class="sd">|TargetRangeAbsolute|, and |TargetRangeRelative| serve to yield more</span>
+<span class="sd">smooth and realistic reservoir responses for small deviations from</span>
+<span class="sd">the given target values.  Setting |TargetRangeRelative| to 0.2 and</span>
+<span class="sd">both other parameters to zero corresponds to selecting the</span>
+<span class="sd">&quot;TALSPERRE SOLLRANGE&quot; option in `LARSIM`_.  Please see the following</span>
+<span class="sd">examples and the documentation on method |Calc_ActualRelease_V3| for</span>
+<span class="sd">more information on how to set and combine the individual parameter</span>
+<span class="sd">values for different use-cases.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">We create the same test set as for application models |dam_v006| and</span>
+<span class="sd">|dam_v007|, including an identical inflow series and an identical</span>
+<span class="sd">relationship between stage and volume:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import IntegrationTest, Element, pub</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;01.01.2000&quot;, &quot;21.01.2000&quot;, &quot;1d&quot;</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.models.dam_v008 import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">&gt;&gt;&gt; element = Element(&quot;element&quot;, inlets=&quot;input_&quot;, outlets=&quot;output&quot;)</span>
+<span class="sd">&gt;&gt;&gt; element.model = model</span>
+<span class="sd">&gt;&gt;&gt; IntegrationTest.plotting_options.axis1 = fluxes.inflow, fluxes.outflow</span>
+<span class="sd">&gt;&gt;&gt; IntegrationTest.plotting_options.axis2 = states.watervolume</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(element)</span>
+<span class="sd">&gt;&gt;&gt; test.inits = [(states.watervolume, 0.0)]</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = &quot;%d.%m.&quot;</span>
+<span class="sd">&gt;&gt;&gt; watervolume2waterlevel(</span>
+<span class="sd">...     weights_input=1.0, weights_output=1.0,</span>
+<span class="sd">...     intercepts_hidden=0.0, intercepts_output=0.0,</span>
+<span class="sd">...     activation=0)</span>
+<span class="sd">&gt;&gt;&gt; catchmentarea(86.4)</span>
+<span class="sd">&gt;&gt;&gt; element.inlets.input_.sequences.sim.series = [</span>
+<span class="sd">...     0.0, 1.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,</span>
+<span class="sd">...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]</span>
+
+<span class="sd">.. _dam_v008_base_scenario:</span>
+
+<span class="sd">base scenario</span>
+<span class="sd">_____________</span>
+
+<span class="sd">First, we again use the quasi-linear relation between discharge</span>
+<span class="sd">and stage used throughout the integration tests of |dam_v006| and in the</span>
+<span class="sd">:ref:`dam_v006_base_scenario` example of |dam_v007|:</span>
+
+<span class="sd">&gt;&gt;&gt; waterlevel2flooddischarge(ann(</span>
+<span class="sd">...     weights_input=1.0, weights_output=10.0,</span>
+<span class="sd">...     intercepts_hidden=0.0, intercepts_output=0.0,</span>
+<span class="sd">...     activation=0))</span>
+
+<span class="sd">Additionally, we set some of the remaining parameter values extremely high</span>
+<span class="sd">or low, to make sure that the reservoir stores all water except the one</span>
+<span class="sd">activating the spillway and thus becoming &quot;flood discharge&quot;:</span>
+
+<span class="sd">&gt;&gt;&gt; targetvolume(100.0)</span>
+<span class="sd">&gt;&gt;&gt; neardischargeminimumthreshold.shape = 1</span>
+<span class="sd">&gt;&gt;&gt; neardischargeminimumthreshold.values = -100.0</span>
+<span class="sd">&gt;&gt;&gt; targetrangeabsolute(0.1)</span>
+<span class="sd">&gt;&gt;&gt; targetrangerelative(0.2)</span>
+<span class="sd">&gt;&gt;&gt; watervolumeminimumthreshold(0.0)</span>
+<span class="sd">&gt;&gt;&gt; volumetolerance(0.1)</span>
+<span class="sd">&gt;&gt;&gt; dischargetolerance(0.1)</span>
+<span class="sd">&gt;&gt;&gt; allowedrelease(100.0)</span>
+<span class="sd">&gt;&gt;&gt; allowedwaterleveldrop(100.0)</span>
+
+<span class="sd">Due to the same the neural network configuration, the results are identical</span>
+<span class="sd">with the ones of the :ref:`dam_v006_base_scenario` example of |dam_v006| and</span>
+<span class="sd">the :ref:`dam_v007_base_scenario` example of |dam_v007|:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v008_base_scenario&quot;)</span>
+<span class="sd">    |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |</span>
+<span class="sd">    -------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+<span class="sd">    | 02.01. |    1.0 |           0.0 |       0.329814 | 0.329814 |    0.057904 |    1.0 | 0.329814 |</span>
+<span class="sd">    | 03.01. |    6.0 |           0.0 |       2.370574 | 2.370574 |    0.371486 |    6.0 | 2.370574 |</span>
+<span class="sd">    | 04.01. |   12.0 |           0.0 |       6.452959 | 6.452959 |    0.850751 |   12.0 | 6.452959 |</span>
+<span class="sd">    | 05.01. |   10.0 |           0.0 |       8.999753 | 8.999753 |    0.937172 |   10.0 | 8.999753 |</span>
+<span class="sd">    | 06.01. |    6.0 |           0.0 |       8.257426 | 8.257426 |    0.742131 |    6.0 | 8.257426 |</span>
+<span class="sd">    | 07.01. |    3.0 |           0.0 |        5.96014 |  5.96014 |    0.486374 |    3.0 |  5.96014 |</span>
+<span class="sd">    | 08.01. |    2.0 |           0.0 |       3.917326 | 3.917326 |    0.320717 |    2.0 | 3.917326 |</span>
+<span class="sd">    | 09.01. |    1.0 |           0.0 |       2.477741 | 2.477741 |    0.193041 |    1.0 | 2.477741 |</span>
+<span class="sd">    | 10.01. |    0.0 |           0.0 |       1.293731 | 1.293731 |    0.081262 |    0.0 | 1.293731 |</span>
+<span class="sd">    | 11.01. |    0.0 |           0.0 |       0.544608 | 0.544608 |    0.034208 |    0.0 | 0.544608 |</span>
+<span class="sd">    | 12.01. |    0.0 |           0.0 |       0.227669 | 0.227669 |    0.014537 |    0.0 | 0.227669 |</span>
+<span class="sd">    | 13.01. |    0.0 |           0.0 |       0.096753 | 0.096753 |    0.006178 |    0.0 | 0.096753 |</span>
+<span class="sd">    | 14.01. |    0.0 |           0.0 |       0.042778 | 0.042778 |    0.002482 |    0.0 | 0.042778 |</span>
+<span class="sd">    | 15.01. |    0.0 |           0.0 |       0.017186 | 0.017186 |    0.000997 |    0.0 | 0.017186 |</span>
+<span class="sd">    | 16.01. |    0.0 |           0.0 |       0.005664 | 0.005664 |    0.000508 |    0.0 | 0.005664 |</span>
+<span class="sd">    | 17.01. |    0.0 |           0.0 |       0.002884 | 0.002884 |    0.000259 |    0.0 | 0.002884 |</span>
+<span class="sd">    | 18.01. |    0.0 |           0.0 |       0.001469 | 0.001469 |    0.000132 |    0.0 | 0.001469 |</span>
+<span class="sd">    | 19.01. |    0.0 |           0.0 |       0.000748 | 0.000748 |    0.000067 |    0.0 | 0.000748 |</span>
+<span class="sd">    | 20.01. |    0.0 |           0.0 |       0.000381 | 0.000381 |    0.000034 |    0.0 | 0.000381 |</span>
+
+<span class="sd">.. _dam_v008_spillway:</span>
+
+<span class="sd">spillway</span>
+<span class="sd">________</span>
+
+<span class="sd">When we reuse the more realistic relationship between flood discharge</span>
+<span class="sd">and stage of the :ref:`dam_v007_spillway` example on |dam_v007|, we again</span>
+<span class="sd">get the same flood discharge time series:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; waterlevel2flooddischarge(ann(</span>
+<span class="sd">    ...     weights_input=10.0, weights_output=50.0,</span>
+<span class="sd">    ...     intercepts_hidden=-20.0, intercepts_output=0.0))</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v008_spillway&quot;)</span>
+<span class="sd">    |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |</span>
+<span class="sd">    -------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+<span class="sd">    | 02.01. |    1.0 |           0.0 |            0.0 |      0.0 |      0.0864 |    1.0 |      0.0 |</span>
+<span class="sd">    | 03.01. |    6.0 |           0.0 |       0.000022 | 0.000022 |    0.604798 |    6.0 | 0.000022 |</span>
+<span class="sd">    | 04.01. |   12.0 |           0.0 |       0.125869 | 0.125869 |    1.630723 |   12.0 | 0.125869 |</span>
+<span class="sd">    | 05.01. |   10.0 |           0.0 |       7.337517 | 7.337517 |    1.860762 |   10.0 | 7.337517 |</span>
+<span class="sd">    | 06.01. |    6.0 |           0.0 |       6.687413 | 6.687413 |    1.801369 |    6.0 | 6.687413 |</span>
+<span class="sd">    | 07.01. |    3.0 |           0.0 |       3.829425 | 3.829425 |    1.729707 |    3.0 | 3.829425 |</span>
+<span class="sd">    | 08.01. |    2.0 |           0.0 |       2.462161 | 2.462161 |    1.689776 |    2.0 | 2.462161 |</span>
+<span class="sd">    | 09.01. |    1.0 |           0.0 |       1.602443 | 1.602443 |    1.637725 |    1.0 | 1.602443 |</span>
+<span class="sd">    | 10.01. |    0.0 |           0.0 |       0.869271 | 0.869271 |     1.56262 |    0.0 | 0.869271 |</span>
+<span class="sd">    | 11.01. |    0.0 |           0.0 |       0.498579 | 0.498579 |    1.519543 |    0.0 | 0.498579 |</span>
+<span class="sd">    | 12.01. |    0.0 |           0.0 |       0.348504 | 0.348504 |    1.489432 |    0.0 | 0.348504 |</span>
+<span class="sd">    | 13.01. |    0.0 |           0.0 |       0.267917 | 0.267917 |    1.466284 |    0.0 | 0.267917 |</span>
+<span class="sd">    | 14.01. |    0.0 |           0.0 |       0.217618 | 0.217618 |    1.447482 |    0.0 | 0.217618 |</span>
+<span class="sd">    | 15.01. |    0.0 |           0.0 |       0.183225 | 0.183225 |    1.431651 |    0.0 | 0.183225 |</span>
+<span class="sd">    | 16.01. |    0.0 |           0.0 |       0.158219 | 0.158219 |    1.417981 |    0.0 | 0.158219 |</span>
+<span class="sd">    | 17.01. |    0.0 |           0.0 |       0.139064 | 0.139064 |    1.405966 |    0.0 | 0.139064 |</span>
+<span class="sd">    | 18.01. |    0.0 |           0.0 |       0.124197 | 0.124197 |    1.395235 |    0.0 | 0.124197 |</span>
+<span class="sd">    | 19.01. |    0.0 |           0.0 |       0.112196 | 0.112196 |    1.385542 |    0.0 | 0.112196 |</span>
+<span class="sd">    | 20.01. |    0.0 |           0.0 |       0.102307 | 0.102307 |    1.376702 |    0.0 | 0.102307 |</span>
+
+<span class="sd">.. _dam_v008_target_volume:</span>
+
+<span class="sd">target volume</span>
+<span class="sd">_____________</span>
+
+<span class="sd">During dry periods, application model |dam_v007| generally releases all</span>
+<span class="sd">its water until the basin runs dry, as long as parameter |AllowedRelease|</span>
+<span class="sd">is larger than zero.  Application model |dam_v008| is more complex, in that</span>
+<span class="sd">it allows to define target storage volumes.  |dam_v008| tries to control</span>
+<span class="sd">its outflow so that the actual volume approximately equals the (potentially</span>
+<span class="sd">seasonally varying) target volume.  However, it cannot release arbitrary</span>
+<span class="sd">low or high amounts of water to fulfil this task due to its priority to</span>
+<span class="sd">release a predefined minimum amount of water (for ecological reasons) and</span>
+<span class="sd">its second priority to not release to much water (for flood protection).</span>
+<span class="sd">In this example, we activate these mechanisms through changing some related</span>
+<span class="sd">parameter values (also see the documentation on method |Calc_ActualRelease_V3|</span>
+<span class="sd">for more detailed examples, including the numerous corner cases):</span>
+
+<span class="sd">&gt;&gt;&gt; targetvolume(0.5)</span>
+<span class="sd">&gt;&gt;&gt; neardischargeminimumthreshold(0.1)</span>
+<span class="sd">&gt;&gt;&gt; allowedrelease(4.0)</span>
+<span class="sd">&gt;&gt;&gt; allowedwaterleveldrop(1.0)</span>
+
+<span class="sd">Compared with the :ref:`dam_v007_allowed_release` results of |dam_v007|,</span>
+<span class="sd">|dam_v008| dampens the given flood event less efficiently.  |dam_v007|</span>
+<span class="sd">releases all initial inflow, while |dam_v008| stores most of it until</span>
+<span class="sd">it reaches the target volume of 0.5 million m³.  After peak flow,</span>
+<span class="sd">|dam_v008| first releases its water as fast as allowed, but then again</span>
+<span class="sd">tries to meet the target volume.  The slow negative trend away from the</span>
+<span class="sd">target value at the end of the simulation period results from the lack</span>
+<span class="sd">of inflow while there is still the necessity to release at least 0.1 m³/s:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v008_target_volume&quot;)</span>
+<span class="sd">    |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |</span>
+<span class="sd">    -------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |    0.0 |      0.052009 |            0.0 |  0.05201 |   -0.004494 |    0.0 |  0.05201 |</span>
+<span class="sd">    | 02.01. |    1.0 |      0.087534 |            0.0 | 0.087534 |    0.074343 |    1.0 | 0.087534 |</span>
+<span class="sd">    | 03.01. |    6.0 |      1.053864 |       0.000005 | 1.053869 |    0.501689 |    6.0 | 1.053869 |</span>
+<span class="sd">    | 04.01. |   12.0 |      3.999813 |       0.007819 | 4.007632 |     1.19223 |   12.0 | 4.007632 |</span>
+<span class="sd">    | 05.01. |   10.0 |           4.0 |       0.430009 | 4.430009 |    1.673477 |   10.0 | 4.430009 |</span>
+<span class="sd">    | 06.01. |    6.0 |           4.0 |       1.919462 | 5.919462 |    1.680435 |    6.0 | 5.919462 |</span>
+<span class="sd">    | 07.01. |    3.0 |           4.0 |       0.892331 | 4.892331 |    1.516938 |    3.0 | 4.892331 |</span>
+<span class="sd">    | 08.01. |    2.0 |           4.0 |       0.174933 | 4.174933 |    1.329024 |    2.0 | 4.174933 |</span>
+<span class="sd">    | 09.01. |    1.0 |           4.0 |       0.021533 | 4.021533 |    1.067963 |    1.0 | 4.021533 |</span>
+<span class="sd">    | 10.01. |    0.0 |      3.999928 |        0.00231 | 4.002237 |     0.72217 |    0.0 | 4.002237 |</span>
+<span class="sd">    | 11.01. |    0.0 |      2.363579 |       0.000045 | 2.363624 |    0.517953 |    0.0 | 2.363624 |</span>
+<span class="sd">    | 12.01. |    0.0 |      0.171571 |       0.000017 | 0.171588 |    0.503128 |    0.0 | 0.171588 |</span>
+<span class="sd">    | 13.01. |    0.0 |      0.120742 |       0.000015 | 0.120757 |    0.492694 |    0.0 | 0.120757 |</span>
+<span class="sd">    | 14.01. |    0.0 |      0.120116 |       0.000014 |  0.12013 |    0.482315 |    0.0 |  0.12013 |</span>
+<span class="sd">    | 15.01. |    0.0 |      0.118399 |       0.000012 | 0.118411 |    0.472084 |    0.0 | 0.118411 |</span>
+<span class="sd">    | 16.01. |    0.0 |      0.116632 |       0.000011 | 0.116643 |    0.462006 |    0.0 | 0.116643 |</span>
+<span class="sd">    | 17.01. |    0.0 |        0.1154 |        0.00001 |  0.11541 |    0.452035 |    0.0 |  0.11541 |</span>
+<span class="sd">    | 18.01. |    0.0 |      0.114385 |       0.000009 | 0.114394 |    0.442151 |    0.0 | 0.114394 |</span>
+<span class="sd">    | 19.01. |    0.0 |      0.113448 |       0.000008 | 0.113456 |    0.432349 |    0.0 | 0.113456 |</span>
+<span class="sd">    | 20.01. |    0.0 |      0.112549 |       0.000007 | 0.112556 |    0.422624 |    0.0 | 0.112556 |</span>
+
+<span class="sd">.. _dam_v008_sharp_transitions:</span>
+
+<span class="sd">sharp transitions</span>
+<span class="sd">_________________</span>
+
+<span class="sd">Due to smoothing, the above results deviate from the ones one would</span>
+<span class="sd">expect from `LARSIM`_ simulations to some degree.  However, if we set both</span>
+<span class="sd">&quot;target range&quot; parameters to zero (like one does not set the `LARSIM`_ option</span>
+<span class="sd">&quot;TALSPERRE SOLLRANGE&quot;) and both &quot;tolerance&quot; parameters to zero (to</span>
+<span class="sd">disable any smoothing), we should get more similar results:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; targetrangeabsolute(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; targetrangerelative(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; volumetolerance(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; dischargetolerance(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v008_sharp_transitions&quot;)</span>
+<span class="sd">    |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |</span>
+<span class="sd">    -------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |    0.0 |      0.004167 |            0.0 | 0.004167 |    -0.00036 |    0.0 | 0.004167 |</span>
+<span class="sd">    | 02.01. |    1.0 |      0.091667 |            0.0 | 0.091667 |     0.07812 |    1.0 | 0.091667 |</span>
+<span class="sd">    | 03.01. |    6.0 |       0.76924 |       0.000007 | 0.769247 |    0.530057 |    6.0 | 0.769247 |</span>
+<span class="sd">    | 04.01. |   12.0 |           4.0 |       0.003864 | 4.003864 |    1.220923 |   12.0 | 4.003864 |</span>
+<span class="sd">    | 05.01. |   10.0 |           4.0 |       0.541413 | 4.541413 |    1.692545 |   10.0 | 4.541413 |</span>
+<span class="sd">    | 06.01. |    6.0 |           4.0 |       2.097129 | 6.097129 |    1.684153 |    6.0 | 6.097129 |</span>
+<span class="sd">    | 07.01. |    3.0 |           4.0 |       0.915365 | 4.915365 |    1.518666 |    3.0 | 4.915365 |</span>
+<span class="sd">    | 08.01. |    2.0 |           4.0 |       0.177742 | 4.177742 |    1.330509 |    2.0 | 4.177742 |</span>
+<span class="sd">    | 09.01. |    1.0 |           4.0 |       0.021852 | 4.021852 |    1.069421 |    1.0 | 4.021852 |</span>
+<span class="sd">    | 10.01. |    0.0 |           4.0 |       0.002344 | 4.002344 |    0.723618 |    0.0 | 4.002344 |</span>
+<span class="sd">    | 11.01. |    0.0 |      2.627574 |       0.000043 | 2.627618 |    0.496592 |    0.0 | 2.627618 |</span>
+<span class="sd">    | 12.01. |    0.0 |           0.1 |       0.000014 | 0.100014 |    0.487951 |    0.0 | 0.100014 |</span>
+<span class="sd">    | 13.01. |    0.0 |           0.1 |       0.000013 | 0.100013 |     0.47931 |    0.0 | 0.100013 |</span>
+<span class="sd">    | 14.01. |    0.0 |           0.1 |       0.000012 | 0.100012 |    0.470669 |    0.0 | 0.100012 |</span>
+<span class="sd">    | 15.01. |    0.0 |           0.1 |       0.000011 | 0.100011 |    0.462028 |    0.0 | 0.100011 |</span>
+<span class="sd">    | 16.01. |    0.0 |           0.1 |        0.00001 |  0.10001 |    0.453387 |    0.0 |  0.10001 |</span>
+<span class="sd">    | 17.01. |    0.0 |           0.1 |       0.000009 | 0.100009 |    0.444746 |    0.0 | 0.100009 |</span>
+<span class="sd">    | 18.01. |    0.0 |           0.1 |       0.000008 | 0.100008 |    0.436105 |    0.0 | 0.100008 |</span>
+<span class="sd">    | 19.01. |    0.0 |           0.1 |       0.000008 | 0.100008 |    0.427465 |    0.0 | 0.100008 |</span>
+<span class="sd">    | 20.01. |    0.0 |           0.1 |       0.000007 | 0.100007 |    0.418824 |    0.0 | 0.100007 |</span>
+
+<span class="sd">.. _dam_v008_higher_accuracy:</span>
+
+<span class="sd">higher accuracy</span>
+<span class="sd">_______________</span>
+
+<span class="sd">The first water volume calculated in the :ref:`dam_v008_sharp_transitions`</span>
+<span class="sd">example is negative, which is the result of the limited numerical accuracy of</span>
+<span class="sd">the underlying integration algorithm.  We can decrease such errors through</span>
+<span class="sd">defining smaller error tolerance values, but at the risk of relevant</span>
+<span class="sd">increases in computation times (especially in case one does apply zero</span>
+<span class="sd">smoothing values):</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; solver.abserrormax(1e-6)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v008_higher_accuracy&quot;)</span>
+<span class="sd">    |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |</span>
+<span class="sd">    -------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |    0.0 |      0.000002 |            0.0 | 0.000002 |         0.0 |    0.0 | 0.000002 |</span>
+<span class="sd">    | 02.01. |    1.0 |      0.099998 |            0.0 | 0.099998 |     0.07776 |    1.0 | 0.099998 |</span>
+<span class="sd">    | 03.01. |    6.0 |      0.769489 |       0.000006 | 0.769495 |    0.529676 |    6.0 | 0.769495 |</span>
+<span class="sd">    | 04.01. |   12.0 |           4.0 |       0.002983 | 4.002983 |    1.220618 |   12.0 | 4.002983 |</span>
+<span class="sd">    | 05.01. |   10.0 |           4.0 |       0.539399 | 4.539399 |    1.692414 |   10.0 | 4.539399 |</span>
+<span class="sd">    | 06.01. |    6.0 |           4.0 |       2.096604 | 6.096604 |    1.684067 |    6.0 | 6.096604 |</span>
+<span class="sd">    | 07.01. |    3.0 |           4.0 |       0.914146 | 4.914146 |    1.518685 |    3.0 | 4.914146 |</span>
+<span class="sd">    | 08.01. |    2.0 |           4.0 |       0.177989 | 4.177989 |    1.330507 |    2.0 | 4.177989 |</span>
+<span class="sd">    | 09.01. |    1.0 |           4.0 |       0.021856 | 4.021856 |    1.069419 |    1.0 | 4.021856 |</span>
+<span class="sd">    | 10.01. |    0.0 |           4.0 |       0.001273 | 4.001273 |    0.723709 |    0.0 | 4.001273 |</span>
+<span class="sd">    | 11.01. |    0.0 |      2.626076 |       0.000042 | 2.626118 |    0.496812 |    0.0 | 2.626118 |</span>
+<span class="sd">    | 12.01. |    0.0 |           0.1 |       0.000014 | 0.100014 |    0.488171 |    0.0 | 0.100014 |</span>
+<span class="sd">    | 13.01. |    0.0 |           0.1 |       0.000013 | 0.100013 |     0.47953 |    0.0 | 0.100013 |</span>
+<span class="sd">    | 14.01. |    0.0 |           0.1 |       0.000012 | 0.100012 |    0.470889 |    0.0 | 0.100012 |</span>
+<span class="sd">    | 15.01. |    0.0 |           0.1 |       0.000011 | 0.100011 |    0.462248 |    0.0 | 0.100011 |</span>
+<span class="sd">    | 16.01. |    0.0 |           0.1 |        0.00001 |  0.10001 |    0.453607 |    0.0 |  0.10001 |</span>
+<span class="sd">    | 17.01. |    0.0 |           0.1 |       0.000009 | 0.100009 |    0.444966 |    0.0 | 0.100009 |</span>
+<span class="sd">    | 18.01. |    0.0 |           0.1 |       0.000008 | 0.100008 |    0.436325 |    0.0 | 0.100008 |</span>
+<span class="sd">    | 19.01. |    0.0 |           0.1 |       0.000008 | 0.100008 |    0.427685 |    0.0 | 0.100008 |</span>
+<span class="sd">    | 20.01. |    0.0 |           0.1 |       0.000007 | 0.100007 |    0.419044 |    0.0 | 0.100007 |</span>
+
+<span class="sd">.. _dam_v008_target_range:</span>
+
+<span class="sd">target range</span>
+<span class="sd">____________</span>
+
+<span class="sd">In the last example, the behaviour of the reservoir always changes abruptly</span>
+<span class="sd">when the actual volume transcends the target volume. According to its</span>
+<span class="sd">documentation, `LARSIM`_ then predicts unrealistic jumps in discharge.</span>
+<span class="sd">To solve this issue, `LARSIM`_ offers the &quot;TALSPERRE SOLLRANGE&quot; option,</span>
+<span class="sd">which ensures smoother transitions between 80 % and 120 % of the target</span>
+<span class="sd">volume, accomplished by linear interpolation.  |dam_v008| should never</span>
+<span class="sd">output similar jumps as it controls the correctness of its results.</span>
+<span class="sd">As a drawback, correcting these jumps (which still occur &quot;unseeable&quot; and</span>
+<span class="sd">possibly multiple times within each affected simulation time step) costs</span>
+<span class="sd">computation time.  Hence, at least when using small smoothing parameter</span>
+<span class="sd">values, |dam_v008| can also benefit from this approach.  You can define</span>
+<span class="sd">the range of interpolation freely via parameters |TargetRangeAbsolute| and</span>
+<span class="sd">|TargetRangeRelative| depending on your specific needs.  Setting the latter</span>
+<span class="sd">to 0.2 corresponds to the original &quot;TALSPERRE SOLLRANGE&quot;-configuration:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; targetrangerelative(0.2)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v008_target_range&quot;)</span>
+<span class="sd">    |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |</span>
+<span class="sd">    -------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |    0.0 |      0.000002 |            0.0 | 0.000002 |         0.0 |    0.0 | 0.000002 |</span>
+<span class="sd">    | 02.01. |    1.0 |      0.099998 |            0.0 | 0.099998 |     0.07776 |    1.0 | 0.099998 |</span>
+<span class="sd">    | 03.01. |    6.0 |       1.01934 |       0.000005 | 1.019345 |    0.508089 |    6.0 | 1.019345 |</span>
+<span class="sd">    | 04.01. |   12.0 |           4.0 |       0.002404 | 4.002404 |    1.199081 |   12.0 | 4.002404 |</span>
+<span class="sd">    | 05.01. |   10.0 |           4.0 |       0.454147 | 4.454147 |    1.678243 |   10.0 | 4.454147 |</span>
+<span class="sd">    | 06.01. |    6.0 |           4.0 |       1.963095 | 5.963095 |    1.681431 |    6.0 | 5.963095 |</span>
+<span class="sd">    | 07.01. |    3.0 |           4.0 |       0.897827 | 4.897827 |    1.517459 |    3.0 | 4.897827 |</span>
+<span class="sd">    | 08.01. |    2.0 |           4.0 |       0.175985 | 4.175985 |    1.329454 |    2.0 | 4.175985 |</span>
+<span class="sd">    | 09.01. |    1.0 |           4.0 |       0.021629 | 4.021629 |    1.068385 |    1.0 | 4.021629 |</span>
+<span class="sd">    | 10.01. |    0.0 |           4.0 |        0.00126 |  4.00126 |    0.722676 |    0.0 |  4.00126 |</span>
+<span class="sd">    | 11.01. |    0.0 |      2.471849 |       0.000044 | 2.471893 |    0.509105 |    0.0 | 2.471893 |</span>
+<span class="sd">    | 12.01. |    0.0 |      0.160404 |       0.000015 |  0.16042 |    0.495244 |    0.0 |  0.16042 |</span>
+<span class="sd">    | 13.01. |    0.0 |           0.1 |       0.000014 | 0.100014 |    0.486603 |    0.0 | 0.100014 |</span>
+<span class="sd">    | 14.01. |    0.0 |           0.1 |       0.000013 | 0.100013 |    0.477962 |    0.0 | 0.100013 |</span>
+<span class="sd">    | 15.01. |    0.0 |           0.1 |       0.000012 | 0.100012 |    0.469321 |    0.0 | 0.100012 |</span>
+<span class="sd">    | 16.01. |    0.0 |           0.1 |       0.000011 | 0.100011 |     0.46068 |    0.0 | 0.100011 |</span>
+<span class="sd">    | 17.01. |    0.0 |           0.1 |        0.00001 |  0.10001 |    0.452039 |    0.0 |  0.10001 |</span>
+<span class="sd">    | 18.01. |    0.0 |           0.1 |       0.000009 | 0.100009 |    0.443399 |    0.0 | 0.100009 |</span>
+<span class="sd">    | 19.01. |    0.0 |           0.1 |       0.000008 | 0.100008 |    0.434758 |    0.0 | 0.100008 |</span>
+<span class="sd">    | 20.01. |    0.0 |           0.1 |       0.000008 | 0.100008 |    0.426117 |    0.0 | 0.100008 |</span>
+
+<span class="sd">minimum volume</span>
+<span class="sd">______________</span>
+
+<span class="sd">In all examples above, the dam would run dry entirely after a certain</span>
+<span class="sd">amount of time to fulfil the downstream demand defined by parameter</span>
+<span class="sd">|NearDischargeMinimumThreshold|.  Usually, this is neither desired</span>
+<span class="sd">nor technically possible.  The following example shows that the parameter</span>
+<span class="sd">|WaterVolumeMinimumThreshold| allows setting a minimum amount of water</span>
+<span class="sd">below which no release occurs:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; watervolumeminimumthreshold(0.45)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v008_minimum_volume&quot;)</span>
+<span class="sd">    |   date | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |</span>
+<span class="sd">    -------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+<span class="sd">    | 02.01. |    1.0 |           0.0 |            0.0 |      0.0 |      0.0864 |    1.0 |      0.0 |</span>
+<span class="sd">    | 03.01. |    6.0 |      1.019739 |       0.000006 | 1.019745 |    0.516694 |    6.0 | 1.019745 |</span>
+<span class="sd">    | 04.01. |   12.0 |           4.0 |        0.00262 |  4.00262 |    1.207668 |   12.0 |  4.00262 |</span>
+<span class="sd">    | 05.01. |   10.0 |           4.0 |       0.486752 | 4.486752 |    1.684012 |   10.0 | 4.486752 |</span>
+<span class="sd">    | 06.01. |    6.0 |           4.0 |        2.01706 |  6.01706 |    1.682538 |    6.0 |  6.01706 |</span>
+<span class="sd">    | 07.01. |    3.0 |           4.0 |       0.904657 | 4.904657 |    1.517976 |    3.0 | 4.904657 |</span>
+<span class="sd">    | 08.01. |    2.0 |           4.0 |       0.176827 | 4.176827 |    1.329898 |    2.0 | 4.176827 |</span>
+<span class="sd">    | 09.01. |    1.0 |           4.0 |       0.021725 | 4.021725 |    1.068821 |    1.0 | 4.021725 |</span>
+<span class="sd">    | 10.01. |    0.0 |           4.0 |       0.001265 | 4.001265 |    0.723112 |    0.0 | 4.001265 |</span>
+<span class="sd">    | 11.01. |    0.0 |      2.476314 |       0.000044 | 2.476358 |    0.509154 |    0.0 | 2.476358 |</span>
+<span class="sd">    | 12.01. |    0.0 |      0.160853 |       0.000015 | 0.160869 |    0.495255 |    0.0 | 0.160869 |</span>
+<span class="sd">    | 13.01. |    0.0 |           0.1 |       0.000014 | 0.100014 |    0.486614 |    0.0 | 0.100014 |</span>
+<span class="sd">    | 14.01. |    0.0 |           0.1 |       0.000013 | 0.100013 |    0.477973 |    0.0 | 0.100013 |</span>
+<span class="sd">    | 15.01. |    0.0 |           0.1 |       0.000012 | 0.100012 |    0.469332 |    0.0 | 0.100012 |</span>
+<span class="sd">    | 16.01. |    0.0 |           0.1 |       0.000011 | 0.100011 |    0.460691 |    0.0 | 0.100011 |</span>
+<span class="sd">    | 17.01. |    0.0 |           0.1 |        0.00001 |  0.10001 |     0.45205 |    0.0 |  0.10001 |</span>
+<span class="sd">    | 18.01. |    0.0 |      0.023728 |       0.000009 | 0.023737 |    0.449999 |    0.0 | 0.023737 |</span>
+<span class="sd">    | 19.01. |    0.0 |           0.0 |       0.000009 | 0.000009 |    0.449998 |    0.0 | 0.000009 |</span>
+<span class="sd">    | 20.01. |    0.0 |           0.0 |       0.000009 | 0.000009 |    0.449998 |    0.0 | 0.000009 |</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.auxs.anntools</span> <span class="kn">import</span> <span class="n">ann</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">from</span> <span class="nn">hydpy.exe.modelimports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+
+<span class="c1"># ...from dam</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.dam</span> <span class="kn">import</span> <span class="n">dam_model</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.dam</span> <span class="kn">import</span> <span class="n">dam_solver</span>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../dam_v008.html#hydpy.models.dam_v008.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">ELSModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Version 8 of HydPy-Dam.&quot;&quot;&quot;</span>
+
+    <span class="n">SOLVERPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">AbsErrorMax</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelErrorMax</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelDTMin</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelDTMax</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">SOLVERSEQUENCES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Pic_Inflow_V1</span><span class="p">,)</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">PART_ODE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pic_Inflow_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_WaterLevel_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_SurfaceArea_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_AllowedDischarge_V2</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_ActualRelease_V3</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_FloodDischarge_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_Outflow_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">FULL_ODE_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Update_WaterVolume_V1</span><span class="p">,)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Pass_Outflow_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+<span class="n">cythonizer</span><span class="o">.</span><span class="n">finalise</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam_v008</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+.. |evap_pet_ambav1| replace:: :mod:`~hydpy.models.evap_pet_ambav1`
+.. |meteo_psun_sun_glob_io.DOCNAME.complete| replace:: HydPy-Meteo-PSun-Sun-Glob-IO (external possible and actual sunshine duration and global radiation data)
+.. |meteo_psun_sun_glob_io| replace:: :mod:`~hydpy.models.meteo_psun_sun_glob_io`
+
+.. _meteo_psun_sun_glob_io:
+
+meteo_psun_sun_glob_io
+======================
+
+.. automodule:: hydpy.models.meteo_psun_sun_glob_io
+    :members:
+    :show-inheritance:
+    :exclude-members: type_repr, Sentinel, AsyncContextManager, SupportsInt, ClassVar, SupportsFloat, override, TypeGuard, Match, Collection, Container, MutableMapping, assert_type, List, Doc, dataclass_transform, Coroutine, MutableSequence, ParamSpec, disjoint_base, Unpack, SUBMODELS, TYPE_CHECKING, MappingView, FluxSequences, sentinel, ValuesView, RUN_METHODS, Text, Annotated, Awaitable, CLASSES, Generic, KeysView, OrderedDict, Writer, NoReturn, fastaccess_old, subpars, SupportsIndex, LiteralString, INLET_METHODS, Optional, Sequence, AsyncGenerator, INTERFACE_METHODS, CONTROLPARAMETERS, FIXEDPARAMETERS, Type, fastaccess, cast, Counter, AsyncIterable, SupportsRound, TypeAliasType, FrozenSet, NewType, Callable, ChainMap, OBSERVER_METHODS, subseqs, get_protocol_members, Pattern, REQUIREDSEQUENCES, Deque, runtime, NotRequired, Set, Iterable, final, SupportsBytes, OutletSequences, TypeAlias, evaluate_forward_ref, RESULTSEQUENCES, get_origin, ReadOnly, ParamSpecArgs, Union, is_protocol, get_args, SupportsAbs, OUTLET_METHODS, SOLVERSEQUENCES, Generator, SUBMETHODS, subvars, NoExtraItems, get_original_bases, DefaultDict, TextIO, Never, ForwardRef, assert_never, AsyncIterator, get_annotations, get_type_hints, no_type_check_decorator, LogSequences, Self, SenderSequences, NamedTuple, InletSequences, Iterator, runtime_checkable, clear_overloads, TypeIs, Final, Mapping, TypeForm, AideSequences, CapsuleType, Protocol, fastaccess_new, pars, Tuple, Hashable, ReceiverSequences, NoDefault, Sized, StateSequences, ADD_METHODS, Literal, ItemsView, AnyStr, SOLVERPARAMETERS, SupportsComplex, is_typeddict, FULL_ODE_METHODS, SUBMODELINTERFACES, Dict, ParamSpecKwargs, POST_ODE_METHODS, overload, BinaryIO, TypeVar, MutableSet, PART_ODE_METHODS, ByteString, seqs, reveal_type, Buffer, ContextManager, SENDER_METHODS, TypeVarTuple, Required, deprecated, FactorSequences, UPDATEDSEQUENCES, Reader, Any, Reversible, IO, AbstractSet, Format, RECEIVER_METHODS, no_type_check, TypedDict, ObserverSequences, get_overloads, DERIVEDPARAMETERS, Concatenate, IntVar

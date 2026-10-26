@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.exch_water_transfer_io &#8212; HydPy 7.0dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=72aa22fa" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=a3767c0e"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/toctree.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 7.0dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.exch_water_transfer_io</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.exch_water_transfer_io</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=unused-wildcard-import</span>
+<span class="sd">"""</span>
+<span class="sd">.. _`LARSIM`: http://www.larsim.de/en/the-model/</span>
+
+<span class="sd">|exch_water_transfer_io| is a submodel that adds a water transfer feature to</span>
+<span class="sd">"storage-type" main models like |dam_llake| and |dam_lreservoir|.  These transfers can</span>
+<span class="sd">be positive (withdrawal from the storage) or negative (supply to the storage).</span>
+
+<span class="sd">|exch_water_transfer_io|'s design agrees with `LARSIM`_'s storage branching routine</span>
+<span class="sd">VSPE.  It takes the requested transfer from the input sequence</span>
+<span class="sd">|exch_inputs.RequestedTransfer| or, when no such external request is available</span>
+<span class="sd">(indicated preferably by |numpy.inf| or alternatively by |numpy.nan|), from</span>
+<span class="sd">volume-dependent interpolation rules defined by parameter |VolTransferRules|.  All</span>
+<span class="sd">withdrawals, whether externally requested or rule-based, are restricted to a</span>
+<span class="sd">dynamically updated maximum discharge, which for |dam_llake| and |dam_lreservoir|</span>
+<span class="sd">follows from the allowed water level drop.  Externally requested withdrawals and</span>
+<span class="sd">supplies are also limited by the water volume thresholds |MinVol| and |MaxVol|,</span>
+<span class="sd">respectively.  |VolTransferRules|, |MinVol|, and |MaxVol| (and |VolTol|, see below) can</span>
+<span class="sd">vary seasonally.</span>
+
+<span class="sd">|exch_water_transfer_io| connects to its own outlet node, to which it passes the</span>
+<span class="sd">determined water transfer.  If parameter |KeepWaterBalance| is |True|, this water</span>
+<span class="sd">transfer always reflects the actual, storage-effective transfer.  However, if</span>
+<span class="sd">|KeepWaterBalance| is |False|, |exch_water_transfer_io| passes available external</span>
+<span class="sd">requests unmodified, even if real withdrawal from or supply to the main model had to</span>
+<span class="sd">be reduced (justified by regarding them as measured and thus more certain than</span>
+<span class="sd">simulation results).</span>
+
+<span class="sd">Note the tolerance parameters |VolTol| and |QTol|, which let |exch_water_transfer_io|</span>
+<span class="sd">react smoothly to the volume- and discharge-based restrictions mentioned above.  This</span>
+<span class="sd">can make simulation results more realistic and the numerical solving of the main</span>
+<span class="sd">model's ordinary differential equations more efficient (explained in more detail in</span>
+<span class="sd">the :ref:`dam_v001_smooth_near_minimum` example of |dam_v001|).</span>
+
+<span class="sd">The :ref:`dam_llake_water_transfer` example of |dam_llake| and the</span>
+<span class="sd">:ref:`dam_lreservoir_water_transfer` example of |dam_lreservoir| show how to apply</span>
+<span class="sd">|exch_water_transfer_io|.</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs.ppolytools</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly</span><span class="p">,</span> <span class="n">PPoly</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">transferinterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.exch</span><span class="w"> </span><span class="kn">import</span> <span class="n">exch_model</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../exch_water_transfer_io.html#hydpy.models.exch_water_transfer_io.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">,</span> <span class="n">transferinterfaces</span><span class="o">.</span><span class="n">TransferModel_V1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""|exch_water_transfer_io.DOCNAME.complete|."""</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">"Exch-Water-Transfer-IO"</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"submodel for transferring water based on external requests or "</span>
+            <span class="s2">"volume-dependent rules"</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">INTERFACE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">exch_model</span><span class="o">.</span><span class="n">Determine_Transfer_V1</span><span class="p">,</span>
+        <span class="n">exch_model</span><span class="o">.</span><span class="n">Get_Transfer_V1</span><span class="p">,</span>
+        <span class="n">exch_model</span><span class="o">.</span><span class="n">Set_Transfer_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_model</span><span class="o">.</span><span class="n">Return_AllowedTransfer_V1</span><span class="p">,)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 7.0dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.exch_water_transfer_io</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

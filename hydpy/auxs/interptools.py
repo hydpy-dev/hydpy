@@ -795,7 +795,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         Class |SeasonalInterpolator| stores its |InterpAlgorithm| objects by reference.
         Therefore, despite all automated refreshings (explained in the general
         documentation on class |SeasonalInterpolator|), it is still possible to destroy
-        the inner consistency of a |SeasonalInterpolator| instance:
+        the inner consistency of a |SeasonalInterpolator| object:
 
         >>> from hydpy import ANN, SeasonalInterpolator
         >>> seasonalinterpolator = SeasonalInterpolator(None)
@@ -844,7 +844,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         Class |SeasonalInterpolator| stores its |InterpAlgorithm| objects by reference.
         Therefore, despite all automated refreshings (explained in the general
         documentation on class |SeasonalInterpolator|), it is still possible to destroy
-        the inner consistency of a |SeasonalInterpolator| instance:
+        the inner consistency of a |SeasonalInterpolator| object:
 
         >>> from hydpy import ANN, pub, SeasonalInterpolator
         >>> seasonalinterpolator = SeasonalInterpolator(None)

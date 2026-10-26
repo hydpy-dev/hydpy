@@ -229,7 +229,7 @@ objects, but the type of the given argument is `str`.
                   elements=("element1", "element2", "element3"))
 
         The selection |Selections.complete| is always freshly created and so reflects
-        the current state |Selections| instance:
+        the current state |Selections| object:
 
         >>> selections.sel1.nodes.add_device("node2")
         >>> selections.complete

@@ -141,8 +141,8 @@ class Model(modeltools.AdHocModel):
         self.nodenames = []
 
     def connect(self) -> None:
-        """Connect the |LinkSequence| instances handled by the actual model to the
-        |NodeSequence| instances handled by one inlet node and multiple outlet nodes.
+        """Connect the |LinkSequence| objects handled by the actual model to the
+        |NodeSequence| objects handled by one inlet node and multiple outlet nodes.
 
         |exch_branch_hbv96| passes multiple output values to different outlet nodes,
         which requires additional information regarding the "direction" of each output
@@ -223,7 +223,7 @@ element `mybranch`.
 
         |exch_branch_hbv96| applies its interpolation rules to an input adjusted by
         |Delta| and |Minimum|.  |Model.convert_2_exch_branch_rules| integrates both
-        adjustments into the supporting points of the |PPoly| instances handled by the
+        adjustments into the supporting points of the |PPoly| objects handled by the
         |Rules| parameter of |exch_branch_rules| (see the
         :ref:`exch_branch_rules_input_modifying_rules` example for further
         information).

@@ -475,8 +475,8 @@ class FlowTransferRules(interptools.SeasonalInterpolator):
 `flowtransferrules` of element `?`, the following error occurred: The names of the \
 target nodes are still unknown.  Please define them via parameter `targets` first.
 
-    If there is no seasonality, assign a single |PPoly| instance that interpolates
-    water transfer based on the (adjusted) inflow:
+    If there is no seasonality, assign a single |PPoly| object that interpolates water
+    transfer based on the (adjusted) inflow:
 
     >>> targets(stream="river", transfer="diversion")
     >>> flowtransferrules(PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]))
@@ -488,10 +488,10 @@ target nodes are still unknown.  Please define them via parameter `targets` firs
         )
     )
 
-    Behind the scenes, parameter |FlowTransferRules| converts this |PPoly| instance to
-    a |PPolys| instance that applies the given interpolation rule to calculate the
-    water transfer and leaves the rest for the main stream (note that |PPolys| sorts
-    the target nodes alphabetically, which is why derived parameter |StreamIndex| is
+    Behind the scenes, parameter |FlowTransferRules| converts this |PPoly| object to a
+    |PPolys| object that applies the given interpolation rule to calculate the water
+    transfer and leaves the rest for the main stream (note that |PPolys| sorts the
+    target nodes alphabetically, which is why derived parameter |StreamIndex| is
     required to identify the main stream's outflow):
 
     >>> flowtransferrules.toy_01_01_00_00
@@ -503,7 +503,7 @@ target nodes are still unknown.  Please define them via parameter `targets` firs
         river=PPolys.REST,
     )
 
-    The same mechanism applies when passing multiple |PPoly| instances to introduce
+    The same mechanism applies when passing multiple |PPoly| objects to introduce
     seasonal patterns:
 
     >>> flowtransferrules(
@@ -531,7 +531,7 @@ target nodes are still unknown.  Please define them via parameter `targets` firs
     )
 
     You are allowed to interpolate the water transfer and rest flow independently by
-    directly assigning one or multiple |PPolys| instances, which requires explicit
+    directly assigning one or multiple |PPolys| objects, which requires explicit
     mentioning of the respective target nodes' names (note that this changes the water
     balance, and so is only useful if you are aware of certain water losses or gains
     bound to specific flow regimes):
@@ -580,8 +580,8 @@ instead of `diversion and stream`.
     ...
     TypeError: While trying to set the interpolation rules of parameter \
 `flowtransferrules` of element `?`, the following error occurred: Parameter \
-`flowtransferrules` currently only supports interpolation via `PPolys` instances.  \
-Best practice is to configure them indirectly via `PPoly` instances (see the \
+`flowtransferrules` currently only supports interpolation via `PPolys` objects.  \
+Best practice is to configure them indirectly via `PPoly` objects (see the \
 documentation).
     """
 
@@ -618,9 +618,9 @@ documentation).
                 if not isinstance(algorithm, ppolytools.PPolys):
                     raise TypeError(
                         f"Parameter `{self.name}` currently only supports "
-                        f"interpolation via `{ppolytools.PPolys.__name__}` "
-                        f"instances.  Best practice is to configure them indirectly "
-                        f"via `{ppolytools.PPoly.__name__}` instances (see the "
+                        f"interpolation via `{ppolytools.PPolys.__name__}` objects.  "
+                        f"Best practice is to configure them indirectly via "
+                        f"`{ppolytools.PPoly.__name__}` objects (see the "
                         f"documentation)."
                     )
                 if sorted(algorithm.piecewisepolynomials) != sorted(targetnames):
@@ -667,8 +667,8 @@ documentation).
 class Rules(interptools.SeasonalInterpolator):
     """Seasonally varying interpolation rules for branching the input [-].
 
-    |Rules| accepts one or multiple |PPolys| instances, which must all address the
-    same target nodes:
+    |Rules| accepts one or multiple |PPolys| objects, which must all address the same
+    target nodes:
 
     >>> from hydpy import ANN, PPoly, PPolys, pub
     >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
@@ -719,7 +719,7 @@ class Rules(interptools.SeasonalInterpolator):
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the interpolation rules of parameter `rules` of \
-element `?`, the following error occurred: All `PPolys` instances must address the \
+element `?`, the following error occurred: All `PPolys` objects must address the \
 same target nodes, but `channel and river` differs from `diversion and river`.
 
     Configuring parameter |Rules| based on other interpolation methods is currently
@@ -730,7 +730,7 @@ same target nodes, but `channel and river` differs from `diversion and river`.
     ...
     TypeError: While trying to set the interpolation rules of parameter `rules` of \
 element `?`, the following error occurred: Parameter `rules` currently only supports \
-interpolation via `PPolys` instances.
+interpolation via `PPolys` objects.
 
     .. testsetup::
 
@@ -756,8 +756,7 @@ interpolation via `PPolys` instances.
                 if not isinstance(algorithm, ppolytools.PPolys):
                     raise TypeError(
                         f"Parameter `{self.name}` currently only supports "
-                        f"interpolation via `{ppolytools.PPolys.__name__}` "
-                        f"instances."
+                        f"interpolation via `{ppolytools.PPolys.__name__}` objects."
                     )
                 names = list(algorithm.piecewisepolynomials)
                 if not targetnames:
@@ -765,8 +764,8 @@ interpolation via `PPolys` instances.
                 elif names != targetnames:
                     enum_ = objecttools.enumeration
                     raise ValueError(
-                        f"All `{ppolytools.PPolys.__name__}` instances must address "
-                        f"the same target nodes, but `{enum_(names)}` differs from "
+                        f"All `{ppolytools.PPolys.__name__}` objects must address the "
+                        f"same target nodes, but `{enum_(names)}` differs from "
                         f"`{enum_(targetnames)}`."
                     )
             self.subpars.pars.model.__hydpy__targetnames__ = tuple(targetnames)

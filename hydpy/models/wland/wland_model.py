@@ -3687,7 +3687,7 @@ class Main_DischargeModel_V2(modeltools.ELSModel):
         hydpy.core.exceptiontools.AttributeNotReady: While trying to add a submodel \
 to the main model `wland_wag`, the following error occurred: While trying to \
 determine the missing value of the derived parameter `cd` of element `?`, the \
-following error occurred: While trying to subtract variable `gl` and `BL` instance \
+following error occurred: While trying to subtract variable `gl` and `BL` object \
 `bl(?)`, the following error occurred: For variable `bl`, no value has been defined \
 so far.
 

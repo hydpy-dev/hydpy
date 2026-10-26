@@ -246,8 +246,8 @@ simplest possible manner:
 
 Now, there are numerous ways to proceed.  We choose the most straightforward one
 (without deviating from a single default) and call method  |HydPy.prepare_everything|
-of class |HydPy|, which "prepares everything" so far as to leave the |HydPy| instance
-in a simulation-ready state:
+of class |HydPy|, which "prepares everything" so far as to leave the |HydPy| object in
+a simulation-ready state:
 
 >>> hp.prepare_everything()
 

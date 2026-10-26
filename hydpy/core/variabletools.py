@@ -55,7 +55,7 @@ TYPE2MISSINGVALUE = {float: numpy.nan, int: INT_NAN, bool: False}
 
 
 def trim(self: Variable, lower: TrimHook = None, upper: TrimHook = None) -> bool:
-    """Trim the value(s) of a |Variable| instance.
+    """Trim the value(s) of a |Variable| object.
 
     The returned boolean indicates whether at least one value has been trimmed.
 
@@ -87,7 +87,7 @@ def trim(self: Variable, lower: TrimHook = None, upper: TrimHook = None) -> bool
     >>> pub.options.warntrim = True
 
     When not passing boundary values, function |trim| extracts them from class
-    attribute `SPAN` of the given |Variable| instance, if available:
+    attribute `SPAN` of the given |Variable| object, if available:
 
     >>> var = Var(None)
     >>> var.value = 2.0
@@ -629,9 +629,9 @@ class Variable(MixinVariable, abc.ABC):
     >>> var + 1.0
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: While trying to add \
-variable `var` and `float` instance `1.0`, the following error occurred: \
-For variable `var`, no value has been defined so far.
+    hydpy.core.exceptiontools.AttributeNotReady: While trying to add variable `var` \
+and `float` object `1.0`, the following error occurred: For variable `var`, no value \
+has been defined so far.
 
     In general, the examples above are valid for the following binary
     operations:
@@ -2051,7 +2051,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             objecttools.augment_excmessage(
                 f"While trying to {description} variable "
                 f"{objecttools.devicephrase(self)} and `{type(other).__name__}` "
-                f"instance `{objecttools.repr_(other)}`"
+                f"object `{objecttools.repr_(other)}`"
             )
 
     def __add__(self, other):

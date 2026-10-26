@@ -20,7 +20,7 @@ ______
 The :ref:`Quick Start's <quickstart>` :ref:`run_hydpy` section demonstrates the
 straightest way to perform a simulation via the Python shell or a Python script without
 deviating from any default settings.  Here, we split the procedure into smaller steps
-to discuss more details about using a project's data to set a HydPy instance in a
+to discuss more details about using a project's data to set a HydPy object in a
 simulation-ready state.   Also, we give some first ideas about possible modifications
 and ways to save simulation results.
 
@@ -43,8 +43,8 @@ section:
     >>> os.chdir(workingdir)
 
 Proceed like in the :ref:`quickstart` section by activating the working directory,
-importing |HydPy| and |pub|, initialising a |HydPy| instance, and defining the period
-to consider:
+importing |HydPy| and |pub|, initialising a |HydPy| object, and defining the period to
+consider:
 
 >>> import os
 >>> os.chdir(workingdir)
@@ -65,7 +65,7 @@ First, we must prepare the network. All loadable networks are usually within the
 
 >>> assert_exists("HydPy-H-Lahn", "network")
 
-The |NetworkManager| instance of the |pub| object can give us more information.  For
+The |NetworkManager| object of the |pub| object can give us more information.  For
 example, it can tell us that the :ref:`HydPy-H-Lahn` project only comprises one
 subfolder and hence only one "network version":
 
@@ -73,7 +73,7 @@ subfolder and hence only one "network version":
 Folder2Path(default=.../HydPy-H-Lahn/network/default)
 >>> assert_exists("HydPy-H-Lahn", "network", "default")
 
-The |NetworkManager| instance assumes this single directory as the desired working
+The |NetworkManager| object assumes this single directory as the desired working
 directory:
 
 >>> assert pub.networkmanager.currentdir == "default"
@@ -93,8 +93,8 @@ Elements("land_dill_assl", "land_lahn_kalk", "land_lahn_leun",
          "land_lahn_marb", "stream_dill_assl_lahn_leun",
          "stream_lahn_leun_lahn_kalk", "stream_lahn_marb_lahn_leun")
 
-Besides this, the |Selections| instance of |pub| now contains three user-defined
-|Selection| instances:
+Besides this, the |Selections| object of |pub| now contains three user-defined
+|Selection| objects:
 
 >>> pub.selections
 Selections("headwaters", "nonheadwaters", "streams")
@@ -110,7 +110,7 @@ Selection("headwaters",
 A fourth selection, named "complete", is also accessible.  The property
 |Selections.complete| creates it automatically upon request by combining the contents
 of the user-defined selections.  Right after calling |HydPy.prepare_network|, the
-|HydPy| instance and |Selections.complete| have the same nodes and elements:
+|HydPy| object and |Selections.complete| have the same nodes and elements:
 
 >>> assert hp == pub.selections.complete
 
@@ -126,7 +126,7 @@ model that could perform any actual simulation is still missing:
 >>> from hydpy import attrready
 >>> assert not attrready(hp.elements.land_dill_assl, "model")
 
-The |ControlManager| instance of |pub| informs us about the only available set of model
+The |ControlManager| object of |pub| informs us about the only available set of model
 types and parameterisations, which is available in a directory named `default`, the now
 relevant working directory:
 
@@ -270,7 +270,7 @@ the same network (for example, during parameter calibration) by saving the
 ...     for _ in range(2):
 ...         hp.simulate_multithreaded(parallelisability, queue)
 
-You can modify the returned |Parallelisability| and |threadingtools.Queue| instances to
+You can modify the returned |Parallelisability| and |threadingtools.Queue| objects to
 adjust them to the specific network at hand, which might increase performance even
 more, but this requires a deep understanding of HydPy.
 

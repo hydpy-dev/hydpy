@@ -42,7 +42,7 @@ We prepare a simulation period of three days for the first examples:
 
 According to the intended usage as a submodel, |evap_pet_ambav1| requires no
 connections to any nodes.  Hence, assigning a model instance to a blank |Element|
-instance is sufficient:
+object is sufficient:
 
 >>> from hydpy import Element
 >>> from hydpy.models.evap_pet_ambav1 import *

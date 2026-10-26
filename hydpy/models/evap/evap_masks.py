@@ -20,7 +20,7 @@ class Soil(masktools.SubmodelIndexMask):
 
     @staticmethod
     def get_refinement(variable: variabletools.Variable) -> evap_control.Soil:
-        """Return a reference to the associated |evap_control.Soil| instance."""
+        """Return a reference to the associated |evap_control.Soil| object."""
         return variable.subvars.vars.model.parameters.control.soil
 
 
@@ -29,7 +29,7 @@ class Plant(masktools.SubmodelIndexMask):
 
     @staticmethod
     def get_refinement(variable: variabletools.Variable) -> evap_control.Plant:
-        """Return a reference to the associated |evap_control.Plant| instance."""
+        """Return a reference to the associated |evap_control.Plant| object."""
         return variable.subvars.vars.model.parameters.control.plant
 
 
@@ -39,7 +39,7 @@ class Water(masktools.SubmodelIndexMask):
 
     @staticmethod
     def get_refinement(variable: variabletools.Variable) -> evap_control.Water:
-        """Return a reference to the associated |evap_control.Water| instance."""
+        """Return a reference to the associated |evap_control.Water| object."""
         return variable.subvars.vars.model.parameters.control.water
 
 

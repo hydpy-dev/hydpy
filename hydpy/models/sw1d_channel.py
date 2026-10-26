@@ -72,8 +72,8 @@ integration:
 ...             sideslopes(0.0)
 
 The prepared model has neither a submodel for receiving nor releasing flow at the first
-or last channel segment. We leave it like that to assign it to an |Element| instance
-that is neither connected to any inlet nor outlet nodes:
+or last channel segment. We leave it like that to assign it to an |Element| object that
+is neither connected to any inlet nor outlet nodes:
 
 >>> from hydpy import Element
 >>> channel = Element("channel")
@@ -405,7 +405,7 @@ models (in case of |sw1d_lias|) or provide the inflow time series (in case of
 >>> channel = Element("channel", inlets=inflow)
 >>> channel.model = model
 
-This extension of our project setting requires a fresh |IntegrationTest| instance:
+This extension of our project setting requires a fresh |IntegrationTest| object:
 
 >>> test = IntegrationTest(channel)
 >>> test.plotting_options.axis1 = (factors.waterlevels,)
@@ -519,7 +519,7 @@ segment) via a node connectible to the sender |sw1d_senders.WaterLevel| sequence
 information helps if feedback to the above model is required, such as letting a pump
 stop working to prevent exceeding a dangerous water level.
 
-We add the two mentioned nodes to our |Element| instance:
+We add the two mentioned nodes to our |Element| object:
 
 >>> latflow = Node("latflow", variable="LatQ")
 >>> waterlevel = Node("waterlevel", variable="WaterLevel")
@@ -631,7 +631,7 @@ which simulates free weir flow (that does not consider the downstream water leve
 
 This time, we must add an outlet node responsible for the outlet variable
 |sw1d_outlets.LongQ|, which necessitates another refreshing of the |IntegrationTest|
-instance:
+object:
 
 >>> outflow = Node("outflow", variable="LongQ")
 >>> channel = Element("channel", inlets=inflow, outlets=outflow)
@@ -1328,7 +1328,7 @@ its the weir flow is 100 m³/s for the initial water depth defined below:
 ...     timestepfactor(0.7)
 
 Now we reset the outflow node's |Node.deploymode|, refresh all connections, and prepare
-a new |IntegrationTest| instance:
+a new |IntegrationTest| object:
 
 >>> outflow.deploymode = "newsim"
 >>> channel.model = model

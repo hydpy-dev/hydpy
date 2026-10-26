@@ -17,8 +17,8 @@ from hydpy.core.typingtools import *
 class UH(parametertools.Parameter):
     """Unit Hydrograph ordinates [-].
 
-    The ordinates of the unit hydrograph can be set directly by calling the |UH|
-    instance with a list of float values as one positional argument:
+    The ordinates of the unit hydrograph can be set directly by calling the |UH| object
+    with a list of float values as one positional argument:
 
     >>> from hydpy.models.rconc import *
     >>> simulationstep("1d")

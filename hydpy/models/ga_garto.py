@@ -56,8 +56,8 @@ evaluation period to 5 hours for the first examples:
 >>> pub.timegrids.sim.lastdate = pub.timegrids.eval_.lastdate = "2000-01-01 05:00"
 
 We prepare a |ga_garto| model, set the base time for defining (most) time-dependent
-parameter values to one hour, connect the model to an |Element| instance, and hand this
-element to an |IntegrationTest| instance that will execute and evaluate the following
+parameter values to one hour, connect the model to an |Element| object, and hand this
+element to an |IntegrationTest| object that will execute and evaluate the following
 example simulations:
 
 >>> from hydpy.models.ga_garto import *

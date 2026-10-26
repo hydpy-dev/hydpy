@@ -49,35 +49,35 @@ class HydPy:
     >>> from hydpy.core.testtools import prepare_full_example_1
     >>> prepare_full_example_1()
 
-    At first, the |HydPy| instance needs to know the name of the relevant project,
-    which is identical to the name of the project's root directory.  Pass
-    `HydPy-H-Lahn` to the constructor of class |HydPy|:
+    At first, the |HydPy| object needs to know the name of the relevant project, which
+    is identical to the name of the project's root directory.  Pass `HydPy-H-Lahn` to
+    the constructor of class |HydPy|:
 
     >>> from hydpy import HydPy
     >>> hp = HydPy("HydPy-H-Lahn")
 
-    So far, our |HydPy| instance does not know any project configurations except its
+    So far, our |HydPy| object does not know any project configurations except its
     name.  Most of this information would be available via properties |HydPy.nodes| and
     |HydPy.elements|, but we get the following error responses if we try to access them:
 
     >>> hp.nodes
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy instance does not \
+    hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy object does not \
 handle any nodes at the moment.
 
     >>> hp.elements
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy instance does not \
+    hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy object does not \
 handle any elements at the moment.
 
     One could continue rather quickly by calling the method |HydPy.prepare_everything|,
-    which would make our |HydPy| instance ready for its first simulation run in one go.
+    which would make our |HydPy| object ready for its first simulation run in one go.
     However, we prefer to continue step by step by calling the more specific
     preparation methods, which offers more flexibility.
 
-    First, the |HydPy| instance needs to know the relevant |Node| and |Element| objects.
+    First, the |HydPy| object needs to know the relevant |Node| and |Element| objects.
     Method |HydPy.prepare_network| reads this information from so-called "network
     files".  Then, the |Node| and |Element| objects connect automatically and thereby
     define the topology or the network structure of the project (see the documentation
@@ -92,7 +92,7 @@ handle any elements at the moment.
     and in the following, you must omit such "with blocks" in case you copied the
     :ref:`HydPy-H-Lahn` example project into your current working directory.)
 
-    Now, our |HydPy| instance offers access to all |Node| objects defined within the
+    Now, our |HydPy| object offers access to all |Node| objects defined within the
     :ref:`HydPy-H-Lahn` example project, which are grouped by a |Nodes| object:
 
     >>> hp.nodes
@@ -114,9 +114,9 @@ handle any elements at the moment.
     sim(0.0)
 
     All |Node| objects are ready to be used.  The same is only partly true for the
-    |Element| objects, which are also accessible (via a |Elements| instance) and
-    properly connected to the |Node| objects but do not handle workable |Model| objects,
-    which is required to perform any simulation run:
+    |Element| objects, which are also accessible (via a |Elements| object) and properly
+    connected to the |Node| objects but do not handle workable |Model| objects, which
+    is required to perform any simulation run:
 
     >>> hp.elements
     Elements("land_dill_assl", "land_lahn_kalk", "land_lahn_leun",
@@ -170,7 +170,7 @@ required to prepare the model properly.
     The last sentence of the error message tells us that we need to define the
     attribute `timegrids` of module `pub`.  `pub` stands for "public", meaning module
     `pub` handles all (or at least most of) the globally available configuration data.
-    One example is that module `pub` handles a |Timegrids| instance defining both the
+    One example is that module `pub` handles a |Timegrids| object defining both the
     initialisation and the simulation period, which can be done by the following
     assignment (see the documentation on class |Timegrid| and on class |Timegrids| for
     further information):
@@ -223,9 +223,8 @@ required to prepare the model properly.
     whenever practical, name the related objects identically but in lowercase letters.
     We hope that eases finding the relevant parts of the online documentation when in
     trouble with a particular object.  Three examples we already encountered are the
-    |Timegrids| instance `timegrids` of module `pub`, the |Nodes| instance `nodes` of
-    class `HydPy`, and the |hland_derived.Z| instance `z` of application model
-    |hland_96|:
+    |Timegrids| object `timegrids` of module `pub`, the |Nodes| object `nodes` of class
+    `HydPy`, and the |hland_derived.Z| object `z` of application model |hland_96|:
 
     >>> from hydpy import classname
     >>> classname(pub.timegrids)
@@ -308,7 +307,7 @@ required to prepare the model properly.
 
     Before loading time series data, we need to reserve the required memory storage.
     We do this for all sequences at once (not only the |ModelSequence| objects but also
-    the |NodeSequence| objects as the |Sim| instance handled by node `dill_assl`) by
+    the |NodeSequence| objects as the |Sim| object handled by node `dill_assl`) by
     calling the method |HydPy.prepare_allseries|:
 
     >>> hp.prepare_allseries()
@@ -859,21 +858,21 @@ directory: '...land_dill_assl_hland_96p_input_p.asc'
         >>> hp.nodes
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy instance does \
-not handle any nodes at the moment.
+        hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy object does not \
+handle any nodes at the moment.
 
         >>> hp.nodes = "dill_assl", "lahn_marb"
         >>> hp.nodes
         Nodes("dill_assl", "lahn_marb")
 
         However, note that doing so might result in erroneous networks and that you,
-        even in case of correctness, must most likely call method |HydPy.update_devices|
-        before performing the next simulation run.
+        even in case of correctness, must most likely call method
+        |HydPy.update_devices| before performing the next simulation run.
         """
         nodes = self._nodes
         if nodes is None:
             raise exceptiontools.AttributeNotReady(
-                "The actual HydPy instance does not handle any nodes at the moment."
+                "The actual HydPy object does not handle any nodes at the moment."
             )
         return nodes
 
@@ -906,8 +905,8 @@ not handle any nodes at the moment.
         >>> hp.elements
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy instance does \
-not handle any elements at the moment.
+        hydpy.core.exceptiontools.AttributeNotReady: The actual HydPy object does not \
+handle any elements at the moment.
 
         >>> hp.elements = "land_dill_assl", "land_lahn_marb"
         >>> hp.elements
@@ -921,7 +920,7 @@ not handle any elements at the moment.
         elements = self._elements
         if elements is None:
             raise exceptiontools.AttributeNotReady(
-                "The actual HydPy instance does not handle any elements at the moment."
+                "The actual HydPy object does not handle any elements at the moment."
             )
         return elements
 
@@ -962,7 +961,7 @@ first.
         return collectives
 
     def prepare_everything(self) -> None:
-        """Convenience method to make the actual |HydPy| instance runnable.
+        """Convenience method to make the actual |HydPy| object runnable.
 
         Method |HydPy.prepare_everything| is the fastest approach to get a runnable
         |HydPy| object.  You only need to import class |Hydpy|, initialise it with the
@@ -1083,7 +1082,7 @@ first.
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        Now, we can initialise a |HydPy| instance accordingly and call its methods
+        Now, we can initialise a |HydPy| object accordingly and call its methods
         |HydPy.prepare_network| and |HydPy.prepare_models|:
 
         >>> from hydpy import HydPy, pub, round_, TestIO
@@ -1446,8 +1445,8 @@ deprecated.  Use method `prepare_models` instead.
         airtemperaturefactor(field=0.2, forest=0.1)
 
         The :ref:`HydPy-H-Lahn` example project relies only upon "scalar" submodels
-        (handled by |SubmodelProperty| instances) and not on "vectorial" submodels
-        (handled by |SubmodelsProperty| instances).  Therefore, we now prepare an
+        (handled by |SubmodelProperty| objects) and not on "vectorial" submodels
+        (handled by |SubmodelsProperty| objects).  Therefore, we now prepare an
         instance of model |sw1d_channel| and add, for a start, two |sw1d_storage|
         models to it, assign it to a new |Element| object, and show how method
         |HydPy.save_controls| writes the further information into a control file:
@@ -1613,7 +1612,7 @@ deprecated.  Use method `prepare_models` instead.
         >>> parameters.control.area(329.6)
 
         Despite fixing the value of |hland_control.Area|, the value of the
-        |hland_derived.QFactor| instance stays the same:
+        |hland_derived.QFactor| object stays the same:
 
         >>> parameters.derived.qfactor
         qfactor(8.012731)
@@ -1621,7 +1620,7 @@ deprecated.  Use method `prepare_models` instead.
         One now could call method |Model.update_parameters| of the |hland_96| instance
         to achieve an update of all its derived parameters.  However, if one has
         changed the control parameter values of multiple models, one might find it more
-        convenient to call the |HydPy.update_parameters| of the |HydPy| instance, which
+        convenient to call the |HydPy.update_parameters| of the |HydPy| object, which
         then invokes the |Model.update_parameters| of all handled models:
 
         >>> hp.update_parameters()
@@ -1652,7 +1651,7 @@ deprecated.  Use method `prepare_models` instead.
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
-        Our |HydPy| instance `hp` is ready for the first simulation run, meaning the
+        Our |HydPy| object `hp` is ready for the first simulation run, meaning the
         required initial conditions are available already.  First, we start a
         simulation run covering the whole initialisation period and inspect the
         resulting soil moisture values of |Element| `land_dill_assl`, handled by a
@@ -1727,7 +1726,7 @@ deprecated.  Use method `prepare_models` instead.
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
         You can define another directory by assigning a different name to the attribute
-        |FileManager.currentdir| of the actual |ConditionManager| instance:
+        |FileManager.currentdir| of the actual |ConditionManager| object:
 
         >>> with TestIO():
         ...     pub.conditionmanager.currentdir = "test"
@@ -1760,8 +1759,8 @@ deprecated.  Use method `prepare_models` instead.
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
         The :ref:`HydPy-H-Lahn` example project relies only upon "scalar" submodels
-        (handled by |SubmodelProperty| instances) and not on "vectorial" submodels
-        (handled by |SubmodelsProperty| instances).  Therefore, we now prepare an
+        (handled by |SubmodelProperty| objects) and not on "vectorial" submodels
+        (handled by |SubmodelsProperty| objects).  Therefore, we now prepare an
         instance of model |sw1d_channel| and add, for a start, two |sw1d_storage|
         models to it, assign it to a new |Element| object, and show how method
         |HydPy.save_conditions| writes their states into a condition file:
@@ -2643,7 +2642,7 @@ prepared so far.
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to access the \
 simulation order of the currently relevant devices, the following error occurred: The \
-actual HydPy instance does not handle any elements at the moment.
+actual HydPy object does not handle any elements at the moment.
 
         Usually, |HydPy.deviceorder| is ready after calling |HydPy.prepare_network|.
         |HydPy.update_devices| updates the given devices' order, too.
@@ -2671,7 +2670,7 @@ actual HydPy instance does not handle any elements at the moment.
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to determine the \
 parallelisability of the current network, the following error occurred: The actual \
-HydPy instance does not handle any elements at the moment.
+HydPy object does not handle any elements at the moment.
 
         See the main documentation on class |Parallelisability| for more information.
         """
@@ -2972,7 +2971,7 @@ HydPy instance does not handle any elements at the moment.
         objects, method |HydPy.prepare_multithreading| manages some internals, like
         preparing the required time series.  Hence, it is advisable to call it even
         when passing more tailor-made and thus more efficient |Parallelisability| and
-        |threadingtools.Queue| instances to |HydPy.simulate_multithreaded|.
+        |threadingtools.Queue| objects to |HydPy.simulate_multithreaded|.
 
         If necessary, method |HydPy.prepare_multithreading| also determines the
         |HydPy.deviceorder|:
@@ -3072,7 +3071,7 @@ sequence `sm` of element `land_dill_assl`.
         Further improvements might be possible by preparing a tailor-made
         |threadingtools.Queue| (and maybe even a tailor-made |Parallelisability|)
         instance.  |threadingtools.Queue| makes some assumptions when determining the
-        |Element| instances' optimal processing order.  If you know, for example, about
+        |Element| objects' optimal processing order.  If you know, for example, about
         high differences between the simulation times of the involved models, you may
         be able to create a more efficient processing order.
         """

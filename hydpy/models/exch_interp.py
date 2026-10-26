@@ -57,7 +57,7 @@ You can use the helper classes |PPoly| or |ANN| to configure parameter |X2Y| so 
 >>> x2y(PPoly(xs=[0.0, 1.0], ys=[2.0, 4.0]))
 
 As |exch_interp| is quite simple, it needs no more special configuration.  Hence, we
-can finally define the simulation period, prepare an |IntegrationTest| instance, and
+can finally define the simulation period, prepare an |IntegrationTest| object, and
 assign input data to both observer nodes:
 
 >>> pub.timegrids = "2000-01-01", "2000-01-03", "1d"

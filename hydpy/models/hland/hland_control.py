@@ -220,7 +220,7 @@ class SFDist(hland_variables.MixinSnowClasses, parametertools.Parameter):
 
     |SFDist| provides two convenient alternatives for defining multiple factors with
     single keyword arguments.  To illustrate how they work, we first define a test
-    function that accepts a keyword argument, passes it to a |SFDist| instance for the
+    function that accepts a keyword argument, passes it to a |SFDist| object for the
     cases of one to five snow classes, and prints the respective snow class-specific
     factors:
 

@@ -340,7 +340,7 @@ class SubmodelIndexMask(IndexMask):
         """If available, return the |Parameter| object to determine which entries of
         |SubmodelIndexMask| must be |True| and which |False|.
 
-        For |ZipParameter| instances, |SubmodelIndexMask| tries to return the currently
+        For |ZipParameter| objects, |SubmodelIndexMask| tries to return the currently
         handled |ZipParameter.refindices| parameter instance and returns |None| for all
         other |Variable| subclasses.
         """
@@ -386,7 +386,7 @@ class Masks:
     Traceback (most recent call last):
     ...
     TypeError: The given value `mask` of type `str` is neither a Mask class nor a \
-Mask instance.
+Mask object.
 
     Using item access, strings (in whatever case), mask classes, and mask objects are
     accepted:
@@ -446,7 +446,7 @@ occurred: The given key is neither a `string` a `mask` type.
             pass
         raise TypeError(
             f"The given {objecttools.value_of_type(mask)} is neither a Mask class nor "
-            f"a Mask instance."
+            f"a Mask object."
         )
 
     def __getitem__(

@@ -420,7 +420,7 @@ class PyxPxdLines:
 
     def add(self, indent: int, line: str) -> None:
         """Pass the given data to method |Lines.add| of the `pyx` and `pxd` |Lines|
-        instances."""
+        objects."""
         self.pyx.add(indent, line)
         if line.endswith(":") and (" class " not in line):
             line = line[:-1]
@@ -737,7 +737,7 @@ class Cythonizer:
 
     @property
     def pyxwriter(self) -> PyxWriter:
-        """A new |PyxWriter| instance.
+        """A new |PyxWriter| object.
 
         >>> from hydpy.models.hland_96 import cythonizer
         >>> pyxwriter = cythonizer.pyxwriter

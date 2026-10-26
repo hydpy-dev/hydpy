@@ -324,8 +324,8 @@ available within the pub module.
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to update parameter \
 `latituderad` of element `?`, the following error occurred: While trying to multiply \
-variable `latitude` and `float` instance `0.017453`, the following error occurred: \
-For variable `latitude`, no value has been defined so far.
+variable `latitude` and `float` object `0.017453`, the following error occurred: For \
+variable `latitude`, no value has been defined so far.
 
         With a defined |Timegrids| object and proper values both for parameters
         |meteo_control.Latitude| and |meteo_control.Longitude|, updating the derived
@@ -544,8 +544,8 @@ class SubParameters(
 
     @property
     def regular(self) -> RegularParameters[Self]:
-        """The subset of all regular parameters (|Parameter| instances) of the
-        current subgroup.
+        """The subset of all regular parameters (|Parameter| objects) of the current
+        subgroup.
 
         See the documentation on class |ParameterSubset| for further information.
         """
@@ -553,8 +553,8 @@ class SubParameters(
 
     @property
     def special(self) -> SpecialParameters[Self]:
-        """The subset of all special parameters (|SpecialParameter| instances) of
-        the current subgroup.
+        """The subset of all special parameters (|SpecialParameter| objects) of the
+        current subgroup.
 
         See the documentation on class |ParameterSubset| for further information.
         """
@@ -605,9 +605,9 @@ class ParameterSubset(Generic[TypeSubParameters_co, TypeParameter_co]):
     """Base class for selecting a subset of the parameters of a |SubParameters|
     object.
 
-    |SubParameters| objects can handle regular parameters (|Parameter| instances, whose
+    |SubParameters| objects can handle regular parameters (|Parameter| objects, whose
     values are available via the attributes |Variable.value| and |Variable.values|) and
-    special parameters (|SpecialParameter| instances, which handle more complex data).
+    special parameters (|SpecialParameter| objects, which handle more complex data).
     Model users usually access both directly via their |SubParameters| object.  If you
     need to distinguish between them, the |ParameterSubset| subclasses
     |RegularParameters| and |SpecialParameters| help, which are available via the
@@ -772,8 +772,8 @@ direct value assignments.  Please call it instead.
 
 
 class RegularParameters(ParameterSubset[TypeSubParameters_co, "Parameter"]):
-    """The subset of all regular parameters (|Parameter| instances) of a
-    |SubParameters| object.
+    """The subset of all regular parameters (|Parameter| objects) of a |SubParameters|
+    object.
 
     See the documentation on class |ParameterSubset| for further information.
     """
@@ -782,7 +782,7 @@ class RegularParameters(ParameterSubset[TypeSubParameters_co, "Parameter"]):
 
 
 class SpecialParameters(ParameterSubset[TypeSubParameters_co, "SpecialParameter"]):
-    """The subset of all special parameters (|SpecialParameter| instances) of a
+    """The subset of all special parameters (|SpecialParameter| objects) of a
     |SubParameters| object.
 
     See the documentation on class |ParameterSubset| for further information.
@@ -4089,7 +4089,7 @@ class SeasonalParameter(Parameter, abc.ABC):
     >>> from hydpy import pub
     >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
 
-    Let us prepare an empty 1-dimensional |SeasonalParameter| instance:
+    Let us prepare an empty 1-dimensional |SeasonalParameter| object:
 
     >>> from hydpy.core.parametertools import SeasonalParameter
     >>> class Par(SeasonalParameter):
@@ -4146,7 +4146,7 @@ longer be supported in HydPy 8.0.  Please write `toy_01` instead.
 no longer be supported in HydPy 8.0.  Please write `toy_07_01` instead.
 
     As the following string representation shows are the pairs of each
-    |SeasonalParameter| instance automatically sorted:
+    |SeasonalParameter| object automatically sorted:
 
     >>> par
     par(toy_1_1_0_0_0=2.0,
@@ -5284,8 +5284,8 @@ attribute nor a row or column related attribute named `wrong`.
 
         Methods |KeywordParameter2D.modify_rows| and |KeywordParameter2D.modify_columns|
         serve the same purpose and behave exactly on the respective axis
-        |KeywordParameter2D| instances as method |KeywordParameter1D.modify_entries| on
-        the single axis of |KeywordParameter1D| instances.  Hence, we only test their
+        |KeywordParameter2D| objects as method |KeywordParameter1D.modify_entries| on
+        the single axis of |KeywordParameter1D| objects.  Hence, we only test their
         implementation here.  Please read the documentation on method
         |KeywordParameter1D.modify_entries| for more information:
 
@@ -6082,7 +6082,7 @@ date via parameter `commission` of element `?`, the following error occurred: \
 Attribute `timegrids` of module `pub` is not defined at the moment.
 
     After defining the initialisation period, you can pass the commission data, for
-    example, in the form of a |Date| instance or a suitable string:
+    example, in the form of a |Date| object or a suitable string:
 
     >>> from hydpy import Date, pub
     >>> pub.timegrids = "2000-01-01", "2000-01-10", "1d"
@@ -6179,9 +6179,9 @@ class IndexParameter(Parameter, abc.ABC):
         """Return a compressed parameter value representation that agrees with the
         current setting of the |Options.ellipsis| option.
 
-        |IndexParameter| instances reference arrays that handle one value per s
-        imulation time step.  Therefore, the usual |Parameter| string representation
-        generation mechanism would often print too much information:
+        |IndexParameter| objects reference arrays that handle one value per simulation
+        time step.  Therefore, the usual |Parameter| string representation generation
+        mechanism would often print too much information:
 
         >>> from hydpy import pub
         >>> pub.timegrids = "27.02.2004", "4.03.2004", "1d"

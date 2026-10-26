@@ -16,7 +16,7 @@ Integration test
 .. how_to_understand_integration_tests::
 
 According to the intended usage as a submodel, |evap_pet_hbv96| requires no connections
-to any nodes.  Hence, assigning a model instance to a blank |Element| instance is
+to any nodes.  Hence, assigning a model instance to a blank |Element| object is
 sufficient:
 
 >>> from hydpy import Element

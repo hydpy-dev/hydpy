@@ -1449,10 +1449,9 @@ def mock_datetime_now(testdatetime: datetime.datetime) -> Iterator[None]:
     ...     Date(datetime.datetime(2000, 10, 1, 12, 30, 0, 999))
     Traceback (most recent call last):
     ...
-    ValueError: While trying to initialise a `Date` object based on \
-argument `2000-10-01 12:30:00.000999`, the following error occurred: \
-For `Date` instances, the microsecond must be zero, \
-but for the given `datetime` object it is `999` instead.
+    ValueError: While trying to initialise a `Date` object based on argument \
+`2000-10-01 12:30:00.000999`, the following error occurred: For `Date` objects, the \
+microsecond must be zero, but for the given `datetime` object it is `999` instead.
 
     >>> classname(datetime.datetime)
     'datetime'
@@ -1884,7 +1883,7 @@ def check_selectedvariables(method: type[modeltools.Method], indent: int = 0) ->
 
     Some methods such as |evap_model.Calc_PotentialEvapotranspiration_V1| of base model
     |evap| rely on the |KeywordParameter1D.entrymin| attribute of |KeywordParameter1D|
-    instances.  Function |check_selectedvariables| does not report false alarms in such
+    objects.  Function |check_selectedvariables| does not report false alarms in such
     cases:
 
     >>> from hydpy.models.evap.evap_model import Calc_PotentialEvapotranspiration_V1
@@ -1896,8 +1895,8 @@ def check_selectedvariables(method: type[modeltools.Method], indent: int = 0) ->
 
     Some methods, such as |evap_model.Calc_PotentialEvapotranspiration_V2| of base
     model |evap|, rely on the |KeywordParameter2D.rowmin| or the
-    |KeywordParameter2D.columnmin| attribute of |KeywordParameter2D| instances.
-    Function |check_selectedvariables| does not report false alarms in such cases:
+    |KeywordParameter2D.columnmin| attribute of |KeywordParameter2D| objects.  Function
+    |check_selectedvariables| does not report false alarms in such cases:
 
     >>> from hydpy.models.evap.evap_model import Calc_PotentialEvapotranspiration_V2
     >>> from hydpy.models.evap.evap_control import LandMonthFactor
@@ -2764,7 +2763,7 @@ def prepare_full_example_2(
     Function |prepare_full_example_2| is an extensions of function
     |prepare_full_example_1|.  Besides preparing the project data of the `HydPy-H-Lahn`
     example project, it performs all necessary steps to start a simulation run.
-    Therefore, it returns a readily prepared |HydPy| instance, as well as, for
+    Therefore, it returns a readily prepared |HydPy| object, as well as, for
     convenience, module |pub| and class |TestIO|:
 
     >>> from hydpy.core.testtools import prepare_full_example_2

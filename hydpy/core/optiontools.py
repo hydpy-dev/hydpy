@@ -141,7 +141,7 @@ class OptionContextPeriod(timetools.Period, OptionContextBase[timetools.Period])
 class OptionPropertyBase(
     propertytools.BaseDescriptor, Generic[TypeOption, TypeOptionContextBase]
 ):
-    """Base class for defining descriptors that work like regular |property| instances
+    """Base class for defining descriptors that work like regular |property| objects
     and support the `with` statement to change the property's value temporarily."""
 
     _CONVERTER: tuple[Callable[[TypeOption], TypeOption]]
@@ -756,8 +756,8 @@ class Options:
 
     checkprojectstructure = OptionPropertyBool(
         True,
-        """A bool-like flag for raising a warning when creating a |HydPy| instance for
-        a project without the basic project structure on disk.
+        """A bool-like flag for raising a warning when creating a |HydPy| object for a 
+        project without the basic project structure on disk.
 
          Defaults usually to true but during testing to false:
          

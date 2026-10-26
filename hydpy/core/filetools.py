@@ -982,7 +982,7 @@ error occurred: name 'y' is not defined
         return selections
 
     def save_files(self, selections: Iterable[selectiontools.Selection]) -> None:
-        """Save the |Selection| objects contained in the given |Selections| instance to
+        """Save the |Selection| objects contained in the given |Selections| object to
         separate network files.
 
         See the main documentation on class |NetworkManager| for further information.

@@ -31,7 +31,7 @@ passes the branched output to three outlet nodes:
 ...                  inlets=["input1", "input2"],
 ...                  outlets=["output1", "output2", "output3"])
 
-The |Node.variable| types of the respective |Node| instances do not matter.  Instead,
+The |Node.variable| types of the respective |Node| objects do not matter.  Instead,
 |exch_branch_rules| treats all inlet nodes as input providers and builds separate
 connections to its outlet nodes, relying on the outlet nodes' names.  Hence, these
 names must be used as keyword arguments when passing the respective interpolation rules

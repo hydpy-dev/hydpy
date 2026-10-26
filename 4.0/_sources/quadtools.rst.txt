@@ -1,0 +1,16 @@
+.. |Quad| replace:: :class:`~hydpy.auxs.quadtools.Quad`
+.. |Submodel| replace:: :class:`~hydpy.core.modeltools.Submodel`
+.. |quadtools| replace:: :mod:`~hydpy.auxs.quadtools`
+.. |wland_model.Calc_DVEq_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_DVEq_V1`
+.. |wland_model.QuadDVEq_V1| replace:: :class:`~hydpy.models.wland.wland_model.QuadDVEq_V1`
+.. |wland_model.Return_DVH_V1| replace:: :class:`~hydpy.models.wland.wland_model.Return_DVH_V1`
+
+.. _quadtools:
+
+quadtools
+=========
+
+.. automodule:: hydpy.auxs.quadtools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

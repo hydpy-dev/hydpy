@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.lstream.lstream_aides &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.lstream.lstream_aides</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.lstream.lstream_aides</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">sequencetools</span>
+
+
+<div class="viewcode-block" id="WBM">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.WBM">[docs]</a>
+<span class="k">class</span> <span class="nc">WBM</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wasserspiegelbreite Hauptgerinne (water level width of the main</span>
+<span class="sd">    channel) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="WBLV">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.WBLV">[docs]</a>
+<span class="k">class</span> <span class="nc">WBLV</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wasserspiegelbreite des linken Vorlandes (water level width of the</span>
+<span class="sd">    left foreland) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="WBRV">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.WBRV">[docs]</a>
+<span class="k">class</span> <span class="nc">WBRV</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wasserspiegelbreite des rechten Vorlandes (water level width of the</span>
+<span class="sd">    right foreland) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="WBLVR">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.WBLVR">[docs]</a>
+<span class="k">class</span> <span class="nc">WBLVR</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wasserspiegelbreite des linken Vorlandrandes (water level width of</span>
+<span class="sd">    the left outer embankment) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="WBRVR">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.WBRVR">[docs]</a>
+<span class="k">class</span> <span class="nc">WBRVR</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wasserspiegelbreite des rechten Vorlandrandes (water level width of</span>
+<span class="sd">    the right outer embankment) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="WBG">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.WBG">[docs]</a>
+<span class="k">class</span> <span class="nc">WBG</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wasserspiegelbreite des gesamten Querschnittes (water level width of</span>
+<span class="sd">    the total cross section) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AM">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.AM">[docs]</a>
+<span class="k">class</span> <span class="nc">AM</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Durchflossene Fläche Hauptgerinne (wetted area of the</span>
+<span class="sd">    main channel) [m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ALV">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.ALV">[docs]</a>
+<span class="k">class</span> <span class="nc">ALV</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Durchflossene Fläche linkes Vorland (wetted area of the</span>
+<span class="sd">    left foreland) [m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ARV">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.ARV">[docs]</a>
+<span class="k">class</span> <span class="nc">ARV</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Durchflossene Fläche rechtes Vorland (wetted area of the</span>
+<span class="sd">    right foreland) [m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ALVR">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.ALVR">[docs]</a>
+<span class="k">class</span> <span class="nc">ALVR</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Durchflossene Fläche linker Vorlandrand (wetted area of the</span>
+<span class="sd">    left outer embankments) [m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ARVR">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.ARVR">[docs]</a>
+<span class="k">class</span> <span class="nc">ARVR</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Durchflossene Fläche rechter Vorlandrand (wetted area of the</span>
+<span class="sd">    right outer embankments) [m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AG">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.AG">[docs]</a>
+<span class="k">class</span> <span class="nc">AG</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Durchflossene Fläche gesamt  (total wetted area) [m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UM">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.UM">[docs]</a>
+<span class="k">class</span> <span class="nc">UM</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Benetzter Umfang Hauptgerinne (wetted perimeter of the</span>
+<span class="sd">    main channel) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ULV">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.ULV">[docs]</a>
+<span class="k">class</span> <span class="nc">ULV</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Benetzter Umfang linkes Vorland (wetted perimeter of the</span>
+<span class="sd">    left foreland) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="URV">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.URV">[docs]</a>
+<span class="k">class</span> <span class="nc">URV</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Benetzter Umfang rechtes Vorland (wetted perimeter of the</span>
+<span class="sd">    right foreland) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ULVR">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.ULVR">[docs]</a>
+<span class="k">class</span> <span class="nc">ULVR</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Benetzter Umfang linker Vorlandrand (wetted perimeter of the</span>
+<span class="sd">    left outer embankment) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="URVR">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.URVR">[docs]</a>
+<span class="k">class</span> <span class="nc">URVR</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Benetzter Umfang rechtes Vorlandrand (wetted perimeter of the</span>
+<span class="sd">    right outer embankment) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QM">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.QM">[docs]</a>
+<span class="k">class</span> <span class="nc">QM</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Durchfluss Hauptgerinne (discharge of the main channel) [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QLV">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.QLV">[docs]</a>
+<span class="k">class</span> <span class="nc">QLV</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Durchfluss linkes Vorland (discharge of the left foreland) [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QRV">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.QRV">[docs]</a>
+<span class="k">class</span> <span class="nc">QRV</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Durchfluss rechtes Vorland (discharge of the right foreland) [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QVR">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.QVR">[docs]</a>
+<span class="k">class</span> <span class="nc">QVR</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Durchfluss Vorlandränder (discharge of both outer embankment) [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QLVR">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.QLVR">[docs]</a>
+<span class="k">class</span> <span class="nc">QLVR</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Durchfluss linker Vorlandrand (discharge of the left outer</span>
+<span class="sd">    embankment) [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QRVR">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.QRVR">[docs]</a>
+<span class="k">class</span> <span class="nc">QRVR</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Durchfluss rechter Vorlandrand (discharge of the right outer</span>
+<span class="sd">    embankment) [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RHM">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.RHM">[docs]</a>
+<span class="k">class</span> <span class="nc">RHM</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Hinsichtlich der Gewässersohle regularisierter Wasserstand (stage</span>
+<span class="sd">    regularised with respect to the channel bottom) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RHMDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.RHMDH">[docs]</a>
+<span class="k">class</span> <span class="nc">RHMDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |RHM| (derivative of |RHM|) [m/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RHV">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.RHV">[docs]</a>
+<span class="k">class</span> <span class="nc">RHV</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Hinsichtlich der des Übergangs Hauptgerinne/Vorländer regularisierter</span>
+<span class="sd">    Wasserstand (stage regularised with respect to the transition</span>
+<span class="sd">    from the main channel to both forelands) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RHVDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.RHVDH">[docs]</a>
+<span class="k">class</span> <span class="nc">RHVDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |RHV| (derivative of |RHV|) [m/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RHLVR">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.RHLVR">[docs]</a>
+<span class="k">class</span> <span class="nc">RHLVR</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Hinsichtlich der des Übergangs linkes Vorland/ linker Vorlandrand</span>
+<span class="sd">    regularisierter Wasserstand (stage regularised with respect to the</span>
+<span class="sd">    transition from the left foreland to the left outer embankment) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RHLVRDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.RHLVRDH">[docs]</a>
+<span class="k">class</span> <span class="nc">RHLVRDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |RHLVR| (derivative of |RHLVR|) [m/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RHRVR">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.RHRVR">[docs]</a>
+<span class="k">class</span> <span class="nc">RHRVR</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Hinsichtlich der des Übergangs rechtes Vorland/ rechter Vorlandrand</span>
+<span class="sd">    regularisierter Wasserstand (stage regularised with respect to the</span>
+<span class="sd">    transition from the right foreland to the right outer embankment) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RHRVRDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.RHRVRDH">[docs]</a>
+<span class="k">class</span> <span class="nc">RHRVRDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |RHRVR| (derivative of |RHRVR|) [m/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AMDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.AMDH">[docs]</a>
+<span class="k">class</span> <span class="nc">AMDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |AM| (derivative of |AM|) [m²/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ALVDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.ALVDH">[docs]</a>
+<span class="k">class</span> <span class="nc">ALVDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |ALV| (derivative of |ALV|) [m²/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ARVDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.ARVDH">[docs]</a>
+<span class="k">class</span> <span class="nc">ARVDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |ARV| (derivative of |ARV|) [m²/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ALVRDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.ALVRDH">[docs]</a>
+<span class="k">class</span> <span class="nc">ALVRDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |ALVR| (derivative of |ALVR|) [m²/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ARVRDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.ARVRDH">[docs]</a>
+<span class="k">class</span> <span class="nc">ARVRDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |ARVR| (derivative of |ARVR|) [m²/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="UMDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.UMDH">[docs]</a>
+<span class="k">class</span> <span class="nc">UMDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |UM| (derivative of |UM|) [m/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ULVDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.ULVDH">[docs]</a>
+<span class="k">class</span> <span class="nc">ULVDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |ULV| (derivative of |ULV|) [m/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="URVDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.URVDH">[docs]</a>
+<span class="k">class</span> <span class="nc">URVDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |URV| (derivative of |URV|) [m/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ULVRDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.ULVRDH">[docs]</a>
+<span class="k">class</span> <span class="nc">ULVRDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |ULVR| (derivative of |ULVR|) [m/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="URVRDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.URVRDH">[docs]</a>
+<span class="k">class</span> <span class="nc">URVRDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |URVR| (derivative of |URVR|) [m/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QMDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.QMDH">[docs]</a>
+<span class="k">class</span> <span class="nc">QMDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |QM| (derivative of |QM|) [m³/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QLVDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.QLVDH">[docs]</a>
+<span class="k">class</span> <span class="nc">QLVDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |QLV| (derivative of |QLV|) [m³/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QRVDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.QRVDH">[docs]</a>
+<span class="k">class</span> <span class="nc">QRVDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |QRV| (derivative of |QRV|) [m³/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QLVRDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.QLVRDH">[docs]</a>
+<span class="k">class</span> <span class="nc">QLVRDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |QLVR| (derivative of |QLVR|) [m³/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="QRVRDH">
+<a class="viewcode-back" href="../../../../lstream.html#hydpy.models.lstream.lstream_aides.QRVRDH">[docs]</a>
+<span class="k">class</span> <span class="nc">QRVRDH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">AideSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ableitung von |QRVR| (derivative of |QRVR|) [m³/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.lstream.lstream_aides</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

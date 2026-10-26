@@ -1,0 +1,15 @@
+.. |InputCoordinates| replace:: :class:`~hydpy.models.conv.conv_control.InputCoordinates`
+.. |conv_v001| replace:: :mod:`~hydpy.models.conv_v001`
+.. |numpy| replace:: :mod:`~numpy`
+.. |parameterstep| replace:: :func:`~hydpy.core.importtools.parameterstep`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+
+.. _conv_v001:
+
+conv_v001
+=========
+
+.. automodule:: hydpy.models.conv_v001
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, ReceiverSequences, InputSequences, StateSequences, LogSequences, AideSequences, SenderSequences

@@ -1,0 +1,379 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.examples &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.examples</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.examples</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module implements functions for preparing tutorial projects and</span>
+<span class="sd">other test data.</span>
+
+<span class="sd">.. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">data</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">devicetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">importtools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">filetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">hydpytools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">testtools</span>
+<span class="kn">from</span> <span class="nn">hydpy.tests</span> <span class="kn">import</span> <span class="n">iotesting</span>
+<span class="kn">from</span> <span class="nn">hydpy.models</span> <span class="kn">import</span> <span class="n">lland</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">pubtools</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">timetools</span>
+
+
+<div class="viewcode-block" id="prepare_io_example_1"><a class="viewcode-back" href="../../examples.html#hydpy.examples.prepare_io_example_1">[docs]</a><span class="k">def</span> <span class="nf">prepare_io_example_1</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Prepare an IO example configuration for testing purposes.</span>
+
+<span class="sd">    Function |prepare_io_example_1| is thought for testing the functioning</span>
+<span class="sd">    of *HydPy* and thus should be of interest for framework developers only.</span>
+<span class="sd">    It uses the application models |lland_v1| and |lland_v2|.  Here, we</span>
+<span class="sd">    apply |prepare_io_example_1| and shortly discuss different aspects of</span>
+<span class="sd">    the data it generates.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.examples import prepare_io_example_1</span>
+<span class="sd">    &gt;&gt;&gt; nodes, elements = prepare_io_example_1()</span>
+
+<span class="sd">    (1) It defines a short initialisation period of five days:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids</span>
+<span class="sd">    Timegrids(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="sd">              &quot;2000-01-05 00:00:00&quot;,</span>
+<span class="sd">              &quot;1d&quot;)</span>
+
+<span class="sd">    (2) It creates a flat IO testing directory structure:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.sequencemanager.inputdirpath</span>
+<span class="sd">    &#39;inputpath&#39;</span>
+<span class="sd">    &gt;&gt;&gt; pub.sequencemanager.fluxdirpath</span>
+<span class="sd">    &#39;outputpath&#39;</span>
+<span class="sd">    &gt;&gt;&gt; pub.sequencemanager.statedirpath</span>
+<span class="sd">    &#39;outputpath&#39;</span>
+<span class="sd">    &gt;&gt;&gt; pub.sequencemanager.nodedirpath</span>
+<span class="sd">    &#39;nodepath&#39;</span>
+<span class="sd">    &gt;&gt;&gt; import os</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import TestIO</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     print(sorted(filename for filename in os.listdir(&quot;.&quot;)</span>
+<span class="sd">    ...                  if not filename.startswith(&quot;_&quot;)))</span>
+<span class="sd">    [&#39;inputpath&#39;, &#39;nodepath&#39;, &#39;outputpath&#39;]</span>
+
+<span class="sd">    (3) It returns three |Element| objects handling either application model</span>
+<span class="sd">    |lland_v1| or |lland_v2|, and two |Node| objects handling variables</span>
+<span class="sd">    `Q` and `T`:</span>
+
+<span class="sd">    &gt;&gt;&gt; for element in elements:</span>
+<span class="sd">    ...     print(element.name, element.model)</span>
+<span class="sd">    element1 lland_v1</span>
+<span class="sd">    element2 lland_v1</span>
+<span class="sd">    element3 lland_v2</span>
+<span class="sd">    &gt;&gt;&gt; for node in nodes:</span>
+<span class="sd">    ...     print(node.name, node.variable)</span>
+<span class="sd">    node1 Q</span>
+<span class="sd">    node2 T</span>
+
+<span class="sd">    (4) It generates artificial time series data of the input sequence</span>
+<span class="sd">    |lland_inputs.Nied|, the flux sequence |lland_fluxes.NKor|, and the</span>
+<span class="sd">    state sequence |lland_states.BoWa| of each model instance, and the</span>
+<span class="sd">    |Sim| sequence of each node instance.  For unambiguous test results,</span>
+<span class="sd">    all generated values are unique:</span>
+
+<span class="sd">    &gt;&gt;&gt; nied1 = elements.element1.model.sequences.inputs.nied</span>
+<span class="sd">    &gt;&gt;&gt; nied1.series</span>
+<span class="sd">    InfoArray([ 0.,  1.,  2.,  3.])</span>
+<span class="sd">    &gt;&gt;&gt; nkor1 = elements.element1.model.sequences.fluxes.nkor</span>
+<span class="sd">    &gt;&gt;&gt; nkor1.series</span>
+<span class="sd">    InfoArray([[ 12.],</span>
+<span class="sd">               [ 13.],</span>
+<span class="sd">               [ 14.],</span>
+<span class="sd">               [ 15.]])</span>
+<span class="sd">    &gt;&gt;&gt; bowa3 = elements.element3.model.sequences.states.bowa</span>
+<span class="sd">    &gt;&gt;&gt; bowa3.series</span>
+<span class="sd">    InfoArray([[ 48.,  49.,  50.],</span>
+<span class="sd">               [ 51.,  52.,  53.],</span>
+<span class="sd">               [ 54.,  55.,  56.],</span>
+<span class="sd">               [ 57.,  58.,  59.]])</span>
+<span class="sd">    &gt;&gt;&gt; sim2 = nodes.node2.sequences.sim</span>
+<span class="sd">    &gt;&gt;&gt; sim2.series</span>
+<span class="sd">    InfoArray([ 64.,  65.,  66.,  67.])</span>
+
+<span class="sd">    (5) All sequences carry |numpy.ndarray| objects with (deep) copies</span>
+<span class="sd">    of the time series data for testing:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy</span>
+<span class="sd">    &gt;&gt;&gt; (numpy.all(nied1.series == nied1.testarray) and</span>
+<span class="sd">    ...  numpy.all(nkor1.series == nkor1.testarray) and</span>
+<span class="sd">    ...  numpy.all(bowa3.series == bowa3.testarray) and</span>
+<span class="sd">    ...  numpy.all(sim2.series == sim2.testarray))</span>
+<span class="sd">    InfoArray(True, dtype=bool)</span>
+<span class="sd">    &gt;&gt;&gt; bowa3.series[1, 2] = -999.0</span>
+<span class="sd">    &gt;&gt;&gt; numpy.all(bowa3.series == bowa3.testarray)</span>
+<span class="sd">    InfoArray(False, dtype=bool)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">testtools</span><span class="o">.</span><span class="n">TestIO</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span> <span class="o">=</span> <span class="n">filetools</span><span class="o">.</span><span class="n">SequenceManager</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">testtools</span><span class="o">.</span><span class="n">TestIO</span><span class="p">():</span>
+        <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">inputdirpath</span> <span class="o">=</span> <span class="s2">&quot;inputpath&quot;</span>
+        <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">fluxdirpath</span> <span class="o">=</span> <span class="s2">&quot;outputpath&quot;</span>
+        <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">statedirpath</span> <span class="o">=</span> <span class="s2">&quot;outputpath&quot;</span>
+        <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">nodedirpath</span> <span class="o">=</span> <span class="s2">&quot;nodepath&quot;</span>
+
+    <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2000-01-05&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+
+    <span class="n">node1</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="s2">&quot;node1&quot;</span><span class="p">)</span>
+    <span class="n">node2</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="s2">&quot;node2&quot;</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">(</span><span class="n">node1</span><span class="p">,</span> <span class="n">node2</span><span class="p">)</span>
+    <span class="n">element1</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s2">&quot;element1&quot;</span><span class="p">,</span> <span class="n">outlets</span><span class="o">=</span><span class="n">node1</span><span class="p">)</span>
+    <span class="n">element2</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s2">&quot;element2&quot;</span><span class="p">,</span> <span class="n">outlets</span><span class="o">=</span><span class="n">node1</span><span class="p">)</span>
+    <span class="n">element3</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s2">&quot;element3&quot;</span><span class="p">,</span> <span class="n">outlets</span><span class="o">=</span><span class="n">node1</span><span class="p">)</span>
+    <span class="n">elements</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">(</span><span class="n">element1</span><span class="p">,</span> <span class="n">element2</span><span class="p">,</span> <span class="n">element3</span><span class="p">)</span>
+
+    <span class="n">element1</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">importtools</span><span class="o">.</span><span class="n">prepare_model</span><span class="p">(</span><span class="s2">&quot;lland_v1&quot;</span><span class="p">)</span>
+    <span class="n">element2</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">importtools</span><span class="o">.</span><span class="n">prepare_model</span><span class="p">(</span><span class="s2">&quot;lland_v1&quot;</span><span class="p">)</span>
+    <span class="n">element3</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">importtools</span><span class="o">.</span><span class="n">prepare_model</span><span class="p">(</span><span class="s2">&quot;lland_v2&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">elements</span><span class="p">):</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">nhru</span><span class="p">(</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">lnk</span><span class="p">(</span><span class="n">lland</span><span class="o">.</span><span class="n">ACKER</span><span class="p">)</span>
+        <span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">absfhru</span><span class="p">(</span><span class="mf">10.0</span><span class="p">)</span>
+
+    <span class="c1"># pylint: disable=not-callable</span>
+    <span class="c1"># pylint usually understands that all options are callable</span>
+    <span class="c1"># but, for unknown reasons, not in the following line:</span>
+    <span class="k">with</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span><span class="p">(</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">nodes</span><span class="o">.</span><span class="n">prepare_simseries</span><span class="p">()</span>
+        <span class="n">elements</span><span class="o">.</span><span class="n">prepare_inputseries</span><span class="p">()</span>
+        <span class="n">elements</span><span class="o">.</span><span class="n">prepare_fluxseries</span><span class="p">()</span>
+        <span class="n">elements</span><span class="o">.</span><span class="n">prepare_stateseries</span><span class="p">()</span>
+    <span class="c1"># pylint: enable=not-callable</span>
+
+    <span class="k">def</span> <span class="nf">init_values</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">value1_</span><span class="p">):</span>
+        <span class="n">value2_</span> <span class="o">=</span> <span class="n">value1_</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="n">values_</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">value1_</span><span class="p">,</span> <span class="n">value2_</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">seq</span><span class="o">.</span><span class="n">testarray</span> <span class="o">=</span> <span class="n">values_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">seq</span><span class="o">.</span><span class="n">seriesshape</span><span class="p">)</span>
+        <span class="n">seq</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">testarray</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">value2_</span>
+
+    <span class="n">value1</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">subname</span><span class="p">,</span> <span class="n">seqname</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">,</span> <span class="s2">&quot;fluxes&quot;</span><span class="p">,</span> <span class="s2">&quot;states&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;nied&quot;</span><span class="p">,</span> <span class="s2">&quot;nkor&quot;</span><span class="p">,</span> <span class="s2">&quot;bowa&quot;</span><span class="p">]</span>
+    <span class="p">):</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="n">subseqs</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="p">,</span> <span class="n">subname</span><span class="p">)</span>
+            <span class="n">value1</span> <span class="o">=</span> <span class="n">init_values</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">subseqs</span><span class="p">,</span> <span class="n">seqname</span><span class="p">),</span> <span class="n">value1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+        <span class="n">value1</span> <span class="o">=</span> <span class="n">init_values</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">,</span> <span class="n">value1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">elements</span></div>
+
+
+<div class="viewcode-block" id="prepare_full_example_1"><a class="viewcode-back" href="../../examples.html#hydpy.examples.prepare_full_example_1">[docs]</a><span class="k">def</span> <span class="nf">prepare_full_example_1</span><span class="p">(</span><span class="n">dirpath</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Prepare the `LahnH` example project on disk.</span>
+
+<span class="sd">    *HydPy* comes with a complete project data set for the German river</span>
+<span class="sd">    Lahn, provided by the `German Federal Institute of Hydrology (BfG)`_.</span>
+<span class="sd">    The Lahn is a medium-sized tributary to the Rhine.  The given project</span>
+<span class="sd">    configuration agrees with the BfG&#39;s forecasting model, using HBV96</span>
+<span class="sd">    to simulate the inflow of the Rhine&#39;s tributaries.</span>
+<span class="sd">    The catchment is subdivided into four sub-catchments, each one with a</span>
+<span class="sd">    river gauge (Marburg, Asslar, Leun, Kalkofen) at its outlet.  The</span>
+<span class="sd">    sub-catchments are further subdivided into a different number of zones.</span>
+
+<span class="sd">    .. image:: LahnH.png</span>
+
+<span class="sd">    By default, function |prepare_full_example_1| copies the original</span>
+<span class="sd">    project data into the `iotesting` directory, thought for performing</span>
+<span class="sd">    automated tests on real-world data.  The following doctest shows</span>
+<span class="sd">    the generated folder structure:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.examples import prepare_full_example_1</span>
+<span class="sd">    &gt;&gt;&gt; prepare_full_example_1()</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import TestIO</span>
+<span class="sd">    &gt;&gt;&gt; import os</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     print(&quot;root:&quot;, *sorted(os.listdir(&quot;.&quot;)))</span>
+<span class="sd">    ...     for folder in (&quot;control&quot;, &quot;conditions&quot;, &quot;series&quot;):</span>
+<span class="sd">    ...         print(f&quot;LahnH/{folder}:&quot;,</span>
+<span class="sd">    ...               *sorted(os.listdir(f&quot;LahnH/{folder}&quot;)))</span>
+<span class="sd">    root: LahnH __init__.py</span>
+<span class="sd">    LahnH/control: default</span>
+<span class="sd">    LahnH/conditions: init_1996_01_01_00_00_00</span>
+<span class="sd">    LahnH/series: input node output temp</span>
+
+<span class="sd">    Pass an alternative path if you prefer to work in another directory:</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">        &gt;&gt;&gt; &quot;LahnH&quot; in os.listdir(&quot;.&quot;)</span>
+<span class="sd">        False</span>
+
+<span class="sd">    &gt;&gt;&gt; prepare_full_example_1(dirpath=&quot;.&quot;)</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">        &gt;&gt;&gt; &quot;LahnH&quot; in os.listdir(&quot;.&quot;)</span>
+<span class="sd">        True</span>
+<span class="sd">        &gt;&gt;&gt; import shutil</span>
+<span class="sd">        &gt;&gt;&gt; shutil.rmtree(&quot;LahnH&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">dirpath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">testtools</span><span class="o">.</span><span class="n">TestIO</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">dirpath</span> <span class="o">=</span> <span class="n">iotesting</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># type: ignore[attr-defined, name-defined] # pylint: disable=line-too-long</span>
+    <span class="n">datapath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># type: ignore[attr-defined, name-defined]</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="s2">&quot;LahnH&quot;</span><span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;LahnH&quot;</span><span class="p">))</span>
+    <span class="n">seqpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="s2">&quot;LahnH&quot;</span><span class="p">,</span> <span class="s2">&quot;series&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="s2">&quot;node&quot;</span><span class="p">,</span> <span class="s2">&quot;temp&quot;</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">seqpath</span><span class="p">,</span> <span class="n">folder</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="prepare_full_example_2"><a class="viewcode-back" href="../../examples.html#hydpy.examples.prepare_full_example_2">[docs]</a><span class="k">def</span> <span class="nf">prepare_full_example_2</span><span class="p">(</span>
+    <span class="n">lastdate</span><span class="p">:</span> <span class="s2">&quot;timetools.DateConstrArg&quot;</span> <span class="o">=</span> <span class="s2">&quot;1996-01-05&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">hydpytools</span><span class="o">.</span><span class="n">HydPy</span><span class="p">,</span> <span class="s2">&quot;pubtools.Pub&quot;</span><span class="p">,</span> <span class="n">Type</span><span class="p">[</span><span class="n">testtools</span><span class="o">.</span><span class="n">TestIO</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;Prepare the `LahnH` project on disk and in RAM.</span>
+
+<span class="sd">    Function |prepare_full_example_2| is an extensions of function</span>
+<span class="sd">    |prepare_full_example_1|.  Besides preparing the project data of</span>
+<span class="sd">    the `LahnH` example project, it performs all necessary steps to</span>
+<span class="sd">    start a simulation run.  Therefore, it returns a readily prepared</span>
+<span class="sd">    |HydPy| instance, as well as, for convenience, module |pub| and</span>
+<span class="sd">    class |TestIO|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.examples import prepare_full_example_2</span>
+<span class="sd">    &gt;&gt;&gt; hp, pub, TestIO = prepare_full_example_2()</span>
+<span class="sd">    &gt;&gt;&gt; hp.nodes</span>
+<span class="sd">    Nodes(&quot;dill&quot;, &quot;lahn_1&quot;, &quot;lahn_2&quot;, &quot;lahn_3&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; hp.elements</span>
+<span class="sd">    Elements(&quot;land_dill&quot;, &quot;land_lahn_1&quot;, &quot;land_lahn_2&quot;, &quot;land_lahn_3&quot;,</span>
+<span class="sd">             &quot;stream_dill_lahn_2&quot;, &quot;stream_lahn_1_lahn_2&quot;,</span>
+<span class="sd">             &quot;stream_lahn_2_lahn_3&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids</span>
+<span class="sd">    Timegrids(&quot;1996-01-01 00:00:00&quot;,</span>
+<span class="sd">              &quot;1996-01-05 00:00:00&quot;,</span>
+<span class="sd">              &quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import classname</span>
+<span class="sd">    &gt;&gt;&gt; classname(TestIO)</span>
+<span class="sd">    &#39;TestIO&#39;</span>
+
+<span class="sd">    Function |prepare_full_example_2| is primarily thought for testing</span>
+<span class="sd">    and thus does not allow for many configurations except changing the</span>
+<span class="sd">    end date of the initialisation period:</span>
+
+<span class="sd">    &gt;&gt;&gt; hp, pub, TestIO = prepare_full_example_2(&quot;1996-02-01&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids</span>
+<span class="sd">    Timegrids(&quot;1996-01-01 00:00:00&quot;,</span>
+<span class="sd">              &quot;1996-02-01 00:00:00&quot;,</span>
+<span class="sd">              &quot;1d&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">prepare_full_example_1</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">testtools</span><span class="o">.</span><span class="n">TestIO</span><span class="p">():</span>
+        <span class="n">hp</span> <span class="o">=</span> <span class="n">hydpytools</span><span class="o">.</span><span class="n">HydPy</span><span class="p">(</span><span class="s2">&quot;LahnH&quot;</span><span class="p">)</span>
+        <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;1996-01-01&quot;</span><span class="p">,</span> <span class="n">lastdate</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+        <span class="n">hp</span><span class="o">.</span><span class="n">prepare_everything</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">hp</span><span class="p">,</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="p">,</span> <span class="n">testtools</span><span class="o">.</span><span class="n">TestIO</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.examples</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

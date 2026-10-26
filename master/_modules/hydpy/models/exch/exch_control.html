@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.exch.exch_control &#8212; HydPy 7.0dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=72aa22fa" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=a3767c0e"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/toctree.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 7.0dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.exch.exch_control</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.exch.exch_control</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">hydpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">devicetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs</span><span class="w"> </span><span class="kn">import</span> <span class="n">interptools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs</span><span class="w"> </span><span class="kn">import</span> <span class="n">ppolytools</span>
+
+
+<div class="viewcode-block" id="CrestHeight">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.CrestHeight">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CrestHeight</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Crest height [m]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CrestWidth">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.CrestWidth">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CrestWidth</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Crest width [m]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="FlowCoefficient">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.FlowCoefficient">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FlowCoefficient</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Flow coefficient [-]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.62</span></div>
+
+
+
+<div class="viewcode-block" id="FlowExponent">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.FlowExponent">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FlowExponent</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Flow exponent [-]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.5</span></div>
+
+
+
+<div class="viewcode-block" id="AllowedExchange">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.AllowedExchange">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AllowedExchange</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The highest water exchange allowed [m³/s]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.5</span></div>
+
+
+
+<div class="viewcode-block" id="Delta">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.Delta">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Delta</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">MonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Monthly varying difference for increasing or decreasing the input</span>
+<span class="sd">    [e.g. m³/s]."""</span>
+
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="Minimum">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.Minimum">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Minimum</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The allowed minimum value of the adjusted input [e.g. m³/s]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="XPoints">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.XPoints">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">XPoints</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Supporting points for the independent input variable [e.g. m³/s].</span>
+
+<span class="sd">    There must be at least two supporting points, and they must be strictly monotonic.</span>
+<span class="sd">    If not, |XPoints| raises the following errors:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.exceptiontools import ignore_deprecations</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.exch_branch_hbv96 import *</span>
+<span class="sd">    &gt;&gt;&gt; with ignore_deprecations():</span>
+<span class="sd">    ...     parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; xpoints(1.0, 2.0)</span>
+<span class="sd">    &gt;&gt;&gt; xpoints</span>
+<span class="sd">    xpoints(1.0, 2.0)</span>
+
+<span class="sd">    &gt;&gt;&gt; xpoints(1.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: Branching via linear interpolation requires at least two supporting \</span>
+<span class="sd">points, but parameter `xpoints` of element `?` received one value.</span>
+
+<span class="sd">    &gt;&gt;&gt; xpoints(1.0, 2.0, 2.0, 3.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The values of parameter `xpoints` of element `?` must be arranged \</span>
+<span class="sd">strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0, 3.0`.</span>
+<span class="sd">    """</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">shape</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Branching via linear interpolation requires at least two supporting "</span>
+                <span class="sa">f</span><span class="s2">"points, but parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> received "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">Inflect</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span><span class="w"> </span><span class="s1">'value'</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
+            <span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"The values of parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> must be "</span>
+                <span class="sa">f</span><span class="s2">"arranged strictly monotonously, which is not the case for the given "</span>
+                <span class="sa">f</span><span class="s2">"values `</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">`."</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="YPoints">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.YPoints">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">YPoints</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Supporting points for the dependent output variables [e.g. m³/s].</span>
+
+<span class="sd">    Preparing parameter |YPoints| requires consistency with parameter |XPoints| and the</span>
+<span class="sd">    currently available |Node| objects.</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import reverse_model_wildcard_import</span>
+<span class="sd">        &gt;&gt;&gt; reverse_model_wildcard_import()</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.exceptiontools import ignore_deprecations</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.exch_branch_hbv96 import *</span>
+<span class="sd">    &gt;&gt;&gt; with ignore_deprecations():</span>
+<span class="sd">    ...     parameterstep("1d")</span>
+<span class="sd">    &gt;&gt;&gt; ypoints</span>
+<span class="sd">    ypoints(?)</span>
+
+<span class="sd">    You need to prepare parameter |XPoints| first:</span>
+
+<span class="sd">    &gt;&gt;&gt; ypoints(1.0, 2.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: The shape of parameter `ypoints` of element `?` depends on the \</span>
+<span class="sd">shape of parameter `xpoints`, which is not defined so far.</span>
+
+<span class="sd">    &gt;&gt;&gt; xpoints(1.0, 2.0, 3.0)</span>
+
+<span class="sd">    Supply the names of the output |Node| objects as keyword arguments:</span>
+
+<span class="sd">    &gt;&gt;&gt; ypoints(1.0, 2.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: For parameter `ypoints` of element `?`, no branches are defined.  Do \</span>
+<span class="sd">this via keyword arguments, as explained in the documentation.</span>
+
+<span class="sd">    The number of x and y supporting points must be identical for all branches.:</span>
+
+<span class="sd">    &gt;&gt;&gt; ypoints(branch1=[1.0, 2.0],</span>
+<span class="sd">    ...         branch2=[2.0, 4.0])</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: Each branch requires the same number of supporting points as given \</span>
+<span class="sd">for parameter `xpoints`, which is three, but for branch `branch1` of parameter \</span>
+<span class="sd">`ypoints` of element `?`, two values are provided.</span>
+
+<span class="sd">    &gt;&gt;&gt; xpoints(1.0, 2.0)</span>
+
+<span class="sd">    When working on an actual project (indicated by a predefined project name), each</span>
+<span class="sd">    branch name must correspond to a |Node| name:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub, Nodes</span>
+<span class="sd">    &gt;&gt;&gt; pub.projectname = "test"</span>
+<span class="sd">    &gt;&gt;&gt; nodes = Nodes("branch1")</span>
+<span class="sd">    &gt;&gt;&gt; ypoints(branch1=[1.0, 2.0],</span>
+<span class="sd">    ...         branch2=[2.0, 4.0])</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: Parameter `ypoints` of element `?` is supposed to branch to node \</span>
+<span class="sd">`branch2`, but such a node is not available.</span>
+
+<span class="sd">    We use the following general exception message for some unexpected errors:</span>
+
+<span class="sd">    &gt;&gt;&gt; nodes = Nodes("branch1", "branch2")</span>
+<span class="sd">    &gt;&gt;&gt; ypoints(branch1=[1.0, 2.0],</span>
+<span class="sd">    ...         branch2="xy")</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to set the values for branch `branch2` of parameter \</span>
+<span class="sd">`ypoints` of element `?`, the following error occurred: could not convert string to \</span>
+<span class="sd">float: 'xy'</span>
+
+<span class="sd">    Changing the number of branches during runtime might result in erroneous connections</span>
+<span class="sd">    to the |Node| objects:</span>
+
+<span class="sd">    &gt;&gt;&gt; ypoints(branch1=[1.0, 2.0],</span>
+<span class="sd">    ...         branch2=[2.0, 4.0])</span>
+<span class="sd">    &gt;&gt;&gt; ypoints</span>
+<span class="sd">    ypoints(branch1=[1.0, 2.0],</span>
+<span class="sd">            branch2=[2.0, 4.0])</span>
+
+<span class="sd">    Redefining the supporting points without changing the number of branches does not</span>
+<span class="sd">    affect existing values:</span>
+
+<span class="sd">    &gt;&gt;&gt; fluxes.outputs = 1.0, 2.0</span>
+<span class="sd">    &gt;&gt;&gt; ypoints(branch1=[1.0, 3.0],</span>
+<span class="sd">    ...         branch2=[2.0, 5.0])</span>
+<span class="sd">    &gt;&gt;&gt; fluxes.outputs</span>
+<span class="sd">    outputs(branch1=1.0,</span>
+<span class="sd">            branch2=2.0)</span>
+
+<span class="sd">    &gt;&gt;&gt; ypoints(branch1=[1.0, 2.0])</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: The number of branches of the exch model should not be changed \</span>
+<span class="sd">during runtime.  If you really need to do this, first initialise a new "branched" \</span>
+<span class="sd">sequence and connect it to the respective outlet nodes properly.</span>
+<span class="sd">    """</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">xpoints</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">except</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"The shape of parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> depends on "</span>
+                <span class="sa">f</span><span class="s2">"the shape of parameter `xpoints`, which is not defined so far."</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+        <span class="k">if</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"For parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">, no branches are "</span>
+                <span class="sa">f</span><span class="s2">"defined.  Do this via keyword arguments, as explained in the "</span>
+                <span class="sa">f</span><span class="s2">"documentation."</span>
+            <span class="p">)</span>
+        <span class="n">branched</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">branched</span>
+        <span class="k">if</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="n">branched</span><span class="p">,</span> <span class="s2">"shape"</span><span class="p">,</span> <span class="n">shape</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">"The number of branches of the exch model should not be changed "</span>
+                <span class="s2">"during runtime.  If you really need to do this, first initialise a "</span>
+                <span class="s1">'new "branched" sequence and connect it to the respective outlet '</span>
+                <span class="s2">"nodes properly."</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">())):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="o">.</span><span class="n">query_all</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">attrready</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="p">,</span> <span class="s2">"projectname"</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"Parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> is supposed to "</span>
+                        <span class="sa">f</span><span class="s2">"branch to node `</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">`, but such a node is not available."</span>
+                    <span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"Each branch requires the same number of supporting points "</span>
+                        <span class="sa">f</span><span class="s2">"as given for parameter `xpoints`, which is "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">Inflect</span><span class="o">.</span><span class="n">cardinal</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="si">}</span><span class="s2">, but for branch "</span>
+                        <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">` of parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">, "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">Inflect</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">),</span><span class="w"> </span><span class="s1">'value'</span><span class="p">,</span><span class="w"> </span><span class="s1">'is'</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
+                        <span class="sa">f</span><span class="s2">"provided."</span>
+                    <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+                <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"While trying to set the values for branch `</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">` of parameter "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">attrready</span><span class="p">(</span><span class="n">branched</span><span class="p">,</span> <span class="s2">"shape"</span><span class="p">):</span>
+            <span class="n">branched</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">outputs</span>
+        <span class="n">outputs</span><span class="o">.</span><span class="n">__hydpy__change_shape_if_necessary__</span><span class="p">((</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nodenames</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nodenames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nodenames</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)):</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_list</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">,"</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">idx</span><span class="p">:</span>
+                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ypoints(</span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"        </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">"ypoints(?)"</span></div>
+
+
+
+<div class="viewcode-block" id="Targets">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.Targets">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Targets</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SpecialParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Target nodes.</span>
+
+<span class="sd">    |Targets| is a special parameter (see |SpecialParameter|) that serves to define the</span>
+<span class="sd">    names of both target nodes, which is necessary for creating the required</span>
+<span class="sd">    connections.  "stream" refers to the node reflecting the main riverbed; "transfer"</span>
+<span class="sd">    refers to the node to which some of the water is branched (or supplied from):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.exch_branch_io import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; targets</span>
+<span class="sd">    targets(?)</span>
+
+<span class="sd">    &gt;&gt;&gt; targets.verify()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: For parameter `targets` of element `?`, the names of the target \</span>
+<span class="sd">nodes are still unknown.</span>
+
+<span class="sd">    &gt;&gt;&gt; targets(stream="river", transfer="diversion")</span>
+<span class="sd">    &gt;&gt;&gt; targets</span>
+<span class="sd">    targets(stream="river", transfer="diversion")</span>
+<span class="sd">    &gt;&gt;&gt; targets.verify()</span>
+
+<span class="sd">    Both target nodes must have different names:</span>
+
+<span class="sd">    &gt;&gt;&gt; targets(stream="river", transfer="river")</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: You must not assign the same target node name (`river`) to both the \</span>
+<span class="sd">keyword arguments `stream` and `transfer` of parameter `targets` of element `?` \</span>
+<span class="sd">(remember that node names serve as unique identifiers).</span>
+
+<span class="sd">    &gt;&gt;&gt; targets</span>
+<span class="sd">    targets(stream="river", transfer="diversion")</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">transfer</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">stream</span> <span class="o">==</span> <span class="n">transfer</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"You must not assign the same target node name (`</span><span class="si">{</span><span class="n">stream</span><span class="si">}</span><span class="s2">`) to both "</span>
+                <span class="sa">f</span><span class="s2">"the keyword arguments `stream` and `transfer` of parameter "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> (remember that node names serve "</span>
+                <span class="sa">f</span><span class="s2">"as unique identifiers)."</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">__hydpy__targetnames__</span> <span class="o">=</span> <span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">transfer</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">targetnames</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(?)"</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">(stream="</span><span class="si">{</span><span class="n">ns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">", transfer="</span><span class="si">{</span><span class="n">ns</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">")'</span>
+
+<div class="viewcode-block" id="Targets.verify">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.Targets.verify">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Raise a |RuntimeError| if the names of the target nodes are unknown."""</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s2">"__hydpy__targetnames__"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"For parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">, the names of the "</span>
+                <span class="sa">f</span><span class="s2">"target nodes are still unknown."</span>
+            <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MinStream">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.MinStream">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MinStream</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Minimum stream outflow that externally requested withdrawals must not undercut</span>
+<span class="sd">    [m³/s].</span>
+
+<span class="sd">    |MinStream| only restricts positive values of |RequestedTransfer| (withdrawals).</span>
+<span class="sd">    It neither affects the transfers calculated by the fallback parameter</span>
+<span class="sd">    |FlowTransferRules| nor triggers supplies when the inflow is already below</span>
+<span class="sd">    |MinStream|.  Set it to minus |numpy.inf| to allow arbitrary withdrawals.  See the</span>
+<span class="sd">    documentation on method |Pass_ActualTransfer_StreamOutflow_V1| and parameter</span>
+<span class="sd">    |KeepWaterBalance| for further information.</span>
+<span class="sd">    """</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+<div class="viewcode-block" id="MinStream.trim">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.MinStream.trim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="p">:</span> <span class="n">TrimHook</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="p">:</span> <span class="n">TrimHook</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">"""Trim upper values in accordance with :math:`MinStream \leq MaxStream`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.exch_branch_io import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; maxstream.value = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; minstream(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; minstream</span>
+<span class="sd">        minstream(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; minstream(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; minstream</span>
+<span class="sd">        minstream(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; minstream(3.0)</span>
+<span class="sd">        &gt;&gt;&gt; minstream</span>
+<span class="sd">        minstream(2.0)</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">upper</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">upper</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">maxstream</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MaxStream">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.MaxStream">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MaxStream</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Maximum stream outflow that externally requested supplies must not exceed</span>
+<span class="sd">    [m³/s].</span>
+
+<span class="sd">    |MaxStream| only restricts negative values of |RequestedTransfer| (supplies).  It</span>
+<span class="sd">    neither affects the transfers calculated by the fallback parameter</span>
+<span class="sd">    |FlowTransferRules| nor triggers withdrawals when the inflow is already above</span>
+<span class="sd">    |MaxStream|.  Set it to |numpy.inf| to allow arbitrary supplies.  See the</span>
+<span class="sd">    documentation on method |Pass_ActualTransfer_StreamOutflow_V1| and parameter</span>
+<span class="sd">    |KeepWaterBalance| for further information.</span>
+<span class="sd">    """</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span>
+
+<div class="viewcode-block" id="MaxStream.trim">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.MaxStream.trim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="p">:</span> <span class="n">TrimHook</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="p">:</span> <span class="n">TrimHook</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">"""Trim lower values in accordance with :math:`MinStream \leq MaxStream`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.exch_branch_io import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; minstream.value = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; maxstream(3.0)</span>
+<span class="sd">        &gt;&gt;&gt; maxstream</span>
+<span class="sd">        maxstream(3.0)</span>
+<span class="sd">        &gt;&gt;&gt; maxstream(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; maxstream</span>
+<span class="sd">        maxstream(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; maxstream(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; maxstream</span>
+<span class="sd">        maxstream(2.0)</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">lower</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lower</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">minstream</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="KeepWaterBalance">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.KeepWaterBalance">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">KeepWaterBalance</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Flag to indicate if too-high requested transfers should be reduced [-].</span>
+
+<span class="sd">    There are two lines of reasoning:</span>
+
+<span class="sd">     * If the requested water transfer is 2 m³/s (withdrawal) but only 1 m³/s is</span>
+<span class="sd">       available, one must reduce the transfer to 1 m³/s: set |KeepWaterBalance| to</span>
+<span class="sd">       |True|.</span>
+<span class="sd">     * The requested water transfer is measured and thus very certain and should always</span>
+<span class="sd">       be maintained: set |KeepWaterBalance| to |False| (at the cost of violating the</span>
+<span class="sd">       water balance).</span>
+
+<span class="sd">    The same thoughts apply to negative water transfers (supplies) that exceed a given</span>
+<span class="sd">    threshold.</span>
+<span class="sd">    """</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">bool</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+
+<div class="viewcode-block" id="FlowTransferRules">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.FlowTransferRules">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FlowTransferRules</span><span class="p">(</span><span class="n">interptools</span><span class="o">.</span><span class="n">SeasonalInterpolator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Seasonally varying interpolation rules for branching the (adjusted) inflow [-].</span>
+
+<span class="sd">    |FlowTransferRules| is a fallback parameter that is only relevant for periods</span>
+<span class="sd">    without available |RequestedTransfer| time series data.</span>
+
+<span class="sd">    Please prepare parameter |Targets| before configuring parameter |FlowTransferRules|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import ANN, PPoly, PPolys, pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = "2000-01-01", "2000-01-04", "1d"</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.exch_branch_io import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; flowtransferrules</span>
+<span class="sd">    flowtransferrules(?)</span>
+
+<span class="sd">    &gt;&gt;&gt; flowtransferrules(PPoly(xs=[0.0, 1.0], ys=[0.0, 2.0]))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to set the interpolation rules of parameter \</span>
+<span class="sd">`flowtransferrules` of element `?`, the following error occurred: The names of the \</span>
+<span class="sd">target nodes are still unknown.  Please define them via parameter `targets` first.</span>
+
+<span class="sd">    If there is no seasonality, assign a single |PPoly| instance that interpolates</span>
+<span class="sd">    water transfer based on the (adjusted) inflow:</span>
+
+<span class="sd">    &gt;&gt;&gt; targets(stream="river", transfer="diversion")</span>
+<span class="sd">    &gt;&gt;&gt; flowtransferrules(PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]))</span>
+<span class="sd">    &gt;&gt;&gt; flowtransferrules</span>
+<span class="sd">    flowtransferrules(</span>
+<span class="sd">        PPoly(</span>
+<span class="sd">            xs=[0.0, 2.0],</span>
+<span class="sd">            ys=[0.0, 1.0],</span>
+<span class="sd">        )</span>
+<span class="sd">    )</span>
+
+<span class="sd">    Behind the scenes, parameter |FlowTransferRules| converts this |PPoly| instance to</span>
+<span class="sd">    a |PPolys| instance that applies the given interpolation rule to calculate the</span>
+<span class="sd">    water transfer and leaves the rest for the main stream (note that |PPolys| sorts</span>
+<span class="sd">    the target nodes alphabetically, which is why derived parameter |StreamIndex| is</span>
+<span class="sd">    required to identify the main stream's outflow):</span>
+
+<span class="sd">    &gt;&gt;&gt; flowtransferrules.toy_01_01_00_00</span>
+<span class="sd">    PPolys(</span>
+<span class="sd">        diversion=PPoly(</span>
+<span class="sd">            xs=[0.0, 2.0],</span>
+<span class="sd">            ys=[0.0, 1.0],</span>
+<span class="sd">        ),</span>
+<span class="sd">        river=PPolys.REST,</span>
+<span class="sd">    )</span>
+
+<span class="sd">    The same mechanism applies when passing multiple |PPoly| instances to introduce</span>
+<span class="sd">    seasonal patterns:</span>
+
+<span class="sd">    &gt;&gt;&gt; flowtransferrules(</span>
+<span class="sd">    ...     toy_01_01_12=PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]),</span>
+<span class="sd">    ...     toy_01_03_12=PPoly(xs=[0.0], ys=[0.0]),</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; flowtransferrules</span>
+<span class="sd">    flowtransferrules(</span>
+<span class="sd">        toy_1_1_12_0_0=PPoly(</span>
+<span class="sd">            xs=[0.0, 2.0],</span>
+<span class="sd">            ys=[0.0, 1.0],</span>
+<span class="sd">        ),</span>
+<span class="sd">        toy_1_3_12_0_0=PPoly(</span>
+<span class="sd">            xs=[0.0],</span>
+<span class="sd">            ys=[0.0],</span>
+<span class="sd">        ),</span>
+<span class="sd">    )</span>
+<span class="sd">    &gt;&gt;&gt; flowtransferrules.toy_01_01_12_00</span>
+<span class="sd">    PPolys(</span>
+<span class="sd">        diversion=PPoly(</span>
+<span class="sd">            xs=[0.0, 2.0],</span>
+<span class="sd">            ys=[0.0, 1.0],</span>
+<span class="sd">        ),</span>
+<span class="sd">        river=PPolys.REST,</span>
+<span class="sd">    )</span>
+
+<span class="sd">    You are allowed to interpolate the water transfer and rest flow independently by</span>
+<span class="sd">    directly assigning one or multiple |PPolys| instances, which requires explicit</span>
+<span class="sd">    mentioning of the respective target nodes' names (note that this changes the water</span>
+<span class="sd">    balance, and so is only useful if you are aware of certain water losses or gains</span>
+<span class="sd">    bound to specific flow regimes):</span>
+
+<span class="sd">    &gt;&gt;&gt; flowtransferrules(</span>
+<span class="sd">    ...     PPolys(</span>
+<span class="sd">    ...         river=PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]),</span>
+<span class="sd">    ...         diversion=PPoly(xs=[0.0, 2.0], ys=[0.0, 2.0]),</span>
+<span class="sd">    ...     )</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; flowtransferrules</span>
+<span class="sd">    flowtransferrules(</span>
+<span class="sd">        PPolys(</span>
+<span class="sd">            diversion=PPoly(</span>
+<span class="sd">                xs=[0.0, 2.0],</span>
+<span class="sd">                ys=[0.0, 2.0],</span>
+<span class="sd">            ),</span>
+<span class="sd">            river=PPoly(</span>
+<span class="sd">                xs=[0.0, 2.0],</span>
+<span class="sd">                ys=[0.0, 1.0],</span>
+<span class="sd">            ),</span>
+<span class="sd">        )</span>
+<span class="sd">    )</span>
+
+<span class="sd">    Using wrong target names results in the following error:</span>
+
+<span class="sd">    &gt;&gt;&gt; flowtransferrules(</span>
+<span class="sd">    ...     PPolys(</span>
+<span class="sd">    ...         stream=PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]),</span>
+<span class="sd">    ...         diversion=PPoly(xs=[0.0, 2.0], ys=[0.0, 2.0]),</span>
+<span class="sd">    ...     )</span>
+<span class="sd">    ... )</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to set the interpolation rules of parameter \</span>
+<span class="sd">`flowtransferrules` of element `?`, the following error occurred: When defining the \</span>
+<span class="sd">node-specific interpolation rules of parameter `PPolys` manually, you must use the \</span>
+<span class="sd">target nodes' names defined by parameter `Targets`, which are `river and diversion` \</span>
+<span class="sd">instead of `diversion and stream`.</span>
+
+<span class="sd">    Configuring parameter |FlowTransferRules| based on other interpolation methods is</span>
+<span class="sd">    currently not supported:</span>
+
+<span class="sd">    &gt;&gt;&gt; flowtransferrules(ANN(nmb_inputs=1, nmb_outputs=2, nmb_neurons=(10,)))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to set the interpolation rules of parameter \</span>
+<span class="sd">`flowtransferrules` of element `?`, the following error occurred: Parameter \</span>
+<span class="sd">`flowtransferrules` currently only supports interpolation via `PPolys` instances.  \</span>
+<span class="sd">Best practice is to configure them indirectly via `PPoly` instances (see the \</span>
+<span class="sd">documentation).</span>
+<span class="sd">    """</span>
+
+    <span class="n">XLABEL</span> <span class="o">=</span> <span class="s2">"inflow [m³/s]"</span>
+    <span class="n">YLABEL</span> <span class="o">=</span> <span class="s2">"outflow [m³/s]"</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_ppoly2ppolys</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="n">interptools</span><span class="o">.</span><span class="n">InterpAlgorithm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">ppolytools</span><span class="o">.</span><span class="n">PPoly</span><span class="p">):</span>
+                <span class="n">ppolys</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ppolytools</span><span class="o">.</span><span class="n">PPoly</span> <span class="o">|</span> <span class="n">ppolytools</span><span class="o">.</span><span class="n">PPolysOptions</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">targetnames</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ppolytools</span><span class="o">.</span><span class="n">PPolysOptions</span><span class="o">.</span><span class="n">REST</span><span class="p">,</span>
+                    <span class="n">targetnames</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">p</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="k">return</span> <span class="n">ppolytools</span><span class="o">.</span><span class="n">PPolys</span><span class="p">(</span><span class="o">**</span><span class="n">ppolys</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">p</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">targetnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">targetnames</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_ppoly2ppolys</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">_ppoly2ppolys</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">algorithm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithms</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">algorithm</span><span class="p">,</span> <span class="n">ppolytools</span><span class="o">.</span><span class="n">PPolys</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"Parameter `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` currently only supports "</span>
+                        <span class="sa">f</span><span class="s2">"interpolation via `</span><span class="si">{</span><span class="n">ppolytools</span><span class="o">.</span><span class="n">PPolys</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` "</span>
+                        <span class="sa">f</span><span class="s2">"instances.  Best practice is to configure them indirectly "</span>
+                        <span class="sa">f</span><span class="s2">"via `</span><span class="si">{</span><span class="n">ppolytools</span><span class="o">.</span><span class="n">PPoly</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` instances (see the "</span>
+                        <span class="sa">f</span><span class="s2">"documentation)."</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">algorithm</span><span class="o">.</span><span class="n">piecewisepolynomials</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">targetnames</span><span class="p">):</span>
+                    <span class="n">enum_</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"When defining the node-specific interpolation rules of "</span>
+                        <span class="sa">f</span><span class="s2">"parameter `</span><span class="si">{</span><span class="n">ppolytools</span><span class="o">.</span><span class="n">PPolys</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` manually, you must "</span>
+                        <span class="sa">f</span><span class="s2">"use the target nodes' names defined by parameter "</span>
+                        <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">Targets</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`, which are `</span><span class="si">{</span><span class="n">enum_</span><span class="p">(</span><span class="n">targetnames</span><span class="p">)</span><span class="si">}</span><span class="s2">` "</span>
+                        <span class="sa">f</span><span class="s2">"instead of `</span><span class="si">{</span><span class="n">enum_</span><span class="p">(</span><span class="n">algorithm</span><span class="o">.</span><span class="n">piecewisepolynomials</span><span class="p">)</span><span class="si">}</span><span class="s2">`."</span>
+                    <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"While trying to set the interpolation rules of parameter "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simplify</span><span class="p">:</span> <span class="n">interptools</span><span class="o">.</span><span class="n">SimplifyInterpAlgorithm</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+
+        <span class="k">class</span><span class="w"> </span><span class="nc">_Simplify</span><span class="p">:</span>
+            <span class="n">_names</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">names</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_names</span> <span class="o">=</span> <span class="n">names</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">:</span> <span class="n">interptools</span><span class="o">.</span><span class="n">InterpAlgorithm</span><span class="p">,</span> <span class="o">/</span>
+            <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">interptools</span><span class="o">.</span><span class="n">InterpAlgorithm</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">algorithm</span><span class="p">,</span> <span class="n">ppolytools</span><span class="o">.</span><span class="n">PPolys</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ps</span> <span class="o">:=</span> <span class="n">algorithm</span><span class="o">.</span><span class="n">piecewisepolynomials</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="n">algorithm</span><span class="o">.</span><span class="n">REST</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">transfer</span> <span class="o">:=</span> <span class="n">ps</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">names</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">ppolytools</span><span class="o">.</span><span class="n">PPoly</span><span class="p">))</span>
+                <span class="p">):</span>
+                    <span class="k">return</span> <span class="n">transfer</span>
+                <span class="k">return</span> <span class="n">algorithm</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">names</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">__hydpy__targetnames__</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(?)"</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">(</span><span class="n">_Simplify</span><span class="p">(</span><span class="n">names</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="Rules">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.Rules">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Rules</span><span class="p">(</span><span class="n">interptools</span><span class="o">.</span><span class="n">SeasonalInterpolator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Seasonally varying interpolation rules for branching the input [-].</span>
+
+<span class="sd">    |Rules| accepts one or multiple |PPolys| instances, which must all address the</span>
+<span class="sd">    same target nodes:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import ANN, PPoly, PPolys, pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = "2000-01-01", "2000-01-04", "1d"</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.exch_branch_rules import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; rules(</span>
+<span class="sd">    ...     toy_01_01_12=PPolys(</span>
+<span class="sd">    ...         river=PPolys.REST,</span>
+<span class="sd">    ...         diversion=PPoly(xs=[0.0], ys=[1.0]),</span>
+<span class="sd">    ...     ),</span>
+<span class="sd">    ...     toy_01_03_12=PPolys(</span>
+<span class="sd">    ...         diversion=PPoly(xs=[0.0], ys=[2.0]),</span>
+<span class="sd">    ...         river=PPolys.REST,</span>
+<span class="sd">    ...     ),</span>
+<span class="sd">    ... )</span>
+
+<span class="sd">    |PPolys| sorts its interpolation functions by the target nodes' names, so each</span>
+<span class="sd">    output always belongs to the same target node, regardless of the order of the</span>
+<span class="sd">    keyword arguments:</span>
+
+<span class="sd">    &gt;&gt;&gt; model.targetnames</span>
+<span class="sd">    ('diversion', 'river')</span>
+<span class="sd">    &gt;&gt;&gt; rules</span>
+<span class="sd">    rules(</span>
+<span class="sd">        toy_1_1_12_0_0=PPolys(</span>
+<span class="sd">            diversion=PPoly(</span>
+<span class="sd">                xs=[0.0],</span>
+<span class="sd">                ys=[1.0],</span>
+<span class="sd">            ),</span>
+<span class="sd">            river=PPolys.REST,</span>
+<span class="sd">        ),</span>
+<span class="sd">        toy_1_3_12_0_0=PPolys(</span>
+<span class="sd">            diversion=PPoly(</span>
+<span class="sd">                xs=[0.0],</span>
+<span class="sd">                ys=[2.0],</span>
+<span class="sd">            ),</span>
+<span class="sd">            river=PPolys.REST,</span>
+<span class="sd">        ),</span>
+<span class="sd">    )</span>
+
+<span class="sd">    Using different target names for different seasons results in the following</span>
+<span class="sd">    error:</span>
+
+<span class="sd">    &gt;&gt;&gt; rules(</span>
+<span class="sd">    ...     toy_01_01_12=PPolys(river=PPolys.REST, diversion=PPoly(xs=[0.0], ys=[1.0])),</span>
+<span class="sd">    ...     toy_01_03_12=PPolys(river=PPolys.REST, channel=PPoly(xs=[0.0], ys=[2.0])),</span>
+<span class="sd">    ... )</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to set the interpolation rules of parameter `rules` of \</span>
+<span class="sd">element `?`, the following error occurred: All `PPolys` instances must address the \</span>
+<span class="sd">same target nodes, but `channel and river` differs from `diversion and river`.</span>
+
+<span class="sd">    Configuring parameter |Rules| based on other interpolation methods is currently</span>
+<span class="sd">    not supported:</span>
+
+<span class="sd">    &gt;&gt;&gt; rules(ANN(nmb_inputs=1, nmb_outputs=2, nmb_neurons=(10,)))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to set the interpolation rules of parameter `rules` of \</span>
+<span class="sd">element `?`, the following error occurred: Parameter `rules` currently only supports \</span>
+<span class="sd">interpolation via `PPolys` instances.</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">        &gt;&gt;&gt; del pub.timegrids</span>
+<span class="sd">    """</span>
+
+    <span class="n">XLABEL</span> <span class="o">=</span> <span class="s2">"input [e.g. m³/s]"</span>
+    <span class="n">YLABEL</span> <span class="o">=</span> <span class="s2">"outputs [e.g. m³/s]"</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">targetnames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">algorithm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithms</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">algorithm</span><span class="p">,</span> <span class="n">ppolytools</span><span class="o">.</span><span class="n">PPolys</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"Parameter `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` currently only supports "</span>
+                        <span class="sa">f</span><span class="s2">"interpolation via `</span><span class="si">{</span><span class="n">ppolytools</span><span class="o">.</span><span class="n">PPolys</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` "</span>
+                        <span class="sa">f</span><span class="s2">"instances."</span>
+                    <span class="p">)</span>
+                <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">algorithm</span><span class="o">.</span><span class="n">piecewisepolynomials</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">targetnames</span><span class="p">:</span>
+                    <span class="n">targetnames</span> <span class="o">=</span> <span class="n">names</span>
+                <span class="k">elif</span> <span class="n">names</span> <span class="o">!=</span> <span class="n">targetnames</span><span class="p">:</span>
+                    <span class="n">enum_</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"All `</span><span class="si">{</span><span class="n">ppolytools</span><span class="o">.</span><span class="n">PPolys</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` instances must address "</span>
+                        <span class="sa">f</span><span class="s2">"the same target nodes, but `</span><span class="si">{</span><span class="n">enum_</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2">` differs from "</span>
+                        <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">enum_</span><span class="p">(</span><span class="n">targetnames</span><span class="p">)</span><span class="si">}</span><span class="s2">`."</span>
+                    <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">__hydpy__targetnames__</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">targetnames</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"While trying to set the interpolation rules of parameter "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MinVol">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.MinVol">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MinVol</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Minimum water volume that externally requested withdrawals should not undercut</span>
+<span class="sd">    [million m³].</span>
+
+<span class="sd">    |MinVol| only affects positive |exch_inputs.RequestedTransfer| values</span>
+<span class="sd">    (withdrawals), not the |VolTransferRules| fallback.  Set it to -|numpy.inf| to</span>
+<span class="sd">    disable it (see |Determine_Transfer_V1|).</span>
+<span class="sd">    """</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="MaxVol">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.MaxVol">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MaxVol</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Maximum water volume that externally requested supplies should not exceed</span>
+<span class="sd">    [million m³].</span>
+
+<span class="sd">    |MaxVol| only affects negative |exch_inputs.RequestedTransfer| values</span>
+<span class="sd">    (supplies), not the |VolTransferRules| fallback.  Set it to |numpy.inf| to disable</span>
+<span class="sd">    it (see |Determine_Transfer_V1|).</span>
+<span class="sd">    """</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span></div>
+
+
+
+<div class="viewcode-block" id="VolTol">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.VolTol">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">VolTol</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Tolerance for smoothing the reduction of externally requested transfers at the</span>
+<span class="sd">    water volume thresholds |MinVol| and |MaxVol| [million m³].</span>
+
+<span class="sd">    Zero values cause discontinuities that might hamper the main model's numerical</span>
+<span class="sd">    integration (see |Determine_Transfer_V1|).</span>
+<span class="sd">    """</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="QTol">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.QTol">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QTol</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Tolerance for smoothing the reduction of withdrawals to the main model's</span>
+<span class="sd">    allowed discharge [m³/s].</span>
+
+<span class="sd">    Zero values cause discontinuities that might hamper the main model's numerical</span>
+<span class="sd">    integration (see |Determine_Transfer_V1|).</span>
+<span class="sd">    """</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="VolTransferRules">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.VolTransferRules">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">VolTransferRules</span><span class="p">(</span><span class="n">interptools</span><span class="o">.</span><span class="n">SeasonalInterpolator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Seasonally varying interpolation rules for calculating the water transfer based</span>
+<span class="sd">    on the current water volume [m³/s].</span>
+
+<span class="sd">    |VolTransferRules| is a fallback parameter that is only relevant for periods</span>
+<span class="sd">    without available |exch_inputs.RequestedTransfer| time series data.</span>
+
+<span class="sd">    You can define a single interpolation rule:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import ANN, PPoly, pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = "2000-01-01", "2000-01-04", "1d"</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.exch_water_transfer_io import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; voltransferrules(PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]))</span>
+<span class="sd">    &gt;&gt;&gt; voltransferrules</span>
+<span class="sd">    voltransferrules(</span>
+<span class="sd">        PPoly(</span>
+<span class="sd">            xs=[0.0, 2.0],</span>
+<span class="sd">            ys=[0.0, 1.0],</span>
+<span class="sd">        )</span>
+<span class="sd">    )</span>
+
+<span class="sd">    Or multiple interpolation rules for different times of the year:</span>
+
+<span class="sd">    &gt;&gt;&gt; voltransferrules(</span>
+<span class="sd">    ...     toy_01_01_12=PPoly(xs=[0.0, 2.0], ys=[0.0, 1.0]),</span>
+<span class="sd">    ...     toy_01_03_12=PPoly(xs=[0.0], ys=[0.0]),</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; voltransferrules</span>
+<span class="sd">    voltransferrules(</span>
+<span class="sd">        toy_1_1_12_0_0=PPoly(</span>
+<span class="sd">            xs=[0.0, 2.0],</span>
+<span class="sd">            ys=[0.0, 1.0],</span>
+<span class="sd">        ),</span>
+<span class="sd">        toy_1_3_12_0_0=PPoly(</span>
+<span class="sd">            xs=[0.0],</span>
+<span class="sd">            ys=[0.0],</span>
+<span class="sd">        ),</span>
+<span class="sd">    )</span>
+
+<span class="sd">    Note that each interpolator must have exactly one input (the water volume) and one</span>
+<span class="sd">    output (the water transfer):</span>
+
+<span class="sd">    &gt;&gt;&gt; voltransferrules(ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=2))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to set the interpolation rules of parameter \</span>
+<span class="sd">`voltransferrules` of element `?`, the following error occurred: Parameter \</span>
+<span class="sd">`voltransferrules` requires interpolators with exactly one input and one output, but \</span>
+<span class="sd">the given one has one input and two outputs.</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">        &gt;&gt;&gt; del pub.timegrids</span>
+<span class="sd">    """</span>
+
+    <span class="n">XLABEL</span> <span class="o">=</span> <span class="s2">"water volume [million m³]"</span>
+    <span class="n">YLABEL</span> <span class="o">=</span> <span class="s2">"transfer [m³/s]"</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">ni</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nmb_inputs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">((</span><span class="n">no</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nmb_outputs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">Inflect</span><span class="o">.</span><span class="n">count</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"Parameter `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` requires interpolators with exactly one "</span>
+                    <span class="sa">f</span><span class="s2">"input and one output, but the given one has "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">count</span><span class="p">(</span><span class="n">ni</span><span class="p">,</span><span class="w"> </span><span class="s1">'input'</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">count</span><span class="p">(</span><span class="n">no</span><span class="p">,</span><span class="w"> </span><span class="s1">'output'</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"While trying to set the interpolation rules of parameter "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ObserverNodes">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.ObserverNodes">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ObserverNodes</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SpecialParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The names of the considered observer nodes.</span>
+
+<span class="sd">    |ObserverNodes| is a special parameter (see |SpecialParameter|) that requires the</span>
+<span class="sd">    names of all observer nodes that need consideration:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.exch_interp import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; observernodes</span>
+<span class="sd">    observernodes(?)</span>
+<span class="sd">    &gt;&gt;&gt; observernodes.verify()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: For parameter `observernodes` of element `?`, the names of the \</span>
+<span class="sd">observer nodes are still unknown.</span>
+
+<span class="sd">    &gt;&gt;&gt; observernodes(2)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: Parameter `observernodes` of element `?` requires the names of all \</span>
+<span class="sd">relevant observation nodes, but the first given value is of type `int`.</span>
+
+<span class="sd">    &gt;&gt;&gt; observernodes</span>
+<span class="sd">    observernodes(?)</span>
+
+<span class="sd">    When receiving this information, it automatically prepares the observer sequence</span>
+<span class="sd">    |exch_observers.X| and the derived parameter |NmbObserverNodes|:</span>
+
+<span class="sd">    &gt;&gt;&gt; observernodes("node_1", "node_2")</span>
+<span class="sd">    &gt;&gt;&gt; observers.x.observernodes</span>
+<span class="sd">    ('node_1', 'node_2')</span>
+<span class="sd">    &gt;&gt;&gt; derived.nmbobservernodes</span>
+<span class="sd">    nmbobservernodes(2)</span>
+
+<span class="sd">    &gt;&gt;&gt; observernodes</span>
+<span class="sd">    observernodes("node_1", "node_2")</span>
+<span class="sd">    &gt;&gt;&gt; observernodes.verify()</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">observernodes</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">observernodes</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">ordinal</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">Inflect</span><span class="o">.</span><span class="n">ordinal</span>  <span class="c1"># type: ignore[unreachable]</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"Parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> requires the names "</span>
+                    <span class="sa">f</span><span class="s2">"of all relevant observation nodes, but the </span><span class="si">{</span><span class="n">ordinal</span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
+                    <span class="sa">f</span><span class="s2">"given value is of type `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">node</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`."</span>
+                <span class="p">)</span>
+        <span class="n">pars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span>
+        <span class="n">pars</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">nmbobservernodes</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">observernodes</span><span class="p">))</span>
+        <span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">observers</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">observernodes</span> <span class="o">=</span> <span class="n">observernodes</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">observers</span><span class="o">.</span><span class="n">x</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="sa">f</span><span class="s1">'"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">"'</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">observernodes</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(?)"</span>
+        <span class="k">return</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_tuple</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="mi">84</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ObserverNodes.verify">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.ObserverNodes.verify">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Raise a |RuntimeError| if the names of the observer nodes are unknown."""</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">observers</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">observernodes</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"For parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">, the names of the "</span>
+                <span class="sa">f</span><span class="s2">"observer nodes are still unknown."</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="X2Y">
+<a class="viewcode-back" href="../../../../exch.html#hydpy.models.exch.exch_control.X2Y">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">X2Y</span><span class="p">(</span><span class="n">interptools</span><span class="o">.</span><span class="n">SimpleInterpolator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""An interpolation function describing the relationship between arbitrary</span>
+<span class="sd">    properties [-]."""</span>
+
+    <span class="n">XLABEL</span> <span class="o">=</span> <span class="s2">"X"</span>
+    <span class="n">YLABEL</span> <span class="o">=</span> <span class="s2">"Y"</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 7.0dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.exch.exch_control</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

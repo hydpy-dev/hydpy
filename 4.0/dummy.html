@@ -1,0 +1,406 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dummy &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"displayAlign": "left"})</script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dummy_v1" href="dummy_v1.html" />
+    <link rel="prev" title="HydPy-Dummy" href="HydPy-Dummy.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dummy_v1.html" title="dummy_v1"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="HydPy-Dummy.html" title="HydPy-Dummy"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-Dummy.html" accesskey="U">HydPy-Dummy</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dummy</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="dummy">
+<span id="id1"></span><h1>dummy<a class="headerlink" href="#dummy" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.models.dummy"></span><p>The Dummy model is a placeholder model. Its inputs are directly handed to the
+output sequence and therefore can be used to (temporarily) delete a model
+component while maintaining the network structure.</p>
+<div class="section" id="method-features">
+<h2>Method Features<a class="headerlink" href="#method-features" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="hydpy.models.dummy.dummy_model.Model">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dummy.dummy_model.</span></code><code class="sig-name descname"><span class="pre">Model</span></code><a class="reference internal" href="_modules/hydpy/models/dummy/dummy_model.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.dummy.dummy_model.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.AdHocModel" title="hydpy.core.modeltools.AdHocModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.modeltools.AdHocModel</span></code></a></p>
+<p>The HydPy-Dummy model.</p>
+<dl class="simple">
+<dt>The following “inlet update methods” are called in the given sequence at the beginning of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.dummy.dummy_model.Pick_Q_V1" title="hydpy.models.dummy.dummy_model.Pick_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_Q_V1</span></code></a> Query the current inflow from all inlet nodes.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence at the end of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.dummy.dummy_model.Pass_Q_V1" title="hydpy.models.dummy.dummy_model.Pass_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Q_V1</span></code></a> Uptdate the outlet link sequence.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-hydpy.models.dummy.dummy_model"></span><dl class="py class">
+<dt id="hydpy.models.dummy.dummy_model.Pick_Q_V1">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dummy.dummy_model.</span></code><code class="sig-name descname"><span class="pre">Pick_Q_V1</span></code><a class="reference internal" href="_modules/hydpy/models/dummy/dummy_model.html#Pick_Q_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.dummy.dummy_model.Pick_Q_V1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.modeltools.Method</span></code></a></p>
+<p>Query the current inflow from all inlet nodes.</p>
+<dl class="simple">
+<dt>Requires the inlet sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.dummy.dummy_inlets.Q" title="hydpy.models.dummy.dummy_inlets.Q"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q</span></code></a></p>
+</dd>
+<dt>Calculates the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.dummy.dummy_fluxes.Q" title="hydpy.models.dummy.dummy_fluxes.Q"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q</span></code></a></p>
+</dd>
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(Q_{fluxes} = \sum Q_{inputs}\)</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.dummy.dummy_model.Pass_Q_V1">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dummy.dummy_model.</span></code><code class="sig-name descname"><span class="pre">Pass_Q_V1</span></code><a class="reference internal" href="_modules/hydpy/models/dummy/dummy_model.html#Pass_Q_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.dummy.dummy_model.Pass_Q_V1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.modeltools.Method</span></code></a></p>
+<p>Uptdate the outlet link sequence.</p>
+<dl class="simple">
+<dt>Requires the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.dummy.dummy_fluxes.Q" title="hydpy.models.dummy.dummy_fluxes.Q"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q</span></code></a></p>
+</dd>
+<dt>Calculates the outlet sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.dummy.dummy_outlets.Q" title="hydpy.models.dummy.dummy_outlets.Q"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q</span></code></a></p>
+</dd>
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(Q_{outlets} = Q_{fluxes}\)</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="sequence-features">
+<h2>Sequence Features<a class="headerlink" href="#sequence-features" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="flux-sequences">
+<h3>Flux sequences<a class="headerlink" href="#flux-sequences" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dummy.</span></code><code class="sig-name descname"><span class="pre">FluxSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequences" title="hydpy.core.sequencetools.OutputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code>]</p>
+<p>Flux sequences of model dummy.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.dummy.dummy_fluxes.Q" title="hydpy.models.dummy.dummy_fluxes.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Abfluss [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-hydpy.models.dummy.dummy_fluxes"></span><dl class="py class">
+<dt id="hydpy.models.dummy.dummy_fluxes.Q">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dummy.dummy_fluxes.</span></code><code class="sig-name descname"><span class="pre">Q</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SubVariablesType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/dummy/dummy_fluxes.html#Q"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.dummy.dummy_fluxes.Q" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequence" title="hydpy.core.sequencetools.OutputSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequence</span></code></a>[<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.FluxSequences</span></code></a>]</p>
+<p>Abfluss [m³/s].</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.dummy.dummy_model.Pick_Q_V1" title="hydpy.models.dummy.dummy_model.Pick_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_Q_V1</span></code></a></p>
+</dd>
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.dummy.dummy_model.Pass_Q_V1" title="hydpy.models.dummy.dummy_model.Pass_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Q_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="hydpy.models.dummy.dummy_fluxes.Q.NDIM">
+<code class="sig-name descname"><span class="pre">NDIM</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.dummy.dummy_fluxes.Q.NDIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.dummy.dummy_fluxes.Q.NUMERIC">
+<code class="sig-name descname"><span class="pre">NUMERIC</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#hydpy.models.dummy.dummy_fluxes.Q.NUMERIC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.dummy.dummy_fluxes.Q.SPAN">
+<code class="sig-name descname"><span class="pre">SPAN</span></code><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">(0.0,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.dummy.dummy_fluxes.Q.SPAN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.dummy.dummy_fluxes.Q.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'q'</span></em><a class="headerlink" href="#hydpy.models.dummy.dummy_fluxes.Q.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.dummy.dummy_fluxes.Q.unit">
+<code class="sig-name descname"><span class="pre">unit</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'m³/s'</span></em><a class="headerlink" href="#hydpy.models.dummy.dummy_fluxes.Q.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="inlet-sequences">
+<h3>Inlet sequences<a class="headerlink" href="#inlet-sequences" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dummy.</span></code><code class="sig-name descname"><span class="pre">InletSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequences" title="hydpy.core.sequencetools.LinkSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.LinkSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequence</span></code>]</p>
+<p>Inlet sequences of model dummy.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.dummy.dummy_inlets.Q" title="hydpy.models.dummy.dummy_inlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Abfluss (runoff) [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-hydpy.models.dummy.dummy_inlets"></span><dl class="py class">
+<dt id="hydpy.models.dummy.dummy_inlets.Q">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dummy.dummy_inlets.</span></code><code class="sig-name descname"><span class="pre">Q</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SubVariablesType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/dummy/dummy_inlets.html#Q"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.dummy.dummy_inlets.Q" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.LinkSequence</span></code></a>[<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InletSequences" title="hydpy.core.sequencetools.InletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.InletSequences</span></code></a>]</p>
+<p>Abfluss (runoff) [m³/s].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.dummy.dummy_model.Pick_Q_V1" title="hydpy.models.dummy.dummy_model.Pick_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_Q_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="hydpy.models.dummy.dummy_inlets.Q.NDIM">
+<code class="sig-name descname"><span class="pre">NDIM</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.models.dummy.dummy_inlets.Q.NDIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.dummy.dummy_inlets.Q.NUMERIC">
+<code class="sig-name descname"><span class="pre">NUMERIC</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#hydpy.models.dummy.dummy_inlets.Q.NUMERIC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.dummy.dummy_inlets.Q.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'q'</span></em><a class="headerlink" href="#hydpy.models.dummy.dummy_inlets.Q.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.dummy.dummy_inlets.Q.unit">
+<code class="sig-name descname"><span class="pre">unit</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'m³/s'</span></em><a class="headerlink" href="#hydpy.models.dummy.dummy_inlets.Q.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="outlet-sequences">
+<h3>Outlet sequences<a class="headerlink" href="#outlet-sequences" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dummy.</span></code><code class="sig-name descname"><span class="pre">OutletSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequences" title="hydpy.core.sequencetools.LinkSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.LinkSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequence</span></code>]</p>
+<p>Outlet sequences of model dummy.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.dummy.dummy_outlets.Q" title="hydpy.models.dummy.dummy_outlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Abfluss (runoff) [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-hydpy.models.dummy.dummy_outlets"></span><dl class="py class">
+<dt id="hydpy.models.dummy.dummy_outlets.Q">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dummy.dummy_outlets.</span></code><code class="sig-name descname"><span class="pre">Q</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">SubVariablesType</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/dummy/dummy_outlets.html#Q"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.dummy.dummy_outlets.Q" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.LinkSequence</span></code></a>[<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutletSequences</span></code></a>]</p>
+<p>Abfluss (runoff) [m³/s].</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.dummy.dummy_model.Pass_Q_V1" title="hydpy.models.dummy.dummy_model.Pass_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Q_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="hydpy.models.dummy.dummy_outlets.Q.NDIM">
+<code class="sig-name descname"><span class="pre">NDIM</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.dummy.dummy_outlets.Q.NDIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.dummy.dummy_outlets.Q.NUMERIC">
+<code class="sig-name descname"><span class="pre">NUMERIC</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">False</span></em><a class="headerlink" href="#hydpy.models.dummy.dummy_outlets.Q.NUMERIC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.dummy.dummy_outlets.Q.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'q'</span></em><a class="headerlink" href="#hydpy.models.dummy.dummy_outlets.Q.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.models.dummy.dummy_outlets.Q.unit">
+<code class="sig-name descname"><span class="pre">unit</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'m³/s'</span></em><a class="headerlink" href="#hydpy.models.dummy.dummy_outlets.Q.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.dummy.FluxSequences">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dummy.</span></code><code class="sig-name descname"><span class="pre">FluxSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dummy.FluxSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutputSequences" title="hydpy.core.sequencetools.OutputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.OutputSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code>]</p>
+<p>Flux sequences of model dummy.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.dummy.dummy_fluxes.Q" title="hydpy.models.dummy.dummy_fluxes.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Abfluss [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.dummy.InletSequences">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dummy.</span></code><code class="sig-name descname"><span class="pre">InletSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dummy.InletSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequences" title="hydpy.core.sequencetools.LinkSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.LinkSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequence</span></code>]</p>
+<p>Inlet sequences of model dummy.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.dummy.dummy_inlets.Q" title="hydpy.models.dummy.dummy_inlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Abfluss (runoff) [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.models.dummy.OutletSequences">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.models.dummy.</span></code><code class="sig-name descname"><span class="pre">OutletSequences</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">hydpy.core.sequencetools.Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><span class="pre">FastAccessType</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">hydpy.core.typingtools.CyModelProtocol</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dummy.OutletSequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequences" title="hydpy.core.sequencetools.LinkSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.sequencetools.LinkSequences</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequence</span></code>]</p>
+<p>Outlet sequences of model dummy.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.dummy.dummy_outlets.Q" title="hydpy.models.dummy.dummy_outlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Abfluss (runoff) [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework Tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modelcollection.html">Model Collection</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="HydPy-A.html">HydPy-A (RIMO/RIDO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-C.html">HydPy-C (Conv)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-E.html">HydPy-E (Evap)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-D.html">HydPy-D (DAM)</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">dummy</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#method-features">Method Features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sequence-features">Sequence Features</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#flux-sequences">Flux sequences</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#inlet-sequences">Inlet sequences</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#outlet-sequences">Outlet sequences</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dummy_v1.html">dummy_v1</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-T.html">HydPy-T (TESTING)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="HydPy-Dummy.html"
+                        title="previous chapter">HydPy-Dummy</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dummy_v1.html"
+                        title="next chapter">dummy_v1</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dummy.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/dummy.html">6</a></li>
+<li><a href="../5.0/dummy.html">5.0</a></li>
+<li><a href="../4.0/dummy.html">4.0</a></li>
+<li><a href="../master/dummy.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dummy_v1.html" title="dummy_v1"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="HydPy-Dummy.html" title="HydPy-Dummy"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-Dummy.html" >HydPy-Dummy</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dummy</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.conv_v002 &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.conv_v002</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.conv_v002</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=line-too-long, wildcard-import, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;Inverse distance weighted interpolation.</span>
+
+<span class="sd">Version 2 of HydPy-C performs simple inverse distance weighted interpolations</span>
+<span class="sd">between an arbitrary number of models (or data files) providing output and an</span>
+<span class="sd">arbitrary number of models requiring input.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">We perform the following examples over a simulation period of 3 days:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import pub, Nodes, Element</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2000-01-04&quot;, &quot;1d&quot;</span>
+
+<span class="sd">|conv_v002| implements no parameter with values depending on the simulation</span>
+<span class="sd">step size, which is why we can pass anything (or nothing) to function</span>
+<span class="sd">|parameterstep| without changing the following results:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models.conv_v002 import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">Due to the following configuration, |conv_v002| queries its input from the</span>
+<span class="sd">inlet nodes `in1`, `in2`, and `in3` and passes the interpolation results to</span>
+<span class="sd">the outlet nodes `out1`, `out2`, `out3`, and `out4`:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import *</span>
+<span class="sd">&gt;&gt;&gt; in1, in2, in3 = Node(&quot;in1&quot;), Node(&quot;in2&quot;), Node(&quot;in3&quot;)</span>
+<span class="sd">&gt;&gt;&gt; element = Element(&quot;conv&quot;,</span>
+<span class="sd">...                   inlets=(in1, in2, in3),</span>
+<span class="sd">...                   outlets=[&quot;out1&quot;, &quot;out2&quot;, &quot;out3&quot;, &quot;out4&quot;])</span>
+
+<span class="sd">The following coordinate definitions contain the particular case of outlet</span>
+<span class="sd">node `out1`, being at the same location as inlet node `in1`:</span>
+
+<span class="sd">&gt;&gt;&gt; inputcoordinates(</span>
+<span class="sd">...     in1=(0.0, 3.0),</span>
+<span class="sd">...     in2=(2.0, -1.0),</span>
+<span class="sd">...     in3=(4.0, 2.0))</span>
+<span class="sd">&gt;&gt;&gt; outputcoordinates(</span>
+<span class="sd">...     out1=(0.0, 3.0),</span>
+<span class="sd">...     out2=(3.0, -2.0),</span>
+<span class="sd">...     out3=(1.0, 2.0),</span>
+<span class="sd">...     out4=(1.0, 1.0))</span>
+
+<span class="sd">We set the power parameter |Power| to the standard value of two:</span>
+
+<span class="sd">&gt;&gt;&gt; power(2.0)</span>
+
+<span class="sd">In the first example, we perform a complete inverse distance weighted</span>
+<span class="sd">interpolation, where we take all input location into account, as long</span>
+<span class="sd">as they provide input data:</span>
+
+<span class="sd">&gt;&gt;&gt; maxnmbinputs(3)</span>
+
+<span class="sd">|conv_v002| does not implement any state or log sequences and thus has</span>
+<span class="sd">no memory at all, making finalising the test setup quite easy.  We only</span>
+<span class="sd">need to define time-series for both inlet nodes.  Note that we set some</span>
+<span class="sd">|numpy| |numpy.nan| values to demonstrate how |conv_v002| deals with</span>
+<span class="sd">missing values:</span>
+
+<span class="sd">&gt;&gt;&gt; element.model = model</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import IntegrationTest</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(element)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = &quot;%Y-%m-%d&quot;</span>
+<span class="sd">&gt;&gt;&gt; with pub.options.checkseries(False):</span>
+<span class="sd">...     in1.sequences.sim.series = 1.0, nan, nan</span>
+<span class="sd">...     in2.sequences.sim.series = 3.0, 2.0, nan</span>
+<span class="sd">...     in3.sequences.sim.series = 4.0, nan, nan</span>
+
+<span class="sd">If available, outlet node `in1` receives its value from inlet node `in1`</span>
+<span class="sd">due to the same location.  At the second time step, all outlet nodes</span>
+<span class="sd">receive the same data as only inlet node `in2` provides any data.  When</span>
+<span class="sd">no inlet node provides data, the outlet nodes receive |numpy.nan| values:</span>
+
+<span class="sd">&gt;&gt;&gt; test()</span>
+<span class="sd">|       date |           inputs |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 | out4 |</span>
+<span class="sd">---------------------------------------------------------------------------------------------------------</span>
+<span class="sd">| 2000-01-01 | 1.0  3.0     4.0 | 1.0  3.0  1.75      2.4 | 1.0 | 3.0 | 4.0 |  1.0 |  3.0 | 1.75 |  2.4 |</span>
+<span class="sd">| 2000-01-02 | nan  2.0     nan | 2.0  2.0   2.0      2.0 | nan | 2.0 | nan |  2.0 |  2.0 |  2.0 |  2.0 |</span>
+<span class="sd">| 2000-01-03 | nan  nan     nan | nan  nan   nan      nan | nan | nan | nan |  nan |  nan |  nan |  nan |</span>
+
+<span class="sd">We can restrict the number of considered inlet nodes via parameter</span>
+<span class="sd">|MaxNmbInputs|, which can increase computation speed.  However, do not</span>
+<span class="sd">set to low values. Otherwise, you might deteriorate accuracy severely or</span>
+<span class="sd">run into the risk of unhandled |numpy.nan| values:</span>
+
+<span class="sd">&gt;&gt;&gt; maxnmbinputs(2)</span>
+<span class="sd">&gt;&gt;&gt; test()</span>
+<span class="sd">|       date |           inputs |                          outputs | in1 | in2 | in3 | out1 |     out2 |     out3 | out4 |</span>
+<span class="sd">--------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">| 2000-01-01 | 1.0  3.0     4.0 | 1.0  3.105263  1.545455      2.0 | 1.0 | 3.0 | 4.0 |  1.0 | 3.105263 | 1.545455 |  2.0 |</span>
+<span class="sd">| 2000-01-02 | nan  2.0     nan | nan       2.0       nan      2.0 | nan | 2.0 | nan |  nan |      2.0 |      nan |  2.0 |</span>
+<span class="sd">| 2000-01-03 | nan  nan     nan | nan       nan       nan      nan | nan | nan | nan |  nan |      nan |      nan |  nan |</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.exe.modelimports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.conv</span> <span class="kn">import</span> <span class="n">conv_model</span>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../conv_v002.html#hydpy.models.conv_v002.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">conv_model</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Version 2 of the Conv model.&quot;&quot;&quot;</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_model</span><span class="o">.</span><span class="n">Pick_Inputs_V1</span><span class="p">,)</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_model</span><span class="o">.</span><span class="n">Calc_Outputs_V2</span><span class="p">,)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_model</span><span class="o">.</span><span class="n">Interpolate_InverseDistance_V1</span><span class="p">,)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_model</span><span class="o">.</span><span class="n">Pass_Outputs_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+<span class="n">cythonizer</span><span class="o">.</span><span class="n">finalise</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.conv_v002</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

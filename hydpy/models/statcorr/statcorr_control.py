@@ -276,7 +276,207 @@ lie between zero and one, but `1.5` is given.
         return self._get_config()[2]
 
 
-class LinearReductionTime(parametertools.Parameter):
+class VariabilityCheck(parametertools.SpecialParameter):
+    """Configuration of the check of whether the simulated discharge varies little
+    enough to base the correction on a long-term mean residual [-].
+
+    |VariabilityCheck| is a special parameter (see |SpecialParameter|).  Either
+    switch the check off by passing |False| or switch it on by passing the threshold
+    for the sum of the absolute changes of the simulated discharge within the
+    |EvaluationWindow| divided by |EvaluatedDischarge| (`maxrelsumdelta`) and the
+    length of the averaging period (`averagingwindow`, in log entries) for
+    determining the mean-value-based residual under stationary conditions (see
+    |Determine_OutputCorrection_V1|):
+
+    >>> from hydpy.models.statcorr_arima010 import *
+    >>> parameterstep()
+    >>> variabilitycheck
+    variabilitycheck(?)
+    >>> variabilitycheck.verify()
+    Traceback (most recent call last):
+    ...
+    RuntimeError: For parameter `variabilitycheck` of element `?`, it is still \
+unknown whether the variability check is enabled.
+
+    >>> variabilitycheck(False)
+    >>> variabilitycheck
+    variabilitycheck(False)
+    >>> variabilitycheck.verify()
+
+    Passing `maxrelsumdelta` and `averagingwindow` implicitly enables the check:
+
+    >>> variabilitycheck(maxrelsumdelta=0.2, averagingwindow=24)
+    >>> variabilitycheck
+    variabilitycheck(maxrelsumdelta=0.2, averagingwindow=24)
+    >>> variabilitycheck.enabled, variabilitycheck.averagingwindow
+    (True, 24)
+    >>> from hydpy import round_
+    >>> round_(variabilitycheck.maxrelsumdelta)
+    0.2
+
+    Passing |True| explicitly is allowed but optional:
+
+    >>> variabilitycheck(True, maxrelsumdelta=0.1, averagingwindow=12)
+    >>> variabilitycheck
+    variabilitycheck(maxrelsumdelta=0.1, averagingwindow=12)
+
+    An enabled check requires both `maxrelsumdelta` and `averagingwindow`:
+
+    >>> variabilitycheck(True)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `variabilitycheck` of element `?`, both \
+`maxrelsumdelta` and `averagingwindow` must be given when enabling the variability \
+check.
+
+    >>> variabilitycheck(maxrelsumdelta=0.1)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `variabilitycheck` of element `?`, both \
+`maxrelsumdelta` and `averagingwindow` must be given when enabling the variability \
+check.
+
+    A disabled check does not accept `maxrelsumdelta` or `averagingwindow`:
+
+    >>> variabilitycheck(False, maxrelsumdelta=0.1, averagingwindow=12)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `variabilitycheck` of element `?`, `maxrelsumdelta` \
+and `averagingwindow` must not be given when disabling the variability check.
+
+    >>> variabilitycheck()
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `variabilitycheck` of element `?`, pass either a \
+boolean value or the keyword arguments `maxrelsumdelta` and `averagingwindow`.
+
+    `maxrelsumdelta` must not be negative, and `averagingwindow` must be a positive
+    integer:
+
+    >>> variabilitycheck(maxrelsumdelta=-0.1, averagingwindow=12)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `variabilitycheck` of element `?`, `maxrelsumdelta` \
+must not be negative, but `-0.1` is given.
+
+    >>> variabilitycheck(maxrelsumdelta=0.1, averagingwindow=0)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `variabilitycheck` of element `?`, `averagingwindow` \
+must be a positive integer, but `0` is given.
+
+    Failed calls leave the previous configuration untouched:
+
+    >>> variabilitycheck
+    variabilitycheck(maxrelsumdelta=0.1, averagingwindow=12)
+    """
+
+    _config: tuple[bool, float, int] | None
+
+    def __init__(self, subvars: variabletools.SubVariables[Any, Any, Any, Any]) -> None:
+        super().__init__(subvars)
+        self._config = None
+
+    def __call__(
+        self,
+        value: bool | None = None,
+        *,
+        maxrelsumdelta: float | None = None,
+        averagingwindow: int | None = None,
+    ) -> None:
+        if (value is False) and (
+            (maxrelsumdelta is not None) or (averagingwindow is not None)
+        ):
+            raise ValueError(
+                f"For parameter {objecttools.elementphrase(self)}, `maxrelsumdelta` "
+                f"and `averagingwindow` must not be given when disabling the "
+                f"variability check."
+            )
+        if value is False:
+            self._config = (False, 0.0, 0)
+            return
+        if (value is None) and (maxrelsumdelta is None) and (averagingwindow is None):
+            raise ValueError(
+                f"For parameter {objecttools.elementphrase(self)}, pass either a "
+                f"boolean value or the keyword arguments `maxrelsumdelta` and "
+                f"`averagingwindow`."
+            )
+        if (maxrelsumdelta is None) or (averagingwindow is None):
+            raise ValueError(
+                f"For parameter {objecttools.elementphrase(self)}, both "
+                f"`maxrelsumdelta` and `averagingwindow` must be given when enabling "
+                f"the variability check."
+            )
+        if maxrelsumdelta < 0.0:
+            raise ValueError(
+                f"For parameter {objecttools.elementphrase(self)}, `maxrelsumdelta` "
+                f"must not be negative, but `{maxrelsumdelta}` is given."
+            )
+        if (int(averagingwindow) != averagingwindow) or (averagingwindow < 1):
+            raise ValueError(
+                f"For parameter {objecttools.elementphrase(self)}, `averagingwindow` "
+                f"must be a positive integer, but `{averagingwindow}` is given."
+            )
+        self._config = (True, float(maxrelsumdelta), int(averagingwindow))
+
+    def __repr__(self) -> str:
+        if self._config is None:
+            return f"{self.name}(?)"
+        enabled, maxrelsumdelta, averagingwindow = self._config
+        if not enabled:
+            return f"{self.name}(False)"
+        return (
+            f"{self.name}(maxrelsumdelta={objecttools.repr_(maxrelsumdelta)}, "
+            f"averagingwindow={averagingwindow})"
+        )
+
+    def verify(self) -> None:
+        """Raise a |RuntimeError| if the configuration is still unknown."""
+        if self._config is None:
+            raise RuntimeError(
+                f"For parameter {objecttools.elementphrase(self)}, it is still unknown "
+                f"whether the variability check is enabled."
+            )
+
+    @property
+    def configured(self) -> bool:
+        """Flag indicating whether the variability check has already been
+        configured.
+
+        >>> from hydpy.models.statcorr_arima010 import *
+        >>> parameterstep()
+        >>> variabilitycheck.configured
+        False
+        >>> variabilitycheck(False)
+        >>> variabilitycheck.configured
+        True
+        """
+        return self._config is not None
+
+    def _get_config(self) -> tuple[bool, float, int]:
+        self.verify()
+        assert self._config is not None
+        return self._config
+
+    @property
+    def enabled(self) -> bool:
+        """Flag indicating whether the variability check is enabled."""
+        return self._get_config()[0]
+
+    @property
+    def maxrelsumdelta(self) -> float:
+        """The threshold for the relative sum of the absolute changes of the
+        simulated discharge (zero if the check is disabled)."""
+        return self._get_config()[1]
+
+    @property
+    def averagingwindow(self) -> int:
+        """The length of the averaging period under stationary conditions in log
+        entries (zero if the check is disabled)."""
+        return self._get_config()[2]
+
+
+class ReductionSteps(parametertools.Parameter):
     """Number of timesteps for linearly reducing the ARIMA correction to zero once
     the stationarity check (see |StationarityCheck|) detects instationary flow
     conditions [-]."""

@@ -1917,10 +1917,18 @@ class Update_Discharge_V2(modeltools.Method):
 
         >>> from hydpy.models.sw1d import *
         >>> parameterstep()
-        >>> bottomlowwaterthreshold(_1_1_12=5.0, _1_2_12=2.0, _1_3_12=2.0, _1_4_12=2.0)
-        >>> upperlowwaterthreshold(_1_1_12=5.0, _1_2_12=8.0, _1_3_12=5.0, _1_4_12=6.0)
-        >>> bottomhighwaterthreshold(_1_1_12=5.0, _1_2_12=2.0, _1_3_12=5.0, _1_4_12=4.0)
-        >>> upperhighwaterthreshold(_1_1_12=5.0, _1_2_12=8.0, _1_3_12=8.0, _1_4_12=8.0)
+        >>> bottomlowwaterthreshold(
+        ...     toy_1_1_12=5.0, toy_1_2_12=2.0, toy_1_3_12=2.0, toy_1_4_12=2.0
+        ... )
+        >>> upperlowwaterthreshold(
+        ...     toy_1_1_12=5.0, toy_1_2_12=8.0, toy_1_3_12=5.0, toy_1_4_12=6.0
+        ... )
+        >>> bottomhighwaterthreshold(
+        ...     toy_1_1_12=5.0, toy_1_2_12=2.0, toy_1_3_12=5.0, toy_1_4_12=4.0
+        ... )
+        >>> upperhighwaterthreshold(
+        ...     toy_1_1_12=5.0, toy_1_2_12=8.0, toy_1_3_12=8.0, toy_1_4_12=8.0
+        ... )
         >>> derived.toy.update()
 
         We prepare a |UnitTest| object to demonstrate how |Update_Discharge_V2| depends

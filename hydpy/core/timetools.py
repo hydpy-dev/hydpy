@@ -10,12 +10,15 @@ import collections
 import contextlib
 import copy
 import datetime as datetime_
+import re
 import time
+import warnings
 
 import numpy
 
 import hydpy
 from hydpy import config
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core.typingtools import *
@@ -3208,6 +3211,13 @@ class TOY:
 `something` of type `str`, the following error occurred: When passing a prefixed \
 string, you need to define at least the month.
 
+    >>> TOY("toy_3_13_23_33_2_1")
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to initialise a TOY object based on argument value \
+`toy_3_13_23_33_2_1` of type `str`, the following error occurred: A time of year \
+string must not define more than five values (month, day, hour, minute, and second), \
+but `toy_3_13_23_33_2_1` defines six.
 
     >>> TOY("2_30_4_5_6")
     Traceback (most recent call last):
@@ -3328,14 +3338,7 @@ must not be the given value `4`, as the day has already been set to `31`.
                 for name in self._PROPERTIES.keys():
                     dict_[name] = getattr(datetime, name)
             else:
-                values = value.split("_")
-                if not values[0].isdigit():
-                    if values[0] and (len(values) == 1):
-                        raise ValueError(
-                            "When passing a prefixed string, you need to define at "
-                            "least the month."
-                        )
-                    del values[0]
+                values = self._split_name(value)
                 for prop in self._PROPERTIES:
                     try:
                         setattr(self, prop, values.pop(0))
@@ -3399,6 +3402,79 @@ must not be the given value `4`, as the day has already been set to `31`.
         super().__setattr__(name, value)
         vars(self)["seconds_passed"] = None
         vars(self)["seconds_left"] = None
+
+    @staticmethod
+    def _split_name(value: str) -> list[str]:
+        values = value.split("_")
+        if not values[0].isdigit():
+            if values[0] and (len(values) == 1):
+                raise ValueError(
+                    "When passing a prefixed string, you need to define at least the "
+                    "month."
+                )
+            del values[0]
+        if len(values) > 5:
+            raise ValueError(
+                f"A time of year string must not define more than five values (month, "
+                f"day, hour, minute, and second), but `{value}` defines "
+                f"{objecttools.Inflect.cardinal(len(values))}."
+            )
+        return values
+
+    @classmethod
+    def from_name(cls, name: str) -> Self:
+        """Create a |TOY| object based on a keyword or attribute name.
+
+        Classes like |SeasonalParameter| and |SeasonalInterpolator| identify times of
+        year by names consisting of the prefix `toy` and one to five integers with one
+        or two digits (month, day, hour, minute, and second), all separated by
+        underscores.  Omitted integers default to their lowest possible values:
+
+        >>> from hydpy.core.timetools import TOY
+        >>> TOY.from_name("toy_3_13_23")
+        TOY("3_13_23_0_0")
+
+        Integers with leading zeros, as in `toy_03_13_23` or `toy_3_13_23_00`, are
+        equally fine:
+
+        >>> TOY.from_name("toy_03_13_23_00")
+        TOY("3_13_23_0_0")
+
+        All other names supported by the |TOY| constructor are deprecated:
+
+        >>> from hydpy.core.testtools import warn_later
+        >>> with warn_later():
+        ...     TOY.from_name("_3_13_23")
+        TOY("3_13_23_0_0")
+        HydPyDeprecationWarning: The time of year name `_3_13_23` is deprecated and \
+will no longer be supported in HydPy 8.0.  Please write `toy_03_13_23` instead.
+
+        >>> with warn_later():
+        ...     TOY.from_name("something_03_013_0_007")
+        TOY("3_13_0_7_0")
+        HydPyDeprecationWarning: The time of year name `something_03_013_0_007` is \
+deprecated and will no longer be supported in HydPy 8.0.  Please write \
+`toy_03_13_00_07` instead.
+
+        Invalid names result in the same errors as for the |TOY| constructor:
+
+        >>> TOY.from_name("toy")
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to initialise a TOY object based on argument value \
+`toy` of type `str`, the following error occurred: When passing a prefixed string, you \
+need to define at least the month.
+        """
+        toy = cls(name)
+        if re.fullmatch(r"toy(_[0-9]{1,2}){1,5}", name) is None:
+            props = tuple(cls._PROPERTIES)[: max(len(cls._split_name(name)), 1)]
+            standard = "_".join(["toy"] + [f"{getattr(toy, p):02}" for p in props])
+            warnings.warn(
+                f"The time of year name `{name}` is deprecated and will no longer be "
+                f"supported in HydPy 8.0.  Please write `{standard}` instead.",
+                exceptiontools.HydPyDeprecationWarning,
+            )
+        return toy
 
     @property
     def seconds_passed(self) -> int:

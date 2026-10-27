@@ -1285,12 +1285,12 @@ class Calc_AllowedRemoteRelief_V2(modeltools.Method):
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
-        >>> highestremoterelief(_11_1_12=1.0, _03_31_12=1.0,
-        ...                     _04_1_12=2.0, _10_31_12=2.0)
-        >>> waterlevelreliefthreshold(_11_1_12=3.0, _03_31_12=2.0,
-        ...                           _04_1_12=4.0, _10_31_12=4.0)
-        >>> waterlevelrelieftolerance(_11_1_12=0.0, _03_31_12=0.0,
-        ...                           _04_1_12=1.0, _10_31_12=1.0)
+        >>> highestremoterelief(toy_11_1_12=1.0, toy_03_31_12=1.0,
+        ...                     toy_04_1_12=2.0, toy_10_31_12=2.0)
+        >>> waterlevelreliefthreshold(toy_11_1_12=3.0, toy_03_31_12=2.0,
+        ...                           toy_04_1_12=4.0, toy_10_31_12=4.0)
+        >>> waterlevelrelieftolerance(toy_11_1_12=0.0, toy_03_31_12=0.0,
+        ...                           toy_04_1_12=1.0, toy_10_31_12=1.0)
         >>> derived.waterlevelreliefsmoothpar.update()
         >>> derived.toy.update()
 
@@ -1392,12 +1392,12 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
         >>> pub.timegrids = "2001.03.30", "2001.04.03", "1d"
         >>> from hydpy.models.dam import *
         >>> parameterstep()
-        >>> highestremotesupply(_11_1_12=1.0, _03_31_12=1.0,
-        ...                     _04_1_12=2.0, _10_31_12=2.0)
-        >>> waterlevelsupplythreshold(_11_1_12=3.0, _03_31_12=2.0,
-        ...                           _04_1_12=4.0, _10_31_12=4.0)
-        >>> waterlevelsupplytolerance(_11_1_12=0.0, _03_31_12=0.0,
-        ...                           _04_1_12=1.0, _10_31_12=1.0)
+        >>> highestremotesupply(toy_11_1_12=1.0, toy_03_31_12=1.0,
+        ...                     toy_04_1_12=2.0, toy_10_31_12=2.0)
+        >>> waterlevelsupplythreshold(toy_11_1_12=3.0, toy_03_31_12=2.0,
+        ...                           toy_04_1_12=4.0, toy_10_31_12=4.0)
+        >>> waterlevelsupplytolerance(toy_11_1_12=0.0, toy_03_31_12=0.0,
+        ...                           toy_04_1_12=1.0, toy_10_31_12=1.0)
         >>> derived.waterlevelsupplysmoothpar.update()
         >>> derived.toy.update()
         >>> from hydpy import UnitTest
@@ -1540,8 +1540,8 @@ class Calc_RemoteDemand_V1(modeltools.Method):
         in the hydrological summer half-year (April to October).  In the
         winter month (November to May), there is no such requirement:
 
-        >>> remotedischargeminimum(_11_1_12=0.0, _03_31_12=0.0,
-        ...                        _04_1_12=2.0, _10_31_12=2.0)
+        >>> remotedischargeminimum(toy_11_1_12=0.0, toy_03_31_12=0.0,
+        ...                        toy_04_1_12=2.0, toy_10_31_12=2.0)
         >>> derived.toy.update()
 
         Prepare a test function, that calculates the remote discharge demand
@@ -1620,8 +1620,8 @@ class Calc_RemoteFailure_V1(modeltools.Method):
 
         Again, the required discharge is 2 m³/s in summer and 0 m³/s in winter:
 
-        >>> remotedischargeminimum(_11_1_12=0.0, _03_31_12=0.0,
-        ...                        _04_1_12=2.0, _10_31_12=2.0)
+        >>> remotedischargeminimum(toy_11_1_12=0.0, toy_03_31_12=0.0,
+        ...                        toy_04_1_12=2.0, toy_10_31_12=2.0)
         >>> derived.toy.update()
 
         Let it be supposed that the actual discharge at the remote
@@ -1695,8 +1695,8 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
         Define a safety factor of 0.5 m³/s for the summer months and
         no safety factor at all for the winter months:
 
-        >>> remotedischargesafety(_11_1_12=0.0, _03_31_12=0.0,
-        ...                       _04_1_12=1.0, _10_31_12=1.0)
+        >>> remotedischargesafety(toy_11_1_12=0.0, toy_03_31_12=0.0,
+        ...                       toy_04_1_12=1.0, toy_10_31_12=1.0)
         >>> derived.remotedischargesmoothpar.update()
 
         Assume the actual demand at the cross section downsstream has actually
@@ -1858,14 +1858,14 @@ class Calc_RequiredRelease_V1(modeltools.Method):
         downstream of 4 m³/s for the summer months and of 0 m³/s for the
         winter months:
 
-        >>> neardischargeminimumthreshold(_11_1_12=0.0, _03_31_12=0.0,
-        ...                               _04_1_12=4.0, _10_31_12=4.0)
+        >>> neardischargeminimumthreshold(toy_11_1_12=0.0, toy_03_31_12=0.0,
+        ...                               toy_04_1_12=4.0, toy_10_31_12=4.0)
 
         Also define related tolerance values that are 1 m³/s in summer and
         0 m³/s in winter:
 
-        >>> neardischargeminimumtolerance(_11_1_12=0.0, _03_31_12=0.0,
-        ...                               _04_1_12=1.0, _10_31_12=1.0)
+        >>> neardischargeminimumtolerance(toy_11_1_12=0.0, toy_03_31_12=0.0,
+        ...                               toy_04_1_12=1.0, toy_10_31_12=1.0)
         >>> derived.neardischargeminimumsmoothpar2.update()
 
         Prepare a test function, that calculates the required total discharge
@@ -1964,8 +1964,8 @@ class Calc_RequiredRelease_V2(modeltools.Method):
         downstream of 4 m³/s for the summer months and of 0 m³/s for the
         winter months:
 
-        >>> neardischargeminimumthreshold(_11_1_12=0.0, _03_31_12=0.0,
-        ...                               _04_1_12=4.0, _10_31_12=4.0)
+        >>> neardischargeminimumthreshold(toy_11_1_12=0.0, toy_03_31_12=0.0,
+        ...                               toy_04_1_12=4.0, toy_10_31_12=4.0)
 
 
         As to be expected, the calculated required release is 0.0 m³/s
@@ -2304,14 +2304,14 @@ class Calc_TargetedRelease_V1(modeltools.Method):
         downstream of 6 m³/s for the summer months and of 4 m³/s for the
         winter months:
 
-        >>> neardischargeminimumthreshold(_11_1_12=6.0, _03_31_12=6.0,
-        ...                               _04_1_12=4.0, _10_31_12=4.0)
+        >>> neardischargeminimumthreshold(toy_11_1_12=6.0, toy_03_31_12=6.0,
+        ...                               toy_04_1_12=4.0, toy_10_31_12=4.0)
 
         Also define related tolerance values that are 1 m³/s in summer and
         0 m³/s in winter:
 
-        >>> neardischargeminimumtolerance(_11_1_12=0.0, _03_31_12=0.0,
-        ...                               _04_1_12=2.0, _10_31_12=2.0)
+        >>> neardischargeminimumtolerance(toy_11_1_12=0.0, toy_03_31_12=0.0,
+        ...                               toy_04_1_12=2.0, toy_10_31_12=2.0)
         >>> derived.neardischargeminimumsmoothpar1.update()
 
         Prepare a test function that calculates the targeted water release
@@ -2742,8 +2742,8 @@ class Calc_ActualRelease_V2(modeltools.Method):
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
-        >>> allowedrelease(_11_1_12=2.0, _03_31_12=2.0,
-        ...                _04_1_12=4.0, _10_31_12=4.0)
+        >>> allowedrelease(toy_11_1_12=2.0, toy_03_31_12=2.0,
+        ...                toy_04_1_12=4.0, toy_10_31_12=4.0)
         >>> waterlevelminimumthreshold(0.5)
         >>> derived.toy.update()
 
@@ -2851,10 +2851,10 @@ class Calc_ActualRelease_V3(modeltools.Method):
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
-        >>> targetvolume(_11_1_12=5.0, _03_31_12=5.0,
-        ...              _04_1_12=0.0, _10_31_12=0.0)
-        >>> neardischargeminimumthreshold(_11_1_12=3.0, _03_31_12=3.0,
-        ...                               _04_1_12=0.0, _10_31_12=0.0)
+        >>> targetvolume(toy_11_1_12=5.0, toy_03_31_12=5.0,
+        ...              toy_04_1_12=0.0, toy_10_31_12=0.0)
+        >>> neardischargeminimumthreshold(toy_11_1_12=3.0, toy_03_31_12=3.0,
+        ...                               toy_04_1_12=0.0, toy_10_31_12=0.0)
         >>> watervolumeminimumthreshold(0.0)
         >>> derived.toy.update()
 
@@ -3994,16 +3994,16 @@ class Calc_FloodDischarge_V1(modeltools.Method):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> waterlevel2flooddischarge(
-        ...     _01_02_12 = ANN(nmb_inputs=1,
-        ...                     nmb_neurons=(2,),
-        ...                     nmb_outputs=1,
-        ...                     weights_input=[[50.0, 4]],
-        ...                     weights_output=[[2.0], [30]],
-        ...                     intercepts_hidden=[[-13000, -1046]],
-        ...                     intercepts_output=[0.0]),
-        ...     _01_03_12 = ANN(nmb_inputs=1,
-        ...                     nmb_neurons=(2,),
-        ...                     nmb_outputs=1))
+        ...     toy_01_02_12 = ANN(nmb_inputs=1,
+        ...                        nmb_neurons=(2,),
+        ...                        nmb_outputs=1,
+        ...                        weights_input=[[50.0, 4]],
+        ...                        weights_output=[[2.0], [30]],
+        ...                        intercepts_hidden=[[-13000, -1046]],
+        ...                        intercepts_output=[0.0]),
+        ...     toy_01_03_12 = ANN(nmb_inputs=1,
+        ...                        nmb_neurons=(2,),
+        ...                        nmb_outputs=1))
         >>> derived.toy.update()
         >>> model.idx_sim = pub.timegrids.sim["2001.01.02"]
 
@@ -4086,8 +4086,8 @@ class Calc_MaxForcedDischarge_V1(modeltools.Method):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> waterleveldifference2maxforceddischarge(
-        ...     _01_02_12 = PPoly(Poly(x0=0.0, cs=[2.0])),
-        ...     _01_04_12 = PPoly(Poly(x0=-2.0, cs=[-4.0]), Poly(x0=0.0, cs=[4.0]))
+        ...     toy_01_02_12 = PPoly(Poly(x0=0.0, cs=[2.0])),
+        ...     toy_01_04_12 = PPoly(Poly(x0=-2.0, cs=[-4.0]), Poly(x0=0.0, cs=[4.0]))
         ... )
         >>> derived.toy.update()
 
@@ -4151,8 +4151,8 @@ class Calc_MaxFreeDischarge_V1(modeltools.Method):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> waterleveldifference2maxfreedischarge(
-        ...     _01_02_12 = PPoly(Poly(x0=0.0, cs=[2.0])),
-        ...     _01_04_12 = PPoly(Poly(x0=-2.0, cs=[-4.0]), Poly(x0=0.0, cs=[4.0]))
+        ...     toy_01_02_12 = PPoly(Poly(x0=0.0, cs=[2.0])),
+        ...     toy_01_04_12 = PPoly(Poly(x0=-2.0, cs=[-4.0]), Poly(x0=0.0, cs=[4.0]))
         ... )
         >>> derived.toy.update()
 
@@ -4972,9 +4972,9 @@ class Update_AllowedDischarge_V2(modeltools.Method):
         >>> pub.timegrids = "2001-03-30", "2001-04-03", "1h"
         >>> from hydpy.models.dam import *
         >>> parameterstep("1d")
-        >>> allowedrelease(_11_01_12=1.0, _03_31_12=1.0,
-        ...                _04_01_00=3.0, _04_02_00=3.0,
-        ...                _04_02_12=5.0, _10_31_12=5.0)
+        >>> allowedrelease(toy_11_01_12=1.0, toy_03_31_12=1.0,
+        ...                toy_04_01_00=3.0, toy_04_02_00=3.0,
+        ...                toy_04_02_12=5.0, toy_10_31_12=5.0)
         >>> derived.toy.update()
         >>> model.idx_sim = pub.timegrids.init["2001-04-01"]
 

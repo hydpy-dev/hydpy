@@ -92,6 +92,14 @@ class CustomMask(BaseMask):
     True
     >>> mask3 in mask1
     False
+
+    The `in` operator also accepts (nested) tuples, which it interprets as boolean masks
+    instead of as multidimensional indices:
+
+    >>> ((True, False, False), (True, False, False)) in mask3
+    True
+    >>> ((False, False, True), (False, False, False)) in mask3
+    False
     """
 
     def __call__(
@@ -103,7 +111,7 @@ class CustomMask(BaseMask):
         self,
         other: VectorInputBool | MatrixInputBool | TensorInputBool,  # type: ignore[override]  # pylint: disable=line-too-long
     ) -> bool:
-        return bool(numpy.all(self[other]))
+        return bool(numpy.all(self[numpy.asarray(other, dtype=bool)]))
 
 
 class DefaultMask(BaseMask):

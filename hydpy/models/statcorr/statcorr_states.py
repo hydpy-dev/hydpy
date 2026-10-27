@@ -8,7 +8,7 @@ from hydpy.core.typingtools import *
 
 class ReductionFactor(sequencetools.StateSequence):
     """Factor for linearly reducing the ARIMA correction to zero under instationary
-    flow conditions (1.0: apply the correction unabated; 0.0: apply no correction at
+    conditions (1.0: apply the correction unabated; 0.0: apply no correction at
     all) [-]."""
 
     NDIM: Final[Literal[0]] = 0
@@ -17,7 +17,7 @@ class ReductionFactor(sequencetools.StateSequence):
 
 
 class Stationary(sequencetools.StateSequence):
-    """Flag (1.0: yes, 0.0: no) telling whether the measured discharge behaved in a
+    """Flag (1.0: yes, 0.0: no) telling whether the observed values behaved in a
     stationary way at the last assessment (1.0: apply |ReductionFactor| unabated;
     0.0: reduce |ReductionFactor| linearly) [-].
 
@@ -33,26 +33,27 @@ class Stationary(sequencetools.StateSequence):
     INIT = 1.0
 
 
-class EvaluatedDischarge(sequencetools.StateSequence):
-    """The mean simulated discharge over the |EvaluationWindow| most recent log
-    entries, as determined at the last `historical` assessment [m³/s].
+class EvaluatedValue(sequencetools.StateSequence):
+    """The mean of the simulated values over the |EvaluationWindow| most recent log
+    entries, as determined at the last `historical` assessment [unit of the
+    corrected variable].
 
-    |Determine_OutputCorrection_V1| compares |EvaluatedDischarge| with |LowerLimit|
+    |Determine_OutputCorrection_V1| compares |EvaluatedValue| with |LowerLimit|
     and |UpperLimit| to decide whether the submodel is responsible for correcting
-    the discharge.  Like |Stationary|, |statcorr_arima010| only reassesses
-    |EvaluatedDischarge| while |Options.simulationmode| equals `historical`.
-    While it equals `forecast`, |EvaluatedDischarge| keeps the value determined
+    the simulated values.  Like |Stationary|, |statcorr_arima010| only reassesses
+    |EvaluatedValue| while |Options.simulationmode| equals `historical`.
+    While it equals `forecast`, |EvaluatedValue| keeps the value determined
     at the most recent `historical` assessment, so the responsible submodel does
     not change throughout the whole forecast horizon, regardless of how the
-    forecasted discharge develops."""
+    forecasted values develop."""
 
     NDIM: Final[Literal[0]] = 0
     INIT = numpy.nan
 
 
 class RelSumDelta(sequencetools.StateSequence):
-    """The sum of the absolute changes of the simulated discharge within the
-    |EvaluationWindow| divided by |EvaluatedDischarge|, as determined at the last
+    """The sum of the absolute changes of the simulated values within the
+    |EvaluationWindow| divided by |EvaluatedValue|, as determined at the last
     `historical` assessment [-].
 
     Like |Stationary|, |statcorr_arima010| only reassesses |RelSumDelta| while
@@ -93,8 +94,8 @@ class ForecastStep(sequencetools.StateSequence):
 
 class AveragedResidual(sequencetools.StateSequence):
     """The mean-value-based ARIMA residual (mean observed minus mean simulated
-    discharge over the |AveragingWindow| log entries immediately
-    preceding the current forecast run) in m³/s, determined once at the first
+    values over the |AveragingWindow| log entries immediately
+    preceding the current forecast run), determined once at the first
     forecast step and kept unchanged for the remainder of the forecast
     horizon."""
 
@@ -103,9 +104,9 @@ class AveragedResidual(sequencetools.StateSequence):
 
 
 class Residual(sequencetools.StateSequence):
-    """The pointwise ARIMA residual (observed minus simulated discharge, taken
+    """The pointwise ARIMA residual (observed minus simulated values, taken
     from the most recently logged entry with a non-|numpy.nan| observation,
-    searching back at most |MaxNaNSkip| entries) in m³/s.
+    searching back at most |MaxNaNSkip| entries).
 
     Like |Stationary|, |statcorr_arima010| only
     reassesses |Residual| while |Options.simulationmode| equals `historical`.
@@ -120,7 +121,7 @@ class Residual(sequencetools.StateSequence):
 
 
 class ResidualAnchor(sequencetools.StateSequence):
-    """The simulated discharge (in m³/s) at the log position from which
+    """The simulated value at the log position from which
     |Residual| was determined.
 
     Frozen together with |Residual| while |Options.simulationmode| equals

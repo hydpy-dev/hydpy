@@ -4088,20 +4088,41 @@ class SeasonalParameter(Parameter, abc.ABC):
     Pairs of |TOY| objects and |float| values define the seasonal pattern.  One can
     assign them all at once via keyword arguments:
 
-    >>> par(_1=2.0, _7_1=4.0, _3_1_0_0_0=5.0)
+    >>> par(toy_1=2.0, toy_7_1=4.0, toy_3_1_0_0_0=5.0)
 
-    Note that all keywords in the call above are proper |TOY| initialisation arguments.
-    Misspelt keywords result in error messages like the following:
+    Each keyword consists of the prefix `toy` and one to five integers (month, day,
+    hour, minute, and second), as explained in the documentation on method
+    |TOY.from_name|.  Misspelt keywords result in error messages like the following:
 
-    >>> Par(None)(_a=1.0)
+    >>> Par(None)(toy_a=1.0)
     Traceback (most recent call last):
     ...
     ValueError: While trying to define the seasonal parameter value `par` of element \
-`?` for time of year `_a`, the following error occurred: While trying to initialise a \
-TOY object based on argument value `_a` of type `str`, the following error occurred: \
-While trying to retrieve the month, the following error occurred: For TOY (time of \
-year) objects, all properties must be of type `int`, but the value `a` of type `str` \
-given for property `month` cannot be converted to `int`.
+`?` for time of year `toy_a`, the following error occurred: While trying to initialise \
+a TOY object based on argument value `toy_a` of type `str`, the following error \
+occurred: While trying to retrieve the month, the following error occurred: For TOY \
+(time of year) objects, all properties must be of type `int`, but the value `a` of \
+type `str` given for property `month` cannot be converted to `int`.
+
+    Each keyword must define a different time of year:
+
+    >>> Par(None)(toy_7_1=1.0, toy_07_01_00=2.0)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to define the seasonal parameter value `par` of element \
+`?` for time of year `toy_07_01_00`, the following error occurred: The keywords \
+`toy_7_1` and `toy_07_01_00` define the same time of year.
+
+    Keywords without the prefix `toy` or with integers of more than two digits are
+    deprecated:
+
+    >>> from hydpy.core.testtools import warn_later
+    >>> with warn_later():
+    ...     Par(None)(_1=2.0, toy_007_01=4.0)
+    HydPyDeprecationWarning: The time of year name `_1` is deprecated and will no \
+longer be supported in HydPy 8.0.  Please write `toy_01` instead.
+    HydPyDeprecationWarning: The time of year name `toy_007_01` is deprecated and will \
+no longer be supported in HydPy 8.0.  Please write `toy_07_01` instead.
 
     As the following string representation shows are the pairs of each
     |SeasonalParameter| instance automatically sorted:
@@ -4128,21 +4149,26 @@ given for property `month` cannot be converted to `int`.
     >>> par.toy_2_1
     2.0
 
-    When using functions |getattr| and |delattr|, one can also omit the "toy" prefix:
+    Omitting the "toy" prefix when using functions |getattr| and |delattr| is
+    deprecated:
 
-    >>> getattr(par, "2_1")
+    >>> with warn_later():
+    ...     getattr(par, "2_1")
     2.0
-    >>> delattr(par, "2_1")
-    >>> getattr(par, "2_1")
+    HydPyDeprecationWarning: The time of year name `2_1` is deprecated and will no \
+longer be supported in HydPy 8.0.  Please write `toy_02_01` instead.
+
+    >>> del par.toy_2_1
+    >>> par.toy_2_1
     Traceback (most recent call last):
     ...
     AttributeError: Seasonal parameter `par` of element `?` has neither a normal \
-attribute nor does it handle a "time of year" named `2_1`.
-    >>> delattr(par, "2_1")
+attribute nor does it handle a "time of year" named `toy_2_1`.
+    >>> del par.toy_2_1
     Traceback (most recent call last):
     ...
     AttributeError: Seasonal parameter `par` of element `?` has neither a normal \
-attribute nor does it handle a "time of year" named `2_1`.
+attribute nor does it handle a "time of year" named `toy_2_1`.
 
     Applying the |len| operator on |SeasonalParameter| objects returns the number of
     toy-value pairs.
@@ -4236,9 +4262,15 @@ broadcast input array from shape (2,) into shape (366,3)
             self._toy2values_unprotected = []
             if args:
                 raise exc
+            toy2name: dict[str, str] = {}
             for toystr, values in kwargs.items():
                 try:
-                    self._add_toyvaluepair(toystr, values)
+                    toy = self._add_toyvaluepair(toystr, values)
+                    if (name := toy2name.setdefault(str(toy), toystr)) != toystr:
+                        raise ValueError(
+                            f"The keywords `{name}` and `{toystr}` define the same "
+                            f"time of year."
+                        ) from None
                 except BaseException:
                     objecttools.augment_excmessage(
                         f"While trying to define the seasonal parameter value "
@@ -4246,12 +4278,14 @@ broadcast input array from shape (2,) into shape (366,3)
                     )
             self.refresh()
 
-    def _add_toyvaluepair(self, name: str, value: float | NDArrayFloat) -> None:
+    def _add_toyvaluepair(
+        self, name: str, value: float | NDArrayFloat
+    ) -> timetools.TOY:
         if self.NDIM == 1:
             value = float(value)
         else:
             value = numpy.full(self.shape[1:], value)
-        toy_new = timetools.TOY(name)
+        toy_new = timetools.TOY.from_name(name)
         toy2values = self._toy2values_unprotected
         if len(toy2values) == 0:
             toy2values.append((toy_new, value))
@@ -4267,6 +4301,7 @@ broadcast input array from shape (2,) into shape (366,3)
                 if secs_new < secs_old:
                     toy2values.insert(idx, (toy_new, value))
                     break
+        return toy_new
 
     def refresh(self) -> None:
         """Update the actual simulation values based on the toy-value pairs.
@@ -4389,7 +4424,7 @@ broadcast input array from shape (2,) into shape (366,3)
 
         Define three toy-value pairs:
 
-        >>> par(_1=2.0, _2=5.0, _12_31=4.0)
+        >>> par(toy_1=2.0, toy_2=5.0, toy_12_31=4.0)
 
         Passing a |Date| object matching a |TOY| object exactly returns the
         corresponding |float| value:
@@ -4418,7 +4453,7 @@ broadcast input array from shape (2,) into shape (366,3)
         Linear interpolation is also allowed between the first and the last pair when
         they do not capture the endpoints of the year:
 
-        >>> par(_1_2=2.0, _12_30=4.0)
+        >>> par(toy_1_2=2.0, toy_12_30=4.0)
         >>> round_(par.interp(Date("2000.12.29")))
         3.99449
         >>> par.interp(Date("2000.12.30"))
@@ -4438,7 +4473,7 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> Par.NDIM = 2
         >>> par = Par(None)
         >>> par.shape = (None, 2)
-        >>> par(_1_1=[1., 2.], _1_3=[-3, 0.])
+        >>> par(toy_1_1=[1.0, 2.0], toy_1_3=[-3.0, 0.0])
         >>> result = par.interp(Date("2000.01.02"))
         >>> round_(result[0])
         -1.0
@@ -4588,7 +4623,7 @@ Using the latter without modification might result in inconsistencies.
         parameter values and trying to access the unmodified "visible" values in other
         ways:
 
-        >>> bottomlowwaterthreshold(_1_1_12=3.0, _1_3_12=1.0)
+        >>> bottomlowwaterthreshold(toy_1_1_12=3.0, toy_1_3_12=1.0)
         >>> round_(bottomlowwaterthreshold.values[:3])
         2.0, 2.0, 1.0
         >>> with pub.options.warntrim(True), warn_later():
@@ -4616,7 +4651,7 @@ Using the latter without modification might result in inconsistencies.
         return iter(self._toy2values_protected)
 
     def __getattr__(self, name: str) -> float | NDArrayFloat:
-        selected = timetools.TOY(name)
+        selected = timetools.TOY.from_name(name)
         for available, value in self._toy2values_protected:
             if selected == available:
                 return value
@@ -4642,7 +4677,7 @@ Using the latter without modification might result in inconsistencies.
         try:
             super().__delattr__(name)
         except AttributeError:
-            selected = timetools.TOY(name)
+            selected = timetools.TOY.from_name(name)
             for idx, (available, _) in enumerate(self._toy2values_unprotected):
                 if selected == available:
                     break
@@ -4691,7 +4726,7 @@ Using the latter without modification might result in inconsistencies.
         >>> par = Par(None)
         >>> par.NDIM = 1
         >>> par.shape = (None,)
-        >>> par(_1=2., _7_1=4., _3_1_0_0_0=5.)
+        >>> par(toy_1=2.0, toy_7_1=4.0, toy_3_1_0_0_0=5.0)
         >>> sorted(set(dir(par)) - set(object.__dir__(par)))
         ['toy_1_1_0_0_0', 'toy_3_1_0_0_0', 'toy_7_1_0_0_0']
 

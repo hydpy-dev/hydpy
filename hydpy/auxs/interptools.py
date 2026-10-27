@@ -452,13 +452,13 @@ class SeasonalInterpolator(BaseInterpolator):
     >>> pub.timegrids = "2000-01-01", "2000-10-01", "1d"
     >>> seasonalinterpolator = SeasonalInterpolator(None)
     >>> seasonalinterpolator(
-    ...     _1_1_12=ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
+    ...     toy_1_1_12=ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
     ...                 weights_input=0.0, weights_output=0.0,
     ...                 intercepts_hidden=0.0, intercepts_output=1.0),
-    ...     _7_1_12=ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
+    ...     toy_7_1_12=ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
     ...                 weights_input=4.0, weights_output=3.0,
     ...                 intercepts_hidden=-16.0, intercepts_output=-1.0),
-    ...     _3_1_12=PPoly(Poly(x0=0.0, cs=(-1.0,))))
+    ...     toy_3_1_12=PPoly(Poly(x0=0.0, cs=(-1.0,))))
 
     The confusing time order in the initialisation call above does not pose a problem,
     as class |SeasonalInterpolator| performs time sorting internally:
@@ -586,15 +586,23 @@ properly prepared so far.
     ...
     TypeError: Type `int` is not (a subclass of) type `InterpAlgorithm`.
 
-    >>> seasonalinterpolator(_13_1_12=PPoly(Poly(x0=0.0, cs=(0.0,))))
+    >>> seasonalinterpolator(toy_13_1_12=PPoly(Poly(x0=0.0, cs=(0.0,))))
     Traceback (most recent call last):
     ...
     ValueError: While trying to add a season specific interpolator to parameter \
 `seasonalinterpolator` of element `?`, the following error occurred: While trying to \
-initialise a TOY object based on argument value `_13_1_12` of type `str`, the \
+initialise a TOY object based on argument value `toy_13_1_12` of type `str`, the \
 following error occurred: While trying to retrieve the month, the following error \
 occurred: The value of property `month` of TOY (time of year) objects must lie within \
 the range `(1, 12)`, but the given value is `13`.
+
+    >>> seasonalinterpolator(toy_1_1=PPoly(Poly(x0=0.0, cs=(0.0,))),
+    ...                      toy_1_1_0=PPoly(Poly(x0=0.0, cs=(0.0,))))
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to add a season specific interpolator to parameter \
+`seasonalinterpolator` of element `?`, the following error occurred: The keywords \
+`toy_1_1` and `toy_1_1_0` define the same time of year.
 
     >>> seasonalinterpolator(PPoly(Poly(x0=0.0, cs=(0.0,))))
     >>> seasonalinterpolator
@@ -605,17 +613,17 @@ the range `(1, 12)`, but the given value is `13`.
     )
 
     >>> seasonalinterpolator(PPoly(Poly(x0=0.0, cs=(0.0,))),
-    ...                      _7_1_12=PPoly(Poly(x0=1.0, cs=(1.0,))),
-    ...                      _3_1_12=PPoly(Poly(x0=20, cs=(1.0,))))
+    ...                      toy_7_1_12=PPoly(Poly(x0=1.0, cs=(1.0,))),
+    ...                      toy_3_1_12=PPoly(Poly(x0=20, cs=(1.0,))))
     Traceback (most recent call last):
     ...
     ValueError: Type `SeasonalInterpolator` accepts either a single positional \
 argument or an arbitrary number of keyword arguments, but for the corresponding \
 parameter of element `?` one positional and two keyword arguments have been given.
 
-    >>> seasonalinterpolator(_1_1_12=ANN(nmb_inputs=2, nmb_outputs=1),
-    ...                      _7_1_12=PPoly(Poly(x0=1.0, cs=(1.0,))),
-    ...                      _3_1_12=PPoly(Poly(x0=20, cs=(1.0,))))
+    >>> seasonalinterpolator(toy_1_1_12=ANN(nmb_inputs=2, nmb_outputs=1),
+    ...                      toy_7_1_12=PPoly(Poly(x0=1.0, cs=(1.0,))),
+    ...                      toy_3_1_12=PPoly(Poly(x0=20, cs=(1.0,))))
     Traceback (most recent call last):
     ...
     RuntimeError: The number of input and output values of all interpolators \
@@ -731,7 +739,8 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
                     f"have been given."
                 )
             if algorithm:
-                algorithms["_1"] = algorithm[0]
+                algorithms["toy_1"] = algorithm[0]
+            toy2name: dict[str, str] = {}
             for toystr, value in algorithms.items():
                 if not isinstance(value, InterpAlgorithm):
                     raise TypeError(
@@ -739,7 +748,12 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
                         f"`InterpAlgorithm`."
                     )
                 try:
-                    self._add_toyalgorithpair(toystr, value)
+                    toy = self._add_toyalgorithpair(toystr, value)
+                    if (name := toy2name.setdefault(str(toy), toystr)) != toystr:
+                        raise ValueError(
+                            f"The keywords `{name}` and `{toystr}` define the same "
+                            f"time of year."
+                        )
                 except BaseException:
                     objecttools.augment_excmessage(
                         f"While trying to add a season specific interpolator to "
@@ -753,8 +767,8 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
             self._do_refresh = True
             self.refresh()
 
-    def _add_toyalgorithpair(self, name: str, value: InterpAlgorithm) -> None:
-        toy_new = timetools.TOY(name)
+    def _add_toyalgorithpair(self, name: str, value: InterpAlgorithm) -> timetools.TOY:
+        toy_new = timetools.TOY.from_name(name)
         if len(self._toy2algorithm) == 0:
             self._toy2algorithm.append((toy_new, value))
         secs_new = toy_new.seconds_passed
@@ -769,6 +783,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
                 if secs_new < secs_old:
                     self._toy2algorithm.insert(idx, (toy_new, value))
                     break
+        return toy_new
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         """Connect the actual |SeasonalInterpolator| object with the given
@@ -790,7 +805,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         >>> jan = ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
         ...           weights_input=0.0, weights_output=0.0,
         ...           intercepts_hidden=0.0, intercepts_output=1.0)
-        >>> seasonalinterpolator(_1_1_12=jan)
+        >>> seasonalinterpolator(toy_1_1_12=jan)
         >>> jan.nmb_inputs, jan.nmb_outputs = 2, 3
         >>> jan.nmb_inputs, jan.nmb_outputs
         (2, 3)
@@ -839,7 +854,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         >>> jan = ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
         ...           weights_input=0.0, weights_output=0.0,
         ...           intercepts_hidden=0.0, intercepts_output=1.0)
-        >>> seasonalinterpolator(_1_1_12=jan)
+        >>> seasonalinterpolator(toy_1_1_12=jan)
         >>> jan.nmb_inputs, jan.nmb_outputs = 2, 3
         >>> jan.nmb_inputs, jan.nmb_outputs
         (2, 3)
@@ -1001,13 +1016,13 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
     def __getattr__(self, name: str) -> InterpAlgorithm:
         if name.startswith("toy_"):
             try:
-                selected = timetools.TOY(name)
+                selected = timetools.TOY.from_name(name)
                 for available, algorithm in self._toy2algorithm:
                     if selected == available:
                         return algorithm
                 raise AttributeError(
                     f"No interpolator is registered under a TOY object named "
-                    f"`{timetools.TOY(name)}`."
+                    f"`{selected}`."
                 )
             except BaseException:
                 objecttools.augment_excmessage(
@@ -1041,14 +1056,14 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
     def __delattr__(self, name: str) -> None:
         if name.startswith("toy_"):
             try:
-                selected = timetools.TOY(name)
+                selected = timetools.TOY.from_name(name)
                 for idx, (available, _) in enumerate(self._toy2algorithm):
                     if selected == available:
                         break
                 else:
                     raise AttributeError(
                         f"No interpolator is registered under a TOY object named "
-                        f"`{timetools.TOY(name)}`."
+                        f"`{selected}`."
                     ) from None
                 del self._toy2algorithm[idx]
                 self.refresh()

@@ -319,11 +319,16 @@ keyword arguments are given, which is ambiguous.
     def coordinates(self) -> Coordinates:
         """The |Coordinates| parameter that defines the relevant nodes."""
 
-    def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]):
-        super().__init__(subvars)
-        self.nodes = ()
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, **heights: float) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         if (not kwargs) or ("auxfile" in kwargs):
             super().__call__(*args, **kwargs)
             return
@@ -424,7 +429,13 @@ class MaxNmbInputs(parametertools.Parameter):
     TYPE: Final = int
     SPAN = (1, None)
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         if not args and not kwargs:
             super().__call__(len(self.subpars.inputcoordinates.coordinates))
         else:

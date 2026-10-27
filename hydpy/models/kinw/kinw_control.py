@@ -42,7 +42,13 @@ class NmbSegments(parametertools.NmbParameter):
 
     SPAN = (0, None)
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         super().__call__(*args, **kwargs)
         self.subpars.pars.model.nmb_segments = self.value
 

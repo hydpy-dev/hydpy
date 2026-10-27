@@ -14,18 +14,6 @@ from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
 
-class _AllowedKeywordArgsOfClassUH(TypedDict, total=False):
-    """A |TypedDict| that holds the allowed keyword arguments of the `__call__` method
-    of class |UH|."""
-
-    option: str
-    tb: float
-    tp: float | None
-    x4: float
-    beta: float
-    auxfile: str
-
-
 class UH(parametertools.Parameter):
     """Unit Hydrograph ordinates [-].
 
@@ -328,10 +316,7 @@ keyword arguments are given, which is ambiguous.
     )
 
     @overload
-    def __call__(self, value: VectorInputFloat, /) -> None: ...
-
-    @overload
-    def __call__(self, *values: float) -> None: ...
+    def __call__(self, *values: CallHook) -> None: ...
 
     @overload
     def __call__(self, *, auxfile: str) -> None: ...
@@ -368,11 +353,7 @@ keyword arguments are given, which is ambiguous.
         self, option: Literal["gr_uh1", "gr_uh2"], /, *, x4: float, beta: float = 2.5
     ) -> None: ...
 
-    def __call__(
-        self,
-        *args: VectorInputFloat | float | str,
-        **kwargs: Unpack[_AllowedKeywordArgsOfClassUH],
-    ) -> None:
+    def __call__(self, *args: CallHook | str, **kwargs: Any) -> None:
         del self.keywordhandler.recorded
         if (
             (len(args) == 1)
@@ -406,7 +387,7 @@ keyword arguments are given, which is ambiguous.
                 f"{objecttools.elementphrase(self)}"
             )
 
-    def _set_ordinates(self, args: tuple[VectorInputFloat | float | str, ...]) -> None:
+    def _set_ordinates(self, args: tuple[CallHook | str, ...]) -> None:
         ordinates = numpy.array(
             args[0] if len(args) == 1 else args, dtype=config.NP_FLOAT, ndmin=1
         )

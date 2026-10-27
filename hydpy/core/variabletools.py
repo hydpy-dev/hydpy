@@ -1195,10 +1195,8 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     def initinfo(self) -> tuple[float | int | bool | pointerutils.Double, bool]:
         """To be overridden."""
 
-    def __call__(self, *args) -> None:
-        if len(args) == 1:
-            args = args[0]
-        self.values = args
+    def __call__(self, *args: CallHook) -> None:
+        self.value = args[0] if len(args) == 1 else args
 
     @property
     def value(self) -> Any:

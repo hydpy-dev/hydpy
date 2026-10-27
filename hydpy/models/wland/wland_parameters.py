@@ -70,6 +70,18 @@ not among the available ones.  Please use one of the following constants: `SAND`
         )
     )
 
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, soil: int) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
+        super().__call__(*args, **kwargs)
+
     @classmethod
     def print_defaults(cls) -> None:
         """Print the soil-related default values of the parameter.

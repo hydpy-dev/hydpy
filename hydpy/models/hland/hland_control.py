@@ -338,7 +338,19 @@ class SFDist(hland_variables.MixinSnowClasses, parametertools.Parameter):
         ),
     )
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, linear: float) -> None: ...
+
+    @overload
+    def __call__(self, *, lognormal: float) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         super().__call__(*args, **kwargs)
         if not self.keywordhandler.recorded.valid:
             self._normalise()
@@ -722,6 +734,21 @@ least one cycle: `(3, 5)` and `(5, 3)`.
         ),
     )
 
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, n_zones: int) -> None: ...
+
+    @overload
+    def __call__(self, *, d_height: float) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
+        super().__call__(*args, **kwargs)
+
     def _prepare_nzones(self, nzones: int) -> MatrixFloat:
         return self._prepare(self.subpars.nmbzones.value * (nzones,))
 
@@ -1046,6 +1073,18 @@ must be defined beforehand.
             setter=_set_khq_hq,
         )
     )
+
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, khq: float, hq: float, alpha: float = ...) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
+        super().__call__(*args, **kwargs)
 
 
 class SGR(hland_parameters.ParameterUpperZone):

@@ -108,7 +108,17 @@ the following error occurred: The source `d` is unknown.
 the following error occurred: The sources `d` and `e` are unknown.
     """
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, default: float = ..., /, **sources: float) -> None: ...
+
+    # Mypy bug?:
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:  # type: ignore[misc]
         try:
             if (
                 args
@@ -145,7 +155,7 @@ the following error occurred: The sources `d` and `e` are unknown.
                     default = args[0]
                 else:
                     default = None
-                values = numpy.empty(self.shape, dtype=self.TYPE)
+                values = numpy.empty(len(sourcenames), dtype=self.TYPE)
                 for i, name in enumerate(sourcenames):
                     values[i] = kwargs.pop(name, default)
                 super().__call__(values)

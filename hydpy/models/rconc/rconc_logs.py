@@ -43,12 +43,12 @@ shape (4...) into shape (3...)
     NDIM: Final[Literal[1]] = 1
     SPAN = (0.0, None)
 
-    def __call__(self, *args) -> None:
+    def __call__(self, *args: CallHook) -> None:
         try:
             super().__call__(*args)
             self.values[-1] = 0.0
         except BaseException as exc:
-            super().__call__(numpy.sum(args) / (self.shape[0] - 1))
+            super().__call__(numpy.sum(numpy.asarray(args)) / (self.shape[0] - 1))
             self.values[-1] = 0.0
             warnings.warn(
                 f"Due to the following problem, log sequence "

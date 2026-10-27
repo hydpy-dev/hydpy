@@ -339,7 +339,13 @@ not strictly rising (`1, 4, 4`).
         if isinstance(p, NmbSectors):
             self.__hydpy__change_shape_if_necessary__((p.value - 1,))
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         if (self.shape[0] > 0) or args or kwargs:
             super().__call__(*args, **kwargs)
             if self.shape[0] > 0:

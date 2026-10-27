@@ -67,11 +67,11 @@ array from shape (2,) into shape (3,)
     discharge(1.0, 2.0, 3.0)
     """
 
-    def __call__(self, *args) -> None:
+    def __call__(self, *args: CallHook) -> None:
         try:
             super().__call__(*args)
         except BaseException as exc:
-            super().__call__(numpy.mean(args))
+            super().__call__(numpy.mean(numpy.asarray(args)))
             warnings.warn(
                 f"Due to the following problem, state sequence "
                 f"{objecttools.elementphrase(self)} handling model "

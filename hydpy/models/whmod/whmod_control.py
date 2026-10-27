@@ -79,7 +79,13 @@ must be `NONE`.
     constants = whmod_constants.SOILTYPE_CONSTANTS
     mask = whmod_masks.LandTypeSoil()
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
 
         def _make_names() -> str:
             value2name = whmod_constants.LANDTYPE_CONSTANTS.value2name

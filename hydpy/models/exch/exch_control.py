@@ -101,7 +101,7 @@ strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
 
-    def __call__(self, *args, **kwargs) -> None:
+    def __call__(self, *args: float) -> None:  # type: ignore[override]
         self.shape = len(args)
         if (shape := self.shape[0]) < 2:
             raise ValueError(
@@ -109,7 +109,7 @@ strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0
                 f"points, but parameter {objecttools.elementphrase(self)} received "
                 f"{objecttools.Inflect.count(shape, 'value')}."
             )
-        super().__call__(*args, **kwargs)
+        super().__call__(*args)
         if min(numpy.diff(self.value)) <= 0.0:
             raise ValueError(
                 f"The values of parameter {objecttools.elementphrase(self)} must be "
@@ -138,7 +138,7 @@ class YPoints(parametertools.Parameter):
 
     You need to prepare parameter |XPoints| first:
 
-    >>> ypoints(1.0, 2.0)
+    >>> ypoints(branch1=[1.0, 2.0, 3.0])
     Traceback (most recent call last):
     ...
     RuntimeError: The shape of parameter `ypoints` of element `?` depends on the \
@@ -148,7 +148,7 @@ shape of parameter `xpoints`, which is not defined so far.
 
     Supply the names of the output |Node| objects as keyword arguments:
 
-    >>> ypoints(1.0, 2.0)
+    >>> ypoints()
     Traceback (most recent call last):
     ...
     ValueError: For parameter `ypoints` of element `?`, no branches are defined.  Do \
@@ -220,7 +220,7 @@ sequence and connect it to the respective outlet nodes properly.
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
 
-    def __call__(self, *args, **kwargs) -> None:
+    def __call__(self, **kwargs: VectorInputFloat) -> None:  # type: ignore[override]
         try:
             shape = (len(kwargs), self.subpars.xpoints.shape[0])
         except exceptiontools.AttributeNotReady:
@@ -588,9 +588,19 @@ documentation).
     XLABEL = "inflow [m³/s]"
     YLABEL = "outflow [m³/s]"
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, algorithm: interptools.InterpAlgorithm, /) -> None: ...
 
-        def _ppoly2ppolys(p: interptools.InterpAlgorithm) -> object:
+    @overload
+    def __call__(self, **algorithms: interptools.InterpAlgorithm) -> None: ...
+
+    def __call__(
+        self, *args: interptools.InterpAlgorithm, **kwargs: interptools.InterpAlgorithm
+    ) -> None:
+
+        def _ppoly2ppolys(
+            p: interptools.InterpAlgorithm,
+        ) -> interptools.InterpAlgorithm:
             if isinstance(p, ppolytools.PPoly):
                 ppolys: dict[str, ppolytools.PPoly | ppolytools.PPolysOptions] = {
                     targetnames[0]: ppolytools.PPolysOptions.REST,
@@ -730,7 +740,15 @@ interpolation via `PPolys` instances.
     XLABEL = "input [e.g. m³/s]"
     YLABEL = "outputs [e.g. m³/s]"
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, algorithm: interptools.InterpAlgorithm, /) -> None: ...
+
+    @overload
+    def __call__(self, **algorithms: interptools.InterpAlgorithm) -> None: ...
+
+    def __call__(
+        self, *args: interptools.InterpAlgorithm, **kwargs: interptools.InterpAlgorithm
+    ) -> None:
         try:
             super().__call__(*args, **kwargs)
             targetnames: list[str] = []
@@ -871,7 +889,15 @@ the given one has one input and two outputs.
     XLABEL = "water volume [million m³]"
     YLABEL = "transfer [m³/s]"
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, algorithm: interptools.InterpAlgorithm, /) -> None: ...
+
+    @overload
+    def __call__(self, **algorithms: interptools.InterpAlgorithm) -> None: ...
+
+    def __call__(
+        self, *args: interptools.InterpAlgorithm, **kwargs: interptools.InterpAlgorithm
+    ) -> None:
         try:
             super().__call__(*args, **kwargs)
             if ((ni := self.nmb_inputs) != 1) or ((no := self.nmb_outputs) != 1):

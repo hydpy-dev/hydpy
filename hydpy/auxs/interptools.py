@@ -717,31 +717,29 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
         self._do_refresh = True
 
     @overload
-    def __call__(self, __algorithm: InterpAlgorithm) -> None: ...
+    def __call__(self, algorithm: InterpAlgorithm, /) -> None: ...
 
     @overload
-    def __call__(self, **algorithm: InterpAlgorithm) -> None: ...
+    def __call__(self, **algorithms: InterpAlgorithm) -> None: ...
 
-    def __call__(
-        self, *algorithm: InterpAlgorithm, **algorithms: InterpAlgorithm
-    ) -> None:
+    def __call__(self, *args: InterpAlgorithm, **kwargs: InterpAlgorithm) -> None:
         self._toy2algorithm = []
         self._do_refresh = False
         try:
-            if (len(algorithm) > 1) or (algorithm and algorithms):
+            if (len(args) > 1) or (args and kwargs):
                 raise ValueError(
                     f"Type `{type(self).__name__}` accepts either a single positional "
                     f"argument or an arbitrary number of keyword arguments, but for "
                     f"the corresponding parameter of element "
                     f"`{objecttools.devicename(self)}` "
-                    f"{objecttools.Inflect.cardinal(len(algorithm))} positional and "
-                    f"{objecttools.Inflect.count(len(algorithms), 'keyword argument')} "
+                    f"{objecttools.Inflect.cardinal(len(args))} positional and "
+                    f"{objecttools.Inflect.count(len(kwargs), 'keyword argument')} "
                     f"have been given."
                 )
-            if algorithm:
-                algorithms["toy_1"] = algorithm[0]
+            if args:
+                kwargs["toy_1"] = args[0]
             toy2name: dict[str, str] = {}
-            for toystr, value in algorithms.items():
+            for toystr, value in kwargs.items():
                 if not isinstance(value, InterpAlgorithm):
                     raise TypeError(
                         f"Type `{type(value).__name__}` is not (a subclass of) type "

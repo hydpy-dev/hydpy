@@ -555,6 +555,24 @@ class PWMax(lland_parameters.ParameterLand):
         )
     )
 
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, default: float = ..., **constants: float) -> None: ...
+
+    # HydPy's Mypy plugin restricts `constants` to the land type names:
+    @overload
+    def __call__(  # type: ignore[overload-cannot-match]
+        self, *, rhot0: float, rhodkrit: float
+    ) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
+        super().__call__(*args, **kwargs)
+
 
 class RefreezeFlag(parametertools.Parameter):
     """Flag um wiedergefrieren zu aktivieren (flag to activate refreezing)
@@ -844,6 +862,24 @@ class DMin(lland_parameters.ParameterSoil):
         )
     )
 
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, default: float = ..., **constants: float) -> None: ...
+
+    # HydPy's Mypy plugin restricts `constants` to the land type names:
+    @overload
+    def __call__(  # type: ignore[overload-cannot-match]
+        self, *, r_dmin: float
+    ) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
+        super().__call__(*args, **kwargs)
+
     def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`DMin \\leq DMax`.
 
@@ -906,6 +942,24 @@ class DMax(lland_parameters.ParameterSoil):
             parametertools.Keyword("r_dmax"), setter=_set_r_dmax
         )
     )
+
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, default: float = ..., **constants: float) -> None: ...
+
+    # HydPy's Mypy plugin restricts `constants` to the land type names:
+    @overload
+    def __call__(  # type: ignore[overload-cannot-match]
+        self, *, r_dmax: float
+    ) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
+        super().__call__(*args, **kwargs)
 
     def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`DMax \\geq DMin`.
@@ -1103,6 +1157,18 @@ class KapGrenz(parametertools.Parameter):
             setter=_set_option,
         )
     )
+
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, option: Literal["FK/2_FK", "0_WMax/10", "FK"]) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
+        super().__call__(*args, **kwargs)
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
         if isinstance(p, NHRU):
@@ -1324,6 +1390,18 @@ unrealistic value of 0.000134 hours.
             setter=_set_tal_hot_hut,
         )
     )
+
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, tal: float, hot: float, hut: float) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
+        super().__call__(*args, **kwargs)
 
 
 class EQB(parametertools.Parameter):

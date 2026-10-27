@@ -7,7 +7,7 @@ from hydpy.models.statcorr import statcorr_control
 
 ADDITIONAL_CONTROLPARAMETERS = (
     statcorr_control.LoggingWindow,
-    statcorr_control.NmbOutputCorrModels,
+    statcorr_control.NmbSubmodels,
     statcorr_control.PropagateCorrection,
 )
 

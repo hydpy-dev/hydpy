@@ -46,13 +46,15 @@ conditions.
 Example workflow
 ================
 
-    Allocating the internal log resizes both the simulated and the observed
-    discharge log to the requested number of entries:
+    |statcorr_arima010| determines the length of its internal log from its
+    parameters (see |NmbLogEntries|) and resizes both the simulated and the
+    observed discharge log accordingly:
 
     >>> from hydpy.models.statcorr_arima010 import *
     >>> parameterstep()
     >>> from numpy import inf
     >>> control.active(True)
+    >>> control.correctionmode("both")
     >>> control.lowerlimit(0.0)
     >>> control.upperlimit(inf)
     >>> control.evaluationwindow(3)
@@ -68,7 +70,7 @@ Example workflow
     >>> control.maxrelshift(1000.0)
     >>> control.averagingwindow(0)
     >>> control.transitionsteps(0)
-    >>> model.prepare_nmblogentries(3)
+    >>> derived.nmblogentries.update()
     >>> derived.nmblogentries
     nmblogentries(3)
     >>> logs.loggedsimulateddischarge
@@ -106,8 +108,6 @@ Example workflow
     6.0
 """
 
-import numpy
-
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import statcorrinterfaces
@@ -142,57 +142,6 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
-
-    def prepare_nmblogentries(self, nmblogentries: int) -> None:
-        """Allocate the internal log to hold `nmblogentries` discharge values and
-        initialise |EvaluatedDischarge|, |ReductionFactor|, |Stationary|,
-        |RelSumDelta|, |LowVariability|, |ForecastStep|, |AveragedResidual|,
-        |Residual|, and |ResidualAnchor| to |numpy.nan|, ``1.0``, ``1.0``,
-        |numpy.nan|, ``0.0``, ``0.0``, ``0.0``, ``0.0``, and ``0.0`` (no mean
-        simulated discharge determined yet, no reduction, stationary conditions
-        assumed, no variability determined yet, no forecast steps elapsed, no
-        mean-value-based or pointwise residual determined yet).
-
-        >>> from hydpy.models.statcorr_arima010 import *
-        >>> parameterstep()
-        >>> model.prepare_nmblogentries(4)
-        >>> derived.nmblogentries
-        nmblogentries(4)
-        >>> logs.loggedsimulateddischarge
-        loggedsimulateddischarge(nan, nan, nan, nan)
-        >>> logs.loggedobserveddischarge
-        loggedobserveddischarge(nan, nan, nan, nan)
-        >>> states.evaluateddischarge
-        evaluateddischarge(nan)
-        >>> states.reductionfactor
-        reductionfactor(1.0)
-        >>> states.stationary
-        stationary(1.0)
-        >>> states.relsumdelta
-        relsumdelta(nan)
-        >>> states.lowvariability
-        lowvariability(0.0)
-        >>> states.forecaststep
-        forecaststep(0.0)
-        >>> states.averagedresidual
-        averagedresidual(0.0)
-        >>> states.residual
-        residual(0.0)
-        >>> states.residualanchor
-        residualanchor(0.0)
-        """
-        self.parameters.derived.nmblogentries(nmblogentries)
-        self.sequences.logs.loggedsimulateddischarge.shape = nmblogentries
-        self.sequences.logs.loggedobserveddischarge.shape = nmblogentries
-        self.sequences.states.evaluateddischarge(numpy.nan)
-        self.sequences.states.reductionfactor(1.0)
-        self.sequences.states.stationary(1.0)
-        self.sequences.states.relsumdelta(numpy.nan)
-        self.sequences.states.lowvariability(0.0)
-        self.sequences.states.forecaststep(0.0)
-        self.sequences.states.averagedresidual(0.0)
-        self.sequences.states.residual(0.0)
-        self.sequences.states.residualanchor(0.0)
 
 
 tester = Tester()

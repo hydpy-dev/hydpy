@@ -12,7 +12,8 @@ class OutputCorrModel_V1(modeltools.SubmodelInterface):
     observed discharge.  The main model (|statcorr|) merely passes the current
     simulated and observed discharge to the submodel once per simulation step;
     the submodel is responsible for shifting these values into its internal log
-    and for using the resulting history when calculating the correction.
+    and for using the resulting history when calculating the correction.  It also
+    determines the required length of its log from its own parameters.
 
     The expected call order within one simulation step is:
 
@@ -25,9 +26,6 @@ class OutputCorrModel_V1(modeltools.SubmodelInterface):
 
     typeid: ClassVar[Literal[1]] = 1
     """Type identifier for |OutputCorrModel_V1| submodels."""
-
-    def prepare_nmblogentries(self, nmblogentries: int) -> None:
-        """Allocate the internal log to hold `nmblogentries` discharge values."""
 
     @modeltools.abstractmodelmethod
     def set_simulateddischarge(self, simulateddischarge: float) -> None:

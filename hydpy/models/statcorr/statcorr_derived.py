@@ -35,64 +35,134 @@ class IsForecastMode(parametertools.Parameter):
 
 
 class NmbLogEntries(parametertools.Parameter):
-    """The number of log entries required for memorising the data for the
-    logging window [-]."""
+    """The number of log entries required for memorising the simulated and observed
+    discharge values [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
     SPAN = (1, None)
-    CONTROLPARAMETERS = (statcorr_control.LoggingWindow,)
+    CONTROLPARAMETERS = (
+        statcorr_control.EvaluationWindow,
+        statcorr_control.StationarityCheck,
+        statcorr_control.VariabilityCheck,
+        statcorr_control.MaxNaNSkip,
+        statcorr_control.AveragingWindow,
+    )
 
     def update(self) -> None:
-        """Calculate the number of entries and adjust the shape of all relevant log
-        sequences.
+        """Calculate the number of required log entries from the submodel's other
+        parameters and adjust the shape of all log sequences.
 
-        The number of the required log entries depends on the
-        parameter |LoggingWindow| and the simulation step size:
+        The log must cover the |EvaluationWindow|, the assessment period of the
+        stationarity check (see |StationarityCheck|), and the |MaxNaNSkip| most
+        recent entries.  The mean-value-based residual (see
+        |Calc_AveragedResidual_V1|) relies on the |AveragingWindow| (or the averaging
+        period of the variability check, see |VariabilityCheck|) entries preceding
+        the current one, which requires one additional entry.
+
+        As long as not all relevant control parameters are defined,
+        |NmbLogEntries.update| leaves the current value untouched:
 
         >>> from hydpy.models.statcorr_arima010 import *
         >>> parameterstep()
-        >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Period
-        >>> pub.timegrids = "2000-01-01", "2000-01-02", "1h"
-        >>> loggingwindow(24)
+        >>> evaluationwindow(3)
+        >>> stationaritycheck(window=4, ratiominmax=0.5)
+        >>> variabilitycheck(False)
+        >>> maxnanskip(2)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
-        nmblogentries(24)
-        >>> logs  # doctest: +ELLIPSIS
-        loggedobserveddischarge(nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                                nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                                nan, nan, nan, nan, nan, nan)
-        loggedsimulateddischarge(nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                                 nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                                 nan, nan, nan, nan, nan, nan)
+        nmblogentries(?)
 
-        To prevent losing information, updating parameter |NmbLogEntries| resets the
-        shape of the relevant log sequences only when necessary:
+        >>> averagingwindow(1)
+        >>> derived.nmblogentries.update()
+        >>> derived.nmblogentries
+        nmblogentries(4)
+
+        >>> stationaritycheck(False)
+        >>> variabilitycheck(maxrelsumdelta=0.2, averagingwindow=5)
+        >>> derived.nmblogentries.update()
+        >>> derived.nmblogentries
+        nmblogentries(6)
+
+        >>> variabilitycheck(False)
+        >>> maxnanskip(7)
+        >>> derived.nmblogentries.update()
+        >>> derived.nmblogentries
+        nmblogentries(7)
+
+        >>> maxnanskip(0)
+        >>> averagingwindow(3)
+        >>> derived.nmblogentries.update()
+        >>> derived.nmblogentries
+        nmblogentries(4)
+
+        Whenever the number of log entries changes, |NmbLogEntries.update| resizes
+        all log sequences (filling them with |numpy.nan| values) and resets all
+        state sequences to their initial values, as the latter depend on the logged
+        data:
+
+        >>> logs
+        loggedobserveddischarge(nan, nan, nan, nan)
+        loggedsimulateddischarge(nan, nan, nan, nan)
+        >>> states
+        reductionfactor(1.0)
+        stationary(1.0)
+        evaluateddischarge(nan)
+        relsumdelta(nan)
+        lowvariability(0.0)
+        forecaststep(0.0)
+        averagedresidual(0.0)
+        residual(0.0)
+        residualanchor(0.0)
+
+        To prevent losing information, it leaves the log and state sequences
+        untouched as long as the number of log entries does not change:
 
         >>> logs.loggedobserveddischarge = 1.0
-        >>> derived.nmblogentries(24)
-        >>> logs  # doctest: +ELLIPSIS
-        loggedobserveddischarge(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                                1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                                1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
-        loggedsimulateddischarge(nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                                 nan, nan, nan, nan, nan, nan, nan, nan, nan,
-                                 nan, nan, nan, nan, nan, nan)
-
-        .. testsetup::
-
-            >>> del pub.timegrids
+        >>> states.residual(2.0)
+        >>> evaluationwindow(2)
+        >>> derived.nmblogentries.update()
+        >>> derived.nmblogentries
+        nmblogentries(4)
+        >>> logs.loggedobserveddischarge
+        loggedobserveddischarge(1.0, 1.0, 1.0, 1.0)
+        >>> states.residual
+        residual(2.0)
         """
         control = self.subpars.pars.control
-
-        nmb = control.loggingwindow.value
+        stationaritycheck = cast(
+            statcorr_control.StationarityCheck, control.stationaritycheck
+        )
+        variabilitycheck = cast(
+            statcorr_control.VariabilityCheck, control.variabilitycheck
+        )
+        if not (
+            stationaritycheck.configured
+            and variabilitycheck.configured
+            and exceptiontools.attrready(control.evaluationwindow, "value")
+            and exceptiontools.attrready(control.maxnanskip, "value")
+            and exceptiontools.attrready(control.averagingwindow, "value")
+        ):
+            return
+        nmb = max(
+            control.evaluationwindow.value,
+            stationaritycheck.window,
+            control.maxnanskip.value,
+            control.averagingwindow.value + 1,
+            variabilitycheck.averagingwindow + 1,
+        )
         self(nmb)
-        nmb = int(nmb)
-        for seq in self.subpars.pars.model.sequences.logs:
+        nmb = int(self.value)
+        sequences = self.subpars.pars.model.sequences
+        resized = False
+        for seq in sequences.logs:
             shape = exceptiontools.getattr_(seq, "shape", (None,))
             if nmb != shape[-1]:
                 seq.shape = nmb
+                resized = True
+        if resized:
+            for state in sequences.states:
+                state(state.INIT)
 
 
 class StationarityWindow(parametertools.Parameter):

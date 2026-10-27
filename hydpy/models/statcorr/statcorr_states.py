@@ -1,5 +1,7 @@
 # pylint: disable=missing-module-docstring
 
+import numpy
+
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 
@@ -45,6 +47,7 @@ class EvaluatedDischarge(sequencetools.StateSequence):
     forecasted discharge develops."""
 
     NDIM: Final[Literal[0]] = 0
+    INIT = numpy.nan
 
 
 class RelSumDelta(sequencetools.StateSequence):
@@ -56,6 +59,7 @@ class RelSumDelta(sequencetools.StateSequence):
     |Options.simulationmode| equals `historical`."""
 
     NDIM: Final[Literal[0]] = 0
+    INIT = numpy.nan
 
 
 class LowVariability(sequencetools.StateSequence):

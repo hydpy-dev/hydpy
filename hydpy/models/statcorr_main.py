@@ -25,30 +25,29 @@ Integration test
     >>> element.model = model
 
     We configure a logging window of three time steps and attach a single
-    |statcorr_arima010| submodel.  Setting |QminQmax| to zero disables the LARSIM
-    stationarity check (any quotient of the measured discharge's minimum and
-    maximum is at least zero), so the ARIMA correction always applies unabated:
+    |statcorr_arima010| submodel, which is responsible for all discharges (its
+    |EvaluationWindow| of one step means it assesses its responsibility based on the
+    current simulated discharge only).  We disable the stationarity check via
+    |StationarityCheck|, so the ARIMA correction always applies unabated:
 
+    >>> from numpy import inf
     >>> loggingwindow(3)
     >>> nmbsubmodels(1)
     >>> propagate(True)
     >>> with model.add_outputcorrmodel_v1(
     ...     "statcorr_arima010", position=0
     ... ) as submodel:
-    ...     submodel.parameters.control.corrnq(True)
-    ...     submodel.parameters.control.corrmq(True)
-    ...     submodel.parameters.control.corrhq(True)
-    ...     submodel.parameters.control.limitnqm(0.0)
-    ...     submodel.parameters.control.limitmqh(100.0)
-    ...     submodel.parameters.control.evaluationwindow(3)
+    ...     submodel.parameters.control.active(True)
+    ...     submodel.parameters.control.lowerlimit(0.0)
+    ...     submodel.parameters.control.upperlimit(inf)
+    ...     submodel.parameters.control.evaluationwindow(1)
     ...     submodel.parameters.control.maxresiduallookback(3)
     ...     submodel.parameters.control.maxabsoluteshift(100.0)
     ...     submodel.parameters.control.maxrelativeshift(1000.0)
     ...     submodel.parameters.control.residualaveragingwindow(0)
     ...     submodel.parameters.control.residualtransitiontime(0)
-    ...     submodel.parameters.control.qminqmax(0.0)
-    ...     submodel.parameters.control.nqmstationaritywindow(3)
-    ...     submodel.parameters.control.linearreductiontime(1, 1)
+    ...     submodel.parameters.control.stationaritycheck(False)
+    ...     submodel.parameters.control.linearreductiontime(1)
 
     >>> test = IntegrationTest(element)
 

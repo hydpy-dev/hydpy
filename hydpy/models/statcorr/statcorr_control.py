@@ -1,6 +1,8 @@
 # pylint: disable=missing-module-docstring
 
+from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 
 
@@ -50,78 +52,238 @@ class MaxResidualLookback(parametertools.Parameter):
     SPAN = (0, None)
 
 
-class CorrNQ(parametertools.Parameter):
-    """Determines whether output correction is applied to the low flow range (NQ)"""
+class Active(parametertools.Parameter):
+    """Flag determining whether the submodel may correct the discharge at all [-].
+
+    Even when |Active| is |True|, the submodel only corrects the discharge while the
+    relevant simulated discharge lies within the range defined by |LowerLimit| and
+    |UpperLimit| (see |Determine_OutputCorrection_V1|)."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
 
 
-class CorrMQ(parametertools.Parameter):
-    """Determines whether output correction is applied to the mean flow range (MQ)"""
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = bool
-
-
-class CorrHQ(parametertools.Parameter):
-    """Determines whether output correction is applied to the high flow range (HQ)"""
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = bool
-
-
-class QminQmax(parametertools.Parameter):
-    """Threshold value [%] for the quotient of the minimum and the maximum measured
-    flow within the |NqmStationarityWindow| assessment period, below which flow
-    conditions are considered instationary."""
+class LowerLimit(parametertools.Parameter):
+    """Lower (inclusive) discharge limit of the submodel's range of responsibility
+    [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    SPAN = (0.0, 100.0)
+    SPAN = (0.0, None)
 
 
-class NqmStationarityWindow(parametertools.Parameter):
-    """Assessment period (timesteps) for determining stationarity
-    of low and mean flow conditions"""
+class UpperLimit(parametertools.Parameter):
+    """Upper (exclusive) discharge limit of the submodel's range of responsibility
+    [m³/s].
+
+    Set it to |numpy.inf| to define a range without an upper limit."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
+    TYPE: Final = float
+    SPAN = (0.0, None)
+
+
+class StationarityCheck(parametertools.SpecialParameter):
+    """Configuration of the check of whether the measured discharge behaves in a
+    stationary way [-].
+
+    |StationarityCheck| is a special parameter (see |SpecialParameter|).  Either
+    switch the check off by passing |False| or switch it on by passing the length of
+    the assessment period (`window`, in log entries) and the threshold for the ratio
+    of the minimum and the maximum measured discharge within this period
+    (`ratiominmax`), below which |Determine_OutputCorrection_V1| considers the flow
+    conditions instationary:
+
+    >>> from hydpy.models.statcorr_arima010 import *
+    >>> parameterstep()
+    >>> stationaritycheck
+    stationaritycheck(?)
+    >>> stationaritycheck.verify()
+    Traceback (most recent call last):
+    ...
+    RuntimeError: For parameter `stationaritycheck` of element `?`, it is still \
+unknown whether the stationarity check is enabled.
+
+    >>> stationaritycheck(False)
+    >>> stationaritycheck
+    stationaritycheck(False)
+    >>> stationaritycheck.verify()
+
+    Passing `window` and `ratiominmax` implicitly enables the check:
+
+    >>> stationaritycheck(window=10, ratiominmax=0.5)
+    >>> stationaritycheck
+    stationaritycheck(window=10, ratiominmax=0.5)
+    >>> stationaritycheck.enabled, stationaritycheck.window
+    (True, 10)
+    >>> from hydpy import round_
+    >>> round_(stationaritycheck.ratiominmax)
+    0.5
+
+    Passing |True| explicitly is allowed but optional:
+
+    >>> stationaritycheck(True, window=5, ratiominmax=0.8)
+    >>> stationaritycheck
+    stationaritycheck(window=5, ratiominmax=0.8)
+
+    An enabled check requires both `window` and `ratiominmax`:
+
+    >>> stationaritycheck(True)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `stationaritycheck` of element `?`, both `window` and \
+`ratiominmax` must be given when enabling the stationarity check.
+
+    >>> stationaritycheck(window=5)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `stationaritycheck` of element `?`, both `window` and \
+`ratiominmax` must be given when enabling the stationarity check.
+
+    A disabled check does not accept `window` or `ratiominmax`:
+
+    >>> stationaritycheck(False, window=5, ratiominmax=0.8)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `stationaritycheck` of element `?`, `window` and \
+`ratiominmax` must not be given when disabling the stationarity check.
+
+    >>> stationaritycheck()
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `stationaritycheck` of element `?`, pass either a \
+boolean value or the keyword arguments `window` and `ratiominmax`.
+
+    `window` must be a positive integer, and `ratiominmax` must lie between zero and
+    one:
+
+    >>> stationaritycheck(window=0, ratiominmax=0.8)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `stationaritycheck` of element `?`, `window` must be a \
+positive integer, but `0` is given.
+
+    >>> stationaritycheck(window=5, ratiominmax=1.5)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `stationaritycheck` of element `?`, `ratiominmax` must \
+lie between zero and one, but `1.5` is given.
+
+    Failed calls leave the previous configuration untouched:
+
+    >>> stationaritycheck
+    stationaritycheck(window=5, ratiominmax=0.8)
+    """
+
+    _config: tuple[bool, int, float] | None
+
+    def __init__(self, subvars: variabletools.SubVariables[Any, Any, Any, Any]) -> None:
+        super().__init__(subvars)
+        self._config = None
+
+    def __call__(
+        self,
+        value: bool | None = None,
+        *,
+        window: int | None = None,
+        ratiominmax: float | None = None,
+    ) -> None:
+        if (value is False) and ((window is not None) or (ratiominmax is not None)):
+            raise ValueError(
+                f"For parameter {objecttools.elementphrase(self)}, `window` and "
+                f"`ratiominmax` must not be given when disabling the stationarity "
+                f"check."
+            )
+        if value is False:
+            self._config = (False, 0, 0.0)
+            return
+        if (value is None) and (window is None) and (ratiominmax is None):
+            raise ValueError(
+                f"For parameter {objecttools.elementphrase(self)}, pass either a "
+                f"boolean value or the keyword arguments `window` and `ratiominmax`."
+            )
+        if (window is None) or (ratiominmax is None):
+            raise ValueError(
+                f"For parameter {objecttools.elementphrase(self)}, both `window` and "
+                f"`ratiominmax` must be given when enabling the stationarity check."
+            )
+        if (int(window) != window) or (window < 1):
+            raise ValueError(
+                f"For parameter {objecttools.elementphrase(self)}, `window` must be a "
+                f"positive integer, but `{window}` is given."
+            )
+        if not 0.0 <= ratiominmax <= 1.0:
+            raise ValueError(
+                f"For parameter {objecttools.elementphrase(self)}, `ratiominmax` must "
+                f"lie between zero and one, but `{ratiominmax}` is given."
+            )
+        self._config = (True, int(window), float(ratiominmax))
+
+    def __repr__(self) -> str:
+        if self._config is None:
+            return f"{self.name}(?)"
+        enabled, window, ratiominmax = self._config
+        if not enabled:
+            return f"{self.name}(False)"
+        return (
+            f"{self.name}(window={window}, "
+            f"ratiominmax={objecttools.repr_(ratiominmax)})"
+        )
+
+    def verify(self) -> None:
+        """Raise a |RuntimeError| if the configuration is still unknown."""
+        if self._config is None:
+            raise RuntimeError(
+                f"For parameter {objecttools.elementphrase(self)}, it is still unknown "
+                f"whether the stationarity check is enabled."
+            )
+
+    @property
+    def configured(self) -> bool:
+        """Flag indicating whether the stationarity check has already been
+        configured.
+
+        >>> from hydpy.models.statcorr_arima010 import *
+        >>> parameterstep()
+        >>> stationaritycheck.configured
+        False
+        >>> stationaritycheck(False)
+        >>> stationaritycheck.configured
+        True
+        """
+        return self._config is not None
+
+    def _get_config(self) -> tuple[bool, int, float]:
+        self.verify()
+        assert self._config is not None
+        return self._config
+
+    @property
+    def enabled(self) -> bool:
+        """Flag indicating whether the stationarity check is enabled."""
+        return self._get_config()[0]
+
+    @property
+    def window(self) -> int:
+        """The length of the assessment period in log entries (zero if the check is
+        disabled)."""
+        return self._get_config()[1]
+
+    @property
+    def ratiominmax(self) -> float:
+        """The threshold ratio of the minimum and the maximum measured discharge
+        (zero if the check is disabled)."""
+        return self._get_config()[2]
 
 
 class LinearReductionTime(parametertools.Parameter):
     """Number of timesteps for linearly reducing the ARIMA correction to zero once
-    instationary flow conditions are detected, separately for the NQ range (index 0)
-    and the MQ range (index 1).
+    the stationarity check (see |StationarityCheck|) detects instationary flow
+    conditions [-]."""
 
-    >>> from hydpy.models.statcorr_arima010 import *
-    >>> parameterstep()
-    >>> control.linearreductiontime(12, 6)
-    >>> control.linearreductiontime
-    linearreductiontime(12, 6)
-    """
-
-    NDIM: Final[Literal[1]] = 1
+    NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
     SPAN = (0, None)
-
-    def __call__(self, *args, **kwargs) -> None:
-        self.shape = 2
-        super().__call__(*args, **kwargs)
-
-
-class LimitNQM(parametertools.Parameter):
-    """Discharge threshold for the transition from NQ to MQ range in m³/s."""
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = float
-
-
-class LimitMQH(parametertools.Parameter):
-    """Discharge threshold for the transition from MQ to HQ range in m³/s."""
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = float
 
 
 class MaxAbsoluteShift(parametertools.Parameter):

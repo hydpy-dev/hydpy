@@ -31,21 +31,20 @@ class Stationary(sequencetools.StateSequence):
     INIT = 1.0
 
 
-class FlowCondition(sequencetools.StateSequence):
-    """The most recently determined flow condition (0.0: NQ, 1.0: MQ, 2.0: HQ) [-].
+class EvaluatedDischarge(sequencetools.StateSequence):
+    """The mean simulated discharge over the |EvaluationWindow| most recent log
+    entries, as determined at the last `historical` assessment [m³/s].
 
-    Like |Stationary|, |statcorr_arima010| only reassesses |FlowCondition| while
-    |Options.simulationmode| equals `historical`.  While it equals `forecast`,
-    |FlowCondition| keeps the value determined at the most recent `historical`
-    assessment, so |Determine_OutputCorrection_V1| always relies on the flow
-    condition observed right before the forecast horizon started rather than on
-    the (still continuously simulated) current discharge, which could otherwise
-    let |ReductionFactor| jump back to ``1.0`` whenever the forecasted discharge
-    happens to pass through the HQ range."""
+    |Determine_OutputCorrection_V1| compares |EvaluatedDischarge| with |LowerLimit|
+    and |UpperLimit| to decide whether the submodel is responsible for correcting
+    the discharge.  Like |Stationary|, |statcorr_arima010| only reassesses
+    |EvaluatedDischarge| while |Options.simulationmode| equals `historical`.
+    While it equals `forecast`, |EvaluatedDischarge| keeps the value determined
+    at the most recent `historical` assessment, so the responsible submodel does
+    not change throughout the whole forecast horizon, regardless of how the
+    forecasted discharge develops."""
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (0.0, 2.0)
-    INIT = 2.0
 
 
 class ForecastStep(sequencetools.StateSequence):
@@ -79,7 +78,7 @@ class Residual(sequencetools.StateSequence):
     from the most recently logged entry with a non-|numpy.nan| observation,
     searching back at most |MaxResidualLookback| entries) in m³/s.
 
-    Like |Stationary| and |FlowCondition|, |statcorr_arima010| only
+    Like |Stationary|, |statcorr_arima010| only
     reassesses |Residual| while |Options.simulationmode| equals `historical`.
     While it equals `forecast`, |Residual| keeps the value determined at the
     most recent `historical` assessment, so the applied correction persists

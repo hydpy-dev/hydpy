@@ -94,7 +94,7 @@ class Calc_OutputCorr_V1(modeltools.Method):
         ...     submodel.parameters.control.lowerlimit(lowerlimit)
         ...     submodel.parameters.control.upperlimit(upperlimit)
         ...     submodel.parameters.control.evaluationwindow(1)
-        ...     submodel.parameters.control.maxresiduallookback(3)
+        ...     submodel.parameters.control.maxnanskip(3)
         ...     submodel.parameters.control.maxabsoluteshift(100.0)
         ...     submodel.parameters.control.maxrelativeshift(1000.0)
         ...     submodel.parameters.control.residualaveragingwindow(0)
@@ -613,7 +613,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     (observed minus simulated discharge).  While |Options.simulationmode|
     equals `historical`, the "most recent" residual is taken from the latest
     log entry where the observed discharge is not |numpy.nan|, searching back
-    at most |MaxResidualLookback| log entries (or the entire log, whichever is
+    at most |MaxNaNSkip| log entries (or the entire log, whichever is
     smaller), and remembered in |Residual| (together with the corresponding
     simulated discharge in |ResidualAnchor|).  When no observation is
     available within that range, both are set to zero, so the corrected
@@ -716,7 +716,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     `historical`.
 
     Likewise, |Determine_OutputCorrection_V1| only reassesses the pointwise
-    residual itself (the |MaxResidualLookback| search described above) while
+    residual itself (the |MaxNaNSkip| search described above) while
     |Options.simulationmode| equals `historical`, remembering the outcome in
     |Residual| and |ResidualAnchor|.  While it equals `forecast`, it reuses
     both from the most recent `historical` assessment instead of repeating
@@ -751,7 +751,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> derived.maxrelsumdelta.update()
         >>> derived.stationaryaveragingwindow.update()
         >>> control.reductionsteps(2)
-        >>> control.maxresiduallookback(3)
+        >>> control.maxnanskip(3)
         >>> control.maxabsoluteshift(100.0)
         >>> control.maxrelativeshift(1000.0)
         >>> control.residualaveragingwindow(0)
@@ -974,22 +974,22 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> states.reductionfactor
         reductionfactor(0.5)
 
-        Restricting |MaxResidualLookback| to fewer entries than the full log
+        Restricting |MaxNaNSkip| to fewer entries than the full log
         makes |Determine_OutputCorrection_V1| stop searching for a valid
         residual once that limit is reached, applying no correction even
         though an older, still-logged observation would otherwise be usable:
 
-        >>> control.maxresiduallookback(2)
+        >>> control.maxnanskip(2)
         >>> logs.loggedsimulateddischarge = 1.0, 1.0, 1.0, nan, nan
         >>> logs.loggedobserveddischarge = nan, nan, 3.0, nan, nan
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.correctedq
         correctedq(1.0)
 
-        Enlarging |MaxResidualLookback| to reach that entry again reinstates
+        Enlarging |MaxNaNSkip| to reach that entry again reinstates
         the correction:
 
-        >>> control.maxresiduallookback(3)
+        >>> control.maxnanskip(3)
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.correctedq
         correctedq(3.0)
@@ -1045,7 +1045,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         deriving them from a preceding `historical` call) to keep the focus on
         the transition mechanism:
 
-        >>> control.maxresiduallookback(4)
+        >>> control.maxnanskip(4)
         >>> control.maxabsoluteshift(100.0)
         >>> control.maxrelativeshift(1000.0)
         >>> control.residualaveragingwindow(2)
@@ -1207,7 +1207,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         statcorr_control.LowerLimit,
         statcorr_control.UpperLimit,
         statcorr_control.EvaluationWindow,
-        statcorr_control.MaxResidualLookback,
+        statcorr_control.MaxNaNSkip,
         statcorr_control.MaxAbsoluteShift,
         statcorr_control.MaxRelativeShift,
         statcorr_control.ResidualAveragingWindow,
@@ -1267,7 +1267,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         else:
             residual = 0.0
             sim_anchor = 0.0
-            for idx in range(min(der.nmblogentries, con.maxresiduallookback)):
+            for idx in range(min(der.nmblogentries, con.maxnanskip)):
                 if not modelutils.isnan(log.loggedobserveddischarge[idx]):
                     sim_anchor = log.loggedsimulateddischarge[idx]
                     residual = log.loggedobserveddischarge[idx] - sim_anchor

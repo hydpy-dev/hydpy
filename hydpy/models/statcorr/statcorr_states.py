@@ -101,7 +101,7 @@ class AveragedResidual(sequencetools.StateSequence):
 class Residual(sequencetools.StateSequence):
     """The pointwise ARIMA residual (observed minus simulated discharge, taken
     from the most recently logged entry with a non-|numpy.nan| observation,
-    searching back at most |MaxResidualLookback| entries) in m³/s.
+    searching back at most |MaxNaNSkip| entries) in m³/s.
 
     Like |Stationary|, |statcorr_arima010| only
     reassesses |Residual| while |Options.simulationmode| equals `historical`.

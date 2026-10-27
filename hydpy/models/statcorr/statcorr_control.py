@@ -42,7 +42,7 @@ class EvaluationWindow(parametertools.Parameter):
     TYPE: Final = int
 
 
-class MaxResidualLookback(parametertools.Parameter):
+class MaxNaNSkip(parametertools.Parameter):
     """The maximum number of log entries to search back for the most recently
     available residual when the current or recent observed discharge values are
     missing."""

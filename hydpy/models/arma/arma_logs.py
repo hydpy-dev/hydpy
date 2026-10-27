@@ -14,7 +14,7 @@ class LogIn(sequencetools.LogSequence):
 
     >>> from hydpy.models.arma import *
     >>> parameterstep("1d")
-    >>> responses(((1.0, 2.0), (1.0,)), th_3=((1.0,), (1.0, 2.0, 3.0)))
+    >>> responses(((1.0, 2.0), (1.0,)), th_3_0=((1.0,), (1.0, 2.0, 3.0)))
     >>> derived.nmb.update()
     >>> logs.login
     login([[nan, nan, nan],
@@ -31,7 +31,7 @@ class LogIn(sequencetools.LogSequence):
 
     Otherwise, it does:
 
-    >>> responses(((1.0, 2.0), (1.0,)), th_3=((1.0,), (1.0, 2.0)))
+    >>> responses(((1.0, 2.0), (1.0,)), th_3_0=((1.0,), (1.0, 2.0)))
     >>> derived.nmb.update()
     >>> logs.login
     login([[nan, nan],
@@ -66,7 +66,7 @@ class LogOut(sequencetools.LogSequence):
 
     >>> from hydpy.models.arma import *
     >>> parameterstep("1d")
-    >>> responses(((1.0, 2.0), (1.0,)), th_3=((1.0,), (1.0, 2.0, 3.0)))
+    >>> responses(((1.0, 2.0), (1.0,)), th_3_0=((1.0,), (1.0, 2.0, 3.0)))
     >>> derived.nmb.update()
     >>> logs.logout.shape
     (2, 2)

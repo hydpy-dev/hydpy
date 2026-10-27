@@ -1,8 +1,11 @@
 # pylint: disable=missing-module-docstring
 
+import warnings
+
 import numpy
 
 from hydpy import config
+from hydpy.core import exceptiontools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -29,16 +32,30 @@ class Responses(parametertools.SpecialParameter):
     >>> responses.th_0_0 = ((1.0, 2.0), (3.0, 4.0, 6.0))
 
     `th_0_0` stands for a threshold discharge value of 0.0 m³/s, which the given ARMA
-    model corresponds to.  For integer discharge values, one can omit the decimal
-    digit:
+    model corresponds to.  Each name consists of the prefix `th`, the integer digits,
+    and the decimal digits of the threshold value, all separated by underscores.  The
+    integer digits must not have leading zeros, and the decimal digits must not have
+    trailing zeros (except for a single zero):
 
-    >>> responses.th_1 = ((), (7.0,))
-
-    One can also omit the leading letters, but not the underscore:
-
+    >>> responses.th_1_0 = ((), (7.0,))
     >>> responses.th_2_5 = ([8.0], range(9, 20))
 
-    Internally, all threshold keys are brought into the standard format:
+    Other names are deprecated:
+
+    >>> from hydpy.core.testtools import warn_later
+    >>> with warn_later():
+    ...     responses._3 = ((), (1.0,))
+    ...     responses.th_03_050 = ((), (2.0,))
+    HydPyDeprecationWarning: The threshold name `_3` used for parameter `responses` of \
+element `?` is deprecated and will no longer be supported in HydPy 8.0.  Please write \
+`th_3_0` instead.
+    HydPyDeprecationWarning: The threshold name `th_03_050` used for parameter \
+`responses` of element `?` is deprecated and will no longer be supported in HydPy \
+8.0.  Please write `th_3_05` instead.
+    >>> del responses.th_3_0
+    >>> del responses.th_3_05
+
+    All threshold names appear in the standard format:
 
     >>> responses
     responses(th_0_0=((1.0, 2.0),
@@ -58,7 +75,7 @@ class Responses(parametertools.SpecialParameter):
     Note that all iterables containing the AR and MA coefficients are converted to
     tuples, to prevent them from being changed by accident:
 
-    >>> responses.th_1[1][0]
+    >>> responses.th_1_0[1][0]
     7.0
     >>> responses.th_1_0[1][0] = 77.0
     Traceback (most recent call last):
@@ -68,12 +85,23 @@ class Responses(parametertools.SpecialParameter):
     Instead, one can delete and or overwrite existing ARMA models:
 
     >>> del responses.th_2_5
-    >>> responses.th_1 = ((), (77.0,))
+    >>> responses.th_1_0 = ((), (77.0,))
     >>> responses
     responses(th_0_0=((1.0, 2.0),
                       (3.0, 4.0, 6.0)),
               th_1_0=((),
                       (77.0,)))
+
+    Overwriting via deprecated names works:
+
+    >>> with warn_later():
+    ...     responses._1 = ((), (777.0,))
+    HydPyDeprecationWarning: The threshold name `_1` used for parameter `responses` of \
+element `?` is deprecated and will no longer be supported in HydPy 8.0.  Please write \
+`th_1_0` instead.
+    >>> responses.th_1_0
+    ((), (777.0,))
+    >>> responses.th_1_0 = ((), (77.0,))
 
     Names that cannot be identified as threshold values result in an exception:
 
@@ -85,6 +113,24 @@ of element `?`, one has to pass them as keyword arguments or set them as additio
 attributes.  The used name must meet a specific format (see the documentation for \
 further information).  The given name `test` does not meet this format.
 
+    >>> responses.th_1_x = ((), ())
+    Traceback (most recent call last):
+    ...
+    AttributeError: To define different response functions for parameter `responses` \
+of element `?`, one has to pass them as keyword arguments or set them as additional \
+attributes.  The used name must meet a specific format (see the documentation for \
+further information).  The given name `th_1_x` does not meet this format.
+
+    Only the ASCII digits 0 to 9 are allowed:
+
+    >>> setattr(responses, "th_1_²", ((), ()))
+    Traceback (most recent call last):
+    ...
+    AttributeError: To define different response functions for parameter `responses` \
+of element `?`, one has to pass them as keyword arguments or set them as additional \
+attributes.  The used name must meet a specific format (see the documentation for \
+further information).  The given name `th_1_²` does not meet this format.
+
     Suitable get-related attribute exceptions are also implemented:
 
     >>> responses.test
@@ -93,22 +139,23 @@ further information).  The given name `test` does not meet this format.
     AttributeError: Parameter `responses` of element `?` does not have an attribute \
 named `test` and the name `test` is also not a valid threshold value identifier.
 
-    >>> responses._0_1
+    >>> responses.th_123_456
     Traceback (most recent call last):
     ...
     AttributeError: Parameter `responses` of element `?` does not have an attribute \
-named `_0_1` nor an arma model corresponding to a threshold value named `th_0_1`.
+named `th_123_456` nor an arma model corresponding to a threshold value named \
+`th_123_456`.
 
     The above examples show that all AR and MA coefficients are converted to floating
     point values.  It this is not possible or something else goes totally wrong during
     the definition of a new ARMA model, errors like the following are raised:
 
-    >>> responses.th_10 = ()
+    >>> responses.th_10_0 = ()
     Traceback (most recent call last):
     ...
-    IndexError: While trying to set a new threshold (th_10) coefficient pair for \
-parameter `responses` of element `?`, the following error occurred: tuple index out \
-of range
+    IndexError: While trying to set a new threshold (th_10_0) coefficient pair for \
+parameter `responses` of element `?`, the following error occurred: tuple index out of \
+range
 
     Except for the mentioned conversion to floating point values, there are no
     plausibility checks performed.  You have to use other tools to gain plausible
@@ -125,14 +172,14 @@ of range
     The following line deletes the coefficients defined above and assigns the ARMA
     approximations of both iuh models:
 
-    >>> responses(lsc, _2=tde)
+    >>> responses(lsc, th_2_0=tde)
 
     One can change the parameter values of the translation diffusion iuh and assign it
     to the `responses` parameter, without affecting the ARMA coefficients of the first
     tde parametrization:
 
     >>> tde.u = 1.0
-    >>> responses._5 = tde
+    >>> responses.th_5_0 = tde
     >>> responses
     responses(th_0_0=((1.001744, -0.32693, 0.034286),
                       (0.050456, 0.199156, 0.04631, -0.004812, -0.00021)),
@@ -157,20 +204,20 @@ argument is allowed, but two are given.
 
     Checks for the repeated definition of the same threshold values are also performed:
 
-    >>> responses(tde, _0=lsc, _1=tde, _1_0=lsc)
+    >>> responses(tde, th_0_0=lsc, th_1_0=tde)
     Traceback (most recent call last):
     ...
-    ValueError: For parameter `responses` of element `?`, four arguments have been \
+    ValueError: For parameter `responses` of element `?`, three arguments have been \
 given, but only two response functions could be prepared.  Most probably, you defined \
 the same threshold value(s) twice.
 
     The number of response functions and the number of the respective AR and MA
     coefficients of a given `responses` parameter can be easily queried:
 
-    >>> responses(_0=((1.0, 2.0),
-    ...               (3.0, 4.0, 6.0)),
-    ...           _1=((),
-    ...               (7.0,)))
+    >>> responses(th_0_0=((1.0, 2.0),
+    ...                   (3.0, 4.0, 6.0)),
+    ...           th_1_0=((),
+    ...                   (7.0,)))
     >>> len(responses)
     2
     >>> responses.ar_orders
@@ -267,7 +314,7 @@ functions.
         )
 
     def __setattr__(self, key: str, value: object) -> None:
-        if hasattr(self, key) and not key.startswith("th_"):
+        if not key.startswith("th_") and self._is_normal_attribute(key):
             object.__setattr__(self, key, value)
         else:
             std_key = self._standardize_key(key)
@@ -278,7 +325,7 @@ functions.
                         tuple(value.arma.ma_coefs),
                     )
                 else:
-                    value = cast(tuple[Sequence[float], Sequence[float]], value)
+                    value = cast(Sequence[VectorInputFloat], value)
                     self._coefs[std_key] = (
                         tuple(float(v) for v in value[0]),
                         tuple(float(v) for v in value[1]),
@@ -294,16 +341,28 @@ functions.
         if std_key in self._coefs:
             del self._coefs[std_key]
 
+    def _is_normal_attribute(self, key: str) -> bool:
+        try:
+            object.__getattribute__(self, key)
+            return True
+        except AttributeError:
+            return False
+
     def _standardize_key(self, key: str) -> str:
         try:
             tuple_ = str(key).split("_")
             if (len(tuple_) > 1) and tuple_[-2].isdigit():
-                integer = int(tuple_[-2])
-                decimal = int(tuple_[-1])
+                integer = str(int(tuple_[-2]))
+                decimal = tuple_[-1]
+                if not (decimal.isascii() and decimal.isdigit()):
+                    raise ValueError(
+                        f"The decimal part `{decimal}` does not consist of digits."
+                    )
+                decimal = decimal.rstrip("0") or "0"
             else:
-                integer = int(tuple_[-1])
-                decimal = 0
-            return "_".join(("th", str(integer), str(decimal)))
+                integer = str(int(tuple_[-1]))
+                decimal = "0"
+            std_key = f"th_{integer}_{decimal}"
         except BaseException as exc:
             raise AttributeError(
                 f"To define different response functions for parameter "
@@ -312,6 +371,14 @@ functions.
                 f"meet a specific format (see the documentation for further "
                 f"information).  The given name `{key}` does not meet this format."
             ) from exc
+        if key != std_key:
+            warnings.warn(
+                f"The threshold name `{key}` used for parameter "
+                f"{objecttools.elementphrase(self)} is deprecated and will no longer "
+                f"be supported in HydPy 8.0.  Please write `{std_key}` instead.",
+                exceptiontools.HydPyDeprecationWarning,
+            )
+        return std_key
 
     @property
     def thresholds(self) -> VectorFloat:

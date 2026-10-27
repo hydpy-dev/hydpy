@@ -19,7 +19,7 @@ class Nmb(parametertools.NmbParameter):
 
         >>> from hydpy.models.arma import *
         >>> parameterstep("1d")
-        >>> responses(((1.0, 2.0), (1.0,)), th_3=((1.0,), (1.0, 2.0, 3.0)))
+        >>> responses(((1.0, 2.0), (1.0,)), th_3_0=((1.0,), (1.0, 2.0, 3.0)))
         >>> derived.nmb.update()
         >>> derived.nmb
         nmb(2)
@@ -45,7 +45,7 @@ class MaxQ(parametertools.Parameter):
 
         >>> from hydpy.models.arma import *
         >>> parameterstep("1d")
-        >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+        >>> responses(((1., 2.), (1.,)), th_3_0=((1.,), (1., 2., 3.)))
         >>> derived.maxq.update()
         >>> derived.maxq
         maxq(0.0, 3.0)
@@ -69,7 +69,7 @@ class DiffQ(parametertools.Parameter):
 
         >>> from hydpy.models.arma import *
         >>> parameterstep("1d")
-        >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+        >>> responses(((1., 2.), (1.,)), th_3_0=((1.,), (1., 2., 3.)))
         >>> derived.diffq.update()
         >>> derived.diffq
         diffq(3.0)
@@ -97,7 +97,7 @@ class AR_Order(parametertools.Parameter):
 
         >>> from hydpy.models.arma import *
         >>> parameterstep("1d")
-        >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+        >>> responses(((1., 2.), (1.,)), th_3_0=((1.,), (1., 2., 3.)))
         >>> derived.ar_order.update()
         >>> derived.ar_order
         ar_order(2, 1)
@@ -121,7 +121,7 @@ class MA_Order(parametertools.Parameter):
 
         >>> from hydpy.models.arma import *
         >>> parameterstep("1d")
-        >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+        >>> responses(((1., 2.), (1.,)), th_3_0=((1.,), (1., 2., 3.)))
         >>> derived.ma_order.update()
         >>> derived.ma_order
         ma_order(1, 3)
@@ -144,7 +144,7 @@ class AR_Coefs(parametertools.Parameter):
 
         >>> from hydpy.models.arma import *
         >>> parameterstep("1d")
-        >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+        >>> responses(((1., 2.), (1.,)), th_3_0=((1.,), (1., 2., 3.)))
         >>> derived.ar_coefs.update()
         >>> derived.ar_coefs
         ar_coefs([[1.0, 2.0],
@@ -168,7 +168,7 @@ class MA_Coefs(parametertools.Parameter):
 
         >>> from hydpy.models.arma import *
         >>> parameterstep("1d")
-        >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
+        >>> responses(((1., 2.), (1.,)), th_3_0=((1.,), (1., 2., 3.)))
         >>> derived.ma_coefs.update()
         >>> derived.ma_coefs
         ma_coefs([[1.0, nan, nan],

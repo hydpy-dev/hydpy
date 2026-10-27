@@ -299,8 +299,8 @@ discharges exceeding 7 m³/s, inflow is separated.  The AR process is still appl
 the portion of 7 m³/s, but for the inflow exceeding this threshold, the mixed ARMA
 model is applied:
 
->>> responses(_0=((), (0.2, 0.4, 0.3, 0.1)),
-...           _7=((1.1, -0.3), (0.2,)))
+>>> responses(th_0_0=((), (0.2, 0.4, 0.3, 0.1)),
+...           th_7_0=((1.1, -0.3), (0.2,)))
 
 To start from stationary conditions again, one has to apply different values to both
 log sequences.  The base flow value of 2 m³/s is only given to the (low flow) MA model;

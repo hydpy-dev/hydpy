@@ -2788,9 +2788,9 @@ def prepare_interpolation_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
             control_gr4.x2(1.0)
             control_gr4.x3(100.0)
         states_gr4 = gr4model.sequences.states
-        states_gr4.i(control_gr4.imax)
-        states_gr4.s(control_gr4.x1)
-        states_gr4.r(control_gr4.x3)
+        states_gr4.i(control_gr4.imax.value)
+        states_gr4.s(control_gr4.x1.value)
+        states_gr4.r(control_gr4.x3.value)
         with gr4model.add_petmodel_v1("evap_ret_io") as evapmodel:
             evapmodel.parameters.control.evapotranspirationfactor(1.0)
         gr4models.append(gr4model)
@@ -2922,9 +2922,9 @@ def prepare_receiver_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
             control_gr4.x2(1.0)
             control_gr4.x3(100.0)
         states_gr4 = lmodel.sequences.states
-        states_gr4.i(control_gr4.imax)
-        states_gr4.s(0.6 * control_gr4.x1)
-        states_gr4.r(0.6 * control_gr4.x3)
+        states_gr4.i(control_gr4.imax.value)
+        states_gr4.s(0.6 * control_gr4.x1.value)
+        states_gr4.r(0.6 * control_gr4.x3.value)
         with lmodel.add_petmodel_v1("evap_ret_io") as evapmodel:
             evapmodel.parameters.control.evapotranspirationfactor(1.0)
         lmodels.append(lmodel)
@@ -3191,9 +3191,9 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
             control_gr4.x2(1.0)
             control_gr4.x3(100.0)
         states_gr4 = gr_model.sequences.states
-        states_gr4.i(control_gr4.imax)
-        states_gr4.s(0.6 * control_gr4.x1)
-        states_gr4.r(0.6 * control_gr4.x3)
+        states_gr4.i(control_gr4.imax.value)
+        states_gr4.s(0.6 * control_gr4.x1.value)
+        states_gr4.r(0.6 * control_gr4.x3.value)
         with gr_model.add_petmodel_v1("evap_ret_io") as evap_model:
             evap_model.parameters.control.evapotranspirationfactor(1.0)
         gr_models.append(gr_model)

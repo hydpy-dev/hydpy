@@ -6,6 +6,7 @@ import abc
 import builtins
 import contextlib
 import copy
+import datetime
 import inspect
 import itertools
 import math
@@ -2892,7 +2893,13 @@ broadcast input array from shape (2,) into shape (2,3)
         # To trick pylint:
         raise getattr(builtins, "NotImplementedError")(message)
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         if self.keywordhandler.apply(args, kwargs):
             return
         if args and kwargs:
@@ -2905,9 +2912,8 @@ broadcast input array from shape (2,) into shape (2,3)
                 self._raise_kwargs_and_auxfile_error(kwargs)
             self.values = self._get_values_from_auxiliaryfile(auxfile)
         elif args:
-            if len(args) == 1:
-                args = args[0]
-            self.values = self.apply_timefactor(numpy.asarray(args))
+            values = args[0] if len(args) == 1 else args
+            self.values = self.apply_timefactor(numpy.asarray(values))
         else:
             self._raise_wrong_kwargs_error(kwargs)
         self.trim()
@@ -3403,7 +3409,13 @@ class NmbParameter(Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         super().__call__(*args, **kwargs)
         parameters = self.subpars.pars
         for subpars in parameters:
@@ -3928,7 +3940,16 @@ index parameter.
         self.constants = type(self).constants
         self.relevant = type(self).relevant
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, default: float = ..., **constants: float) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
@@ -4247,7 +4268,18 @@ broadcast input array from shape (2,) into shape (366,3)
             )
         return self._toy2values_unprotected
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(
+        self, **toy2values: float | VectorInputFloat | MatrixInputFloat
+    ) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         if self.NDIM == 1:
             self.shape = (-1,)
         try:
@@ -4920,7 +4952,16 @@ for axis 0 with size 1
         self.shape = len(self.entrynames)
         setattr(self.fastaccess, f"_{self.name}_entrymin", self.entrymin)
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, **entries: float) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
@@ -5363,7 +5404,16 @@ attribute nor a row or column related attribute named `wrong`.
         setattr(self.fastaccess, f"_{self.name}_rowmin", self.rowmin)
         setattr(self.fastaccess, f"_{self.name}_columnmin", self.columnmin)
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, **rows: float | VectorInputFloat) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
@@ -5549,7 +5599,19 @@ given, but is not.
     SHAPE = (2,)
     strict_valuehandling: bool = False
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, left: float, right: float) -> None: ...
+
+    @overload
+    def __call__(self, *, l: float, r: float) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
@@ -5625,7 +5687,13 @@ sorted in increasing order (`0.333333, 0.0, 0.666667`).
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         super().__call__(*args, **kwargs)
         values = self.values
         if numpy.any(values[1:] < values[:-1]):
@@ -5816,7 +5884,13 @@ solver parameter `tol` of element `?` has been defined so far.
         super().__init__(subvars)
         self._alternative_initvalue = None
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         super().__call__(*args, **kwargs)
         self.alternative_initvalue = self.value
 
@@ -6011,12 +6085,25 @@ properly alligned on the indexed timegrid `Timegrid("2000-01-01 00:00:00", \
     NDIM, TYPE, TIME, SPAN = 0, int, None, (None, None)
     INIT = 0
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, date: timetools.DateConstrArg, /) -> None: ...
+
+    def __call__(
+        self, *args: CallHook | timetools.DateConstrArg, **kwargs: Any
+    ) -> None:
         try:
-            try:
+            if (len(args) == 1) and isinstance(
+                date := args[0], (str, datetime.datetime, timetools.Date)
+            ):
+                self.value = hydpy.pub.timegrids.init[date]
+            else:
                 super().__call__(*args, **kwargs)
-            except TypeError:
-                self.value = hydpy.pub.timegrids.init[args[0]]
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to set the commission date via parameter "
@@ -6370,7 +6457,16 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
 
     _has_callback: bool = False
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, callback: Callable[[modeltools.Model], None]) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError as exc:
@@ -6552,7 +6648,11 @@ direct value assignments.  Please call it instead.
 
     @abc.abstractmethod
     def __call__(self, *args: Any, **kwargs: Any) -> None:
-        """Define the parameter's data."""
+        """Define the parameter's data.
+
+        There is no common signature for special parameters.  Each subclass defines its
+        own, which type checkers accept due to the generic signature used here.
+        """
 
     @abc.abstractmethod
     def __repr__(self) -> str:

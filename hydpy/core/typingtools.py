@@ -170,10 +170,24 @@ TypeINIT: TypeAlias = int | float | bool | None
 TypeTIME: TypeAlias = bool | None
 TypeNUMERIC: TypeAlias = bool
 
+# The following type aliases are broad placeholders for typing different aspects of
+# |Variable| subclasses, which different hooks of HydPy's Mypy plugin narrow:
 ShapeHookGet: TypeAlias = tuple[int, ...]
 ShapeHookSet: TypeAlias = int | tuple[int, ...]
 TrimHook: TypeAlias = Union[
     float, VectorInputFloat, MatrixInputFloat, TensorInputFloat, None
+]
+CallHook: TypeAlias = Union[
+    float,
+    VectorInputFloat,
+    VectorInputInt,
+    VectorInputBool,
+    MatrixInputFloat,
+    MatrixInputInt,
+    MatrixInputBool,
+    TensorInputFloat,
+    TensorInputInt,
+    TensorInputBool,
 ]
 
 
@@ -286,6 +300,7 @@ __all__ = [
     "ArrayFloatFlex",
     "assert_never",
     "Callable",
+    "CallHook",
     "cast",
     "Concatenate",
     "ClassVar",

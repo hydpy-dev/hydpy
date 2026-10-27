@@ -124,6 +124,24 @@ class ParameterSoilThreshold(ParameterSoil, abc.ABC):
         )
     )
 
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, default: float = ..., **constants: float) -> None: ...
+
+    # HydPy's Mypy plugin restricts `constants` to the land type names:
+    @overload
+    def __call__(  # type: ignore[overload-cannot-match]
+        self, *, relative: float
+    ) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
+        super().__call__(*args, **kwargs)
+
 
 class ParameterGlacier(ParameterComplete, abc.ABC):
     """Base class for 1-dimensional parameters relevant for all |GLETS| zones.

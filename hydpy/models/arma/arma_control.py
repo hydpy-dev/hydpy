@@ -12,6 +12,10 @@ from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.auxs import iuhtools
 
+ResponseInput: TypeAlias = iuhtools.IUH | Sequence[VectorInputFloat]
+"""A single response function, defined by an |IUH| instance or by a sequence (usually
+a tuple or list) containing the autoregressive and the moving average coefficients."""
+
 
 class Responses(parametertools.SpecialParameter):
     """Assigns different ARMA models to different discharge thresholds.
@@ -266,7 +270,13 @@ functions.
             super().__init__(subvars)
             self._coefs = {}
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, response: ResponseInput, /) -> None: ...
+
+    @overload
+    def __call__(self, **responses: ResponseInput) -> None: ...
+
+    def __call__(self, *args: ResponseInput, **kwargs: ResponseInput) -> None:
         self._coefs.clear()
         if len(args) > 1:
             raise ValueError(

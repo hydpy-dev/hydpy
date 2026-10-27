@@ -61,7 +61,18 @@ class RemoteDischargeMinimum(parametertools.SeasonalParameter):
     NDIM: Final[Literal[1]] = 1
     SPAN = (0.0, None)
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(
+        self, **toy2values: float | VectorInputFloat | MatrixInputFloat
+    ) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         self.shape = (-1,)
         parametertools.SeasonalParameter.__call__(self, *args, **kwargs)
 
@@ -390,7 +401,13 @@ class NmbSafeReleaseModels(parametertools.Parameter):
     TYPE: Final = int
     SPAN = (0, None)
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         super().__call__(*args, **kwargs)
         self.subpars.pars.model.safereleasemodels.number = self.value
 

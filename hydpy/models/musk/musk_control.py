@@ -71,7 +71,16 @@ class NmbSegments(parametertools.NmbParameter):
         )
     )
 
-    def __call__(self, *args, **kwargs) -> None:
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, lag: float) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         super().__call__(*args, **kwargs)
         self.subpars.pars.model.nmb_segments = self.value
 
@@ -262,6 +271,21 @@ with value `0.4` needed to be trimmed to `0.25`.
             setter=_set_k_x,
         ),
     )
+
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
+    @overload
+    def __call__(self, *, damp: float) -> None: ...
+
+    @overload
+    def __call__(self, *, k: float, x: float) -> None: ...
+
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
+        super().__call__(*args, **kwargs)
 
 
 class Length(parametertools.Parameter):

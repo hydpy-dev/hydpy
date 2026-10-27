@@ -11,15 +11,15 @@ class LoggingWindow(parametertools.Parameter):
     TYPE: Final = int
 
 
-class NmbOutputCorrModels(parametertools.Parameter):
+class NmbSubmodels(parametertools.Parameter):
     """The number of output correction submodels [-].
 
-    Setting |NmbOutputCorrModels| automatically resizes the
+    Setting |NmbSubmodels| automatically resizes the
     |Model.outputcorrmodels| submodel slots accordingly:
 
     >>> from hydpy.models.statcorr import *
     >>> parameterstep()
-    >>> nmboutputcorrmodels(3)
+    >>> nmbsubmodels(3)
     >>> model.outputcorrmodels.number
     3
     """
@@ -111,16 +111,14 @@ class LinearReductionTime(parametertools.Parameter):
 
 
 class LimitNQM(parametertools.Parameter):
-    """Discharge threshold for the transition from NQ to MQ range in m³/s.
-    """
+    """Discharge threshold for the transition from NQ to MQ range in m³/s."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
 
 
 class LimitMQH(parametertools.Parameter):
-    """Discharge threshold for the transition from MQ to HQ range in m³/s.
-    """
+    """Discharge threshold for the transition from MQ to HQ range in m³/s."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float

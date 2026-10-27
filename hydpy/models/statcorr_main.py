@@ -30,7 +30,7 @@ Integration test
     maximum is at least zero), so the ARIMA correction always applies unabated:
 
     >>> loggingwindow(3)
-    >>> nmboutputcorrmodels(1)
+    >>> nmbsubmodels(1)
     >>> propagatecorrection(True)
     >>> with model.add_outputcorrmodel_v1(
     ...     "statcorr_arima010", position=0
@@ -89,7 +89,7 @@ from hydpy.models.statcorr import statcorr_model
 
 ADDITIONAL_CONTROLPARAMETERS = (
     statcorr_control.LoggingWindow,
-    statcorr_control.NmbOutputCorrModels,
+    statcorr_control.NmbSubmodels,
     statcorr_control.PropagateCorrection,
 )
 

@@ -105,7 +105,7 @@ class Calc_OutputCorr_V1(modeltools.Method):
         ...     submodel.parameters.control.linearreductiontime(1, 1)
 
         >>> loggingwindow(2)
-        >>> nmboutputcorrmodels(1)
+        >>> nmbsubmodels(1)
         >>> with model.add_outputcorrmodel_v1(
         ...     "statcorr_arima010", position=0
         ... ) as submodel:
@@ -123,7 +123,7 @@ class Calc_OutputCorr_V1(modeltools.Method):
         With two attached submodels of the same type, the second one's output
         wins:
 
-        >>> nmboutputcorrmodels(2)
+        >>> nmbsubmodels(2)
         >>> with model.add_outputcorrmodel_v1(
         ...     "statcorr_arima010", position=0
         ... ) as submodel:
@@ -156,7 +156,7 @@ class Calc_OutputCorr_V1(modeltools.Method):
         and wipe their logged history:
 
         >>> loggingwindow(3)
-        >>> nmboutputcorrmodels(1)
+        >>> nmbsubmodels(1)
         >>> with model.add_outputcorrmodel_v1(
         ...     "statcorr_arima010", position=0
         ... ) as submodel:
@@ -354,7 +354,7 @@ class Model(modeltools.AdHocModel):
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> loggingwindow(4)
-        >>> nmboutputcorrmodels(1)
+        >>> nmbsubmodels(1)
         >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0):
         ...     pass
         >>> model.outputcorrmodels[0].parameters.derived.nmblogentries
@@ -1061,7 +1061,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         else:
             if not isforecastmode:
                 nmb = min(der.nmblogentries, con.nqmstationaritywindow)
-                stationary: bool = True
+                stationary = True
                 has_nan = False
                 qmin: float = modelutils.inf
                 qmax: float = -modelutils.inf

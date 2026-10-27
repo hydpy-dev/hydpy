@@ -62,7 +62,7 @@ class LowVariability(sequencetools.StateSequence):
     """Flag (1.0: yes, 0.0: no) telling whether the variability check (see
     |VariabilityCheck|) found stationary conditions at the last assessment, so that
     the mean-value-based residual relies on the |StationaryAveragingWindow| instead
-    of the |ResidualAveragingWindow| [-].
+    of the |AveragingWindow| [-].
 
     Like |Stationary|, |statcorr_arima010| only reassesses |LowVariability| while
     |Options.simulationmode| equals `historical`."""
@@ -79,8 +79,8 @@ class ForecastStep(sequencetools.StateSequence):
 
     |Determine_OutputCorrection_V1| uses |ForecastStep| to linearly blend the
     applied residual from the single most recent (pointwise) value towards
-    the mean-value-based residual determined via |ResidualAveragingWindow|
-    over |ResidualTransitionTime| forecast steps."""
+    the mean-value-based residual determined via |AveragingWindow|
+    over |TransitionSteps| forecast steps."""
 
     NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, None)
@@ -89,7 +89,7 @@ class ForecastStep(sequencetools.StateSequence):
 
 class AveragedResidual(sequencetools.StateSequence):
     """The mean-value-based ARIMA residual (mean observed minus mean simulated
-    discharge over the |ResidualAveragingWindow| log entries immediately
+    discharge over the |AveragingWindow| log entries immediately
     preceding the current forecast run) in m³/s, determined once at the first
     forecast step and kept unchanged for the remainder of the forecast
     horizon."""

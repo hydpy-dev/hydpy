@@ -95,10 +95,10 @@ class Calc_OutputCorr_V1(modeltools.Method):
         ...     submodel.parameters.control.upperlimit(upperlimit)
         ...     submodel.parameters.control.evaluationwindow(1)
         ...     submodel.parameters.control.maxnanskip(3)
-        ...     submodel.parameters.control.maxabsoluteshift(100.0)
-        ...     submodel.parameters.control.maxrelativeshift(1000.0)
-        ...     submodel.parameters.control.residualaveragingwindow(0)
-        ...     submodel.parameters.control.residualtransitiontime(0)
+        ...     submodel.parameters.control.maxabsshift(100.0)
+        ...     submodel.parameters.control.maxrelshift(1000.0)
+        ...     submodel.parameters.control.averagingwindow(0)
+        ...     submodel.parameters.control.transitionsteps(0)
         ...     submodel.parameters.control.stationaritycheck(False)
         ...     submodel.parameters.control.reductionsteps(1)
 
@@ -465,25 +465,25 @@ class Calc_AveragedResidual_V1(modeltools.Method):
     horizon.
 
     |Calc_AveragedResidual_V1| averages the |LoggedObservedDischarge| and
-    |LoggedSimulatedDischarge| entries covering the |ResidualAveragingWindow|
+    |LoggedSimulatedDischarge| entries covering the |AveragingWindow|
     log positions immediately preceding the current forecast run (log
     position ``0`` already holds the current forecast step's own values, so
     averaging starts at position ``1``) and stores their difference in
     |AveragedResidual|.  It leaves |AveragedResidual| unchanged whenever
     `forecast_step` is not zero (i.e., beyond the first forecast step) or
-    |ResidualAveragingWindow| is zero (mean-value-based correction disabled).
+    |AveragingWindow| is zero (mean-value-based correction disabled).
     When the averaging window contains a |numpy.nan| value, it falls back to
     the given `fallback` residual instead (usually the pointwise residual
     already determined by |Determine_OutputCorrection_V1|).  While
     |LowVariability| is ``1.0`` (stationary conditions according to
     |VariabilityCheck|), the |StationaryAveragingWindow| replaces the
-    |ResidualAveragingWindow|.
+    |AveragingWindow|.
 
     Examples:
 
         >>> from hydpy.models.statcorr_arima010 import *
         >>> parameterstep()
-        >>> control.residualaveragingwindow(2)
+        >>> control.averagingwindow(2)
         >>> derived.stationaryaveragingwindow(1)
         >>> states.lowvariability(0.0)
         >>> derived.nmblogentries(3)
@@ -510,11 +510,11 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         >>> states.averagedresidual
         averagedresidual(1.0)
 
-        Setting |ResidualAveragingWindow| to zero disables mean-value-based
+        Setting |AveragingWindow| to zero disables mean-value-based
         correction; |Calc_AveragedResidual_V1| leaves |AveragedResidual|
         unchanged even on the first forecast step:
 
-        >>> control.residualaveragingwindow(0)
+        >>> control.averagingwindow(0)
         >>> states.averagedresidual(-9.0)
         >>> model.calc_averagedresidual_v1(0.0, -9.0)
         >>> states.averagedresidual
@@ -523,7 +523,7 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         A |numpy.nan| value within the averaging window makes
         |Calc_AveragedResidual_V1| fall back to the given `fallback` value:
 
-        >>> control.residualaveragingwindow(2)
+        >>> control.averagingwindow(2)
         >>> logs.loggedobserveddischarge = nan, nan, 50.0
         >>> model.calc_averagedresidual_v1(0.0, -9.0)
         >>> states.averagedresidual
@@ -532,9 +532,9 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         Under stationary conditions according to |VariabilityCheck|, the
         averaging period covers the single log position ``1`` given by
         |StationaryAveragingWindow| (``30.0 - 20.0``), even if
-        |ResidualAveragingWindow| is zero:
+        |AveragingWindow| is zero:
 
-        >>> control.residualaveragingwindow(0)
+        >>> control.averagingwindow(0)
         >>> states.lowvariability(1.0)
         >>> logs.loggedobserveddischarge = nan, 30.0, nan
         >>> model.calc_averagedresidual_v1(0.0, -9.0)
@@ -542,7 +542,7 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         averagedresidual(10.0)
     """
 
-    CONTROLPARAMETERS = (statcorr_control.ResidualAveragingWindow,)
+    CONTROLPARAMETERS = (statcorr_control.AveragingWindow,)
     DERIVEDPARAMETERS = (
         statcorr_derived.NmbLogEntries,
         statcorr_derived.StationaryAveragingWindow,
@@ -566,7 +566,7 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         if sta.lowvariability == 1.0:
             nmb = min(der.stationaryaveragingwindow, der.nmblogentries - 1)
         else:
-            nmb = min(con.residualaveragingwindow, der.nmblogentries - 1)
+            nmb = min(con.averagingwindow, der.nmblogentries - 1)
         if forecast_step != 0.0 or nmb <= 0:
             return
 
@@ -630,19 +630,19 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
     * If :math:`sim_0 > sim_k` (and :math:`sim_k > 0`),
       |Determine_OutputCorrection_V1| shifts :math:`sim_0` *additively* by the
-      |ReductionFactor|-damped residual, capped at |MaxAbsoluteShift| (in
+      |ReductionFactor|-damped residual, capped at |MaxAbsShift| (in
       m³/s):
 
         :math:`q_{corr} = sim_0 + \mathrm{clip}\left((obs_k - sim_k) \cdot
-        f_{red},\ \pm MaxAbsoluteShift\right)`
+        f_{red},\ \pm MaxAbsShift\right)`
 
     * Otherwise (including :math:`sim_k \leq 0`, for which a relative shift
       would be undefined), it shifts :math:`sim_0` *multiplicatively* instead,
       expressing the damped residual as a percentage of :math:`sim_k` and
-      capping that percentage at |MaxRelativeShift|:
+      capping that percentage at |MaxRelShift|:
 
         :math:`q_{corr} = sim_0 \cdot \left(1 + \mathrm{clip}\left((obs_k -
-        sim_k) \cdot f_{red} / sim_k,\ \pm MaxRelativeShift / 100\right)
+        sim_k) \cdot f_{red} / sim_k,\ \pm MaxRelShift / 100\right)
         \right)`
 
       Applying the residual as a percentage rather than a constant offset
@@ -650,7 +650,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
       forecasted discharge recedes towards zero.
 
     The residual (:math:`obs_k - sim_k` above) used in either branch is not
-    necessarily the pointwise one.  Setting |ResidualAveragingWindow| to a
+    necessarily the pointwise one.  Setting |AveragingWindow| to a
     value greater than zero switches to a mean-value-based residual instead —
     the difference between the mean observed and the mean simulated discharge
     over that many log entries immediately preceding the current forecast run
@@ -663,8 +663,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     starts every forecast run with the pointwise residual (so the corrected
     discharge picks up smoothly where the last measurement left off) and then
     linearly blends it towards the mean-value-based residual over
-    |ResidualTransitionTime| forecast steps, applying the mean-value-based
-    residual unabated from then on.  Setting |ResidualAveragingWindow| to zero
+    |TransitionSteps| forecast steps, applying the mean-value-based
+    residual unabated from then on.  Setting |AveragingWindow| to zero
     (the default behaviour before mean-value-based correction was introduced)
     disables this mechanism entirely, relying on the pointwise residual alone,
     as described above.
@@ -706,9 +706,9 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     never interferes with the linear reduction of the correction.  Under
     stationary conditions, the mean-value-based residual (see
     |Calc_AveragedResidual_V1|) relies on the |StationaryAveragingWindow| instead
-    of the |ResidualAveragingWindow| (and so applies even if
-    |ResidualAveragingWindow| is zero), while the transition over
-    |ResidualTransitionTime| forecast steps remains unchanged.  Otherwise
+    of the |AveragingWindow| (and so applies even if
+    |AveragingWindow| is zero), while the transition over
+    |TransitionSteps| forecast steps remains unchanged.  Otherwise
     (including the case of a non-positive |EvaluatedDischarge|, for which
     |RelSumDelta| is |numpy.nan|), the correction works as described above.
     Like |Stationary|, |Determine_OutputCorrection_V1| reassesses |RelSumDelta|
@@ -752,10 +752,10 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> derived.stationaryaveragingwindow.update()
         >>> control.reductionsteps(2)
         >>> control.maxnanskip(3)
-        >>> control.maxabsoluteshift(100.0)
-        >>> control.maxrelativeshift(1000.0)
-        >>> control.residualaveragingwindow(0)
-        >>> control.residualtransitiontime(0)
+        >>> control.maxabsshift(100.0)
+        >>> control.maxrelshift(1000.0)
+        >>> control.averagingwindow(0)
+        >>> control.transitionsteps(0)
         >>> states.reductionfactor(1.0)
         >>> states.stationary(1.0)
         >>> logs.loggedsimulateddischarge.shape = 3
@@ -1008,18 +1008,18 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(2.4)
 
-        Limiting |MaxRelativeShift| caps that percentage before it is
+        Limiting |MaxRelShift| caps that percentage before it is
         converted back into an absolute shift:
 
-        >>> control.maxrelativeshift(10.0)
+        >>> control.maxrelshift(10.0)
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.correctedq
         correctedq(2.2)
 
-        Likewise, |MaxAbsoluteShift| caps the additive shift applied whenever
+        Likewise, |MaxAbsShift| caps the additive shift applied whenever
         the forecast value exceeds the anchor value:
 
-        >>> control.maxabsoluteshift(1.0)
+        >>> control.maxabsshift(1.0)
         >>> logs.loggedsimulateddischarge = 12.0, 10.0, 10.0, nan, nan
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.correctedq
@@ -1030,26 +1030,26 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         falls back to the additive shift in that case as well, even though
         the forecast value does not exceed the anchor value:
 
-        >>> control.maxabsoluteshift(100.0)
+        >>> control.maxabsshift(100.0)
         >>> logs.loggedsimulateddischarge = 0.0, 0.0, 10.0, nan, nan
         >>> logs.loggedobserveddischarge = nan, 2.0, nan, nan, nan
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.correctedq
         correctedq(2.0)
 
-        Setting |ResidualAveragingWindow| to a value greater than zero
+        Setting |AveragingWindow| to a value greater than zero
         switches to the mean-value-based residual, blended in linearly over
-        |ResidualTransitionTime| forecast steps.  We reset the log to a
+        |TransitionSteps| forecast steps.  We reset the log to a
         short, clean example (four entries) and freeze |EvaluatedDischarge|,
         |Stationary|, |Residual|, and |ResidualAnchor| directly (instead of
         deriving them from a preceding `historical` call) to keep the focus on
         the transition mechanism:
 
         >>> control.maxnanskip(4)
-        >>> control.maxabsoluteshift(100.0)
-        >>> control.maxrelativeshift(1000.0)
-        >>> control.residualaveragingwindow(2)
-        >>> control.residualtransitiontime(2)
+        >>> control.maxabsshift(100.0)
+        >>> control.maxrelshift(1000.0)
+        >>> control.averagingwindow(2)
+        >>> control.transitionsteps(2)
         >>> derived.nmblogentries(4)
         >>> logs.loggedsimulateddischarge.shape = 4
         >>> logs.loggedobserveddischarge.shape = 4
@@ -1120,7 +1120,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         In the subsequent forecast run, the mean-value-based residual covers the
         three log entries given by |StationaryAveragingWindow| (mean observed
         ``12.0``, mean simulated ``10.0``) instead of the two given by
-        |ResidualAveragingWindow|.  The transition from the pointwise residual
+        |AveragingWindow|.  The transition from the pointwise residual
         (``1.0``) works as before:
 
         >>> logs.loggedsimulateddischarge = 12.0, 9.0, 10.0, 11.0
@@ -1146,7 +1146,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         correctedq(16.0)
 
         A larger variability (``4.0 / 10.0 = 0.4``) exceeds |MaxRelSumDelta|, so
-        the next forecast run falls back to the |ResidualAveragingWindow| (mean
+        the next forecast run falls back to the |AveragingWindow| (mean
         observed ``11.0``, mean simulated ``9.0``) instead of using the
         |StationaryAveragingWindow| (which would result in a value of ``3.0``):
 
@@ -1208,10 +1208,10 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         statcorr_control.UpperLimit,
         statcorr_control.EvaluationWindow,
         statcorr_control.MaxNaNSkip,
-        statcorr_control.MaxAbsoluteShift,
-        statcorr_control.MaxRelativeShift,
-        statcorr_control.ResidualAveragingWindow,
-        statcorr_control.ResidualTransitionTime,
+        statcorr_control.MaxAbsShift,
+        statcorr_control.MaxRelShift,
+        statcorr_control.AveragingWindow,
+        statcorr_control.TransitionSteps,
         statcorr_control.ReductionSteps,
     )
     DERIVEDPARAMETERS = (
@@ -1335,22 +1335,22 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
         effective_residual: float = (
             residual
-            if con.residualaveragingwindow <= 0 and sta.lowvariability == 0.0
+            if con.averagingwindow <= 0 and sta.lowvariability == 0.0
             else residual
             + (
                 1.0
-                if con.residualtransitiontime <= 0
-                else min(1.0, forecast_step / con.residualtransitiontime)
+                if con.transitionsteps <= 0
+                else min(1.0, forecast_step / con.transitionsteps)
             )
             * (sta.averagedresidual - residual)
         )
         damped_residual: float = effective_residual * sta.reductionfactor
-        max_fraction: float = con.maxrelativeshift / 100.0
+        max_fraction: float = con.maxrelshift / 100.0
         shift: float = (
             forecast_value
             * min(max_fraction, max(-max_fraction, damped_residual / sim_anchor))
             if sim_anchor > 0.0 and forecast_value <= sim_anchor
-            else min(con.maxabsoluteshift, max(-con.maxabsoluteshift, damped_residual))
+            else min(con.maxabsshift, max(-con.maxabsshift, damped_residual))
         )
         flu.correctedq = forecast_value + shift
 

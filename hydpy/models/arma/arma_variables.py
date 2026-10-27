@@ -16,7 +16,7 @@ class MixinNmb(variabletools.Variable, abc.ABC):
 
     >>> from hydpy.models.arma import *
     >>> parameterstep("1d")
-    >>> responses(((1.0, 2.0), (1.0,)), th_3=((1.0,), (1.0, 2.0, 3.0)))
+    >>> responses(((1.0, 2.0), (1.0,)), th_3_0=((1.0,), (1.0, 2.0, 3.0)))
     >>> derived.nmb.update()
     >>> fluxes.qpin
     qpin(nan, nan)

@@ -36,7 +36,7 @@ class IsForecastMode(parametertools.Parameter):
 
 class NmbLogEntries(parametertools.Parameter):
     """The number of log entries required for memorising the simulated and observed
-    discharge values [-]."""
+    values [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -102,12 +102,12 @@ class NmbLogEntries(parametertools.Parameter):
         data:
 
         >>> logs
-        loggedobserveddischarge(nan, nan, nan, nan)
-        loggedsimulateddischarge(nan, nan, nan, nan)
+        loggedobservedvalue(nan, nan, nan, nan)
+        loggedsimulatedvalue(nan, nan, nan, nan)
         >>> states
         reductionfactor(1.0)
         stationary(1.0)
-        evaluateddischarge(nan)
+        evaluatedvalue(nan)
         relsumdelta(nan)
         lowvariability(0.0)
         forecaststep(0.0)
@@ -118,14 +118,14 @@ class NmbLogEntries(parametertools.Parameter):
         To prevent losing information, it leaves the log and state sequences
         untouched as long as the number of log entries does not change:
 
-        >>> logs.loggedobserveddischarge = 1.0
+        >>> logs.loggedobservedvalue = 1.0
         >>> states.residual(2.0)
         >>> evaluationwindow(2)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(4)
-        >>> logs.loggedobserveddischarge
-        loggedobserveddischarge(1.0, 1.0, 1.0, 1.0)
+        >>> logs.loggedobservedvalue
+        loggedobservedvalue(1.0, 1.0, 1.0, 1.0)
         >>> states.residual
         residual(2.0)
         """
@@ -205,7 +205,7 @@ class StationarityWindow(parametertools.Parameter):
 
 
 class RatioMinMax(parametertools.Parameter):
-    """The threshold ratio of the minimum and the maximum measured discharge of the
+    """The threshold ratio of the minimum and the maximum observed values of the
     stationarity check (zero if the check is disabled) [-]."""
 
     NDIM: Final[Literal[0]] = 0
@@ -244,8 +244,8 @@ class RatioMinMax(parametertools.Parameter):
 
 
 class MaxRelSumDelta(parametertools.Parameter):
-    """The threshold for the sum of the absolute changes of the simulated discharge
-    within the |EvaluationWindow| divided by |EvaluatedDischarge| of the variability
+    """The threshold for the sum of the absolute changes of the simulated values
+    within the |EvaluationWindow| divided by |EvaluatedValue| of the variability
     check (zero if the check is disabled) [-]."""
 
     NDIM: Final[Literal[0]] = 0

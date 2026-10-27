@@ -52,8 +52,8 @@ class Calc_OutputCorr_V1(modeltools.Method):
 
     1. The current simulated discharge (|Inflow|) and observed discharge
        (|Discharge|) are passed to each attached |OutputCorrModel_V1| submodel
-       via |OutputCorrModel_V1.set_simulateddischarge| and
-       |OutputCorrModel_V1.set_observeddischarge|.  While |Options.simulationmode|
+       via |OutputCorrModel_V1.set_simulatedvalue| and
+       |OutputCorrModel_V1.set_observedvalue|.  While |Options.simulationmode|
        equals `forecast`, |Calc_OutputCorr_V1| passes |numpy.nan| instead of the
        actual value of |Discharge|, regardless of whether an observation is
        available.  This relies on the assumption that a previous `historical`
@@ -254,20 +254,18 @@ class Calc_OutputCorr_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         inp = model.sequences.inputs.fastaccess
-        observeddischarge: float = (
-            modelutils.nan if der.isforecastmode else inp.discharge
-        )
+        observedvalue: float = modelutils.nan if der.isforecastmode else inp.discharge
         flu.correctedq = flu.inflow
         for i in range(model.outputcorrmodels.number):
             if model.outputcorrmodels.typeids[i] == 1:
                 cast(
                     statcorrinterfaces.OutputCorrModel_V1,
                     model.outputcorrmodels.submodels[i],
-                ).set_simulateddischarge(flu.inflow)
+                ).set_simulatedvalue(flu.inflow)
                 cast(
                     statcorrinterfaces.OutputCorrModel_V1,
                     model.outputcorrmodels.submodels[i],
-                ).set_observeddischarge(observeddischarge)
+                ).set_observedvalue(observedvalue)
                 cast(
                     statcorrinterfaces.OutputCorrModel_V1,
                     model.outputcorrmodels.submodels[i],
@@ -371,14 +369,14 @@ class Model(modeltools.AdHocModel):
         ...     averagingwindow(0)
         >>> model.outputcorrmodels[0].parameters.derived.nmblogentries
         nmblogentries(4)
-        >>> model.outputcorrmodels[0].sequences.logs.loggedsimulateddischarge
-        loggedsimulateddischarge(nan, nan, nan, nan)
+        >>> model.outputcorrmodels[0].sequences.logs.loggedsimulatedvalue
+        loggedsimulatedvalue(nan, nan, nan, nan)
         """
 
 
-class Set_SimulatedDischarge_V1(modeltools.Method):
-    """Append the given simulated discharge value to the internal log of simulated
-    discharge by shifting the previously buffered values one position to the right
+class Set_SimulatedValue_V1(modeltools.Method):
+    """Append the given simulated value to the internal log of simulated values
+    by shifting the previously buffered values one position to the right
     and storing the new value at position 0.
 
     Example:
@@ -386,28 +384,28 @@ class Set_SimulatedDischarge_V1(modeltools.Method):
         >>> from hydpy.models.statcorr_arima010 import *
         >>> parameterstep()
         >>> derived.nmblogentries(3)
-        >>> logs.loggedsimulateddischarge.shape = 3
-        >>> logs.loggedsimulateddischarge = 4.0, 3.0, 2.0
-        >>> model.set_simulateddischarge_v1(5.0)
-        >>> logs.loggedsimulateddischarge
-        loggedsimulateddischarge(5.0, 4.0, 3.0)
+        >>> logs.loggedsimulatedvalue.shape = 3
+        >>> logs.loggedsimulatedvalue = 4.0, 3.0, 2.0
+        >>> model.set_simulatedvalue_v1(5.0)
+        >>> logs.loggedsimulatedvalue
+        loggedsimulatedvalue(5.0, 4.0, 3.0)
     """
 
     DERIVEDPARAMETERS = (statcorr_derived.NmbLogEntries,)
-    UPDATEDSEQUENCES = (statcorr_logs.LoggedSimulatedDischarge,)
+    UPDATEDSEQUENCES = (statcorr_logs.LoggedSimulatedValue,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, simulateddischarge: float, /) -> None:
+    def __call__(model: modeltools.Model, simulatedvalue: float, /) -> None:
         der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
-            log.loggedsimulateddischarge[idx] = log.loggedsimulateddischarge[idx - 1]
-        log.loggedsimulateddischarge[0] = simulateddischarge
+            log.loggedsimulatedvalue[idx] = log.loggedsimulatedvalue[idx - 1]
+        log.loggedsimulatedvalue[0] = simulatedvalue
 
 
-class Set_ObservedDischarge_V1(modeltools.Method):
-    """Append the given observed discharge value to the internal log of observed
-    discharge by shifting the previously buffered values one position to the right
+class Set_ObservedValue_V1(modeltools.Method):
+    """Append the given observed value to the internal log of observed values
+    by shifting the previously buffered values one position to the right
     and storing the new value at position 0.
 
     The given value may be |numpy.nan| when no observation is available.
@@ -417,24 +415,24 @@ class Set_ObservedDischarge_V1(modeltools.Method):
         >>> from hydpy.models.statcorr_arima010 import *
         >>> parameterstep()
         >>> derived.nmblogentries(3)
-        >>> logs.loggedobserveddischarge.shape = 3
-        >>> logs.loggedobserveddischarge = 4.0, 3.0, 2.0
+        >>> logs.loggedobservedvalue.shape = 3
+        >>> logs.loggedobservedvalue = 4.0, 3.0, 2.0
         >>> from numpy import nan
-        >>> model.set_observeddischarge_v1(nan)
-        >>> logs.loggedobserveddischarge
-        loggedobserveddischarge(nan, 4.0, 3.0)
+        >>> model.set_observedvalue_v1(nan)
+        >>> logs.loggedobservedvalue
+        loggedobservedvalue(nan, 4.0, 3.0)
     """
 
     DERIVEDPARAMETERS = (statcorr_derived.NmbLogEntries,)
-    UPDATEDSEQUENCES = (statcorr_logs.LoggedObservedDischarge,)
+    UPDATEDSEQUENCES = (statcorr_logs.LoggedObservedValue,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, observeddischarge: float, /) -> None:
+    def __call__(model: modeltools.Model, observedvalue: float, /) -> None:
         der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
-            log.loggedobserveddischarge[idx] = log.loggedobserveddischarge[idx - 1]
-        log.loggedobserveddischarge[0] = observeddischarge
+            log.loggedobservedvalue[idx] = log.loggedobservedvalue[idx - 1]
+        log.loggedobservedvalue[0] = observedvalue
 
 
 class Calc_AveragedResidual_V1(modeltools.Method):
@@ -442,8 +440,8 @@ class Calc_AveragedResidual_V1(modeltools.Method):
     forecast step, and freeze it for the remainder of the current forecast
     horizon.
 
-    |Calc_AveragedResidual_V1| averages the |LoggedObservedDischarge| and
-    |LoggedSimulatedDischarge| entries covering the |AveragingWindow|
+    |Calc_AveragedResidual_V1| averages the |LoggedObservedValue| and
+    |LoggedSimulatedValue| entries covering the |AveragingWindow|
     log positions immediately preceding the current forecast run (log
     position ``0`` already holds the current forecast step's own values, so
     averaging starts at position ``1``) and stores their difference in
@@ -465,10 +463,10 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         >>> derived.stationaryaveragingwindow(1)
         >>> states.lowvariability(0.0)
         >>> derived.nmblogentries(3)
-        >>> logs.loggedsimulateddischarge.shape = 3
-        >>> logs.loggedobserveddischarge.shape = 3
-        >>> logs.loggedsimulateddischarge = 3.0, 2.0, 4.0
-        >>> logs.loggedobserveddischarge = nan, 3.0, 5.0
+        >>> logs.loggedsimulatedvalue.shape = 3
+        >>> logs.loggedobservedvalue.shape = 3
+        >>> logs.loggedsimulatedvalue = 3.0, 2.0, 4.0
+        >>> logs.loggedobservedvalue = nan, 3.0, 5.0
 
         On the first forecast step (`forecast_step` is ``0.0``), the average
         is taken from log positions ``1`` and ``2`` (mean observed ``4.0``,
@@ -482,8 +480,8 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         On any later forecast step, the previously determined value remains
         unchanged, regardless of the current log contents:
 
-        >>> logs.loggedsimulateddischarge = 3.0, 20.0, 40.0
-        >>> logs.loggedobserveddischarge = nan, 30.0, 50.0
+        >>> logs.loggedsimulatedvalue = 3.0, 20.0, 40.0
+        >>> logs.loggedobservedvalue = nan, 30.0, 50.0
         >>> model.calc_averagedresidual_v1(1.0, -9.0)
         >>> states.averagedresidual
         averagedresidual(1.0)
@@ -502,7 +500,7 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         |Calc_AveragedResidual_V1| fall back to the given `fallback` value:
 
         >>> control.averagingwindow(2)
-        >>> logs.loggedobserveddischarge = nan, nan, 50.0
+        >>> logs.loggedobservedvalue = nan, nan, 50.0
         >>> model.calc_averagedresidual_v1(0.0, -9.0)
         >>> states.averagedresidual
         averagedresidual(-9.0)
@@ -514,7 +512,7 @@ class Calc_AveragedResidual_V1(modeltools.Method):
 
         >>> control.averagingwindow(0)
         >>> states.lowvariability(1.0)
-        >>> logs.loggedobserveddischarge = nan, 30.0, nan
+        >>> logs.loggedobservedvalue = nan, 30.0, nan
         >>> model.calc_averagedresidual_v1(0.0, -9.0)
         >>> states.averagedresidual
         averagedresidual(10.0)
@@ -526,8 +524,8 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         statcorr_derived.StationaryAveragingWindow,
     )
     REQUIREDSEQUENCES = (
-        statcorr_logs.LoggedSimulatedDischarge,
-        statcorr_logs.LoggedObservedDischarge,
+        statcorr_logs.LoggedSimulatedValue,
+        statcorr_logs.LoggedObservedValue,
         statcorr_states.LowVariability,
     )
     UPDATEDSEQUENCES = (statcorr_states.AveragedResidual,)
@@ -552,8 +550,8 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         sum_sim: float = 0.0
         has_nan = False
         for idx in range(1, nmb + 1):
-            obs_value: float = log.loggedobserveddischarge[idx]
-            sim_value: float = log.loggedsimulateddischarge[idx]
+            obs_value: float = log.loggedobservedvalue[idx]
+            sim_value: float = log.loggedsimulatedvalue[idx]
             if modelutils.isnan(obs_value) or modelutils.isnan(sim_value):
                 has_nan = True
                 break
@@ -563,14 +561,14 @@ class Calc_AveragedResidual_V1(modeltools.Method):
 
 
 class Determine_OutputCorrection_V1(modeltools.Method):
-    r"""Calculate the corrected discharge using an ARIMA(0,1,0) — random-walk —
+    r"""Calculate the corrected value using an ARIMA(0,1,0) — random-walk —
     error model.
 
-    Each submodel is responsible for a specific discharge range only.  It corrects
-    the discharge only while |Active| is |True|, |CorrectionMode| allows a
+    Each submodel is responsible for a specific value range only.  It corrects
+    the simulated values only while |Active| is |True|, |CorrectionMode| allows a
     correction in the current simulation mode, and the mean of the
-    |EvaluationWindow| most recent |LoggedSimulatedDischarge| values
-    (:math:`\overline{sim}`, stored in |EvaluatedDischarge|) lies within the
+    |EvaluationWindow| most recent |LoggedSimulatedValue| values
+    (:math:`\overline{sim}`, stored in |EvaluatedValue|) lies within the
     range defined by |LowerLimit| and |UpperLimit|:
 
         :math:`LowerLimit \leq \overline{sim} < UpperLimit`
@@ -582,37 +580,36 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     checks the condition in each simulation step (so changes of |Active|,
     |CorrectionMode|, |LowerLimit|, or |UpperLimit| take effect immediately) and
     stores the outcome in |IsActive|.  Whenever the condition is not met, the
-    corrected discharge equals the current simulated discharge.  However,
+    corrected value equals the current simulated value.  However,
     |Determine_OutputCorrection_V1| keeps updating all internal states (the
     residual, the stationarity assessment, and the |ReductionFactor|) in either
     case, so that a submodel taking over responsibility starts with up-to-date
     information.  This also holds for a submodel that |CorrectionMode| restricts
-    to the `forecast` mode, which, therefore, relies on the residual and the flow
+    to the `forecast` mode, which, therefore, relies on the residual and the
     conditions determined during the preceding `historical` run.
 
     The correction is derived from the most recently available residual
-    (observed minus simulated discharge).  While |Options.simulationmode|
+    (observed minus simulated values).  While |Options.simulationmode|
     equals `historical`, the "most recent" residual is taken from the latest
-    log entry where the observed discharge is not |numpy.nan|, searching back
+    log entry where the observed value is not |numpy.nan|, searching back
     at most |MaxNaNSkip| log entries (or the entire log, whichever is
     smaller), and remembered in |Residual| (together with the corresponding
-    simulated discharge in |ResidualAnchor|).  When no observation is
+    simulated value in |ResidualAnchor|).  When no observation is
     available within that range, both are set to zero, so the corrected
-    discharge equals the current simulated discharge.  While
+    value equals the current simulated value.  While
     |Options.simulationmode| equals `forecast`, |Determine_OutputCorrection_V1|
     does not repeat this search — see the paragraph on |Residual| and
     |ResidualAnchor| below for why.
 
     How that residual is applied to the current simulated ("forecast")
-    discharge depends on how the latter (:math:`sim_0`) compares to the
-    simulated discharge at the time the residual was determined (:math:`sim_k`,
+    value depends on how the latter (:math:`sim_0`) compares to the
+    simulated value at the time the residual was determined (:math:`sim_k`,
     with :math:`k` denoting the most recent log index for which :math:`obs_k
     \neq \mathrm{nan}`, and :math:`f_{red}` denoting |ReductionFactor|):
 
     * If :math:`sim_0 > sim_k` (and :math:`sim_k > 0`),
       |Determine_OutputCorrection_V1| shifts :math:`sim_0` *additively* by the
-      |ReductionFactor|-damped residual, capped at |MaxAbsShift| (in
-      m³/s):
+      |ReductionFactor|-damped residual, capped at |MaxAbsShift|:
 
         :math:`q_{corr} = sim_0 + \mathrm{clip}\left((obs_k - sim_k) \cdot
         f_{red},\ \pm MaxAbsShift\right)`
@@ -628,21 +625,21 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
       Applying the residual as a percentage rather than a constant offset
       keeps the correction from overshooting or turning negative while the
-      forecasted discharge recedes towards zero.
+      forecasted values recede towards zero.
 
     The residual (:math:`obs_k - sim_k` above) used in either branch is not
     necessarily the pointwise one.  Setting |AveragingWindow| to a
     value greater than zero switches to a mean-value-based residual instead —
-    the difference between the mean observed and the mean simulated discharge
+    the difference between the mean observed and the mean simulated values
     over that many log entries immediately preceding the current forecast run
     (determined once, at the first forecast step, via
     |Calc_AveragedResidual_V1|, and frozen in |AveragedResidual| for the
     remainder of the forecast horizon).  Since that mean-value-based residual
     generally does not equal the pointwise residual at the forecast's start,
-    switching to it abruptly would cause a jump in the corrected discharge
+    switching to it abruptly would cause a jump in the corrected value
     right where the forecast begins.  To avoid this, |Determine_OutputCorrection_V1|
     starts every forecast run with the pointwise residual (so the corrected
-    discharge picks up smoothly where the last measurement left off) and then
+    value picks up smoothly where the last measurement left off) and then
     linearly blends it towards the mean-value-based residual over
     |TransitionSteps| forecast steps, applying the mean-value-based
     residual unabated from then on.  Setting |AveragingWindow| to zero
@@ -651,11 +648,11 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     as described above.
 
     If enabled via |StationarityCheck|, |Determine_OutputCorrection_V1|
-    additionally assesses whether the measured discharge behaves in a stationary
+    additionally assesses whether the observed values behave in a stationary
     way.  It takes the ratio of the minimum and the maximum
-    |LoggedObservedDischarge| value within the most recent |StationarityWindow|
+    |LoggedObservedValue| value within the most recent |StationarityWindow|
     log entries.  Whenever this ratio falls below |RatioMinMax|, it considers the
-    flow conditions instationary and linearly reduces |ReductionFactor| (the
+    conditions instationary and linearly reduces |ReductionFactor| (the
     factor :math:`f_{red}` in the equation above) towards zero, taking as many
     steps as given by |ReductionSteps|.  As soon as the ratio reaches
     |RatioMinMax| again (or a |numpy.nan| value prevents its calculation),
@@ -668,7 +665,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     `historical`, remembering its outcome in |Stationary|.  While
     |Options.simulationmode| equals `forecast`, it reuses this value from the
     most recent `historical` assessment instead of recomputing it —
-    recomputing would be unreliable anyway, since |LoggedObservedDischarge|
+    recomputing would be unreliable anyway, since |LoggedObservedValue|
     keeps receiving |numpy.nan| values throughout the forecast (see
     |Calc_OutputCorr_V1|), which the ratio-based check always interprets as
     "stationary".  So, once a `historical` run has flagged conditions as
@@ -677,10 +674,10 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     as soon as the last real observation drops out of the logging window.
 
     If enabled via |VariabilityCheck|, |Determine_OutputCorrection_V1|
-    additionally assesses how much the simulated discharge varies.  It sums the
-    absolute changes between successive |LoggedSimulatedDischarge| values within
-    the |EvaluationWindow| and divides this sum by |EvaluatedDischarge|, storing
-    the result in |RelSumDelta|.  It considers the flow conditions stationary
+    additionally assesses how much the simulated values vary.  It sums the
+    absolute changes between successive |LoggedSimulatedValue| values within
+    the |EvaluationWindow| and divides this sum by |EvaluatedValue|, storing
+    the result in |RelSumDelta|.  It considers the conditions stationary
     (|LowVariability| is ``1.0``) if |RelSumDelta| does not exceed
     |MaxRelSumDelta| and the stationarity check described above is either
     disabled or also detects stationary conditions.  Hence, the variability check
@@ -690,7 +687,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     of the |AveragingWindow| (and so applies even if
     |AveragingWindow| is zero), while the transition over
     |TransitionSteps| forecast steps remains unchanged.  Otherwise
-    (including the case of a non-positive |EvaluatedDischarge|, for which
+    (including the case of a non-positive |EvaluatedValue|, for which
     |RelSumDelta| is |numpy.nan|), the correction works as described above.
     Like |Stationary|, |Determine_OutputCorrection_V1| reassesses |RelSumDelta|
     and |LowVariability| only while |Options.simulationmode| equals
@@ -712,8 +709,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
         Three log entries are available, the most recent observation (at
         position 0) is non-|numpy.nan|, so the correction reproduces the current
-        observation.  The submodel is responsible for all discharges.  The
-        measured discharge is just stationary (the ratio of its minimum and
+        observation.  The submodel is responsible for all values.  The
+        observed values are just stationary (the ratio of their minimum and
         maximum equals |RatioMinMax|), so |ReductionFactor| remains at its
         initial value of ``1.0``:
 
@@ -740,10 +737,10 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> control.transitionsteps(0)
         >>> states.reductionfactor(1.0)
         >>> states.stationary(1.0)
-        >>> logs.loggedsimulateddischarge.shape = 3
-        >>> logs.loggedobserveddischarge.shape = 3
-        >>> logs.loggedsimulateddischarge = 5.0, 3.0, 2.0
-        >>> logs.loggedobserveddischarge = 6.0, 4.0, 3.0
+        >>> logs.loggedsimulatedvalue.shape = 3
+        >>> logs.loggedobservedvalue.shape = 3
+        >>> logs.loggedsimulatedvalue = 5.0, 3.0, 2.0
+        >>> logs.loggedobservedvalue = 6.0, 4.0, 3.0
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.isactive
         isactive(1.0)
@@ -752,8 +749,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> states.reductionfactor
         reductionfactor(1.0)
 
-        The mean simulated discharge (``10/3`` m³/s) is not below an
-        |UpperLimit| of 3 m³/s, so the submodel is not responsible and returns
+        The mean simulated value (``10/3``) is not below an
+        |UpperLimit| of 3, so the submodel is not responsible and returns
         the uncorrected simulated value:
 
         >>> control.upperlimit(3.0)
@@ -765,8 +762,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
         |UpperLimit| is exclusive, while |LowerLimit| is inclusive:
 
-        >>> logs.loggedsimulateddischarge = 3.0, 3.0, 3.0
-        >>> logs.loggedobserveddischarge = 4.0, 4.0, 4.0
+        >>> logs.loggedsimulatedvalue = 3.0, 3.0, 3.0
+        >>> logs.loggedobservedvalue = 4.0, 4.0, 4.0
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.isactive
         isactive(0.0)
@@ -791,7 +788,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         correctedq(3.0)
 
         |CorrectionMode| restricts the correction to one simulation mode.  With
-        `forecast`, the submodel does not correct the discharge in the `historical`
+        `forecast`, the submodel does not correct the simulated values in the
+        `historical`
         mode:
 
         >>> control.active(True)
@@ -828,33 +826,33 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> control.correctionmode("both")
 
         The two most recent observations are missing, so the residual is taken
-        from the third log entry and added to the current simulated discharge.
+        from the third log entry and added to the current simulated value.
         Missing observations also make it impossible to assess stationarity, so
         |Determine_OutputCorrection_V1| assumes stationary conditions and leaves
         |ReductionFactor| untouched:
 
         >>> control.active(True)
         >>> control.lowerlimit(0.0)
-        >>> logs.loggedsimulateddischarge = 5.0, 3.0, 2.0
-        >>> logs.loggedobserveddischarge = nan, nan, 3.0
+        >>> logs.loggedsimulatedvalue = 5.0, 3.0, 2.0
+        >>> logs.loggedobservedvalue = nan, nan, 3.0
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.correctedq
         correctedq(6.0)
 
         All observations are missing — no correction is applied:
 
-        >>> logs.loggedobserveddischarge = nan, nan, nan
+        >>> logs.loggedobservedvalue = nan, nan, nan
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.correctedq
         correctedq(5.0)
 
         Sustained instationary conditions (the ratio of the minimum and the
-        maximum observed discharge, ``0.5 / 5.0 = 0.1``, falls well below
+        maximum observed values, ``0.5 / 5.0 = 0.1``, falls well below
         |RatioMinMax|) linearly reduce |ReductionFactor| to zero within the two
         steps given by |ReductionSteps|:
 
-        >>> logs.loggedsimulateddischarge = 1.0, 1.0, 1.0
-        >>> logs.loggedobserveddischarge = 0.5, 5.0, 5.0
+        >>> logs.loggedsimulatedvalue = 1.0, 1.0, 1.0
+        >>> logs.loggedobservedvalue = 0.5, 5.0, 5.0
         >>> model.determine_outputcorrection_v1(False)
         >>> states.stationary
         stationary(0.0)
@@ -870,7 +868,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         correctedq(1.0)
 
         Disabling the stationarity check resets |ReductionFactor| to ``1.0``
-        regardless of the (still instationary) measured discharge:
+        regardless of the (still instationary) observed values:
 
         >>> control.stationaritycheck(False)
         >>> derived.stationaritywindow.update()
@@ -881,7 +879,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(0.5)
 
-        Once the measured discharge becomes stationary again (ratio
+        Once the observed values become stationary again (ratio
         ``4.0 / 5.0 = 0.8``, at or above |RatioMinMax|), |ReductionFactor| jumps
         back to ``1.0`` immediately, applying the correction unabated:
 
@@ -889,7 +887,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> derived.stationaritywindow.update()
         >>> derived.ratiominmax.update()
         >>> states.reductionfactor(0.0)
-        >>> logs.loggedobserveddischarge = 4.0, 5.0, 5.0
+        >>> logs.loggedobservedvalue = 4.0, 5.0, 5.0
         >>> model.determine_outputcorrection_v1(False)
         >>> states.reductionfactor
         reductionfactor(1.0)
@@ -900,7 +898,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         immediately once instationary conditions occur:
 
         >>> control.reductionsteps(0)
-        >>> logs.loggedobserveddischarge = 0.5, 5.0, 5.0
+        >>> logs.loggedobservedvalue = 0.5, 5.0, 5.0
         >>> model.determine_outputcorrection_v1(False)
         >>> states.reductionfactor
         reductionfactor(0.0)
@@ -913,8 +911,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
         >>> control.reductionsteps(2)
         >>> states.reductionfactor(1.0)
-        >>> logs.loggedsimulateddischarge = 1.0, 1.0, 1.0
-        >>> logs.loggedobserveddischarge = 0.5, 5.0, 5.0
+        >>> logs.loggedsimulatedvalue = 1.0, 1.0, 1.0
+        >>> logs.loggedobservedvalue = 0.5, 5.0, 5.0
         >>> model.determine_outputcorrection_v1(False)
         >>> states.stationary
         stationary(0.0)
@@ -926,8 +924,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         observations does not reassess |Stationary|; the ramp initiated above
         simply continues:
 
-        >>> logs.loggedsimulateddischarge = 1.0, 1.0, 1.0
-        >>> logs.loggedobserveddischarge = nan, nan, nan
+        >>> logs.loggedsimulatedvalue = 1.0, 1.0, 1.0
+        >>> logs.loggedobservedvalue = nan, nan, nan
         >>> model.determine_outputcorrection_v1(True)
         >>> states.stationary
         stationary(0.0)
@@ -946,26 +944,26 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(1.0)
 
-        The same holds for the mean simulated discharge deciding on the
+        The same holds for the mean simulated value deciding on the
         submodel's responsibility.  It was determined at the last `historical`
-        call (``1.0`` m³/s) and stays frozen while forecasting.  So, even if the
-        forecasted discharge rises above |UpperLimit|, the submodel remains
+        call (``1.0``) and stays frozen while forecasting.  So, even if the
+        forecasted values rise above |UpperLimit|, the submodel remains
         responsible:
 
         >>> control.upperlimit(5.0)
-        >>> logs.loggedsimulateddischarge = 10.0, 10.0, 10.0
+        >>> logs.loggedsimulatedvalue = 10.0, 10.0, 10.0
         >>> model.determine_outputcorrection_v1(True)
-        >>> states.evaluateddischarge
-        evaluateddischarge(1.0)
+        >>> states.evaluatedvalue
+        evaluatedvalue(1.0)
         >>> fluxes.isactive
         isactive(1.0)
 
-        Only a `historical` call updates |EvaluatedDischarge|, which then exceeds
+        Only a `historical` call updates |EvaluatedValue|, which then exceeds
         |UpperLimit|, so the submodel stops correcting:
 
         >>> model.determine_outputcorrection_v1(False)
-        >>> states.evaluateddischarge
-        evaluateddischarge(10.0)
+        >>> states.evaluatedvalue
+        evaluatedvalue(10.0)
         >>> fluxes.isactive
         isactive(0.0)
         >>> fluxes.correctedq
@@ -973,7 +971,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
         Enlarging the log beyond |EvaluationWindow| does not change the
         responsibility assessment, which always relies on the *most recently*
-        logged |LoggedSimulatedDischarge| entries (index ``0`` upwards) and
+        logged |LoggedSimulatedValue| entries (index ``0`` upwards) and
         never on the oldest ones sitting near the end of a larger log (which
         can well still be |numpy.nan|, as is the case for the newly added
         entries here):
@@ -981,10 +979,10 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> control.upperlimit(inf)
         >>> states.reductionfactor(1.0)
         >>> derived.nmblogentries(5)
-        >>> logs.loggedsimulateddischarge.shape = 5
-        >>> logs.loggedobserveddischarge.shape = 5
-        >>> logs.loggedsimulateddischarge = 1.0, 1.0, 1.0, nan, nan
-        >>> logs.loggedobserveddischarge = 0.5, 5.0, 5.0, nan, nan
+        >>> logs.loggedsimulatedvalue.shape = 5
+        >>> logs.loggedobservedvalue.shape = 5
+        >>> logs.loggedsimulatedvalue = 1.0, 1.0, 1.0, nan, nan
+        >>> logs.loggedobservedvalue = 0.5, 5.0, 5.0, nan, nan
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.isactive
         isactive(1.0)
@@ -999,8 +997,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         though an older, still-logged observation would otherwise be usable:
 
         >>> control.maxnanskip(2)
-        >>> logs.loggedsimulateddischarge = 1.0, 1.0, 1.0, nan, nan
-        >>> logs.loggedobserveddischarge = nan, nan, 3.0, nan, nan
+        >>> logs.loggedsimulatedvalue = 1.0, 1.0, 1.0, nan, nan
+        >>> logs.loggedobservedvalue = nan, nan, 3.0, nan, nan
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.correctedq
         correctedq(1.0)
@@ -1014,15 +1012,15 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         correctedq(3.0)
 
         So far, the current forecast value (log position 0) has always been
-        at or above the simulated discharge at the time the residual was
+        at or above the simulated value at the time the residual was
         determined, so all examples above used the additive (or, at position
         0 itself, an equivalent) shift.  Resetting the log to a *receding*
         forecast — position 0 has already dropped clearly below the value at
         the residual's log position — switches to the relative (percentage)
         shift instead:
 
-        >>> logs.loggedsimulateddischarge = 2.0, 10.0, 10.0, nan, nan
-        >>> logs.loggedobserveddischarge = nan, 12.0, nan, nan, nan
+        >>> logs.loggedsimulatedvalue = 2.0, 10.0, 10.0, nan, nan
+        >>> logs.loggedobservedvalue = nan, 12.0, nan, nan, nan
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.correctedq
         correctedq(2.4)
@@ -1039,7 +1037,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         the forecast value exceeds the anchor value:
 
         >>> control.maxabsshift(1.0)
-        >>> logs.loggedsimulateddischarge = 12.0, 10.0, 10.0, nan, nan
+        >>> logs.loggedsimulatedvalue = 12.0, 10.0, 10.0, nan, nan
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.correctedq
         correctedq(13.0)
@@ -1050,8 +1048,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         the forecast value does not exceed the anchor value:
 
         >>> control.maxabsshift(100.0)
-        >>> logs.loggedsimulateddischarge = 0.0, 0.0, 10.0, nan, nan
-        >>> logs.loggedobserveddischarge = nan, 2.0, nan, nan, nan
+        >>> logs.loggedsimulatedvalue = 0.0, 0.0, 10.0, nan, nan
+        >>> logs.loggedobservedvalue = nan, 2.0, nan, nan, nan
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.correctedq
         correctedq(2.0)
@@ -1059,7 +1057,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         Setting |AveragingWindow| to a value greater than zero
         switches to the mean-value-based residual, blended in linearly over
         |TransitionSteps| forecast steps.  We reset the log to a
-        short, clean example (four entries) and freeze |EvaluatedDischarge|,
+        short, clean example (four entries) and freeze |EvaluatedValue|,
         |Stationary|, |Residual|, and |ResidualAnchor| directly (instead of
         deriving them from a preceding `historical` call) to keep the focus on
         the transition mechanism:
@@ -1070,9 +1068,9 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> control.averagingwindow(2)
         >>> control.transitionsteps(2)
         >>> derived.nmblogentries(4)
-        >>> logs.loggedsimulateddischarge.shape = 4
-        >>> logs.loggedobserveddischarge.shape = 4
-        >>> states.evaluateddischarge(8.0)
+        >>> logs.loggedsimulatedvalue.shape = 4
+        >>> logs.loggedobservedvalue.shape = 4
+        >>> states.evaluatedvalue(8.0)
         >>> states.stationary(1.0)
         >>> states.reductionfactor(1.0)
         >>> states.forecaststep(0.0)
@@ -1086,8 +1084,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         |Determine_OutputCorrection_V1| applies the pointwise residual
         unabated:
 
-        >>> logs.loggedsimulateddischarge = 10.0, 8.0, 4.0, nan
-        >>> logs.loggedobserveddischarge = nan, 9.0, 8.0, nan
+        >>> logs.loggedsimulatedvalue = 10.0, 8.0, 4.0, nan
+        >>> logs.loggedobservedvalue = nan, 9.0, 8.0, nan
         >>> model.determine_outputcorrection_v1(True)
         >>> states.averagedresidual
         averagedresidual(2.5)
@@ -1097,8 +1095,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         Halfway through the two-step transition, the applied residual is the
         average of both (``1.75``):
 
-        >>> logs.loggedsimulateddischarge = 11.0, 10.0, 8.0, 4.0
-        >>> logs.loggedobserveddischarge = nan, nan, 9.0, 8.0
+        >>> logs.loggedsimulatedvalue = 11.0, 10.0, 8.0, 4.0
+        >>> logs.loggedobservedvalue = nan, nan, 9.0, 8.0
         >>> model.determine_outputcorrection_v1(True)
         >>> fluxes.correctedq
         correctedq(12.75)
@@ -1106,8 +1104,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         Once the transition period has elapsed, the full mean-value-based
         residual applies, regardless of the (still aging) pointwise residual:
 
-        >>> logs.loggedsimulateddischarge = 12.0, 11.0, 10.0, 8.0
-        >>> logs.loggedobserveddischarge = nan, nan, nan, 9.0
+        >>> logs.loggedsimulatedvalue = 12.0, 11.0, 10.0, 8.0
+        >>> logs.loggedobservedvalue = nan, nan, nan, 9.0
         >>> model.determine_outputcorrection_v1(True)
         >>> states.averagedresidual
         averagedresidual(2.5)
@@ -1115,7 +1113,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         correctedq(14.5)
 
         Next, we enable the variability check.  In the following `historical`
-        call, the absolute changes of the simulated discharge within the
+        call, the absolute changes of the simulated values within the
         |EvaluationWindow| sum up to ``2.0``, which is 20 % of their mean value
         (``10.0``).  So, |RelSumDelta| does not exceed |MaxRelSumDelta|, and
         (as the stationarity check also detects stationary conditions)
@@ -1124,8 +1122,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> control.variabilitycheck(maxrelsumdelta=0.2, averagingwindow=3)
         >>> derived.maxrelsumdelta.update()
         >>> derived.stationaryaveragingwindow.update()
-        >>> logs.loggedsimulateddischarge = 9.0, 10.0, 11.0, 10.0
-        >>> logs.loggedobserveddischarge = 10.0, 12.0, 14.0, 12.0
+        >>> logs.loggedsimulatedvalue = 9.0, 10.0, 11.0, 10.0
+        >>> logs.loggedobservedvalue = 10.0, 12.0, 14.0, 12.0
         >>> model.determine_outputcorrection_v1(False)
         >>> states.stationary
         stationary(1.0)
@@ -1142,22 +1140,22 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         |AveragingWindow|.  The transition from the pointwise residual
         (``1.0``) works as before:
 
-        >>> logs.loggedsimulateddischarge = 12.0, 9.0, 10.0, 11.0
-        >>> logs.loggedobserveddischarge = nan, 10.0, 12.0, 14.0
+        >>> logs.loggedsimulatedvalue = 12.0, 9.0, 10.0, 11.0
+        >>> logs.loggedobservedvalue = nan, 10.0, 12.0, 14.0
         >>> model.determine_outputcorrection_v1(True)
         >>> states.averagedresidual
         averagedresidual(2.0)
         >>> fluxes.correctedq
         correctedq(13.0)
 
-        >>> logs.loggedsimulateddischarge = 13.0, 12.0, 9.0, 10.0
-        >>> logs.loggedobserveddischarge = nan, nan, 10.0, 12.0
+        >>> logs.loggedsimulatedvalue = 13.0, 12.0, 9.0, 10.0
+        >>> logs.loggedobservedvalue = nan, nan, 10.0, 12.0
         >>> model.determine_outputcorrection_v1(True)
         >>> fluxes.correctedq
         correctedq(14.5)
 
-        >>> logs.loggedsimulateddischarge = 14.0, 13.0, 12.0, 9.0
-        >>> logs.loggedobserveddischarge = nan, nan, nan, 10.0
+        >>> logs.loggedsimulatedvalue = 14.0, 13.0, 12.0, 9.0
+        >>> logs.loggedobservedvalue = nan, nan, nan, 10.0
         >>> model.determine_outputcorrection_v1(True)
         >>> states.lowvariability
         lowvariability(1.0)
@@ -1169,15 +1167,15 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         observed ``11.0``, mean simulated ``9.0``) instead of using the
         |StationaryAveragingWindow| (which would result in a value of ``3.0``):
 
-        >>> logs.loggedsimulateddischarge = 8.0, 10.0, 12.0, 9.0
-        >>> logs.loggedobserveddischarge = 10.0, 12.0, 14.0, 12.0
+        >>> logs.loggedsimulatedvalue = 8.0, 10.0, 12.0, 9.0
+        >>> logs.loggedobservedvalue = 10.0, 12.0, 14.0, 12.0
         >>> model.determine_outputcorrection_v1(False)
         >>> states.relsumdelta
         relsumdelta(0.4)
         >>> states.lowvariability
         lowvariability(0.0)
-        >>> logs.loggedsimulateddischarge = 12.0, 8.0, 10.0, 9.0
-        >>> logs.loggedobserveddischarge = nan, 10.0, 12.0, 14.0
+        >>> logs.loggedsimulatedvalue = 12.0, 8.0, 10.0, 9.0
+        >>> logs.loggedobservedvalue = nan, 10.0, 12.0, 14.0
         >>> model.determine_outputcorrection_v1(True)
         >>> states.averagedresidual
         averagedresidual(2.0)
@@ -1187,8 +1185,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         detecting stationary conditions, even if |RelSumDelta| does not exceed
         |MaxRelSumDelta|:
 
-        >>> logs.loggedsimulateddischarge = 9.0, 10.0, 11.0, 10.0
-        >>> logs.loggedobserveddischarge = 5.0, 12.0, 14.0, 12.0
+        >>> logs.loggedsimulatedvalue = 9.0, 10.0, 11.0, 10.0
+        >>> logs.loggedobservedvalue = 5.0, 12.0, 14.0, 12.0
         >>> model.determine_outputcorrection_v1(False)
         >>> states.stationary
         stationary(0.0)
@@ -1197,12 +1195,12 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> states.lowvariability
         lowvariability(0.0)
 
-        For a non-positive |EvaluatedDischarge|, |RelSumDelta| is undefined, and
-        |Determine_OutputCorrection_V1| does not consider the flow conditions
+        For a non-positive |EvaluatedValue|, |RelSumDelta| is undefined, and
+        |Determine_OutputCorrection_V1| does not consider the conditions
         stationary:
 
-        >>> logs.loggedsimulateddischarge = 0.0, 0.0, 0.0, 0.0
-        >>> logs.loggedobserveddischarge = 1.0, 1.0, 1.0, 1.0
+        >>> logs.loggedsimulatedvalue = 0.0, 0.0, 0.0, 0.0
+        >>> logs.loggedobservedvalue = 1.0, 1.0, 1.0, 1.0
         >>> model.determine_outputcorrection_v1(False)
         >>> states.relsumdelta
         relsumdelta(nan)
@@ -1242,11 +1240,11 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         statcorr_derived.StationaryAveragingWindow,
     )
     REQUIREDSEQUENCES = (
-        statcorr_logs.LoggedSimulatedDischarge,
-        statcorr_logs.LoggedObservedDischarge,
+        statcorr_logs.LoggedSimulatedValue,
+        statcorr_logs.LoggedObservedValue,
     )
     UPDATEDSEQUENCES = (
-        statcorr_states.EvaluatedDischarge,
+        statcorr_states.EvaluatedValue,
         statcorr_states.ReductionFactor,
         statcorr_states.Stationary,
         statcorr_states.RelSumDelta,
@@ -1272,8 +1270,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         if not isforecastmode:
             mean_simulated: float = 0.0
             for idx in range(con.evaluationwindow):
-                mean_simulated = mean_simulated + log.loggedsimulateddischarge[idx]
-            sta.evaluateddischarge = mean_simulated / con.evaluationwindow
+                mean_simulated = mean_simulated + log.loggedsimulatedvalue[idx]
+            sta.evaluatedvalue = mean_simulated / con.evaluationwindow
         if con.correctionmode == 3:
             modeallowed = True
         elif isforecastmode:
@@ -1283,7 +1281,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         if (
             con.active
             and modeallowed
-            and (con.lowerlimit <= sta.evaluateddischarge < con.upperlimit)
+            and (con.lowerlimit <= sta.evaluatedvalue < con.upperlimit)
         ):
             flu.isactive = 1.0
         else:
@@ -1298,9 +1296,9 @@ class Determine_OutputCorrection_V1(modeltools.Method):
             residual = 0.0
             sim_anchor = 0.0
             for idx in range(min(der.nmblogentries, con.maxnanskip)):
-                if not modelutils.isnan(log.loggedobserveddischarge[idx]):
-                    sim_anchor = log.loggedsimulateddischarge[idx]
-                    residual = log.loggedobserveddischarge[idx] - sim_anchor
+                if not modelutils.isnan(log.loggedobservedvalue[idx]):
+                    sim_anchor = log.loggedsimulatedvalue[idx]
+                    residual = log.loggedobservedvalue[idx] - sim_anchor
                     break
             sta.residual = residual
             sta.residualanchor = sim_anchor
@@ -1315,7 +1313,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
                 qmin: float = modelutils.inf
                 qmax: float = -modelutils.inf
                 for idx in range(nmb):
-                    value: float = log.loggedobserveddischarge[idx]
+                    value: float = log.loggedobservedvalue[idx]
                     if modelutils.isnan(value):
                         has_nan = True
                         break
@@ -1340,11 +1338,10 @@ class Determine_OutputCorrection_V1(modeltools.Method):
             sumdelta: float = 0.0
             for idx in range(con.evaluationwindow - 1):
                 sumdelta = sumdelta + modelutils.fabs(
-                    log.loggedsimulateddischarge[idx]
-                    - log.loggedsimulateddischarge[idx + 1]
+                    log.loggedsimulatedvalue[idx] - log.loggedsimulatedvalue[idx + 1]
                 )
-            if sta.evaluateddischarge > 0.0:
-                sta.relsumdelta = sumdelta / sta.evaluateddischarge
+            if sta.evaluatedvalue > 0.0:
+                sta.relsumdelta = sumdelta / sta.evaluatedvalue
             else:
                 sta.relsumdelta = modelutils.nan
             if (der.stationaritywindow <= 0 or sta.stationary == 1.0) and (
@@ -1358,7 +1355,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         sta.forecaststep = (forecast_step + 1.0) if isforecastmode else 0.0
         model.calc_averagedresidual_v1(forecast_step, residual)
 
-        forecast_value: float = log.loggedsimulateddischarge[0]
+        forecast_value: float = log.loggedsimulatedvalue[0]
         if flu.isactive == 0.0:
             flu.correctedq = forecast_value
             return
@@ -1386,8 +1383,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
 
 class Is_Active_V1(modeltools.Method):
-    """Tell whether the submodel corrected the discharge during the most recent call
-    of |Determine_OutputCorrection_V1|.
+    """Tell whether the submodel corrected the simulated value during the most
+    recent call of |Determine_OutputCorrection_V1|.
 
     Example:
 
@@ -1408,7 +1405,7 @@ class Is_Active_V1(modeltools.Method):
 
 
 class Get_CorrectedOutput_V1(modeltools.Method):
-    """Return the most recently calculated corrected discharge in m³/s.
+    """Return the most recently calculated corrected value.
 
     Example:
 

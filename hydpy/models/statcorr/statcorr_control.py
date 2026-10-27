@@ -30,7 +30,7 @@ class NmbSubmodels(parametertools.Parameter):
 
 
 class EvaluationWindow(parametertools.Parameter):
-    """The length of the time period for evaluation of flow conditions."""
+    """The length of the time period for evaluating the current conditions."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -38,7 +38,7 @@ class EvaluationWindow(parametertools.Parameter):
 
 class MaxNaNSkip(parametertools.Parameter):
     """The maximum number of log entries to search back for the most recently
-    available residual when the current or recent observed discharge values are
+    available residual when the current or recent observed values are
     missing."""
 
     NDIM: Final[Literal[0]] = 0
@@ -47,18 +47,20 @@ class MaxNaNSkip(parametertools.Parameter):
 
 
 class Active(parametertools.Parameter):
-    """Flag determining whether the submodel may correct the discharge at all [-].
+    """Flag determining whether the submodel may correct the simulated values at
+    all [-].
 
-    Even when |Active| is |True|, the submodel only corrects the discharge while the
-    relevant simulated discharge lies within the range defined by |LowerLimit| and
-    |UpperLimit| (see |Determine_OutputCorrection_V1|)."""
+    Even when |Active| is |True|, the submodel only corrects the simulated values
+    while the relevant mean simulated value lies within the range defined by
+    |LowerLimit| and |UpperLimit| (see |Determine_OutputCorrection_V1|)."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
 
 
 class CorrectionMode(parametertools.Parameter):
-    """The simulation mode(s) in which the submodel may correct the discharge [-].
+    """The simulation mode(s) in which the submodel may correct the simulated
+    values [-].
 
     Pass one of the strings `historical`, `forecast`, or `both`, corresponding to
     the possible values of |Options.simulationmode|.  Internally, |CorrectionMode|
@@ -129,8 +131,8 @@ class CorrectionMode(parametertools.Parameter):
 
 
 class LowerLimit(parametertools.Parameter):
-    """Lower (inclusive) discharge limit of the submodel's range of responsibility
-    [m³/s]."""
+    """Lower (inclusive) limit of the submodel's range of responsibility
+    [unit of the corrected variable]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
@@ -138,8 +140,8 @@ class LowerLimit(parametertools.Parameter):
 
 
 class UpperLimit(parametertools.Parameter):
-    """Upper (exclusive) discharge limit of the submodel's range of responsibility
-    [m³/s].
+    """Upper (exclusive) limit of the submodel's range of responsibility
+    [unit of the corrected variable].
 
     Set it to |numpy.inf| to define a range without an upper limit."""
 
@@ -149,14 +151,14 @@ class UpperLimit(parametertools.Parameter):
 
 
 class StationarityCheck(parametertools.SpecialParameter):
-    """Configuration of the check of whether the measured discharge behaves in a
+    """Configuration of the check of whether the observed values behave in a
     stationary way [-].
 
     |StationarityCheck| is a special parameter (see |SpecialParameter|).  Either
     switch the check off by passing |False| or switch it on by passing the length of
     the assessment period (`window`, in log entries) and the threshold for the ratio
-    of the minimum and the maximum measured discharge within this period
-    (`ratiominmax`), below which |Determine_OutputCorrection_V1| considers the flow
+    of the minimum and the maximum observed values within this period
+    (`ratiominmax`), below which |Determine_OutputCorrection_V1| considers the
     conditions instationary:
 
     >>> from hydpy.models.statcorr_arima010 import *
@@ -336,19 +338,19 @@ lie between zero and one, but `1.5` is given.
 
     @property
     def ratiominmax(self) -> float:
-        """The threshold ratio of the minimum and the maximum measured discharge
+        """The threshold ratio of the minimum and the maximum observed values
         (zero if the check is disabled)."""
         return self._get_config()[2]
 
 
 class VariabilityCheck(parametertools.SpecialParameter):
-    """Configuration of the check of whether the simulated discharge varies little
+    """Configuration of the check of whether the simulated values vary little
     enough to base the correction on a long-term mean residual [-].
 
     |VariabilityCheck| is a special parameter (see |SpecialParameter|).  Either
     switch the check off by passing |False| or switch it on by passing the threshold
-    for the sum of the absolute changes of the simulated discharge within the
-    |EvaluationWindow| divided by |EvaluatedDischarge| (`maxrelsumdelta`) and the
+    for the sum of the absolute changes of the simulated values within the
+    |EvaluationWindow| divided by |EvaluatedValue| (`maxrelsumdelta`) and the
     length of the averaging period (`averagingwindow`, in log entries) for
     determining the mean-value-based residual under stationary conditions (see
     |Determine_OutputCorrection_V1|):
@@ -531,7 +533,7 @@ must be a positive integer, but `0` is given.
     @property
     def maxrelsumdelta(self) -> float:
         """The threshold for the relative sum of the absolute changes of the
-        simulated discharge (zero if the check is disabled)."""
+        simulated values (zero if the check is disabled)."""
         return self._get_config()[1]
 
     @property
@@ -543,7 +545,7 @@ must be a positive integer, but `0` is given.
 
 class ReductionSteps(parametertools.Parameter):
     """Number of timesteps for linearly reducing the ARIMA correction to zero once
-    the stationarity check (see |StationarityCheck|) detects instationary flow
+    the stationarity check (see |StationarityCheck|) detects instationary
     conditions [-]."""
 
     NDIM: Final[Literal[0]] = 0
@@ -552,9 +554,9 @@ class ReductionSteps(parametertools.Parameter):
 
 
 class MaxAbsShift(parametertools.Parameter):
-    """The maximum absolute shift (in m³/s) applied when the current forecast
-    discharge exceeds the simulated discharge at the point the residual was
-    determined (see |Determine_OutputCorrection_V1|)."""
+    """The maximum absolute shift applied when the current forecast value
+    exceeds the simulated value at the point the residual was determined (see
+    |Determine_OutputCorrection_V1|) [unit of the corrected variable]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
@@ -562,9 +564,9 @@ class MaxAbsShift(parametertools.Parameter):
 
 
 class MaxRelShift(parametertools.Parameter):
-    """The maximum relative shift (in %) applied when the current forecast
-    discharge is at or below the simulated discharge at the point the residual
-    was determined (see |Determine_OutputCorrection_V1|)."""
+    """The maximum relative shift (in %) applied when the current forecast value
+    is at or below the simulated value at the point the residual was
+    determined (see |Determine_OutputCorrection_V1|)."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float

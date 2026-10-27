@@ -4,13 +4,13 @@ from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 
 
-class LoggedObservedDischarge(sequencetools.LogSequence):
-    """Logged observed discharge [m³/s]"""
+class LoggedObservedValue(sequencetools.LogSequence):
+    """Logged observed values [unit of the corrected variable]"""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class LoggedSimulatedDischarge(sequencetools.LogSequence):
-    """Logged simulated discharge [m³/s]."""
+class LoggedSimulatedValue(sequencetools.LogSequence):
+    """Logged simulated values [unit of the corrected variable]."""
 
     NDIM: Final[Literal[1]] = 1

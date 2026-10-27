@@ -19,7 +19,8 @@ class OutputCorrModel_V1(modeltools.SubmodelInterface):
     1. |OutputCorrModel_V1.set_simulateddischarge|
     2. |OutputCorrModel_V1.set_observeddischarge|
     3. |OutputCorrModel_V1.determine_outputcorrection|
-    4. |OutputCorrModel_V1.get_correctedoutput|
+    4. |OutputCorrModel_V1.is_active|
+    5. |OutputCorrModel_V1.get_correctedoutput|
     """
 
     typeid: ClassVar[Literal[1]] = 1
@@ -53,6 +54,12 @@ class OutputCorrModel_V1(modeltools.SubmodelInterface):
         for it, and refreshing a submodel-owned derived parameter via
         |Model.update_parameters| would also needlessly re-run its submodel
         attachment/initialisation logic, wiping its logged history)."""
+
+    @modeltools.abstractmodelmethod
+    def is_active(self) -> bool:
+        """Tell whether the submodel was responsible for correcting the discharge
+        during the most recent call of
+        |OutputCorrModel_V1.determine_outputcorrection|."""
 
     @modeltools.abstractmodelmethod
     def get_correctedoutput(self) -> float:

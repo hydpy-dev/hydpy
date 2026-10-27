@@ -33,6 +33,11 @@ preceding the current forecast run), blended in linearly over
 forecast begins.  See |Determine_OutputCorrection_V1| and
 |Calc_AveragedResidual_V1| for details.
 
+Each |statcorr_arima010| instance is responsible for a specific discharge range
+only, defined by |LowerLimit| and |UpperLimit|, and can be switched off completely
+via |Active|.  Optionally, |StationarityCheck| lets it fade out the correction under
+instationary flow conditions.
+
 |statcorr_arima010| serves as a submodel for |statcorr| and complies with the
 |OutputCorrModel_V1| interface.
 
@@ -44,15 +49,15 @@ Example workflow
 
     >>> from hydpy.models.statcorr_arima010 import *
     >>> parameterstep()
-    >>> control.corrnq(True)
-    >>> control.corrmq(True)
-    >>> control.corrhq(True)
-    >>> control.limitnqm(3.0)
-    >>> control.limitmqh(5.0)
+    >>> from numpy import inf
+    >>> control.active(True)
+    >>> control.lowerlimit(0.0)
+    >>> control.upperlimit(inf)
     >>> control.evaluationwindow(3)
-    >>> control.qminqmax(0.0)
-    >>> control.nqmstationaritywindow(3)
-    >>> control.linearreductiontime(1, 1)
+    >>> control.stationaritycheck(False)
+    >>> derived.stationaritywindow.update()
+    >>> derived.ratiominmax.update()
+    >>> control.linearreductiontime(1)
     >>> control.maxresiduallookback(3)
     >>> control.maxabsoluteshift(100.0)
     >>> control.maxrelativeshift(1000.0)
@@ -85,13 +90,18 @@ Example workflow
     |OutputCorrModel_V1.determine_outputcorrection| computes the corrected
     discharge from the random-walk residual (here taken from log position 1,
     since position 0 has no observation) and stores it internally;
-    |OutputCorrModel_V1.get_correctedoutput| returns the buffered value:
+    |OutputCorrModel_V1.is_active| confirms the submodel is responsible for the
+    current discharge, and |OutputCorrModel_V1.get_correctedoutput| returns the
+    buffered value:
 
     >>> model.determine_outputcorrection(False)
+    >>> assert model.is_active()
     >>> from hydpy import round_
     >>> round_(model.get_correctedoutput())
     6.0
 """
+
+import numpy
 
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
@@ -119,6 +129,7 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
         statcorr_model.Set_SimulatedDischarge_V1,
         statcorr_model.Set_ObservedDischarge_V1,
         statcorr_model.Determine_OutputCorrection_V1,
+        statcorr_model.Is_Active_V1,
         statcorr_model.Get_CorrectedOutput_V1,
     )
     ADD_METHODS = (statcorr_model.Calc_AveragedResidual_V1,)
@@ -129,12 +140,12 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
 
     def prepare_nmblogentries(self, nmblogentries: int) -> None:
         """Allocate the internal log to hold `nmblogentries` discharge values and
-        initialise |ReductionFactor|, |Stationary|, |FlowCondition|,
-        |ForecastStep|, |AveragedResidual|, |Residual|, and |ResidualAnchor|
-        to ``1.0``, ``1.0``, ``2.0``, ``0.0``, ``0.0``, ``0.0``, and ``0.0``
-        (no reduction, stationary conditions assumed, HQ flow condition
-        assumed, no forecast steps elapsed, no mean-value-based or pointwise
-        residual determined yet).
+        initialise |EvaluatedDischarge|, |ReductionFactor|, |Stationary|,
+        |ForecastStep|, |AveragedResidual|, |Residual|, and |ResidualAnchor| to
+        |numpy.nan|, ``1.0``, ``1.0``, ``0.0``, ``0.0``, ``0.0``, and ``0.0``
+        (no mean simulated discharge determined yet, no reduction, stationary
+        conditions assumed, no forecast steps elapsed, no mean-value-based or
+        pointwise residual determined yet).
 
         >>> from hydpy.models.statcorr_arima010 import *
         >>> parameterstep()
@@ -145,12 +156,12 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
         loggedsimulateddischarge(nan, nan, nan, nan)
         >>> logs.loggedobserveddischarge
         loggedobserveddischarge(nan, nan, nan, nan)
+        >>> states.evaluateddischarge
+        evaluateddischarge(nan)
         >>> states.reductionfactor
         reductionfactor(1.0)
         >>> states.stationary
         stationary(1.0)
-        >>> states.flowcondition
-        flowcondition(2.0)
         >>> states.forecaststep
         forecaststep(0.0)
         >>> states.averagedresidual
@@ -163,9 +174,9 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
         self.parameters.derived.nmblogentries(nmblogentries)
         self.sequences.logs.loggedsimulateddischarge.shape = nmblogentries
         self.sequences.logs.loggedobserveddischarge.shape = nmblogentries
+        self.sequences.states.evaluateddischarge(numpy.nan)
         self.sequences.states.reductionfactor(1.0)
         self.sequences.states.stationary(1.0)
-        self.sequences.states.flowcondition(2.0)
         self.sequences.states.forecaststep(0.0)
         self.sequences.states.averagedresidual(0.0)
         self.sequences.states.residual(0.0)

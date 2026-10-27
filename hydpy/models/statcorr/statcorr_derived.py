@@ -93,3 +93,81 @@ class NmbLogEntries(parametertools.Parameter):
             shape = exceptiontools.getattr_(seq, "shape", (None,))
             if nmb != shape[-1]:
                 seq.shape = nmb
+
+
+class StationarityWindow(parametertools.Parameter):
+    """The length of the assessment period of the stationarity check in log entries
+    (zero if the check is disabled) [-]."""
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (0, None)
+    CONTROLPARAMETERS = (statcorr_control.StationarityCheck,)
+
+    def update(self) -> None:
+        """Take the assessment period from parameter |StationarityCheck|.
+
+        As long as |StationarityCheck| is not configured,
+        |StationarityWindow.update| leaves the current value untouched:
+
+        >>> from hydpy.models.statcorr_arima010 import *
+        >>> parameterstep()
+        >>> derived.stationaritywindow.update()
+        >>> derived.stationaritywindow
+        stationaritywindow(?)
+
+        >>> stationaritycheck(window=4, ratiominmax=0.5)
+        >>> derived.stationaritywindow.update()
+        >>> derived.stationaritywindow
+        stationaritywindow(4)
+
+        >>> stationaritycheck(False)
+        >>> derived.stationaritywindow.update()
+        >>> derived.stationaritywindow
+        stationaritywindow(0)
+        """
+        stationaritycheck = cast(
+            statcorr_control.StationarityCheck,
+            self.subpars.pars.control.stationaritycheck,
+        )
+        if stationaritycheck.configured:
+            self(stationaritycheck.window)
+
+
+class RatioMinMax(parametertools.Parameter):
+    """The threshold ratio of the minimum and the maximum measured discharge of the
+    stationarity check (zero if the check is disabled) [-]."""
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
+    CONTROLPARAMETERS = (statcorr_control.StationarityCheck,)
+
+    def update(self) -> None:
+        """Take the threshold ratio from parameter |StationarityCheck|.
+
+        As long as |StationarityCheck| is not configured, |RatioMinMax.update| leaves
+        the current value untouched:
+
+        >>> from hydpy.models.statcorr_arima010 import *
+        >>> parameterstep()
+        >>> derived.ratiominmax.update()
+        >>> derived.ratiominmax
+        ratiominmax(?)
+
+        >>> stationaritycheck(window=4, ratiominmax=0.5)
+        >>> derived.ratiominmax.update()
+        >>> derived.ratiominmax
+        ratiominmax(0.5)
+
+        >>> stationaritycheck(False)
+        >>> derived.ratiominmax.update()
+        >>> derived.ratiominmax
+        ratiominmax(0.0)
+        """
+        stationaritycheck = cast(
+            statcorr_control.StationarityCheck,
+            self.subpars.pars.control.stationaritycheck,
+        )
+        if stationaritycheck.configured:
+            self(stationaritycheck.ratiominmax)

@@ -61,14 +61,14 @@ class Calc_OutputCorr_V1(modeltools.Method):
        simulations (read in as conditions).
     2. Each submodel computes its corrected discharge via
        |OutputCorrModel_V1.determine_outputcorrection|.
-    3. The corrected output of the *last* attached submodel is taken as
-       |CorrectedQ|.  When no submodel is attached, |CorrectedQ| equals
-       |Inflow|.  Since each submodel decides for itself, based on its own
-       |CorrNQ|, |CorrMQ|, and |CorrHQ| flags, whether the current NQ, MQ, or
-       HQ flow condition warrants a correction (passing through the current
-       simulated discharge unchanged otherwise), attaching several submodels
-       configured for mutually exclusive flow ranges automatically lets only
-       the one responsible for the current flow condition take effect.
+    3. Each submodel decides for itself, based on its own |Active| flag and its
+       |LowerLimit| and |UpperLimit| parameters, whether it is responsible for
+       the current discharge (see |OutputCorrModel_V1.is_active|).  The
+       corrected output of the *last* responsible submodel is taken as
+       |CorrectedQ|.  When no submodel is attached or responsible, |CorrectedQ|
+       equals |Inflow|.  Hence, attaching several submodels configured for
+       mutually exclusive discharge ranges lets only the one responsible for the
+       current discharge take effect.
 
     Examples:
 
@@ -84,25 +84,23 @@ class Calc_OutputCorr_V1(modeltools.Method):
 
         With a single attached |statcorr_arima010| submodel, the corrected
         discharge is the inflow plus the most recent residual (here:
-        ``3.0 - 2.0 = 1.0``, applied to the new inflow ``2.5``).  We enable
-        correction for all discharge ranges and set |QminQmax| to zero so that
-        the LARSIM stationarity check never suppresses the correction:
+        ``3.0 - 2.0 = 1.0``, applied to the new inflow ``2.5``).  By default, we
+        make the submodel responsible for all discharges and disable the
+        stationarity check so that it never suppresses the correction:
 
-        >>> def configure(submodel):
-        ...     submodel.parameters.control.corrnq(True)
-        ...     submodel.parameters.control.corrmq(True)
-        ...     submodel.parameters.control.corrhq(True)
-        ...     submodel.parameters.control.limitnqm(0.0)
-        ...     submodel.parameters.control.limitmqh(100.0)
-        ...     submodel.parameters.control.evaluationwindow(2)
+        >>> from numpy import inf
+        >>> def configure(submodel, lowerlimit=0.0, upperlimit=inf):
+        ...     submodel.parameters.control.active(True)
+        ...     submodel.parameters.control.lowerlimit(lowerlimit)
+        ...     submodel.parameters.control.upperlimit(upperlimit)
+        ...     submodel.parameters.control.evaluationwindow(1)
         ...     submodel.parameters.control.maxresiduallookback(3)
         ...     submodel.parameters.control.maxabsoluteshift(100.0)
         ...     submodel.parameters.control.maxrelativeshift(1000.0)
         ...     submodel.parameters.control.residualaveragingwindow(0)
         ...     submodel.parameters.control.residualtransitiontime(0)
-        ...     submodel.parameters.control.qminqmax(0.0)
-        ...     submodel.parameters.control.nqmstationaritywindow(2)
-        ...     submodel.parameters.control.linearreductiontime(1, 1)
+        ...     submodel.parameters.control.stationaritycheck(False)
+        ...     submodel.parameters.control.linearreductiontime(1)
 
         >>> loggingwindow(2)
         >>> nmbsubmodels(1)
@@ -120,23 +118,52 @@ class Calc_OutputCorr_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(3.5)
 
-        With two attached submodels of the same type, the second one's output
-        wins:
+        We now attach two submodels responsible for different discharge ranges.
+        The first one covers discharges below 3 m³/s, the second one all
+        discharges from 3 m³/s upwards:
 
         >>> nmbsubmodels(2)
         >>> with model.add_outputcorrmodel_v1(
         ...     "statcorr_arima010", position=0
         ... ) as submodel:
-        ...     configure(submodel)
+        ...     configure(submodel, upperlimit=3.0)
         >>> with model.add_outputcorrmodel_v1(
         ...     "statcorr_arima010", position=1
         ... ) as submodel:
-        ...     configure(submodel)
+        ...     configure(submodel, lowerlimit=3.0)
+
+        For an inflow of 2.5 m³/s, only the first submodel is responsible.
+        Hence, its corrected output wins, although the second submodel comes
+        later and returns the uncorrected inflow:
+
         >>> fluxes.inflow = 2.5
         >>> inputs.discharge = 4.0
         >>> model.calc_outputcorr_v1()
         >>> fluxes.correctedq
         correctedq(4.0)
+        >>> model.outputcorrmodels[0].sequences.fluxes.isactive
+        isactive(1.0)
+        >>> model.outputcorrmodels[1].sequences.fluxes.isactive
+        isactive(0.0)
+
+        For an inflow of 3.5 m³/s, the second submodel takes over:
+
+        >>> fluxes.inflow = 3.5
+        >>> inputs.discharge = 3.0
+        >>> model.calc_outputcorr_v1()
+        >>> fluxes.correctedq
+        correctedq(3.0)
+        >>> model.outputcorrmodels[0].sequences.fluxes.isactive
+        isactive(0.0)
+        >>> model.outputcorrmodels[1].sequences.fluxes.isactive
+        isactive(1.0)
+
+        If no submodel is responsible, |CorrectedQ| equals |Inflow|:
+
+        >>> model.outputcorrmodels[1].parameters.control.active(False)
+        >>> model.calc_outputcorr_v1()
+        >>> fluxes.correctedq
+        correctedq(3.5)
 
         While |Options.simulationmode| equals ``forecast``, |Calc_OutputCorr_V1|
         ignores the actual value of |Discharge| and passes |numpy.nan| to the
@@ -198,8 +225,8 @@ class Calc_OutputCorr_V1(modeltools.Method):
 
         Even once the last real observation drops out of the three-step
         logging window, the persisted residual keeps applying without limit
-        -- only |ReductionFactor| (via |QminQmax| and |LinearReductionTime|,
-        both disabled here) could still fade it out:
+        -- only |ReductionFactor| (via |StationarityCheck| and
+        |LinearReductionTime|, disabled here) could still fade it out:
 
         >>> with pub.options.simulationmode("forecast"):
         ...     model.parameters.update()
@@ -245,10 +272,14 @@ class Calc_OutputCorr_V1(modeltools.Method):
                     statcorrinterfaces.OutputCorrModel_V1,
                     model.outputcorrmodels.submodels[i],
                 ).determine_outputcorrection(bool(der.isforecastmode))
-                flu.correctedq = cast(
+                if cast(
                     statcorrinterfaces.OutputCorrModel_V1,
                     model.outputcorrmodels.submodels[i],
-                ).get_correctedoutput()
+                ).is_active():
+                    flu.correctedq = cast(
+                        statcorrinterfaces.OutputCorrModel_V1,
+                        model.outputcorrmodels.submodels[i],
+                    ).get_correctedoutput()
 
 
 class Pass_CorrectedQ_V1(modeltools.Method):
@@ -533,6 +564,27 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     r"""Calculate the corrected discharge using an ARIMA(0,1,0) — random-walk —
     error model.
 
+    Each submodel is responsible for a specific discharge range only.  It corrects
+    the discharge only while |Active| is |True| and the mean of the
+    |EvaluationWindow| most recent |LoggedSimulatedDischarge| values
+    (:math:`\overline{sim}`, stored in |EvaluatedDischarge|) lies within the
+    range defined by |LowerLimit| and |UpperLimit|:
+
+        :math:`LowerLimit \leq \overline{sim} < UpperLimit`
+
+    |Determine_OutputCorrection_V1| determines :math:`\overline{sim}` only while
+    |Options.simulationmode| equals `historical`.  While it equals `forecast`, it
+    reuses the value of the most recent `historical` assessment, so the
+    responsible submodel does not change throughout the forecast horizon.  It
+    checks the condition in each simulation step (so changes of |Active|,
+    |LowerLimit|, or |UpperLimit| take effect immediately) and stores the outcome
+    in |IsActive|.  Whenever the condition is not met, the corrected discharge
+    equals the current simulated discharge.  However,
+    |Determine_OutputCorrection_V1| keeps updating all internal states (the
+    residual, the stationarity assessment, and the |ReductionFactor|) in either
+    case, so that a submodel taking over responsibility starts with up-to-date
+    information.
+
     The correction is derived from the most recently available residual
     (observed minus simulated discharge).  While |Options.simulationmode|
     equals `historical`, the "most recent" residual is taken from the latest
@@ -593,39 +645,31 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     disables this mechanism entirely, relying on the pointwise residual alone,
     as described above.
 
-    Within the NQ and MQ ranges, |Determine_OutputCorrection_V1| additionally
-    assesses whether the measured discharge behaves in a stationary way.  It
-    takes the quotient of the minimum and the maximum |LoggedObservedDischarge|
-    value within the most recent |NqmStationarityWindow| log entries.  Whenever
-    this quotient falls below |QminQmax| (given in %), it considers the flow
-    conditions instationary and linearly reduces |ReductionFactor| (the factor
-    :math:`f_{red}` in the equation above) towards zero, taking as many steps as
-    given by the NQ or MQ entry of |LinearReductionTime| (depending on the
-    current flow range).  As soon as the quotient reaches |QminQmax| again (or a
-    |numpy.nan| value prevents its calculation), |ReductionFactor| jumps back to
-    ``1.0``, applying the correction unabated again.  |ReductionFactor| also
-    resets to ``1.0`` whenever the current flow condition falls into the HQ
-    range, for which this stationarity check is not defined.
+    If enabled via |StationarityCheck|, |Determine_OutputCorrection_V1|
+    additionally assesses whether the measured discharge behaves in a stationary
+    way.  It takes the ratio of the minimum and the maximum
+    |LoggedObservedDischarge| value within the most recent |StationarityWindow|
+    log entries.  Whenever this ratio falls below |RatioMinMax|, it considers the
+    flow conditions instationary and linearly reduces |ReductionFactor| (the
+    factor :math:`f_{red}` in the equation above) towards zero, taking as many
+    steps as given by |LinearReductionTime|.  As soon as the ratio reaches
+    |RatioMinMax| again (or a |numpy.nan| value prevents its calculation),
+    |ReductionFactor| jumps back to ``1.0``, applying the correction unabated
+    again.  With the stationarity check disabled, |ReductionFactor| is always
+    ``1.0``.
 
     |Determine_OutputCorrection_V1| only *reassesses* stationarity (the
-    quotient-based check described above) and the NQ/MQ/HQ flow condition
-    while |Options.simulationmode| equals `historical`, remembering their
-    outcomes in |Stationary| and |FlowCondition|, respectively.  While
-    |Options.simulationmode| equals `forecast`, it reuses both values from the
-    most recent `historical` assessment instead of recomputing them —
+    ratio-based check described above) while |Options.simulationmode| equals
+    `historical`, remembering its outcome in |Stationary|.  While
+    |Options.simulationmode| equals `forecast`, it reuses this value from the
+    most recent `historical` assessment instead of recomputing it —
     recomputing would be unreliable anyway, since |LoggedObservedDischarge|
     keeps receiving |numpy.nan| values throughout the forecast (see
-    |Calc_OutputCorr_V1|), which the quotient-based check always interprets as
-    "stationary", and since the currently simulated discharge could
-    temporarily cross into the HQ range and mask an instationary NQ/MQ
-    situation identified right before the forecast started.  So, once a
-    `historical` run has flagged conditions as instationary in the NQ or MQ
-    range, |ReductionFactor| keeps ramping towards zero (or staying at
-    ``0.0``) for the entire forecast horizon, regardless of how the actually
-    simulated discharge subsequently develops, instead of jumping back to
-    ``1.0`` either as soon as the last real observation drops out of the
-    logging window or whenever the forecasted discharge happens to pass
-    through the HQ range.
+    |Calc_OutputCorr_V1|), which the ratio-based check always interprets as
+    "stationary".  So, once a `historical` run has flagged conditions as
+    instationary, |ReductionFactor| keeps ramping towards zero (or staying at
+    ``0.0``) for the entire forecast horizon instead of jumping back to ``1.0``
+    as soon as the last real observation drops out of the logging window.
 
     Likewise, |Determine_OutputCorrection_V1| only reassesses the pointwise
     residual itself (the |MaxResidualLookback| search described above) while
@@ -643,22 +687,23 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
         Three log entries are available, the most recent observation (at
         position 0) is non-|numpy.nan|, so the correction reproduces the current
-        observation.  The measured discharge is perfectly stationary (the
-        quotient of its minimum and maximum equals |QminQmax|), so
-        |ReductionFactor| remains at its initial value of ``1.0``:
+        observation.  The submodel is responsible for all discharges.  The
+        measured discharge is just stationary (the ratio of its minimum and
+        maximum equals |RatioMinMax|), so |ReductionFactor| remains at its
+        initial value of ``1.0``:
 
         >>> from hydpy.models.statcorr_arima010 import *
         >>> parameterstep()
+        >>> from numpy import inf, nan
         >>> derived.nmblogentries(3)
         >>> control.evaluationwindow(3)
-        >>> control.corrnq(True)
-        >>> control.corrmq(True)
-        >>> control.corrhq(True)
-        >>> control.limitnqm(3.0)
-        >>> control.limitmqh(5.0)
-        >>> control.qminqmax(50.0)
-        >>> control.nqmstationaritywindow(3)
-        >>> control.linearreductiontime(2, 2)
+        >>> control.active(True)
+        >>> control.lowerlimit(0.0)
+        >>> control.upperlimit(inf)
+        >>> control.stationaritycheck(window=3, ratiominmax=0.5)
+        >>> derived.stationaritywindow.update()
+        >>> derived.ratiominmax.update()
+        >>> control.linearreductiontime(2)
         >>> control.maxresiduallookback(3)
         >>> control.maxabsoluteshift(100.0)
         >>> control.maxrelativeshift(1000.0)
@@ -671,26 +716,50 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> logs.loggedsimulateddischarge = 5.0, 3.0, 2.0
         >>> logs.loggedobserveddischarge = 6.0, 4.0, 3.0
         >>> model.determine_outputcorrection_v1(False)
+        >>> fluxes.isactive
+        isactive(1.0)
         >>> fluxes.correctedq
         correctedq(6.0)
         >>> states.reductionfactor
         reductionfactor(1.0)
 
-        Disabling correction for the MQ range returns the uncorrected simulated value:
+        The mean simulated discharge (``10/3`` m³/s) is not below an
+        |UpperLimit| of 3 m³/s, so the submodel is not responsible and returns
+        the uncorrected simulated value:
 
-        >>> control.corrmq(False)
+        >>> control.upperlimit(3.0)
         >>> model.determine_outputcorrection_v1(False)
+        >>> fluxes.isactive
+        isactive(0.0)
         >>> fluxes.correctedq
         correctedq(5.0)
 
-        Simulated discharges averaging 1.5 m³/s place the model in the NQ range.
-        With NQ correction enabled, the residual (2.0 − 1.0 = 1.0) is applied:
+        |UpperLimit| is exclusive, while |LowerLimit| is inclusive:
 
-        >>> logs.loggedsimulateddischarge = 1.0, 2.0, 1.5
-        >>> logs.loggedobserveddischarge = 2.0, 3.0, 2.5
+        >>> logs.loggedsimulateddischarge = 3.0, 3.0, 3.0
+        >>> logs.loggedobserveddischarge = 4.0, 4.0, 4.0
         >>> model.determine_outputcorrection_v1(False)
+        >>> fluxes.isactive
+        isactive(0.0)
         >>> fluxes.correctedq
-        correctedq(2.0)
+        correctedq(3.0)
+
+        >>> control.lowerlimit(3.0)
+        >>> control.upperlimit(inf)
+        >>> model.determine_outputcorrection_v1(False)
+        >>> fluxes.isactive
+        isactive(1.0)
+        >>> fluxes.correctedq
+        correctedq(4.0)
+
+        Setting |Active| to |False| disables the correction completely:
+
+        >>> control.active(False)
+        >>> model.determine_outputcorrection_v1(False)
+        >>> fluxes.isactive
+        isactive(0.0)
+        >>> fluxes.correctedq
+        correctedq(3.0)
 
         The two most recent observations are missing, so the residual is taken
         from the third log entry and added to the current simulated discharge.
@@ -698,8 +767,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         |Determine_OutputCorrection_V1| assumes stationary conditions and leaves
         |ReductionFactor| untouched:
 
-        >>> from numpy import nan
-        >>> control.corrmq(True)
+        >>> control.active(True)
+        >>> control.lowerlimit(0.0)
         >>> logs.loggedsimulateddischarge = 5.0, 3.0, 2.0
         >>> logs.loggedobserveddischarge = nan, nan, 3.0
         >>> model.determine_outputcorrection_v1(False)
@@ -713,14 +782,16 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(5.0)
 
-        Sustained instationary conditions in the NQ range (the quotient of the
-        minimum and the maximum observed discharge, ``0.5 / 5.0 = 10 %``, falls
-        well below |QminQmax|) linearly reduce |ReductionFactor| to zero within
-        the two steps given by the NQ entry of |LinearReductionTime|:
+        Sustained instationary conditions (the ratio of the minimum and the
+        maximum observed discharge, ``0.5 / 5.0 = 0.1``, falls well below
+        |RatioMinMax|) linearly reduce |ReductionFactor| to zero within the two
+        steps given by |LinearReductionTime|:
 
         >>> logs.loggedsimulateddischarge = 1.0, 1.0, 1.0
         >>> logs.loggedobserveddischarge = 0.5, 5.0, 5.0
         >>> model.determine_outputcorrection_v1(False)
+        >>> states.stationary
+        stationary(0.0)
         >>> states.reductionfactor
         reductionfactor(0.5)
         >>> fluxes.correctedq
@@ -732,23 +803,26 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(1.0)
 
-        The stationarity check does not apply to the HQ range, so switching to
-        high flow conditions resets |ReductionFactor| to ``1.0`` regardless of
-        the (still instationary) measured discharge:
+        Disabling the stationarity check resets |ReductionFactor| to ``1.0``
+        regardless of the (still instationary) measured discharge:
 
-        >>> logs.loggedsimulateddischarge = 6.0, 6.0, 6.0
-        >>> logs.loggedobserveddischarge = 7.0, 5.0, 5.0
+        >>> control.stationaritycheck(False)
+        >>> derived.stationaritywindow.update()
+        >>> derived.ratiominmax.update()
         >>> model.determine_outputcorrection_v1(False)
         >>> states.reductionfactor
         reductionfactor(1.0)
         >>> fluxes.correctedq
-        correctedq(7.0)
+        correctedq(0.5)
 
-        Once the measured discharge becomes stationary again (quotient
-        ``4.0 / 5.0 = 80 %``, at or above |QminQmax|), |ReductionFactor| jumps
+        Once the measured discharge becomes stationary again (ratio
+        ``4.0 / 5.0 = 0.8``, at or above |RatioMinMax|), |ReductionFactor| jumps
         back to ``1.0`` immediately, applying the correction unabated:
 
-        >>> logs.loggedsimulateddischarge = 1.0, 1.0, 1.0
+        >>> control.stationaritycheck(window=3, ratiominmax=0.5)
+        >>> derived.stationaritywindow.update()
+        >>> derived.ratiominmax.update()
+        >>> states.reductionfactor(0.0)
         >>> logs.loggedobserveddischarge = 4.0, 5.0, 5.0
         >>> model.determine_outputcorrection_v1(False)
         >>> states.reductionfactor
@@ -756,10 +830,10 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(4.0)
 
-        Setting the NQ entry of |LinearReductionTime| to zero reduces
-        |ReductionFactor| to zero immediately once instationary conditions occur:
+        Setting |LinearReductionTime| to zero reduces |ReductionFactor| to zero
+        immediately once instationary conditions occur:
 
-        >>> control.linearreductiontime(0, 2)
+        >>> control.linearreductiontime(0)
         >>> logs.loggedobserveddischarge = 0.5, 5.0, 5.0
         >>> model.determine_outputcorrection_v1(False)
         >>> states.reductionfactor
@@ -771,7 +845,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         call argument is |False|) start a ramp towards zero (here, with
         |LinearReductionTime| reset to two steps):
 
-        >>> control.linearreductiontime(2, 2)
+        >>> control.linearreductiontime(2)
         >>> states.reductionfactor(1.0)
         >>> logs.loggedsimulateddischarge = 1.0, 1.0, 1.0
         >>> logs.loggedobserveddischarge = 0.5, 5.0, 5.0
@@ -806,33 +880,39 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(1.0)
 
-        Not only |Stationary| but also the flow condition itself (NQ, MQ, or
-        HQ, persisted in |FlowCondition|) is frozen at its most recent
-        `historical` assessment (here, NQ) and is not reassessed while
-        forecasting.  So even though the currently simulated discharge would
-        classify as HQ now (which used to reset |ReductionFactor| to ``1.0``
-        immediately, since the stationarity check does not apply to the HQ
-        range), the frozen NQ classification keeps applying, and the ramp
-        (already at its floor of ``0.0``) is left untouched:
+        The same holds for the mean simulated discharge deciding on the
+        submodel's responsibility.  It was determined at the last `historical`
+        call (``1.0`` m³/s) and stays frozen while forecasting.  So, even if the
+        forecasted discharge rises above |UpperLimit|, the submodel remains
+        responsible:
 
+        >>> control.upperlimit(5.0)
         >>> logs.loggedsimulateddischarge = 10.0, 10.0, 10.0
-        >>> logs.loggedobserveddischarge = nan, nan, nan
         >>> model.determine_outputcorrection_v1(True)
-        >>> states.flowcondition
-        flowcondition(0.0)
-        >>> states.reductionfactor
-        reductionfactor(0.0)
+        >>> states.evaluateddischarge
+        evaluateddischarge(1.0)
+        >>> fluxes.isactive
+        isactive(1.0)
+
+        Only a `historical` call updates |EvaluatedDischarge|, which then exceeds
+        |UpperLimit|, so the submodel stops correcting:
+
+        >>> model.determine_outputcorrection_v1(False)
+        >>> states.evaluateddischarge
+        evaluateddischarge(10.0)
+        >>> fluxes.isactive
+        isactive(0.0)
         >>> fluxes.correctedq
         correctedq(10.0)
 
-        Enlarging the log beyond |EvaluationWindow| does not change the flow
-        condition classification, which always relies on the *most recently*
+        Enlarging the log beyond |EvaluationWindow| does not change the
+        responsibility assessment, which always relies on the *most recently*
         logged |LoggedSimulatedDischarge| entries (index ``0`` upwards) and
         never on the oldest ones sitting near the end of a larger log (which
         can well still be |numpy.nan|, as is the case for the newly added
         entries here):
 
-        >>> control.linearreductiontime(2, 2)
+        >>> control.upperlimit(inf)
         >>> states.reductionfactor(1.0)
         >>> derived.nmblogentries(5)
         >>> logs.loggedsimulateddischarge.shape = 5
@@ -840,6 +920,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> logs.loggedsimulateddischarge = 1.0, 1.0, 1.0, nan, nan
         >>> logs.loggedobserveddischarge = 0.5, 5.0, 5.0, nan, nan
         >>> model.determine_outputcorrection_v1(False)
+        >>> fluxes.isactive
+        isactive(1.0)
         >>> states.stationary
         stationary(0.0)
         >>> states.reductionfactor
@@ -911,10 +993,10 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         Setting |ResidualAveragingWindow| to a value greater than zero
         switches to the mean-value-based residual, blended in linearly over
         |ResidualTransitionTime| forecast steps.  We reset the log to a
-        short, clean example (four entries) and freeze |FlowCondition|,
+        short, clean example (four entries) and freeze |EvaluatedDischarge|,
         |Stationary|, |Residual|, and |ResidualAnchor| directly (instead of
-        deriving them from a preceding `historical` call) to keep the focus
-        on the transition mechanism:
+        deriving them from a preceding `historical` call) to keep the focus on
+        the transition mechanism:
 
         >>> control.maxresiduallookback(4)
         >>> control.maxabsoluteshift(100.0)
@@ -924,7 +1006,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> derived.nmblogentries(4)
         >>> logs.loggedsimulateddischarge.shape = 4
         >>> logs.loggedobserveddischarge.shape = 4
-        >>> states.flowcondition(0.0)
+        >>> states.evaluateddischarge(8.0)
         >>> states.stationary(1.0)
         >>> states.reductionfactor(1.0)
         >>> states.forecaststep(0.0)
@@ -969,42 +1051,39 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
     SUBMETHODS = (Calc_AveragedResidual_V1,)
     CONTROLPARAMETERS = (
-        statcorr_control.CorrNQ,
-        statcorr_control.CorrMQ,
-        statcorr_control.CorrHQ,
-        statcorr_control.LimitNQM,
-        statcorr_control.LimitMQH,
+        statcorr_control.Active,
+        statcorr_control.LowerLimit,
+        statcorr_control.UpperLimit,
         statcorr_control.EvaluationWindow,
         statcorr_control.MaxResidualLookback,
         statcorr_control.MaxAbsoluteShift,
         statcorr_control.MaxRelativeShift,
         statcorr_control.ResidualAveragingWindow,
         statcorr_control.ResidualTransitionTime,
-        statcorr_control.QminQmax,
-        statcorr_control.NqmStationarityWindow,
         statcorr_control.LinearReductionTime,
     )
-    DERIVEDPARAMETERS = (statcorr_derived.NmbLogEntries,)
+    DERIVEDPARAMETERS = (
+        statcorr_derived.NmbLogEntries,
+        statcorr_derived.StationarityWindow,
+        statcorr_derived.RatioMinMax,
+    )
     REQUIREDSEQUENCES = (
         statcorr_logs.LoggedSimulatedDischarge,
         statcorr_logs.LoggedObservedDischarge,
     )
     UPDATEDSEQUENCES = (
+        statcorr_states.EvaluatedDischarge,
         statcorr_states.ReductionFactor,
         statcorr_states.Stationary,
-        statcorr_states.FlowCondition,
         statcorr_states.ForecastStep,
         statcorr_states.AveragedResidual,
         statcorr_states.Residual,
         statcorr_states.ResidualAnchor,
     )
-    RESULTSEQUENCES = (statcorr_fluxes.CorrectedQ,)
+    RESULTSEQUENCES = (statcorr_fluxes.IsActive, statcorr_fluxes.CorrectedQ)
 
     @staticmethod
     def __call__(model: modeltools.Model, isforecastmode: bool, /) -> None:
-        # pylint: disable=too-many-branches
-        # (I know this method is much too complex but I do not see a good way to
-        # refactor it)
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1013,32 +1092,15 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
         assert der.nmblogentries >= con.evaluationwindow
 
-        flow_condition: int
-        if isforecastmode:
-            flow_condition = int(sta.flowcondition)
-        else:
+        if not isforecastmode:
             mean_simulated: float = 0.0
             for idx in range(con.evaluationwindow):
                 mean_simulated = mean_simulated + log.loggedsimulateddischarge[idx]
-            mean_simulated = mean_simulated / con.evaluationwindow
-
-            if mean_simulated < con.limitnqm:
-                flow_condition = 0
-            elif mean_simulated < con.limitmqh:
-                flow_condition = 1
-            else:
-                flow_condition = 2
-            sta.flowcondition = float(flow_condition)
-
-        # pylint: disable=too-many-boolean-expressions
-        if (
-            (flow_condition == 0 and con.corrnq is False)
-            or (flow_condition == 1 and con.corrmq is False)
-            or (flow_condition == 2 and con.corrhq is False)
-        ):
-            flu.correctedq = log.loggedsimulateddischarge[0]
-            return
-        # pylint: enable=too-many-boolean-expressions
+            sta.evaluateddischarge = mean_simulated / con.evaluationwindow
+        if con.active and (con.lowerlimit <= sta.evaluateddischarge < con.upperlimit):
+            flu.isactive = 1.0
+        else:
+            flu.isactive = 0.0
 
         residual: float
         sim_anchor: float
@@ -1056,11 +1118,11 @@ class Determine_OutputCorrection_V1(modeltools.Method):
             sta.residual = residual
             sta.residualanchor = sim_anchor
 
-        if flow_condition == 2:
+        if der.stationaritywindow <= 0:
             sta.reductionfactor = 1.0
         else:
             if not isforecastmode:
-                nmb = min(der.nmblogentries, con.nqmstationaritywindow)
+                nmb = min(der.nmblogentries, der.stationaritywindow)
                 stationary = True
                 has_nan = False
                 qmin: float = modelutils.inf
@@ -1073,24 +1135,27 @@ class Determine_OutputCorrection_V1(modeltools.Method):
                     qmin = min(qmin, value)
                     qmax = max(qmax, value)
                 if not has_nan and qmax > 0.0:
-                    stationary = (qmin / qmax) * 100.0 >= con.qminqmax
+                    stationary = qmin / qmax >= der.ratiominmax
                 sta.stationary = 1.0 if stationary else 0.0
 
             if sta.stationary:
                 sta.reductionfactor = 1.0
+            elif con.linearreductiontime <= 0:
+                sta.reductionfactor = 0.0
             else:
-                idx_regime = 0 if flow_condition == 0 else 1
-                reductiontime = con.linearreductiontime[idx_regime]
-                if reductiontime <= 0:
-                    sta.reductionfactor = 0.0
-                else:
-                    sta.reductionfactor = max(
-                        0.0, sta.reductionfactor - 1.0 / reductiontime
-                    )
+                sta.reductionfactor = max(
+                    0.0, sta.reductionfactor - 1.0 / con.linearreductiontime
+                )
 
         forecast_step: float = sta.forecaststep if isforecastmode else 0.0
         sta.forecaststep = (forecast_step + 1.0) if isforecastmode else 0.0
         model.calc_averagedresidual_v1(forecast_step, residual)
+
+        forecast_value: float = log.loggedsimulateddischarge[0]
+        if flu.isactive == 0.0:
+            flu.correctedq = forecast_value
+            return
+
         effective_residual: float = (
             residual
             if con.residualaveragingwindow <= 0
@@ -1102,8 +1167,6 @@ class Determine_OutputCorrection_V1(modeltools.Method):
             )
             * (sta.averagedresidual - residual)
         )
-
-        forecast_value: float = log.loggedsimulateddischarge[0]
         damped_residual: float = effective_residual * sta.reductionfactor
         max_fraction: float = con.maxrelativeshift / 100.0
         shift: float = (
@@ -1113,6 +1176,28 @@ class Determine_OutputCorrection_V1(modeltools.Method):
             else min(con.maxabsoluteshift, max(-con.maxabsoluteshift, damped_residual))
         )
         flu.correctedq = forecast_value + shift
+
+
+class Is_Active_V1(modeltools.Method):
+    """Tell whether the submodel corrected the discharge during the most recent call
+    of |Determine_OutputCorrection_V1|.
+
+    Example:
+
+        >>> from hydpy.models.statcorr_arima010 import *
+        >>> parameterstep()
+        >>> fluxes.isactive = 1.0
+        >>> assert model.is_active_v1()
+        >>> fluxes.isactive = 0.0
+        >>> assert not model.is_active_v1()
+    """
+
+    REQUIREDSEQUENCES = (statcorr_fluxes.IsActive,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> bool:
+        flu = model.sequences.fluxes.fastaccess
+        return flu.isactive == 1.0
 
 
 class Get_CorrectedOutput_V1(modeltools.Method):

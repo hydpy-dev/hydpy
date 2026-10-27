@@ -169,7 +169,7 @@ class ResidualTransitionTime(parametertools.Parameter):
     SPAN = (0, None)
 
 
-class PropagateCorrection(parametertools.Parameter):
+class Propagate(parametertools.Parameter):
     """Flag determining whether the corrected discharge is passed on to the
     downstream network (|True|) or calculated only for local output at the
     current gauge, while the uncorrected inflow is passed on instead

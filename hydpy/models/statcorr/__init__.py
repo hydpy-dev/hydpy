@@ -8,7 +8,7 @@ from hydpy.models.statcorr import statcorr_control
 ADDITIONAL_CONTROLPARAMETERS = (
     statcorr_control.LoggingWindow,
     statcorr_control.NmbSubmodels,
-    statcorr_control.PropagateCorrection,
+    statcorr_control.Propagate,
 )
 
 from hydpy.models.statcorr.statcorr_model import (  # pylint: disable=wrong-import-position

@@ -20,16 +20,16 @@ ages past |MaxNaNSkip|.
 How the residual is applied depends on how the current simulated discharge
 compares to the simulated discharge at the point the residual was determined:
 if it is higher, the residual is added unchanged (capped at
-|MaxAbsoluteShift|); otherwise, it is applied as a percentage of that anchor
-value instead (capped at |MaxRelativeShift|), which keeps the correction from
+|MaxAbsShift|); otherwise, it is applied as a percentage of that anchor
+value instead (capped at |MaxRelShift|), which keeps the correction from
 overshooting or turning negative while the discharge recedes.  See
 |Determine_OutputCorrection_V1| for the exact formulas.
 
-Setting |ResidualAveragingWindow| to a value greater than zero switches from
+Setting |AveragingWindow| to a value greater than zero switches from
 that pointwise residual to a mean-value-based one (mean observed minus mean
 simulated discharge over the given number of log entries immediately
 preceding the current forecast run), blended in linearly over
-|ResidualTransitionTime| forecast steps to avoid a jump right where the
+|TransitionSteps| forecast steps to avoid a jump right where the
 forecast begins.  See |Determine_OutputCorrection_V1| and
 |Calc_AveragedResidual_V1| for details.
 
@@ -64,10 +64,10 @@ Example workflow
     >>> derived.stationaryaveragingwindow.update()
     >>> control.reductionsteps(1)
     >>> control.maxnanskip(3)
-    >>> control.maxabsoluteshift(100.0)
-    >>> control.maxrelativeshift(1000.0)
-    >>> control.residualaveragingwindow(0)
-    >>> control.residualtransitiontime(0)
+    >>> control.maxabsshift(100.0)
+    >>> control.maxrelshift(1000.0)
+    >>> control.averagingwindow(0)
+    >>> control.transitionsteps(0)
     >>> model.prepare_nmblogentries(3)
     >>> derived.nmblogentries
     nmblogentries(3)

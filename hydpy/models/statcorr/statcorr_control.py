@@ -486,7 +486,7 @@ class ReductionSteps(parametertools.Parameter):
     SPAN = (0, None)
 
 
-class MaxAbsoluteShift(parametertools.Parameter):
+class MaxAbsShift(parametertools.Parameter):
     """The maximum absolute shift (in m³/s) applied when the current forecast
     discharge exceeds the simulated discharge at the point the residual was
     determined (see |Determine_OutputCorrection_V1|)."""
@@ -496,7 +496,7 @@ class MaxAbsoluteShift(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class MaxRelativeShift(parametertools.Parameter):
+class MaxRelShift(parametertools.Parameter):
     """The maximum relative shift (in %) applied when the current forecast
     discharge is at or below the simulated discharge at the point the residual
     was determined (see |Determine_OutputCorrection_V1|)."""
@@ -506,13 +506,13 @@ class MaxRelativeShift(parametertools.Parameter):
     SPAN = (0.0, None)
 
 
-class ResidualAveragingWindow(parametertools.Parameter):
+class AveragingWindow(parametertools.Parameter):
     """The length (in log entries) of the averaging period immediately
     preceding the current forecast run, used to determine the mean-value-based
     ARIMA residual (see |Determine_OutputCorrection_V1|).  Set to zero to
     disable mean-value-based correction and rely on the single most recent
     (pointwise) residual only, as |Determine_OutputCorrection_V1| already did
-    before |ResidualAveragingWindow| and |ResidualTransitionTime| were
+    before |AveragingWindow| and |TransitionSteps| were
     introduced."""
 
     NDIM: Final[Literal[0]] = 0
@@ -520,10 +520,10 @@ class ResidualAveragingWindow(parametertools.Parameter):
     SPAN = (0, None)
 
 
-class ResidualTransitionTime(parametertools.Parameter):
+class TransitionSteps(parametertools.Parameter):
     """The number of forecast steps over which the applied residual
     transitions linearly from the single most recent (pointwise) residual to
-    the mean-value-based residual determined via |ResidualAveragingWindow|,
+    the mean-value-based residual determined via |AveragingWindow|,
     avoiding an abrupt jump right at the start of the forecast horizon."""
 
     NDIM: Final[Literal[0]] = 0

@@ -36,7 +36,9 @@ forecast begins.  See |Determine_OutputCorrection_V1| and
 Each |statcorr_arima010| instance is responsible for a specific discharge range
 only, defined by |LowerLimit| and |UpperLimit|, and can be switched off completely
 via |Active|.  Optionally, |StationarityCheck| lets it fade out the correction under
-instationary flow conditions.
+instationary flow conditions, and |VariabilityCheck| lets it base the
+mean-value-based residual on a separate averaging period under stationary flow
+conditions.
 
 |statcorr_arima010| serves as a submodel for |statcorr| and complies with the
 |OutputCorrModel_V1| interface.
@@ -57,7 +59,10 @@ Example workflow
     >>> control.stationaritycheck(False)
     >>> derived.stationaritywindow.update()
     >>> derived.ratiominmax.update()
-    >>> control.linearreductiontime(1)
+    >>> control.variabilitycheck(False)
+    >>> derived.maxrelsumdelta.update()
+    >>> derived.stationaryaveragingwindow.update()
+    >>> control.reductionsteps(1)
     >>> control.maxresiduallookback(3)
     >>> control.maxabsoluteshift(100.0)
     >>> control.maxrelativeshift(1000.0)
@@ -141,11 +146,12 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
     def prepare_nmblogentries(self, nmblogentries: int) -> None:
         """Allocate the internal log to hold `nmblogentries` discharge values and
         initialise |EvaluatedDischarge|, |ReductionFactor|, |Stationary|,
-        |ForecastStep|, |AveragedResidual|, |Residual|, and |ResidualAnchor| to
-        |numpy.nan|, ``1.0``, ``1.0``, ``0.0``, ``0.0``, ``0.0``, and ``0.0``
-        (no mean simulated discharge determined yet, no reduction, stationary
-        conditions assumed, no forecast steps elapsed, no mean-value-based or
-        pointwise residual determined yet).
+        |RelSumDelta|, |LowVariability|, |ForecastStep|, |AveragedResidual|,
+        |Residual|, and |ResidualAnchor| to |numpy.nan|, ``1.0``, ``1.0``,
+        |numpy.nan|, ``0.0``, ``0.0``, ``0.0``, ``0.0``, and ``0.0`` (no mean
+        simulated discharge determined yet, no reduction, stationary conditions
+        assumed, no variability determined yet, no forecast steps elapsed, no
+        mean-value-based or pointwise residual determined yet).
 
         >>> from hydpy.models.statcorr_arima010 import *
         >>> parameterstep()
@@ -162,6 +168,10 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
         reductionfactor(1.0)
         >>> states.stationary
         stationary(1.0)
+        >>> states.relsumdelta
+        relsumdelta(nan)
+        >>> states.lowvariability
+        lowvariability(0.0)
         >>> states.forecaststep
         forecaststep(0.0)
         >>> states.averagedresidual
@@ -177,6 +187,8 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
         self.sequences.states.evaluateddischarge(numpy.nan)
         self.sequences.states.reductionfactor(1.0)
         self.sequences.states.stationary(1.0)
+        self.sequences.states.relsumdelta(numpy.nan)
+        self.sequences.states.lowvariability(0.0)
         self.sequences.states.forecaststep(0.0)
         self.sequences.states.averagedresidual(0.0)
         self.sequences.states.residual(0.0)

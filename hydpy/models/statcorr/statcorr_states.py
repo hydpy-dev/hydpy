@@ -47,6 +47,31 @@ class EvaluatedDischarge(sequencetools.StateSequence):
     NDIM: Final[Literal[0]] = 0
 
 
+class RelSumDelta(sequencetools.StateSequence):
+    """The sum of the absolute changes of the simulated discharge within the
+    |EvaluationWindow| divided by |EvaluatedDischarge|, as determined at the last
+    `historical` assessment [-].
+
+    Like |Stationary|, |statcorr_arima010| only reassesses |RelSumDelta| while
+    |Options.simulationmode| equals `historical`."""
+
+    NDIM: Final[Literal[0]] = 0
+
+
+class LowVariability(sequencetools.StateSequence):
+    """Flag (1.0: yes, 0.0: no) telling whether the variability check (see
+    |VariabilityCheck|) found stationary conditions at the last assessment, so that
+    the mean-value-based residual relies on the |StationaryAveragingWindow| instead
+    of the |ResidualAveragingWindow| [-].
+
+    Like |Stationary|, |statcorr_arima010| only reassesses |LowVariability| while
+    |Options.simulationmode| equals `historical`."""
+
+    NDIM: Final[Literal[0]] = 0
+    SPAN = (0.0, 1.0)
+    INIT = 0.0
+
+
 class ForecastStep(sequencetools.StateSequence):
     """The number of elapsed forecast steps since the start of the current
     forecast run (``0.0`` on the first forecast step), reset to ``0.0``

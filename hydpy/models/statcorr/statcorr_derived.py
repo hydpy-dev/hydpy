@@ -171,3 +171,83 @@ class RatioMinMax(parametertools.Parameter):
         )
         if stationaritycheck.configured:
             self(stationaritycheck.ratiominmax)
+
+
+class MaxRelSumDelta(parametertools.Parameter):
+    """The threshold for the sum of the absolute changes of the simulated discharge
+    within the |EvaluationWindow| divided by |EvaluatedDischarge| of the variability
+    check (zero if the check is disabled) [-]."""
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
+    CONTROLPARAMETERS = (statcorr_control.VariabilityCheck,)
+
+    def update(self) -> None:
+        """Take the threshold from parameter |VariabilityCheck|.
+
+        As long as |VariabilityCheck| is not configured, |MaxRelSumDelta.update|
+        leaves the current value untouched:
+
+        >>> from hydpy.models.statcorr_arima010 import *
+        >>> parameterstep()
+        >>> derived.maxrelsumdelta.update()
+        >>> derived.maxrelsumdelta
+        maxrelsumdelta(?)
+
+        >>> variabilitycheck(maxrelsumdelta=0.2, averagingwindow=24)
+        >>> derived.maxrelsumdelta.update()
+        >>> derived.maxrelsumdelta
+        maxrelsumdelta(0.2)
+
+        >>> variabilitycheck(False)
+        >>> derived.maxrelsumdelta.update()
+        >>> derived.maxrelsumdelta
+        maxrelsumdelta(0.0)
+        """
+        variabilitycheck = cast(
+            statcorr_control.VariabilityCheck,
+            self.subpars.pars.control.variabilitycheck,
+        )
+        if variabilitycheck.configured:
+            self(variabilitycheck.maxrelsumdelta)
+
+
+class StationaryAveragingWindow(parametertools.Parameter):
+    """The length of the averaging period for determining the mean-value-based
+    residual under stationary conditions in log entries (zero if the variability
+    check is disabled) [-]."""
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (0, None)
+    CONTROLPARAMETERS = (statcorr_control.VariabilityCheck,)
+
+    def update(self) -> None:
+        """Take the averaging period from parameter |VariabilityCheck|.
+
+        As long as |VariabilityCheck| is not configured,
+        |StationaryAveragingWindow.update| leaves the current value untouched:
+
+        >>> from hydpy.models.statcorr_arima010 import *
+        >>> parameterstep()
+        >>> derived.stationaryaveragingwindow.update()
+        >>> derived.stationaryaveragingwindow
+        stationaryaveragingwindow(?)
+
+        >>> variabilitycheck(maxrelsumdelta=0.2, averagingwindow=24)
+        >>> derived.stationaryaveragingwindow.update()
+        >>> derived.stationaryaveragingwindow
+        stationaryaveragingwindow(24)
+
+        >>> variabilitycheck(False)
+        >>> derived.stationaryaveragingwindow.update()
+        >>> derived.stationaryaveragingwindow
+        stationaryaveragingwindow(0)
+        """
+        variabilitycheck = cast(
+            statcorr_control.VariabilityCheck,
+            self.subpars.pars.control.variabilitycheck,
+        )
+        if variabilitycheck.configured:
+            self(variabilitycheck.averagingwindow)

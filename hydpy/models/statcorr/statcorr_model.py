@@ -100,7 +100,7 @@ class Calc_OutputCorr_V1(modeltools.Method):
         ...     submodel.parameters.control.residualaveragingwindow(0)
         ...     submodel.parameters.control.residualtransitiontime(0)
         ...     submodel.parameters.control.stationaritycheck(False)
-        ...     submodel.parameters.control.linearreductiontime(1)
+        ...     submodel.parameters.control.reductionsteps(1)
 
         >>> loggingwindow(2)
         >>> nmbsubmodels(1)
@@ -226,7 +226,7 @@ class Calc_OutputCorr_V1(modeltools.Method):
         Even once the last real observation drops out of the three-step
         logging window, the persisted residual keeps applying without limit
         -- only |ReductionFactor| (via |StationarityCheck| and
-        |LinearReductionTime|, disabled here) could still fade it out:
+        |ReductionSteps|, disabled here) could still fade it out:
 
         >>> with pub.options.simulationmode("forecast"):
         ...     model.parameters.update()
@@ -474,13 +474,18 @@ class Calc_AveragedResidual_V1(modeltools.Method):
     |ResidualAveragingWindow| is zero (mean-value-based correction disabled).
     When the averaging window contains a |numpy.nan| value, it falls back to
     the given `fallback` residual instead (usually the pointwise residual
-    already determined by |Determine_OutputCorrection_V1|).
+    already determined by |Determine_OutputCorrection_V1|).  While
+    |LowVariability| is ``1.0`` (stationary conditions according to
+    |VariabilityCheck|), the |StationaryAveragingWindow| replaces the
+    |ResidualAveragingWindow|.
 
     Examples:
 
         >>> from hydpy.models.statcorr_arima010 import *
         >>> parameterstep()
         >>> control.residualaveragingwindow(2)
+        >>> derived.stationaryaveragingwindow(1)
+        >>> states.lowvariability(0.0)
         >>> derived.nmblogentries(3)
         >>> logs.loggedsimulateddischarge.shape = 3
         >>> logs.loggedobserveddischarge.shape = 3
@@ -523,13 +528,29 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         >>> model.calc_averagedresidual_v1(0.0, -9.0)
         >>> states.averagedresidual
         averagedresidual(-9.0)
+
+        Under stationary conditions according to |VariabilityCheck|, the
+        averaging period covers the single log position ``1`` given by
+        |StationaryAveragingWindow| (``30.0 - 20.0``), even if
+        |ResidualAveragingWindow| is zero:
+
+        >>> control.residualaveragingwindow(0)
+        >>> states.lowvariability(1.0)
+        >>> logs.loggedobserveddischarge = nan, 30.0, nan
+        >>> model.calc_averagedresidual_v1(0.0, -9.0)
+        >>> states.averagedresidual
+        averagedresidual(10.0)
     """
 
     CONTROLPARAMETERS = (statcorr_control.ResidualAveragingWindow,)
-    DERIVEDPARAMETERS = (statcorr_derived.NmbLogEntries,)
+    DERIVEDPARAMETERS = (
+        statcorr_derived.NmbLogEntries,
+        statcorr_derived.StationaryAveragingWindow,
+    )
     REQUIREDSEQUENCES = (
         statcorr_logs.LoggedSimulatedDischarge,
         statcorr_logs.LoggedObservedDischarge,
+        statcorr_states.LowVariability,
     )
     UPDATEDSEQUENCES = (statcorr_states.AveragedResidual,)
 
@@ -542,7 +563,10 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         log = model.sequences.logs.fastaccess
         sta = model.sequences.states.fastaccess
 
-        nmb = min(con.residualaveragingwindow, der.nmblogentries - 1)
+        if sta.lowvariability == 1.0:
+            nmb = min(der.stationaryaveragingwindow, der.nmblogentries - 1)
+        else:
+            nmb = min(con.residualaveragingwindow, der.nmblogentries - 1)
         if forecast_step != 0.0 or nmb <= 0:
             return
 
@@ -652,7 +676,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     log entries.  Whenever this ratio falls below |RatioMinMax|, it considers the
     flow conditions instationary and linearly reduces |ReductionFactor| (the
     factor :math:`f_{red}` in the equation above) towards zero, taking as many
-    steps as given by |LinearReductionTime|.  As soon as the ratio reaches
+    steps as given by |ReductionSteps|.  As soon as the ratio reaches
     |RatioMinMax| again (or a |numpy.nan| value prevents its calculation),
     |ReductionFactor| jumps back to ``1.0``, applying the correction unabated
     again.  With the stationarity check disabled, |ReductionFactor| is always
@@ -670,6 +694,26 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     instationary, |ReductionFactor| keeps ramping towards zero (or staying at
     ``0.0``) for the entire forecast horizon instead of jumping back to ``1.0``
     as soon as the last real observation drops out of the logging window.
+
+    If enabled via |VariabilityCheck|, |Determine_OutputCorrection_V1|
+    additionally assesses how much the simulated discharge varies.  It sums the
+    absolute changes between successive |LoggedSimulatedDischarge| values within
+    the |EvaluationWindow| and divides this sum by |EvaluatedDischarge|, storing
+    the result in |RelSumDelta|.  It considers the flow conditions stationary
+    (|LowVariability| is ``1.0``) if |RelSumDelta| does not exceed
+    |MaxRelSumDelta| and the stationarity check described above is either
+    disabled or also detects stationary conditions.  Hence, the variability check
+    never interferes with the linear reduction of the correction.  Under
+    stationary conditions, the mean-value-based residual (see
+    |Calc_AveragedResidual_V1|) relies on the |StationaryAveragingWindow| instead
+    of the |ResidualAveragingWindow| (and so applies even if
+    |ResidualAveragingWindow| is zero), while the transition over
+    |ResidualTransitionTime| forecast steps remains unchanged.  Otherwise
+    (including the case of a non-positive |EvaluatedDischarge|, for which
+    |RelSumDelta| is |numpy.nan|), the correction works as described above.
+    Like |Stationary|, |Determine_OutputCorrection_V1| reassesses |RelSumDelta|
+    and |LowVariability| only while |Options.simulationmode| equals
+    `historical`.
 
     Likewise, |Determine_OutputCorrection_V1| only reassesses the pointwise
     residual itself (the |MaxResidualLookback| search described above) while
@@ -703,7 +747,10 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> control.stationaritycheck(window=3, ratiominmax=0.5)
         >>> derived.stationaritywindow.update()
         >>> derived.ratiominmax.update()
-        >>> control.linearreductiontime(2)
+        >>> control.variabilitycheck(False)
+        >>> derived.maxrelsumdelta.update()
+        >>> derived.stationaryaveragingwindow.update()
+        >>> control.reductionsteps(2)
         >>> control.maxresiduallookback(3)
         >>> control.maxabsoluteshift(100.0)
         >>> control.maxrelativeshift(1000.0)
@@ -785,7 +832,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         Sustained instationary conditions (the ratio of the minimum and the
         maximum observed discharge, ``0.5 / 5.0 = 0.1``, falls well below
         |RatioMinMax|) linearly reduce |ReductionFactor| to zero within the two
-        steps given by |LinearReductionTime|:
+        steps given by |ReductionSteps|:
 
         >>> logs.loggedsimulateddischarge = 1.0, 1.0, 1.0
         >>> logs.loggedobserveddischarge = 0.5, 5.0, 5.0
@@ -830,10 +877,10 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(4.0)
 
-        Setting |LinearReductionTime| to zero reduces |ReductionFactor| to zero
+        Setting |ReductionSteps| to zero reduces |ReductionFactor| to zero
         immediately once instationary conditions occur:
 
-        >>> control.linearreductiontime(0)
+        >>> control.reductionsteps(0)
         >>> logs.loggedobserveddischarge = 0.5, 5.0, 5.0
         >>> model.determine_outputcorrection_v1(False)
         >>> states.reductionfactor
@@ -843,9 +890,9 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
         Instationary conditions detected during `historical` mode (the second
         call argument is |False|) start a ramp towards zero (here, with
-        |LinearReductionTime| reset to two steps):
+        |ReductionSteps| reset to two steps):
 
-        >>> control.linearreductiontime(2)
+        >>> control.reductionsteps(2)
         >>> states.reductionfactor(1.0)
         >>> logs.loggedsimulateddischarge = 1.0, 1.0, 1.0
         >>> logs.loggedobserveddischarge = 0.5, 5.0, 5.0
@@ -1047,6 +1094,111 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         averagedresidual(2.5)
         >>> fluxes.correctedq
         correctedq(14.5)
+
+        Next, we enable the variability check.  In the following `historical`
+        call, the absolute changes of the simulated discharge within the
+        |EvaluationWindow| sum up to ``2.0``, which is 20 % of their mean value
+        (``10.0``).  So, |RelSumDelta| does not exceed |MaxRelSumDelta|, and
+        (as the stationarity check also detects stationary conditions)
+        |LowVariability| becomes ``1.0``:
+
+        >>> control.variabilitycheck(maxrelsumdelta=0.2, averagingwindow=3)
+        >>> derived.maxrelsumdelta.update()
+        >>> derived.stationaryaveragingwindow.update()
+        >>> logs.loggedsimulateddischarge = 9.0, 10.0, 11.0, 10.0
+        >>> logs.loggedobserveddischarge = 10.0, 12.0, 14.0, 12.0
+        >>> model.determine_outputcorrection_v1(False)
+        >>> states.stationary
+        stationary(1.0)
+        >>> states.relsumdelta
+        relsumdelta(0.2)
+        >>> states.lowvariability
+        lowvariability(1.0)
+        >>> fluxes.correctedq
+        correctedq(10.0)
+
+        In the subsequent forecast run, the mean-value-based residual covers the
+        three log entries given by |StationaryAveragingWindow| (mean observed
+        ``12.0``, mean simulated ``10.0``) instead of the two given by
+        |ResidualAveragingWindow|.  The transition from the pointwise residual
+        (``1.0``) works as before:
+
+        >>> logs.loggedsimulateddischarge = 12.0, 9.0, 10.0, 11.0
+        >>> logs.loggedobserveddischarge = nan, 10.0, 12.0, 14.0
+        >>> model.determine_outputcorrection_v1(True)
+        >>> states.averagedresidual
+        averagedresidual(2.0)
+        >>> fluxes.correctedq
+        correctedq(13.0)
+
+        >>> logs.loggedsimulateddischarge = 13.0, 12.0, 9.0, 10.0
+        >>> logs.loggedobserveddischarge = nan, nan, 10.0, 12.0
+        >>> model.determine_outputcorrection_v1(True)
+        >>> fluxes.correctedq
+        correctedq(14.5)
+
+        >>> logs.loggedsimulateddischarge = 14.0, 13.0, 12.0, 9.0
+        >>> logs.loggedobserveddischarge = nan, nan, nan, 10.0
+        >>> model.determine_outputcorrection_v1(True)
+        >>> states.lowvariability
+        lowvariability(1.0)
+        >>> fluxes.correctedq
+        correctedq(16.0)
+
+        A larger variability (``4.0 / 10.0 = 0.4``) exceeds |MaxRelSumDelta|, so
+        the next forecast run falls back to the |ResidualAveragingWindow| (mean
+        observed ``11.0``, mean simulated ``9.0``) instead of using the
+        |StationaryAveragingWindow| (which would result in a value of ``3.0``):
+
+        >>> logs.loggedsimulateddischarge = 8.0, 10.0, 12.0, 9.0
+        >>> logs.loggedobserveddischarge = 10.0, 12.0, 14.0, 12.0
+        >>> model.determine_outputcorrection_v1(False)
+        >>> states.relsumdelta
+        relsumdelta(0.4)
+        >>> states.lowvariability
+        lowvariability(0.0)
+        >>> logs.loggedsimulateddischarge = 12.0, 8.0, 10.0, 9.0
+        >>> logs.loggedobserveddischarge = nan, 10.0, 12.0, 14.0
+        >>> model.determine_outputcorrection_v1(True)
+        >>> states.averagedresidual
+        averagedresidual(2.0)
+
+        Instationary conditions according to the stationarity check (ratio
+        ``5.0 / 14.0``, below |RatioMinMax|) prevent the variability check from
+        detecting stationary conditions, even if |RelSumDelta| does not exceed
+        |MaxRelSumDelta|:
+
+        >>> logs.loggedsimulateddischarge = 9.0, 10.0, 11.0, 10.0
+        >>> logs.loggedobserveddischarge = 5.0, 12.0, 14.0, 12.0
+        >>> model.determine_outputcorrection_v1(False)
+        >>> states.stationary
+        stationary(0.0)
+        >>> states.relsumdelta
+        relsumdelta(0.2)
+        >>> states.lowvariability
+        lowvariability(0.0)
+
+        For a non-positive |EvaluatedDischarge|, |RelSumDelta| is undefined, and
+        |Determine_OutputCorrection_V1| does not consider the flow conditions
+        stationary:
+
+        >>> logs.loggedsimulateddischarge = 0.0, 0.0, 0.0, 0.0
+        >>> logs.loggedobserveddischarge = 1.0, 1.0, 1.0, 1.0
+        >>> model.determine_outputcorrection_v1(False)
+        >>> states.relsumdelta
+        relsumdelta(nan)
+        >>> states.lowvariability
+        lowvariability(0.0)
+
+        Disabling the variability check resets |LowVariability| to ``0.0``:
+
+        >>> states.lowvariability(1.0)
+        >>> control.variabilitycheck(False)
+        >>> derived.maxrelsumdelta.update()
+        >>> derived.stationaryaveragingwindow.update()
+        >>> model.determine_outputcorrection_v1(True)
+        >>> states.lowvariability
+        lowvariability(0.0)
     """
 
     SUBMETHODS = (Calc_AveragedResidual_V1,)
@@ -1060,12 +1212,14 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         statcorr_control.MaxRelativeShift,
         statcorr_control.ResidualAveragingWindow,
         statcorr_control.ResidualTransitionTime,
-        statcorr_control.LinearReductionTime,
+        statcorr_control.ReductionSteps,
     )
     DERIVEDPARAMETERS = (
         statcorr_derived.NmbLogEntries,
         statcorr_derived.StationarityWindow,
         statcorr_derived.RatioMinMax,
+        statcorr_derived.MaxRelSumDelta,
+        statcorr_derived.StationaryAveragingWindow,
     )
     REQUIREDSEQUENCES = (
         statcorr_logs.LoggedSimulatedDischarge,
@@ -1075,6 +1229,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         statcorr_states.EvaluatedDischarge,
         statcorr_states.ReductionFactor,
         statcorr_states.Stationary,
+        statcorr_states.RelSumDelta,
+        statcorr_states.LowVariability,
         statcorr_states.ForecastStep,
         statcorr_states.AveragedResidual,
         statcorr_states.Residual,
@@ -1084,6 +1240,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model, isforecastmode: bool, /) -> None:
+        # pylint: disable=too-many-branches
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1140,12 +1297,32 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
             if sta.stationary:
                 sta.reductionfactor = 1.0
-            elif con.linearreductiontime <= 0:
+            elif con.reductionsteps <= 0:
                 sta.reductionfactor = 0.0
             else:
                 sta.reductionfactor = max(
-                    0.0, sta.reductionfactor - 1.0 / con.linearreductiontime
+                    0.0, sta.reductionfactor - 1.0 / con.reductionsteps
                 )
+
+        if der.stationaryaveragingwindow <= 0:
+            sta.lowvariability = 0.0
+        elif not isforecastmode:
+            sumdelta: float = 0.0
+            for idx in range(con.evaluationwindow - 1):
+                sumdelta = sumdelta + modelutils.fabs(
+                    log.loggedsimulateddischarge[idx]
+                    - log.loggedsimulateddischarge[idx + 1]
+                )
+            if sta.evaluateddischarge > 0.0:
+                sta.relsumdelta = sumdelta / sta.evaluateddischarge
+            else:
+                sta.relsumdelta = modelutils.nan
+            if (der.stationaritywindow <= 0 or sta.stationary == 1.0) and (
+                sta.relsumdelta <= der.maxrelsumdelta
+            ):
+                sta.lowvariability = 1.0
+            else:
+                sta.lowvariability = 0.0
 
         forecast_step: float = sta.forecaststep if isforecastmode else 0.0
         sta.forecaststep = (forecast_step + 1.0) if isforecastmode else 0.0
@@ -1158,7 +1335,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
         effective_residual: float = (
             residual
-            if con.residualaveragingwindow <= 0
+            if con.residualaveragingwindow <= 0 and sta.lowvariability == 0.0
             else residual
             + (
                 1.0

@@ -28,7 +28,8 @@ Integration test
     |statcorr_arima010| submodel, which is responsible for all discharges (its
     |EvaluationWindow| of one step means it assesses its responsibility based on the
     current simulated discharge only).  We disable the stationarity check via
-    |StationarityCheck|, so the ARIMA correction always applies unabated:
+    |StationarityCheck| and the variability check via |VariabilityCheck|, so the
+    ARIMA correction always applies unabated:
 
     >>> from numpy import inf
     >>> loggingwindow(3)
@@ -47,7 +48,8 @@ Integration test
     ...     submodel.parameters.control.residualaveragingwindow(0)
     ...     submodel.parameters.control.residualtransitiontime(0)
     ...     submodel.parameters.control.stationaritycheck(False)
-    ...     submodel.parameters.control.linearreductiontime(1)
+    ...     submodel.parameters.control.variabilitycheck(False)
+    ...     submodel.parameters.control.reductionsteps(1)
 
     >>> test = IntegrationTest(element)
 

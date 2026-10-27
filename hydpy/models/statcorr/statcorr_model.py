@@ -253,12 +253,12 @@ class Calc_OutputCorr_V1(modeltools.Method):
 
 class Pass_CorrectedQ_V1(modeltools.Method):
     """Pass the corrected discharge on to the outlet link sequence, unless
-    |PropagateCorrection| is |False|, in which case the uncorrected inflow is
+    |Propagate| is |False|, in which case the uncorrected inflow is
     passed on instead.  Either way, |CorrectedQ| remains available for local
     output at the current gauge.
 
     Basic equation:
-        :math:`Q_{outlets} = CorrectedQ` (if |PropagateCorrection|) or
+        :math:`Q_{outlets} = CorrectedQ` (if |Propagate|) or
         :math:`Q_{outlets} = Inflow` (otherwise)
 
     Examples:
@@ -268,18 +268,18 @@ class Pass_CorrectedQ_V1(modeltools.Method):
         >>> fluxes.inflow = 1.0
         >>> fluxes.correctedq = 2.0
 
-        >>> propagatecorrection(True)
+        >>> propagate(True)
         >>> model.pass_correctedq_v1()
         >>> outlets.q
         q(2.0)
 
-        >>> propagatecorrection(False)
+        >>> propagate(False)
         >>> model.pass_correctedq_v1()
         >>> outlets.q
         q(1.0)
     """
 
-    CONTROLPARAMETERS = (statcorr_control.PropagateCorrection,)
+    CONTROLPARAMETERS = (statcorr_control.Propagate,)
     REQUIREDSEQUENCES = (statcorr_fluxes.Inflow, statcorr_fluxes.CorrectedQ)
     RESULTSEQUENCES = (statcorr_outlets.Q,)
 
@@ -288,7 +288,7 @@ class Pass_CorrectedQ_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q = flu.correctedq if con.propagatecorrection else flu.inflow
+        out.q = flu.correctedq if con.propagate else flu.inflow
 
 
 class Get_Discharge_V1(modeltools.Method):

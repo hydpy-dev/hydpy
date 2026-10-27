@@ -31,7 +31,7 @@ Integration test
 
     >>> loggingwindow(3)
     >>> nmbsubmodels(1)
-    >>> propagatecorrection(True)
+    >>> propagate(True)
     >>> with model.add_outputcorrmodel_v1(
     ...     "statcorr_arima010", position=0
     ... ) as submodel:
@@ -90,7 +90,7 @@ from hydpy.models.statcorr import statcorr_model
 ADDITIONAL_CONTROLPARAMETERS = (
     statcorr_control.LoggingWindow,
     statcorr_control.NmbSubmodels,
-    statcorr_control.PropagateCorrection,
+    statcorr_control.Propagate,
 )
 
 

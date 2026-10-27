@@ -42,7 +42,7 @@ Integration test
     ...     submodel.parameters.control.lowerlimit(0.0)
     ...     submodel.parameters.control.upperlimit(inf)
     ...     submodel.parameters.control.evaluationwindow(1)
-    ...     submodel.parameters.control.maxresiduallookback(3)
+    ...     submodel.parameters.control.maxnanskip(3)
     ...     submodel.parameters.control.maxabsoluteshift(100.0)
     ...     submodel.parameters.control.maxrelativeshift(1000.0)
     ...     submodel.parameters.control.residualaveragingwindow(0)

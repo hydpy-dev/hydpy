@@ -1,16 +1,10 @@
 # pylint: disable=missing-module-docstring
 
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
-
-
-class LoggingWindow(parametertools.Parameter):
-    """The length of the time period to be logged."""
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
 
 
 class NmbSubmodels(parametertools.Parameter):
@@ -61,6 +55,77 @@ class Active(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
+
+
+class CorrectionMode(parametertools.Parameter):
+    """The simulation mode(s) in which the submodel may correct the discharge [-].
+
+    Pass one of the strings `historical`, `forecast`, or `both`, corresponding to
+    the possible values of |Options.simulationmode|.  Internally, |CorrectionMode|
+    stores them as the integer values 1, 2, and 3:
+
+    >>> from hydpy.models.statcorr_arima010 import *
+    >>> parameterstep()
+    >>> correctionmode
+    correctionmode(?)
+    >>> correctionmode("historical")
+    >>> correctionmode
+    correctionmode("historical")
+    >>> correctionmode.value
+    1
+    >>> correctionmode("forecast")
+    >>> correctionmode
+    correctionmode("forecast")
+    >>> correctionmode.value
+    2
+    >>> correctionmode("both")
+    >>> correctionmode
+    correctionmode("both")
+    >>> correctionmode.value
+    3
+
+    Other strings are not allowed:
+
+    >>> correctionmode("always")
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `correctionmode` of element `?`, the given mode \
+`always` is not among the supported modes `historical`, `forecast`, and `both`.
+
+    Passing the integer values directly is also possible:
+
+    >>> correctionmode(1)
+    >>> correctionmode
+    correctionmode("historical")
+
+    Regardless of |CorrectionMode|, the submodel keeps updating its log and states
+    in both simulation modes (see |Determine_OutputCorrection_V1|).
+    """
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (1, 3)
+
+    MODES: Final = {"historical": 1, "forecast": 2, "both": 3}
+
+    def __call__(self, *args, **kwargs) -> None:
+        if (len(args) == 1) and not kwargs and isinstance(args[0], str):
+            mode = args[0]
+            if mode not in self.MODES:
+                raise ValueError(
+                    f"For parameter {objecttools.elementphrase(self)}, the given "
+                    f"mode `{mode}` is not among the supported modes `historical`, "
+                    f"`forecast`, and `both`."
+                )
+            super().__call__(self.MODES[mode])
+        else:
+            super().__call__(*args, **kwargs)
+
+    def __repr__(self) -> str:
+        for mode, value in self.MODES.items():
+            if exceptiontools.getattr_(self, "value", None) == value:
+                return f'{self.name}("{mode}")'
+        return super().__repr__()
 
 
 class LowerLimit(parametertools.Parameter):

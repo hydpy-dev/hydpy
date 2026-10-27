@@ -723,19 +723,18 @@ def _check_simulationmode(value: SimulationMode) -> SimulationMode:
     assert False
 
 
-class _OptionPropertySimulationMode(
+class OptionPropertySimulationMode(
     OptionPropertyBase[SimulationMode, OptionContextStr[SimulationMode]]
 ):
     """Descriptor for defining options of type |SimulationMode|.
 
-    *HydPy* currently supports two simulation modes: historical and forecast.
-    Options based on |OptionPropertySimulationMode|
-    automatically check if the given string is a supported simulatio mode
-    and raise errors if not:
+    *HydPy* currently supports two simulation modes: `historical` and `forecast`.
+    Options based on |OptionPropertySimulationMode| automatically check if the given
+    string is a supported simulation mode and raise errors if not:
 
-    >>> from hydpy.core.optiontools import _OptionPropertySimulationMode
+    >>> from hydpy.core.optiontools import OptionPropertySimulationMode
     >>> class T:
-    ...     v = _OptionPropertySimulationMode("historical", "x")
+    ...     v = OptionPropertySimulationMode("historical", "x")
     >>> T.v.__doc__
     'x'
 
@@ -907,27 +906,27 @@ class Options:
         >>> assert pub.options.reprdigits == -1
         """,
     )
-    simulationmode = _OptionPropertySimulationMode(
+    simulationmode = OptionPropertySimulationMode(
         "historical",
         """The current simulation mode.
 
-        The supported values are "historical" (default) and "forecast". In 
-        "historical" mode, the simulation typically relies on observed data, 
-        whereas "forecast" mode might involve different initialization or 
-        meteorological forcing.
-        
+        The supported values are "historical" (default) and "forecast".  In
+        "historical" mode, the simulation typically relies on observed data, whereas
+        "forecast" mode might involve different initialisation or meteorological
+        forcing.
+
         >>> from hydpy import pub
         >>> pub.options.simulationmode
         'historical'
-    
+
         You can switch the mode by assigning one of the valid string identifiers:
-    
+
         >>> pub.options.simulationmode = "forecast"
         >>> pub.options.simulationmode
         'forecast'
-    
+
         Resetting the option restores the default "historical" mode:
-    
+
         >>> del pub.options.simulationmode
         >>> pub.options.simulationmode
         'historical'

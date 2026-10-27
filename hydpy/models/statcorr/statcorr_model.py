@@ -61,14 +61,14 @@ class Calc_OutputCorr_V1(modeltools.Method):
        simulations (read in as conditions).
     2. Each submodel computes its corrected discharge via
        |OutputCorrModel_V1.determine_outputcorrection|.
-    3. Each submodel decides for itself, based on its own |Active| flag and its
-       |LowerLimit| and |UpperLimit| parameters, whether it is responsible for
-       the current discharge (see |OutputCorrModel_V1.is_active|).  The
-       corrected output of the *last* responsible submodel is taken as
-       |CorrectedQ|.  When no submodel is attached or responsible, |CorrectedQ|
-       equals |Inflow|.  Hence, attaching several submodels configured for
-       mutually exclusive discharge ranges lets only the one responsible for the
-       current discharge take effect.
+    3. Each submodel decides for itself, based on its own |Active| flag, its
+       |CorrectionMode|, and its |LowerLimit| and |UpperLimit| parameters,
+       whether it is responsible for the current discharge (see
+       |OutputCorrModel_V1.is_active|).  The corrected output of the *last*
+       responsible submodel is taken as |CorrectedQ|.  When no submodel is
+       attached or responsible, |CorrectedQ| equals |Inflow|.  Hence, attaching
+       several submodels configured for mutually exclusive discharge ranges lets
+       only the one responsible for the current discharge take effect.
 
     Examples:
 
@@ -91,6 +91,7 @@ class Calc_OutputCorr_V1(modeltools.Method):
         >>> from numpy import inf
         >>> def configure(submodel, lowerlimit=0.0, upperlimit=inf):
         ...     submodel.parameters.control.active(True)
+        ...     submodel.parameters.control.correctionmode("both")
         ...     submodel.parameters.control.lowerlimit(lowerlimit)
         ...     submodel.parameters.control.upperlimit(upperlimit)
         ...     submodel.parameters.control.evaluationwindow(1)
@@ -100,9 +101,9 @@ class Calc_OutputCorr_V1(modeltools.Method):
         ...     submodel.parameters.control.averagingwindow(0)
         ...     submodel.parameters.control.transitionsteps(0)
         ...     submodel.parameters.control.stationaritycheck(False)
+        ...     submodel.parameters.control.variabilitycheck(False)
         ...     submodel.parameters.control.reductionsteps(1)
 
-        >>> loggingwindow(2)
         >>> nmbsubmodels(1)
         >>> with model.add_outputcorrmodel_v1(
         ...     "statcorr_arima010", position=0
@@ -182,7 +183,6 @@ class Calc_OutputCorr_V1(modeltools.Method):
         also needlessly re-run the submodels' attachment/initialisation logic
         and wipe their logged history:
 
-        >>> loggingwindow(3)
         >>> nmbsubmodels(1)
         >>> with model.add_outputcorrmodel_v1(
         ...     "statcorr_arima010", position=0
@@ -223,10 +223,10 @@ class Calc_OutputCorr_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(4.5)
 
-        Even once the last real observation drops out of the three-step
-        logging window, the persisted residual keeps applying without limit
-        -- only |ReductionFactor| (via |StationarityCheck| and
-        |ReductionSteps|, disabled here) could still fade it out:
+        Even once the last real observation drops out of the submodel's log
+        (three entries due to |MaxNaNSkip|), the persisted residual keeps
+        applying without limit -- only |ReductionFactor| (via |StationarityCheck|
+        and |ReductionSteps|, disabled here) could still fade it out:
 
         >>> with pub.options.simulationmode("forecast"):
         ...     model.parameters.update()
@@ -322,28 +322,6 @@ class Pass_CorrectedQ_V1(modeltools.Method):
         out.q = flu.correctedq if con.propagate else flu.inflow
 
 
-class Get_Discharge_V1(modeltools.Method):
-    """Get the current measured discharge.
-
-    Example:
-
-        >>> from hydpy.models.statcorr import *
-        >>> parameterstep()
-        >>> inputs.discharge = 2.0
-        >>> from hydpy import round_
-        >>> round_(model.get_discharge_v1())
-        2.0
-    """
-
-    REQUIREDSEQUENCES = (statcorr_inputs.Discharge,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model, /) -> float:
-        inp = model.sequences.inputs.fastaccess
-
-        return inp.discharge
-
-
 class Model(modeltools.AdHocModel):
     """|statcorr.DOCNAME.complete|."""
 
@@ -354,7 +332,7 @@ class Model(modeltools.AdHocModel):
     OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (Calc_OutputCorr_V1,)
-    INTERFACE_METHODS = (Get_Discharge_V1,)
+    INTERFACE_METHODS = ()
     ADD_METHODS = ()
     OUTLET_METHODS = (Pass_CorrectedQ_V1,)
     SENDER_METHODS = ()
@@ -366,36 +344,36 @@ class Model(modeltools.AdHocModel):
     )
 
     @importtools.prepare_submodel(  # type: ignore[call-overload]
-        "outputcorrmodels",
-        statcorrinterfaces.OutputCorrModel_V1,
-        statcorrinterfaces.OutputCorrModel_V1.prepare_nmblogentries,
-        dimensionality=1,
+        "outputcorrmodels", statcorrinterfaces.OutputCorrModel_V1, dimensionality=1
     )
     def add_outputcorrmodel_v1(
         self,
         outputcorrmodel: statcorrinterfaces.OutputCorrModel_V1,
         *,
-        position: int,  # pylint: disable=unused-argument
-        refresh: bool,  # pylint: disable=unused-argument
+        position: int,
+        refresh: bool,
     ) -> None:
         """Initialise the given submodel that follows the |OutputCorrModel_V1|
-        interface and propagate the main model's |LoggingWindow| to its internal
-        log allocation.
+        interface.
+
+        The main model does not need to pass any information to the submodel.  In
+        particular, the submodel determines the length of its log from its own
+        parameters (see |NmbLogEntries|):
 
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
-        >>> loggingwindow(4)
         >>> nmbsubmodels(1)
         >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0):
-        ...     pass
+        ...     evaluationwindow(2)
+        ...     stationaritycheck(window=4, ratiominmax=0.5)
+        ...     variabilitycheck(False)
+        ...     maxnanskip(3)
+        ...     averagingwindow(0)
         >>> model.outputcorrmodels[0].parameters.derived.nmblogentries
         nmblogentries(4)
         >>> model.outputcorrmodels[0].sequences.logs.loggedsimulateddischarge
         loggedsimulateddischarge(nan, nan, nan, nan)
         """
-        nmb = int(self.parameters.control.loggingwindow.value)
-        outputcorrmodel.parameters.control.loggingwindow(nmb)
-        outputcorrmodel.prepare_nmblogentries(nmb)
 
 
 class Set_SimulatedDischarge_V1(modeltools.Method):
@@ -589,7 +567,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     error model.
 
     Each submodel is responsible for a specific discharge range only.  It corrects
-    the discharge only while |Active| is |True| and the mean of the
+    the discharge only while |Active| is |True|, |CorrectionMode| allows a
+    correction in the current simulation mode, and the mean of the
     |EvaluationWindow| most recent |LoggedSimulatedDischarge| values
     (:math:`\overline{sim}`, stored in |EvaluatedDischarge|) lies within the
     range defined by |LowerLimit| and |UpperLimit|:
@@ -601,13 +580,15 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     reuses the value of the most recent `historical` assessment, so the
     responsible submodel does not change throughout the forecast horizon.  It
     checks the condition in each simulation step (so changes of |Active|,
-    |LowerLimit|, or |UpperLimit| take effect immediately) and stores the outcome
-    in |IsActive|.  Whenever the condition is not met, the corrected discharge
-    equals the current simulated discharge.  However,
+    |CorrectionMode|, |LowerLimit|, or |UpperLimit| take effect immediately) and
+    stores the outcome in |IsActive|.  Whenever the condition is not met, the
+    corrected discharge equals the current simulated discharge.  However,
     |Determine_OutputCorrection_V1| keeps updating all internal states (the
     residual, the stationarity assessment, and the |ReductionFactor|) in either
     case, so that a submodel taking over responsibility starts with up-to-date
-    information.
+    information.  This also holds for a submodel that |CorrectionMode| restricts
+    to the `forecast` mode, which, therefore, relies on the residual and the flow
+    conditions determined during the preceding `historical` run.
 
     The correction is derived from the most recently available residual
     (observed minus simulated discharge).  While |Options.simulationmode|
@@ -742,6 +723,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> derived.nmblogentries(3)
         >>> control.evaluationwindow(3)
         >>> control.active(True)
+        >>> control.correctionmode("both")
         >>> control.lowerlimit(0.0)
         >>> control.upperlimit(inf)
         >>> control.stationaritycheck(window=3, ratiominmax=0.5)
@@ -807,6 +789,43 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         isactive(0.0)
         >>> fluxes.correctedq
         correctedq(3.0)
+
+        |CorrectionMode| restricts the correction to one simulation mode.  With
+        `forecast`, the submodel does not correct the discharge in the `historical`
+        mode:
+
+        >>> control.active(True)
+        >>> control.correctionmode("forecast")
+        >>> model.determine_outputcorrection_v1(False)
+        >>> fluxes.isactive
+        isactive(0.0)
+        >>> fluxes.correctedq
+        correctedq(3.0)
+
+        With `historical`, it does:
+
+        >>> control.correctionmode("historical")
+        >>> model.determine_outputcorrection_v1(False)
+        >>> fluxes.isactive
+        isactive(1.0)
+        >>> fluxes.correctedq
+        correctedq(4.0)
+
+        In the `forecast` mode, it is the other way round:
+
+        >>> model.determine_outputcorrection_v1(True)
+        >>> fluxes.isactive
+        isactive(0.0)
+        >>> fluxes.correctedq
+        correctedq(3.0)
+
+        >>> control.correctionmode("forecast")
+        >>> model.determine_outputcorrection_v1(True)
+        >>> fluxes.isactive
+        isactive(1.0)
+        >>> fluxes.correctedq
+        correctedq(4.0)
+        >>> control.correctionmode("both")
 
         The two most recent observations are missing, so the residual is taken
         from the third log entry and added to the current simulated discharge.
@@ -1204,6 +1223,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
     SUBMETHODS = (Calc_AveragedResidual_V1,)
     CONTROLPARAMETERS = (
         statcorr_control.Active,
+        statcorr_control.CorrectionMode,
         statcorr_control.LowerLimit,
         statcorr_control.UpperLimit,
         statcorr_control.EvaluationWindow,
@@ -1254,7 +1274,17 @@ class Determine_OutputCorrection_V1(modeltools.Method):
             for idx in range(con.evaluationwindow):
                 mean_simulated = mean_simulated + log.loggedsimulateddischarge[idx]
             sta.evaluateddischarge = mean_simulated / con.evaluationwindow
-        if con.active and (con.lowerlimit <= sta.evaluateddischarge < con.upperlimit):
+        if con.correctionmode == 3:
+            modeallowed = True
+        elif isforecastmode:
+            modeallowed = con.correctionmode == 2
+        else:
+            modeallowed = con.correctionmode == 1
+        if (
+            con.active
+            and modeallowed
+            and (con.lowerlimit <= sta.evaluateddischarge < con.upperlimit)
+        ):
             flu.isactive = 1.0
         else:
             flu.isactive = 0.0

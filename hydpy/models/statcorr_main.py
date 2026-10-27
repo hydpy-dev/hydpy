@@ -24,21 +24,20 @@ Integration test
     >>> element = Element("element", inlets="inlet", outlets="outlet")
     >>> element.model = model
 
-    We configure a logging window of three time steps and attach a single
-    |statcorr_arima010| submodel, which is responsible for all discharges (its
-    |EvaluationWindow| of one step means it assesses its responsibility based on the
-    current simulated discharge only).  We disable the stationarity check via
-    |StationarityCheck| and the variability check via |VariabilityCheck|, so the
-    ARIMA correction always applies unabated:
+    We attach a single |statcorr_arima010| submodel, which is responsible for all
+    discharges (its |EvaluationWindow| of one step means it assesses its
+    responsibility based on the current simulated discharge only).  We disable the
+    stationarity check via |StationarityCheck| and the variability check via
+    |VariabilityCheck|, so the ARIMA correction always applies unabated:
 
     >>> from numpy import inf
-    >>> loggingwindow(3)
     >>> nmbsubmodels(1)
     >>> propagate(True)
     >>> with model.add_outputcorrmodel_v1(
     ...     "statcorr_arima010", position=0
     ... ) as submodel:
     ...     submodel.parameters.control.active(True)
+    ...     submodel.parameters.control.correctionmode("both")
     ...     submodel.parameters.control.lowerlimit(0.0)
     ...     submodel.parameters.control.upperlimit(inf)
     ...     submodel.parameters.control.evaluationwindow(1)
@@ -64,8 +63,8 @@ Integration test
 
     During the first two steps the correction is based on the concurrent residual
     (``0.5``).  In the forecast period the model falls back to the most recent
-    available residual, which stays at ``0.5`` until it drops out of the logging
-    window on day five, after which no correction is applied:
+    available residual, which stays at ``0.5`` until it lies more than
+    |MaxNaNSkip| entries back on day five, after which no correction is applied:
 
 .. integration-test::
 
@@ -89,7 +88,6 @@ from hydpy.models.statcorr import statcorr_control
 from hydpy.models.statcorr import statcorr_model
 
 ADDITIONAL_CONTROLPARAMETERS = (
-    statcorr_control.LoggingWindow,
     statcorr_control.NmbSubmodels,
     statcorr_control.Propagate,
 )
@@ -108,7 +106,7 @@ class Model(modeltools.AdHocModel):
     OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (statcorr_model.Calc_OutputCorr_V1,)
-    INTERFACE_METHODS = (statcorr_model.Get_Discharge_V1,)
+    INTERFACE_METHODS = ()
     ADD_METHODS = ()
     OUTLET_METHODS = (statcorr_model.Pass_CorrectedQ_V1,)
     SENDER_METHODS = ()
@@ -120,24 +118,21 @@ class Model(modeltools.AdHocModel):
     )
 
     @importtools.prepare_submodel(  # type: ignore[call-overload]
-        "outputcorrmodels",
-        statcorrinterfaces.OutputCorrModel_V1,
-        statcorrinterfaces.OutputCorrModel_V1.prepare_nmblogentries,
-        dimensionality=1,
+        "outputcorrmodels", statcorrinterfaces.OutputCorrModel_V1, dimensionality=1
     )
     def add_outputcorrmodel_v1(
         self,
         outputcorrmodel: statcorrinterfaces.OutputCorrModel_V1,
         *,
-        position: int,  # pylint: disable=unused-argument
-        refresh: bool,  # pylint: disable=unused-argument
+        position: int,
+        refresh: bool,
     ) -> None:
         """Initialise the given submodel that follows the |OutputCorrModel_V1|
-        interface and propagate the main model's |LoggingWindow| to its internal
-        log allocation."""
-        nmb = int(self.parameters.control.loggingwindow.value)
-        outputcorrmodel.parameters.control.loggingwindow(nmb)
-        outputcorrmodel.prepare_nmblogentries(nmb)
+        interface.
+
+        The submodel determines the length of its log from its own parameters (see
+        |NmbLogEntries|), so the main model does not need to pass any information.
+        """
 
 
 tester = Tester()

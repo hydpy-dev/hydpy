@@ -3,15 +3,27 @@
 potential problems in situations where HydPy relies on runtime behaviour that is not
 (and possibly cannot be) expressed via static type hints."""
 
+from calendar import monthrange
 from configparser import ConfigParser
 from os.path import join, split
 from pickle import load
-from typing import Callable, cast, Final, Literal
+import re
+from typing import Callable, cast, Final, Literal, NamedTuple
 from warnings import warn
 
 from mypy.checker import TypeChecker
-from mypy.errorcodes import ARG_TYPE, ATTR_DEFINED
-from mypy.nodes import Decorator, MemberExpr, MypyFile, TypeAlias, TypeInfo
+from mypy.errorcodes import ARG_TYPE, ATTR_DEFINED, CALL_ARG, DEPRECATED
+from mypy.nodes import (
+    ARG_NAMED,
+    ARG_NAMED_OPT,
+    ARG_STAR2,
+    CallExpr,
+    Decorator,
+    MemberExpr,
+    MypyFile,
+    TypeAlias,
+    TypeInfo,
+)
 from mypy.options import Options
 from mypy.plugin import (
     AttributeContext,
@@ -24,6 +36,7 @@ from mypy.typeops import bind_self
 from mypy.types import (
     AnyType,
     CallableType,
+    ExtraAttrs,
     FunctionLike,
     get_proper_type,
     LiteralType,
@@ -122,8 +135,138 @@ VAR_MAP_1: dict[str, dict[str, dict[str, tuple[str, str]]]]
 VAR_MAP_2: dict[str, tuple[str, str, str]]
 VAR_INFO: dict[str, tuple[int, type[float]]]
 VAR_SHAPE: set[str]
+VAR_TIMEINT: set[str]
+ZIP_CONSTANTS: dict[str, tuple[str, ...] | None]
+ADDER_KEYWORDS: dict[str, tuple[str, ...]]
+KEYWORD_NAMES: dict[str, tuple[str, ...] | None]
 with open(join(DIRPATH, "conf", "mypy_plugin_data.pickle"), "rb") as file_:
-    MODEL_MAP, VAR_MAP_1, VAR_MAP_2, VAR_INFO, VAR_SHAPE = load(file_)
+    (
+        MODEL_MAP,
+        VAR_MAP_1,
+        VAR_MAP_2,
+        VAR_INFO,
+        VAR_SHAPE,
+        VAR_TIMEINT,
+        ZIP_CONSTANTS,
+        ADDER_KEYWORDS,
+        KEYWORD_NAMES,
+    ) = load(file_)
+
+TOY_FORMAT: Final = re.compile(r"toy(_[0-9]{1,2}){1,5}")
+"""Standard format of time of year names."""
+
+THRESHOLD_FORMAT: Final = re.compile(r"th_(0|[1-9][0-9]*)_(0|[0-9]*[1-9])")
+"""Standard format of threshold names."""
+
+
+def _standardize_toy(name: str) -> str | None:
+    """Return the standard time of year name for the given keyword name, or `None` if
+    the runtime does not support it."""
+    values = name.split("_")[1:]
+    if not 1 <= len(values) <= 5:
+        return None
+    try:
+        integers = [int(value) for value in values]
+    except ValueError:
+        return None
+    return "_".join(["toy"] + [f"{integer:02}" for integer in integers])
+
+
+def _standardize_threshold(name: str) -> str | None:
+    """Return the standard threshold name for the given keyword name, or `None` if the
+    runtime does not support it."""
+    parts = name.split("_")
+    try:
+        if (len(parts) > 1) and parts[-2].isdigit():
+            integer = str(int(parts[-2]))
+            decimal = parts[-1]
+            if not (decimal.isascii() and decimal.isdigit()):
+                return None
+            decimal = decimal.rstrip("0") or "0"
+        else:
+            integer = str(int(parts[-1]))
+            decimal = "0"
+    except ValueError:
+        return None
+    return f"th_{integer}_{decimal}"
+
+
+class KeywordFormat(NamedTuple):
+    """Format of the keyword names accepted by the `__call__` method of specific
+    classes."""
+
+    pattern: re.Pattern[str]
+    standardize: Callable[[str], str | None]
+    description: str
+
+
+KEYWORD_FORMATS: Final = {
+    "hydpy.models.arma.arma_control.Responses": KeywordFormat(
+        THRESHOLD_FORMAT, _standardize_threshold, "threshold name"
+    ),
+    "hydpy.core.parametertools.SeasonalParameter": KeywordFormat(
+        TOY_FORMAT, _standardize_toy, "time of year name"
+    ),
+    "hydpy.auxs.interptools.SeasonalInterpolator": KeywordFormat(
+        TOY_FORMAT, _standardize_toy, "time of year name"
+    ),
+}
+
+
+LANDTYPES: Final = "__hydpy_landtypes__"
+"""Name of the "extra attribute" that informs about the land type constants main
+models pass to their submodels.
+
+Its value is a string literal like "evap:field,forest,glacier,ilake,sealed".  Entries
+for different submodel families are separated by semicolons.  (At runtime, a main model
+passes its constants to the zip parameters and the keyword parameters with row names
+depending on the main model of a specific base model family, and these stay valid for
+all nested submodels of the same family as long as the main model's `with` block is
+active.  Hence, the plugin collects the constants per family.)
+"""
+
+
+def _get_family(fullname: str) -> str:
+    """
+    `hydpy.models.evap_aet_hbv96.Model` --> `evap`
+    `hydpy.models.evap.evap_control.Water` --> `evap`
+    """
+    return fullname.split(".")[2].split("_")[0]
+
+
+def _decode_landtypes(type_: Instance) -> dict[str, str]:
+    """Return the given type's land type information as a dictionary that maps submodel
+    families to comma-separated land type names (empty if not available)."""
+    if (
+        ((extra := type_.extra_attrs) is not None)
+        and ((literal := extra.attrs.get(LANDTYPES)) is not None)
+        and isinstance(literal := get_proper_type(literal), LiteralType)
+        and isinstance(value := literal.value, str)
+    ):
+        return dict(item.split(":") for item in value.split(";"))
+    return {}
+
+
+def _encode_landtypes(
+    api: TypeChecker, family2landtypes: dict[str, str]
+) -> ExtraAttrs | None:
+    """Return a new `ExtraAttrs` object that contains the given land type information as
+    a string literal (or `None` if there is no information)."""
+    if not family2landtypes:
+        return None
+    value = ";".join(f"{k}:{v}" for k, v in sorted(family2landtypes.items()))
+    literal = LiteralType(value=value, fallback=api.named_type("builtins.str"))
+    return ExtraAttrs(attrs={LANDTYPES: literal}, immutable={LANDTYPES})
+
+
+def _forward_landtypes(type_: Instance) -> ExtraAttrs | None:
+    """Return a new `ExtraAttrs` object that contains the given type's land type
+    information (if available)."""
+    if ((extra := type_.extra_attrs) is not None) and (
+        (literal := extra.attrs.get(LANDTYPES)) is not None
+    ):
+        return ExtraAttrs(attrs={LANDTYPES: literal}, immutable={LANDTYPES})
+    return None
 
 
 def prepare_model_hook(context: FunctionContext) -> Type:
@@ -191,9 +334,12 @@ def submodeladder_call_hook(context: MethodContext) -> Type:
                 return context.default_return_type
             interface_name = interface_inst.type.fullname
             if model_info.has_base(interface_name):
-                return adder_inst.copy_modified(
-                    args=adder_args[:2] + (Instance(model_info, args=[]),)
+                submodel_inst = Instance(
+                    model_info,
+                    args=[],
+                    extra_attrs=_get_submodel_landtypes(api, context, model_info),
                 )
+                return adder_inst.copy_modified(args=adder_args[:2] + (submodel_inst,))
             context.api.msg.report(
                 msg=(
                     f"Model `{module_name}` does not comply with the submodel "
@@ -212,6 +358,25 @@ def submodeladder_call_hook(context: MethodContext) -> Type:
             origin_context=None,
         )
     return context.default_return_type
+
+
+def _get_submodel_landtypes(
+    api: TypeChecker, context: MethodContext, submodel_info: TypeInfo
+) -> ExtraAttrs | None:
+    """Return the land type information relevant for the submodel (see `LANDTYPES`)."""
+    if (
+        isinstance(call_expr := context.context, CallExpr)
+        and isinstance(callee := call_expr.callee, MemberExpr)
+        and ((main_type := api.lookup_type_or_none(callee.expr)) is not None)
+        and isinstance(main_inst := get_proper_type(main_type), Instance)
+    ):
+        family2landtypes = _decode_landtypes(main_inst)
+        key = f"{main_inst.type.fullname}.{callee.name}"
+        if (keywords := ADDER_KEYWORDS.get(key)) is not None:
+            family = _get_family(submodel_info.fullname)
+            family2landtypes[family] = ",".join(keywords)
+        return _encode_landtypes(api, family2landtypes)
+    return None
 
 
 def submodeladder_enter_hook(context: MethodContext) -> Type:
@@ -233,12 +398,7 @@ def trim_hook(context: MethodSigContext) -> FunctionLike:
     """
     default = context.default_signature
     if (default.arg_names != ["lower", "upper"]) or not all(
-        (
-            isinstance(at, TypeAliasType)
-            and ((alias := at.alias) is not None)
-            and (alias.fullname == "hydpy.core.typingtools.TrimHook")
-        )
-        for at in default.arg_types
+        _is_alias(at, "TrimHook") for at in default.arg_types
     ):
         return default
     ndim_type = _get_ndim_and_type(context)
@@ -251,6 +411,250 @@ def trim_hook(context: MethodSigContext) -> FunctionLike:
         return default
     vl_opt = UnionType(items=[vectorlike, NoneType()])
     return default.copy_modified(arg_types=(vl_opt, vl_opt))
+
+
+def call_hook(context: MethodSigContext) -> FunctionLike:
+    """
+    `VariableX.__call__(*values: CallHook, ...) -> None`
+    -->
+    `VariableX.__call__(*values: float, ...) -> None`
+    `VariableY.__call__(*values: int | VectorInputInt, ...) -> None`
+    ...
+
+    `ZipParameterX.__call__(*, default: float = ..., **constants: float) -> None`
+    -->
+    `ZipParameterX.__call__(*, default: float = ..., field: float = ..., ...) -> None`
+
+    `KeywordParameter1DX.__call__(**entries: float) -> None`
+    -->
+    `KeywordParameter1DX.__call__(*, jan: float = ..., feb: float = ..., ...) -> None`
+    """
+    default = _restrict_keywords(context, context.default_signature)
+    ndim_type = _get_ndim_and_type(context)
+    if (ndim_type is None) or not isinstance(var_inst := context.type, Instance):
+        return default
+    ndim, type_ = ndim_type
+    types_: tuple[type[float], ...] = (type_,)
+    if var_inst.type.fullname in VAR_TIMEINT:
+        types_ = (float, int)
+    items = []
+    for subtype in types_:
+        for subndim in range(1 if ndim else 0, ndim + 1):
+            vectorlike = _get_vectorlike(
+                context=context, ndim=subndim, type_=subtype, input_=True
+            )
+            if vectorlike is None:
+                return default
+            items.append(vectorlike)
+    values_type = UnionType.make_union(items)
+    default = default.copy_modified(
+        arg_types=[
+            values_type if _is_alias(at, "CallHook") else at for at in default.arg_types
+        ]
+    )
+    default = _insert_zip_keywords(context, var_inst, types_[0], default)
+    return _insert_entry_or_row_keywords(context, var_inst, types_[0], default)
+
+
+def _restrict_keywords(
+    context: MethodSigContext, signature: CallableType
+) -> CallableType:
+    """Replace the arbitrary keyword arguments with the call's keyword names the runtime
+    supports (see `KEYWORD_FORMATS`) and report invalid, duplicate, and deprecated
+    names."""
+    if (
+        (not isinstance(var_inst := context.type, Instance))
+        or (not signature.arg_kinds)
+        or (signature.arg_kinds[-1] != ARG_STAR2)
+        or (not isinstance(call := context.context, CallExpr))
+        or (ARG_STAR2 in call.arg_kinds)
+    ):
+        return signature
+    for fullname, format_ in KEYWORD_FORMATS.items():
+        if var_inst.type.has_base(fullname):
+            break
+    else:
+        return signature
+    name2standard = {
+        n: s
+        for n in call.arg_names
+        if (n is not None) and ((s := format_.standardize(n)) is not None)
+    }
+    names = list(name2standard)
+    invalid: set[str] = set()
+    if format_.pattern is TOY_FORMAT:
+        invalid = _check_toys(context, call, names)
+    else:
+        _check_thresholds(context, call, name2standard)
+    for name, standard in name2standard.items():
+        if (name not in invalid) and not format_.pattern.fullmatch(name):
+            _report_deprecation(
+                context,
+                call,
+                f'The {format_.description} "{name}" is deprecated and will no longer '
+                f'be supported in HydPy 8.0.  Please write "{standard}" instead.',
+            )
+    return signature.copy_modified(
+        arg_types=signature.arg_types[:-1] + len(names) * [signature.arg_types[-1]],
+        arg_kinds=signature.arg_kinds[:-1] + len(names) * [ARG_NAMED_OPT],
+        arg_names=signature.arg_names[:-1] + names,
+    )
+
+
+def _check_toys(
+    context: MethodSigContext, call: CallExpr, names: list[str]
+) -> set[str]:
+    """Report invalid times of year and different names for the same time of year
+    and return the invalid names."""
+    invalid = set()
+    toy2name: dict[tuple[int, ...], str] = {}
+    for name in names:
+        toy = tuple(int(v) for v in name.split("_")[1:])
+        toy += (1, 1, 0, 0, 0)[len(toy) :]
+        month, day, hour, minute, second = toy
+        if not (
+            (1 <= month <= 12)
+            and (1 <= day <= monthrange(2000, month)[1])
+            and (hour <= 23)
+            and (minute <= 59)
+            and (second <= 59)
+        ):
+            invalid.add(name)
+            context.api.fail(
+                f'Keyword "{name}" does not define a valid time of year',
+                call,
+                code=CALL_ARG,
+            )
+        elif (other := toy2name.setdefault(toy, name)) != name:
+            context.api.fail(
+                f'Keywords "{other}" and "{name}" define the same time of year',
+                call,
+                code=CALL_ARG,
+            )
+    return invalid
+
+
+def _check_thresholds(
+    context: MethodSigContext, call: CallExpr, name2standard: dict[str, str]
+) -> None:
+    """Report different names for the same threshold value."""
+    standard2name: dict[str, str] = {}
+    for name, standard in name2standard.items():
+        if (other := standard2name.setdefault(standard, name)) != name:
+            context.api.fail(
+                f'Keywords "{other}" and "{name}" define the same threshold value',
+                call,
+                code=CALL_ARG,
+            )
+
+
+def _report_deprecation(context: MethodSigContext, call: CallExpr, msg: str) -> None:
+    if context.api.options.report_deprecated_as_note:
+        context.api.msg.note(msg, call, code=DEPRECATED)
+    else:
+        context.api.fail(msg, call, code=DEPRECATED)
+
+
+def _insert_zip_keywords(
+    context: MethodSigContext,
+    var_inst: Instance,
+    type_: type[float],
+    signature: CallableType,
+) -> CallableType:
+    """Replace the arbitrary keyword arguments `constants` of zip parameters with the
+    lowercase names of the relevant constants (the main model's ones for submodels,
+    see `LANDTYPES`) and give them and `default` the parameter's scalar type."""
+    if (
+        (var_inst.type.fullname not in ZIP_CONSTANTS)
+        or (not signature.arg_kinds)
+        or (signature.arg_kinds[-1] != ARG_STAR2)
+        or (signature.arg_names[-1] != "constants")
+        or ((scalar := _get_vectorlike(context, 0, type_, input_=True)) is None)
+    ):
+        return signature
+    if (constants := ZIP_CONSTANTS[var_inst.type.fullname]) is None:
+        family2landtypes = _decode_landtypes(var_inst)
+        if (
+            landtypes := family2landtypes.get(_get_family(var_inst.type.fullname))
+        ) is None:
+            return signature
+        constants = tuple(landtypes.split(","))
+    names = list(signature.arg_names[:-1])
+    kinds = list(signature.arg_kinds[:-1])
+    types = [
+        scalar if n == "default" else t for n, t in zip(names, signature.arg_types)
+    ]
+    for name in constants:
+        names.append(name)
+        kinds.append(ARG_NAMED_OPT)
+        types.append(scalar)
+    return signature.copy_modified(arg_types=types, arg_kinds=kinds, arg_names=names)
+
+
+def _insert_entry_or_row_keywords(
+    context: MethodSigContext,
+    var_inst: Instance,
+    type_: type[float],
+    signature: CallableType,
+) -> CallableType:
+    """Replace the arbitrary keyword arguments `entries` of |KeywordParameter1D| and
+    `rows` of |KeywordParameter2D| subclasses with the entry or row names (the main
+    model's land types for names depending on it, see `LANDTYPES`), give them the type
+    the parameter's `TYPE` requires, and report missing and unknown names."""
+    if (
+        (var_inst.type.fullname not in KEYWORD_NAMES)
+        or (not signature.arg_kinds)
+        or (signature.arg_kinds[-1] != ARG_STAR2)
+        or ((kind := signature.arg_names[-1]) not in ("entries", "rows"))
+    ):
+        return signature
+    ndim = 1 if kind == "rows" else 0
+    if (value_type := _get_vectorlike(context, ndim, type_, input_=True)) is None:
+        return signature
+    if (names := KEYWORD_NAMES[var_inst.type.fullname]) is None:
+        family2landtypes = _decode_landtypes(var_inst)
+        if (
+            landtypes := family2landtypes.get(_get_family(var_inst.type.fullname))
+        ) is None:
+            return signature
+        names = tuple(landtypes.split(","))
+    unknown: list[str] = []
+    if (
+        isinstance(call := context.context, CallExpr)
+        and call.arg_names
+        and all(k == ARG_NAMED for k in call.arg_kinds)
+        and ("auxfile" not in call.arg_names)
+    ):
+        given = set(call.arg_names)
+        missing = [n for n in names if n not in given]
+        unknown = [n for n in call.arg_names if (n is not None) and (n not in names)]
+        attr = "entrynames" if kind == "entries" else "rownames"
+        for adjective, problems, explanation in (
+            ("Missing", missing, f'each name in "{attr}" is required'),
+            ("Unexpected", unknown, f'not in "{attr}"'),
+        ):
+            if problems:
+                plural = "s" if len(problems) > 1 else ""
+                quoted = ", ".join(f'"{n}"' for n in problems)
+                context.api.fail(
+                    f"{adjective} keyword argument{plural} {quoted} ({explanation})",
+                    call,
+                    code=CALL_ARG,
+                )
+    allnames = list(names) + unknown
+    return signature.copy_modified(
+        arg_types=signature.arg_types[:-1] + len(allnames) * [value_type],
+        arg_kinds=signature.arg_kinds[:-1] + len(allnames) * [ARG_NAMED_OPT],
+        arg_names=signature.arg_names[:-1] + allnames,
+    )
+
+
+def _is_alias(type_: Type, name: str) -> bool:
+    return (
+        isinstance(type_, TypeAliasType)
+        and ((alias := type_.alias) is not None)
+        and (alias.fullname == f"hydpy.core.typingtools.{name}")
+    )
 
 
 def method_hook(context: AttributeContext) -> Type:
@@ -303,7 +707,9 @@ def variables_hook1(context: AttributeContext) -> Type:
     if isinstance(model_inst := context.type, Instance) and isinstance(
         vars_inst := get_proper_type(context.default_attr_type), Instance
     ):
-        return vars_inst.copy_modified(args=(model_inst,) + vars_inst.args[1:])
+        new_inst = vars_inst.copy_modified(args=(model_inst,) + vars_inst.args[1:])
+        new_inst.extra_attrs = _forward_landtypes(model_inst)
+        return new_inst
     return context.default_attr_type
 
 
@@ -331,9 +737,11 @@ def subvariables_hook1(context: AttributeContext) -> Type:
     if isinstance(vars_inst := context.type, Instance) and isinstance(
         subvars_inst := get_proper_type(context.default_attr_type), Instance
     ):
-        return subvars_inst.copy_modified(
+        new_inst = subvars_inst.copy_modified(
             args=(vars_inst.args[0],) + subvars_inst.args[1:]
         )
+        new_inst.extra_attrs = _forward_landtypes(vars_inst)
+        return new_inst
     return context.default_attr_type
 
 
@@ -430,7 +838,13 @@ def _get_variable_type(
             assert isinstance(var_info, TypeInfo)
             special = var_info.has_base("hydpy.core.parametertools.SpecialParameter")
             if (kind is None) or ((kind == "special") == special):
-                return Instance(typ=var_info, args=[])
+                extra_attrs = None
+                fullname = var_info.fullname
+                if (ZIP_CONSTANTS.get(fullname, ()) is None) or (
+                    KEYWORD_NAMES.get(fullname, ()) is None
+                ):
+                    extra_attrs = _forward_landtypes(model_inst)
+                return Instance(typ=var_info, args=[], extra_attrs=extra_attrs)
         var_type = (
             subvars_inst.type.fullname.rpartition(".")[-1]
             .replace("Parameters", " parameter")
@@ -648,6 +1062,8 @@ class MypyPlugin(Plugin):
     ) -> Callable[[MethodSigContext], FunctionLike] | None:
         if fullname.endswith(".trim"):
             return trim_hook
+        if fullname.endswith(".__call__"):
+            return call_hook
         return None
 
     def get_attribute_hook(

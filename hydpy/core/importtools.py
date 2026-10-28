@@ -715,9 +715,9 @@ following error occurred: The given `lland_knauf` instance is not considered sha
             "soiltype_refindices": None,
             "refweights": None,
         }
-        self._landtype_refindices = landtype_refindices
-        self._soiltype_refindices = soiltype_refindices
-        self._refweights = refweights
+        self.landtype_refindices = landtype_refindices
+        self.soiltype_refindices = soiltype_refindices
+        self.refweights = refweights
         self.__doc__ = wrapped.__doc__
 
     @overload
@@ -808,11 +808,11 @@ following error occurred: The given `lland_knauf` instance is not considered sha
 
             shared = self._sharable_configuration
             control = model.parameters.control
-            if (ltr := self._landtype_refindices) is not None:
+            if (ltr := self.landtype_refindices) is not None:
                 shared["landtype_refindices"] = getattr(control, ltr.name)
-            if (str_ := self._soiltype_refindices) is not None:  # pragma: no cover
+            if (str_ := self.soiltype_refindices) is not None:  # pragma: no cover
                 shared["soiltype_refindices"] = getattr(control, str_.name)
-            if (rw := self._refweights) is not None:
+            if (rw := self.refweights) is not None:
                 if rw.name in control.names:
                     rw_ = getattr(control, rw.name)
                 else:

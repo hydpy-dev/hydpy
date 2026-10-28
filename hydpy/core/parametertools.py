@@ -4851,6 +4851,9 @@ for axis 0 with size 1
     """
 
     NDIM: Final[Literal[1]] = 1
+    ENTRYNAMES_FROM_MAINMODEL: ClassVar[bool] = False
+    """Whether a main model provides the actual entry names, so that `entrynames` only
+    defines placeholders for standalone use."""
     entrynames: tuple[str, ...]
     entrymin: int = 0
 
@@ -4875,6 +4878,7 @@ for axis 0 with size 1
         >>> from hydpy.core.parametertools import KeywordParameter1D
         >>> class LAI(KeywordParameter1D):
         ...     TYPE = float
+        ...     ENTRYNAMES_FROM_MAINMODEL = True
         ...     entrynames = ("field", "forest")
         >>> lai1 = LAI(None)
         >>> lai1.shape = 2
@@ -4932,7 +4936,23 @@ for axis 0 with size 1
         3
         >>> lai3
         lai(field=2.0, forest=1.0)
+
+        |KeywordParameter1D.modify_entries| works only for subclasses that set
+        |KeywordParameter1D.ENTRYNAMES_FROM_MAINMODEL| to |True|:
+
+        >>> LAI.ENTRYNAMES_FROM_MAINMODEL = False
+        >>> with LAI.modify_entries(constants):
+        ...     pass
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Class `LAI` does not allow modifying its entry names, as its \
+constant `ENTRYNAMES_FROM_MAINMODEL` is not `True`.
         """
+        if not cls.ENTRYNAMES_FROM_MAINMODEL:
+            raise RuntimeError(
+                f"Class `{cls.__name__}` does not allow modifying its entry names, as "
+                f"its constant `ENTRYNAMES_FROM_MAINMODEL` is not `True`."
+            )
         if constants is None:
             yield
         else:
@@ -5235,6 +5255,9 @@ attribute nor a row or column related attribute named `wrong`.
     """
 
     NDIM: Final[Literal[2]] = 2
+    ROWNAMES_FROM_MAINMODEL: ClassVar[bool] = False
+    """Whether a main model provides the actual row names, so that `rownames` only
+    defines placeholders for standalone use."""
     rownames: tuple[str, ...]
     columnnames: tuple[str, ...]
     rowmin: int = 0
@@ -5270,6 +5293,7 @@ attribute nor a row or column related attribute named `wrong`.
         >>> from hydpy.core.parametertools import KeywordParameter2D
         >>> class IsWarm(KeywordParameter2D):
         ...     TYPE = bool
+        ...     ROWNAMES_FROM_MAINMODEL = True
         ...     rownames = ("north", "south")
         ...     columnnames = ("apr2sep", "oct2mar")
         >>> iswarm1 = IsWarm(None)
@@ -5354,7 +5378,23 @@ attribute nor a row or column related attribute named `wrong`.
                south=[False, True])
         >>> print_vector(iswarm1.north)
         True, False
+
+        |KeywordParameter2D.modify_rows| works only for subclasses that set
+        |KeywordParameter2D.ROWNAMES_FROM_MAINMODEL| to |True|:
+
+        >>> IsWarm.ROWNAMES_FROM_MAINMODEL = False
+        >>> with IsWarm.modify_rows(consts_row):
+        ...     pass
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Class `IsWarm` does not allow modifying its row names, as its \
+constant `ROWNAMES_FROM_MAINMODEL` is not `True`.
         """
+        if not cls.ROWNAMES_FROM_MAINMODEL:
+            raise RuntimeError(
+                f"Class `{cls.__name__}` does not allow modifying its row names, as "
+                f"its constant `ROWNAMES_FROM_MAINMODEL` is not `True`."
+            )
         if constants is None:
             yield
         else:

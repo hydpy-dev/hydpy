@@ -1,18 +1,22 @@
 # pylint: disable=import-outside-toplevel
 """Execute this file before building source or binary distributions."""
 
+from __future__ import annotations
 import copy
 import importlib
 import inspect
 import os
 import pickle
 import sys
-from typing import get_type_hints, Literal
+from typing import get_type_hints, Literal, TYPE_CHECKING
 
 import click
 import Cython.Build
 import numpy
 import setuptools
+
+if TYPE_CHECKING:
+    from hydpy.core import modeltools
 
 INT = "numpy.int64_t"
 
@@ -198,6 +202,24 @@ def _prepare_modelspecifics(fast_cython: bool, profile_cython: bool) -> None:
         xmltools.XSDWriter().write_xsd()
 
 
+def _get_adder_keywords(model: modeltools.Model) -> dict[str, tuple[str, ...]]:
+    """Return the lowercase land type constant names that the submodel adders of the
+    given model pass to their submodels."""
+
+    from hydpy.core.importtools import SubmodelAdder
+
+    name2keywords: dict[str, tuple[str, ...]] = {}
+    for modelclass in type(model).__mro__:
+        for name, member in vars(modelclass).items():
+            if isinstance(member, SubmodelAdder) and (
+                (refindices := member.landtype_refindices) is not None
+            ):
+                name2keywords.setdefault(
+                    name, tuple(sorted(c.lower() for c in refindices.constants))
+                )
+    return name2keywords
+
+
 def _write_mypy_plugin_data() -> None:
     """Infer and write model-specific data required by the Mypy plugin."""
 
@@ -206,6 +228,10 @@ def _write_mypy_plugin_data() -> None:
     from hydpy import pub
     from hydpy.core.autodoctools import autodoc_complete
     from hydpy.core.importtools import prepare_model
+    from hydpy.core.parametertools import KeywordParameter1D
+    from hydpy.core.parametertools import KeywordParameter2D
+    from hydpy.core.parametertools import Parameter
+    from hydpy.core.parametertools import ZipParameter
     from hydpy.core.variabletools import Variable
 
     autodoc_complete()
@@ -216,6 +242,10 @@ def _write_mypy_plugin_data() -> None:
     )
     var2modelmodule_subgroupmodule_subgrouptype: dict[str, tuple[str, str, str]] = {}
     var2ndim_type: dict[str, tuple[int, type[float]]] = {}
+    timedependent_ints: set[str] = set()
+    zip2constants: dict[str, tuple[str, ...] | None] = {}
+    adder2keywords: dict[str, tuple[str, ...]] = {}
+    keywordparameter2names: dict[str, tuple[str, ...] | None] = {}
 
     with pub.options.usecython(False):
         dirpath = models.__path__[0]
@@ -239,6 +269,8 @@ def _write_mypy_plugin_data() -> None:
                 if hasattr(model, short_name):
                     subdict[short_name] = (method.__module__, method.__name__)
             model2attr2module_var[modelmodule] = subdict
+            for adder, keywords in _get_adder_keywords(model).items():
+                adder2keywords[f"{modelmodule}.Model.{adder}"] = keywords
             subdict_ = {}
             for prefix, vars_ in (
                 ("hydpy.core.parametertools", model.parameters),
@@ -260,6 +292,31 @@ def _write_mypy_plugin_data() -> None:
                             )
                             if isinstance(var, Variable):
                                 var2ndim_type[fullname] = var.NDIM, var.TYPE
+                                if (
+                                    isinstance(var, Parameter)
+                                    and (var.TYPE is int)
+                                    and (var.TIME is not None)
+                                ):
+                                    timedependent_ints.add(fullname)
+                                if isinstance(var, ZipParameter):
+                                    constants = type(var).constants
+                                    zip2constants[fullname] = (
+                                        tuple(sorted(c.lower() for c in constants))
+                                        if constants
+                                        else None
+                                    )
+                                elif isinstance(var, KeywordParameter1D):
+                                    keywordparameter2names[fullname] = (
+                                        None
+                                        if type(var).ENTRYNAMES_FROM_MAINMODEL
+                                        else type(var).entrynames
+                                    )
+                                elif isinstance(var, KeywordParameter2D):
+                                    keywordparameter2names[fullname] = (
+                                        None
+                                        if type(var).ROWNAMES_FROM_MAINMODEL
+                                        else type(var).rownames
+                                    )
                     subdict_[f"{prefix}.{type(subvars).__name__}"] = subsubdict
             model2subgroup2attr2module_var[f"{modelmodule}.Model"] = subdict_
 
@@ -291,6 +348,10 @@ def _write_mypy_plugin_data() -> None:
             var2modelmodule_subgroupmodule_subgrouptype,
             var2ndim_type,
             vars_with_shape,
+            timedependent_ints,
+            zip2constants,
+            adder2keywords,
+            keywordparameter2names,
         )
         pickle.dump(data, file_, protocol=pickle.HIGHEST_PROTOCOL)
 

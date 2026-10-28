@@ -46,6 +46,7 @@ class LandMonthParameter(parametertools.KeywordParameter2D):
         "dec",
     )
     rownames: tuple[str, ...] = ("ANY",)
+    ROWNAMES_FROM_MAINMODEL = True
 
 
 class BaseZipParameter1D(

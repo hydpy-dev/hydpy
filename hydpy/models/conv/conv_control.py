@@ -1,5 +1,7 @@
 # pylint: disable=missing-module-docstring
 
+import abc
+
 import numpy
 
 from hydpy import config
@@ -145,6 +147,11 @@ coordinates for each node, but for node `in1`, `wrong` is given.
                 ) from None
         self.nodes = tuple(devicetools.Node(name) for name in coordinates)
         self._coordinates = matrix
+        self._set_number_of_nodes()
+
+    @abc.abstractmethod
+    def _set_number_of_nodes(self) -> None:
+        """Set the derived parameter that gives the number of nodes."""
 
     @property
     def coordinates(self) -> MatrixFloat:
@@ -180,114 +187,214 @@ coordinates for each node, but for node `in1`, `wrong` is given.
 class InputCoordinates(Coordinates):
     """Coordinates of the inlet nodes [?]."""
 
+    def _set_number_of_nodes(self) -> None:
+        self.subpars.pars.derived.nmbinputs(len(self.nodes))
+
 
 class OutputCoordinates(Coordinates):
     """Coordinates of the outlet nodes [?]."""
+
+    def _set_number_of_nodes(self) -> None:
+        self.subpars.pars.derived.nmboutputs(len(self.nodes))
 
 
 class Heights(parametertools.Parameter):
     """Base class for |InputHeights| and |OutputHeights| [?].
 
-    We use the derived class |InputHeights| as an example:
+    |Heights| subclasses are 1-dimensional parameters that provide one height value
+    for each node defined by the corresponding |Coordinates| parameter.  We use the
+    derived class |InputHeights| as an example:
 
     >>> from hydpy.models.conv import *
     >>> parameterstep()
-
-    |Heights| subclasses define 1-dimensional sequences.  Hence, we must define
-    their shape first:
-
     >>> inputheights
     inputheights(?)
-    >>> inputheights.values
-    Traceback (most recent call last):
-    ...
-    hydpy.core.exceptiontools.AttributeNotReady: Shape information for \
-variable `inputheights` can only be retrieved after it has been defined.
 
-    However, you usually do this automatically when assigning new values.
-    Use keyword arguments to define the names of the relevant input nodes
-    as well as their heights:
+    Defining the input coordinates also sets the derived parameter |NmbInputs| and
+    thereby determines the shape of |InputHeights|:
 
+    >>> inputcoordinates(in2=(2.0, 4.0),
+    ...                  in0=(3.0, 5.0),
+    ...                  in3=(4.0, 6.0))
+    >>> derived.nmbinputs
+    nmbinputs(3)
+    >>> inputheights.shape
+    (3,)
+
+    You can pass the heights in the order of the coordinates' nodes, like the values
+    of other 1-dimensional parameters:
+
+    >>> inputheights(2.0, 3.0, 4.0)
     >>> from hydpy import print_vector
-    >>> inputheights(in1=1.0)
-    >>> inputheights
-    inputheights(in1=1.0)
     >>> print_vector(inputheights.values)
-    1.0
+    2.0, 3.0, 4.0
 
-    Defining new heights removes the old ones:
+    However, the string representation relies on the node names:
 
-    >>> inputheights(in2=2.0,
-    ...              in0=3.0,
-    ...              in3=4.0)
     >>> inputheights
     inputheights(in2=2.0,
                  in0=3.0,
                  in3=4.0)
+
+    Preferably, you should use the node names as keywords.  Then, the order does not
+    matter:
+
+    >>> inputheights(in3=6.0, in2=7.0, in0=8.0)
     >>> print_vector(inputheights.values)
-    2.0, 3.0, 4.0
+    7.0, 8.0, 6.0
 
-    You are free to change individual height values (the row order corresponds
-    to the definition order when "calling" the parameter):
+    The given node names must agree with the ones defined via |InputCoordinates|:
 
-    >>> inputheights.values[1] = 9.0
+    >>> inputheights(in2=1.0, in0=2.0, in4=3.0)
+    Traceback (most recent call last):
+    ...
+    ValueError: The keyword arguments of parameter `inputheights` of element `?` must \
+agree with the node names defined by parameter `inputcoordinates`, but the name `in3` \
+is missing and the name `in4` is unknown.
+
+    >>> inputheights(in2=1.0)
+    Traceback (most recent call last):
+    ...
+    ValueError: The keyword arguments of parameter `inputheights` of element `?` must \
+agree with the node names defined by parameter `inputcoordinates`, but the names `in0` \
+and `in3` are missing.
+
+    >>> inputheights
+    inputheights(in2=7.0,
+                 in0=8.0,
+                 in3=6.0)
+
+    Mixing positional and keyword arguments is not allowed:
+
+    >>> inputheights(1.0, in0=2.0)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `inputheights` of element `?` both positional and \
+keyword arguments are given, which is ambiguous.
+
+    Reading the heights from auxiliary control files works as usual:
+
+    >>> from hydpy import TestIO
+    >>> with TestIO(clear_own=True):
+    ...     with open("heights_aux.py", "w", encoding="utf-8") as file_:
+    ...         for line in (
+    ...             "from hydpy.models.conv import *",
+    ...             "parameterstep()",
+    ...             "inputheights(in3=1.0, in2=2.0, in0=3.0)",
+    ...         ):
+    ...             print(line, file=file_)
+    ...     inputheights(auxfile="heights_aux")
     >>> inputheights
     inputheights(in2=2.0,
-                 in0=9.0,
-                 in3=4.0)
+                 in0=3.0,
+                 in3=1.0)
+    >>> inputheights(in3=6.0, in2=7.0, in0=8.0)
 
-    The attribute |Heights.nodes| stores the correctly ordered nodes:
+    Redefining the coordinates of the same number of nodes keeps the heights, while
+    changing the number of nodes discards them:
 
-    >>> inputheights.nodes
-    (Node("in2", variable="Q"), Node("in0", variable="Q"), \
-Node("in3", variable="Q"))
+    >>> inputcoordinates(a=(2.0, 4.0), b=(3.0, 5.0), c=(4.0, 6.0))
+    >>> inputheights
+    inputheights(a=7.0,
+                 b=8.0,
+                 c=6.0)
+    >>> inputcoordinates(a=(2.0, 4.0), b=(3.0, 5.0))
+    >>> inputheights
+    inputheights(?)
+
+    The string representation falls back to the usual format if the numbers of heights
+    and nodes differ:
+
+    >>> inputheights.shape = 3
+    >>> inputheights(1.0, 2.0, 3.0)
+    >>> inputheights
+    inputheights(1.0, 2.0, 3.0)
     """
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
 
-    nodes: tuple[devicetools.Node, ...]
-    """The relevant input or output nodes."""
+    @property
+    @abc.abstractmethod
+    def coordinates(self) -> Coordinates:
+        """The |Coordinates| parameter that defines the relevant nodes."""
 
     def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]):
         super().__init__(subvars)
         self.nodes = ()
 
     def __call__(self, *args, **kwargs) -> None:
-        nodes = []
-        heights = numpy.empty(len(kwargs), dtype=config.NP_FLOAT)
-        for idx, (name, value) in enumerate(kwargs.items()):
-            nodes.append(devicetools.Node(name))
-            heights[idx] = value
-        self.nodes = tuple(nodes)
-        self.shape = len(nodes)
-        self.value = heights
+        if (not kwargs) or ("auxfile" in kwargs):
+            super().__call__(*args, **kwargs)
+            return
+        if args:
+            self._raise_args_and_kwargs_error()
+        names = tuple(node.name for node in self.coordinates.nodes)
+        missing = set(names) - set(kwargs)
+        unknown = set(kwargs) - set(names)
+        if missing or unknown:
+            i = objecttools.Inflect
+            problems = []
+            if missing:
+                problems.append(
+                    f"the {i.listing('name', sorted(missing), 'is missing')}"
+                )
+            if unknown:
+                problems.append(
+                    f"the {i.listing('name', sorted(unknown), 'is unknown')}"
+                )
+            raise ValueError(
+                f"The keyword arguments of parameter {objecttools.elementphrase(self)} "
+                f"must agree with the node names defined by parameter "
+                f"`{self.coordinates.name}`, but {' and '.join(problems)}."
+            )
+        super().__call__(*(kwargs[name] for name in names))
 
     def __repr__(self) -> str:
+        nodes = self.coordinates.nodes
+        values = exceptiontools.getattr_(self, "values", None)
+        if (values is None) or (len(nodes) != len(values)):
+            return super().__repr__()
         prefix = f"{self.name}("
         blanks = " " * len(prefix)
         lines = []
-        if self.nodes:
-            for idx, node in enumerate(self.nodes):
-                entry = f"{node.name}={self.values[idx]}"
-                if not idx:
-                    lines.append(f"{prefix}{entry}")
-                else:
-                    lines.append(f"{blanks}{entry}")
-                if idx < len(self.nodes) - 1:
-                    lines[-1] += ","
-                else:
-                    lines[-1] += ")"
-            return "\n".join(lines)
-        return f"{prefix}?)"
+        for idx, (node, value) in enumerate(zip(nodes, values)):
+            entry = f"{node.name}={objecttools.repr_(value)}"
+            lines.append(f"{blanks if idx else prefix}{entry}")
+            lines[-1] += "," if idx < len(nodes) - 1 else ")"
+        return "\n".join(lines)
 
 
 class InputHeights(Heights):
     """The height (above sea level or anything else) of the input nodes [?]."""
 
+    @property
+    def coordinates(self) -> InputCoordinates:
+        """The |InputCoordinates| parameter."""
+        return self.subpars.inputcoordinates
+
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        # pylint: disable=import-outside-toplevel
+        from hydpy.models.conv import conv_derived
+
+        if isinstance(p, conv_derived.NmbInputs):
+            self.__hydpy__change_shape_if_necessary__((p.value,))
+
 
 class OutputHeights(Heights):
     """The height (above sea level or anything else) of the output nodes [?]."""
+
+    @property
+    def coordinates(self) -> OutputCoordinates:
+        """The |OutputCoordinates| parameter."""
+        return self.subpars.outputcoordinates
+
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        # pylint: disable=import-outside-toplevel
+        from hydpy.models.conv import conv_derived
+
+        if isinstance(p, conv_derived.NmbOutputs):
+            self.__hydpy__change_shape_if_necessary__((p.value,))
 
 
 class MaxNmbInputs(parametertools.Parameter):

@@ -19,11 +19,17 @@ class NmbInputs(parametertools.NmbParameter):
         """Determine the number of inlet nodes via inspecting control parameter
         |InputCoordinates|.
 
+        Calling |InputCoordinates| sets |NmbInputs| immediately.  Method
+        |NmbInputs.update| determines the same value:
+
         >>> from hydpy.models.conv import *
         >>> parameterstep()
         >>> inputcoordinates(
         ...     in1=(0.0, 3.0),
         ...     in2=(2.0, -1.0))
+        >>> derived.nmbinputs
+        nmbinputs(2)
+        >>> derived.nmbinputs(1)
         >>> derived.nmbinputs.update()
         >>> derived.nmbinputs
         nmbinputs(2)
@@ -39,14 +45,20 @@ class NmbOutputs(parametertools.NmbParameter):
     CONTROLPARAMETERS = (conv_control.OutputCoordinates,)
 
     def update(self) -> None:
-        """Determine the number of inlet nodes via inspecting control parameter
+        """Determine the number of outlet nodes via inspecting control parameter
         |OutputCoordinates|.
+
+        Calling |OutputCoordinates| sets |NmbOutputs| immediately.  Method
+        |NmbOutputs.update| determines the same value:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
         >>> outputcoordinates(
         ...     out1=(0.0, 3.0),
         ...     out2=(2.0, -1.0))
+        >>> derived.nmboutputs
+        nmboutputs(2)
+        >>> derived.nmboutputs(1)
         >>> derived.nmboutputs.update()
         >>> derived.nmboutputs
         nmboutputs(2)

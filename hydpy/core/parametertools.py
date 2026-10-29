@@ -5133,6 +5133,15 @@ class KeywordParameter2D(_MixinModifiableParameter, Parameter, abc.ABC):
 keyword arguments, each string defined in `rownames` must be used as a keyword, but \
 the keyword `south` is not.
 
+    The same holds for unknown keywords:
+
+    >>> iswarm(north=[True, False], south=[False, True], east=[True, True])
+    Traceback (most recent call last):
+    ...
+    ValueError: While setting parameter `iswarm` of element `?` via row related \
+keyword arguments, each keyword must be defined in `rownames`, but the keyword `east` \
+is not.
+
     One can modify single rows via attribute access:
 
     >>> from hydpy import print_vector
@@ -5429,6 +5438,14 @@ attribute nor a row or column related attribute named `wrong`.
                         f"as a keyword, but the "
                         f"{objecttools.Inflect.listing('keyword', miss, 'is')} not."
                     ) from None
+            if len(kwargs) != len(self.rownames):
+                unknown = [key for key in kwargs if key not in self.rownames]
+                raise ValueError(
+                    f"While setting parameter {objecttools.elementphrase(self)} via "
+                    f"row related keyword arguments, each keyword must be defined in "
+                    f"`rownames`, but the "
+                    f"{objecttools.Inflect.listing('keyword', unknown, 'is')} not."
+                ) from None
             self.trim()
 
     def __getattr__(self, key: str) -> float | VectorFloat:

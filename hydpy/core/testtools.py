@@ -16,6 +16,7 @@ import os
 import shutil
 import sys
 import types
+import typing
 import warnings
 
 import numpy
@@ -2077,19 +2078,134 @@ and PotentialInterceptionEvaporation
     return "\n".join(results)
 
 
+def _get_keywordforms(
+    function: Callable[..., object],
+) -> set[tuple[frozenset[str], frozenset[str]]]:
+    """Return the required and optional names of all purely keyword-based overload
+    items of the given function."""
+    forms = set()
+    for overload_ in typing.get_overloads(function):
+        parameters = tuple(inspect.signature(overload_).parameters.values())[1:]
+        if any(p.kind != p.KEYWORD_ONLY for p in parameters) or any(
+            p.name == "auxfile" for p in parameters
+        ):
+            continue
+        required = frozenset(p.name for p in parameters if p.default is p.empty)
+        optional = frozenset(p.name for p in parameters if p.default is not p.empty)
+        forms.add((required, optional))
+    return forms
+
+
+def check_parameterkeywords(model: modeltools.Model, indent: int = 0) -> str:
+    """Check that the keyword groups (|Parameter.KEYWORDS|) of the given model's
+    parameters agree with the keyword-based overloads of their `__call__` methods.
+
+    The overloads only serve for type checking and documentation, while the keyword
+    groups determine the actual runtime behaviour.  Hence, both could easily drift
+    apart.  Function |check_parameterkeywords| compares the required and optional
+    keyword names of each keyword group with those of the overloads that consist of
+    keyword-only arguments, except for overloads already defined by framework classes
+    (like those of |LeftRightParameter|).  It ignores all overloads that accept
+    positional or arbitrary keyword arguments or the keyword `auxfile`, and it compares
+    only names, not types.  Special parameters are skipped because they do not support
+    keyword groups.
+
+    |check_parameterkeywords| does not report any problems for |musk_classic|:
+
+    >>> from hydpy import prepare_model
+    >>> from hydpy.core.testtools import check_parameterkeywords
+    >>> model = prepare_model("musk_classic")
+    >>> print(check_parameterkeywords(model))
+    <BLANKLINE>
+
+    The same holds for |arma_rimorido|, whose special parameter |arma_control.Responses|
+    is skipped:
+
+    >>> print(check_parameterkeywords(prepare_model("arma_rimorido")))
+    <BLANKLINE>
+
+    To show how |check_parameterkeywords| reports errors, we remove keyword `x` from
+    the second keyword group of parameter |musk_control.Coefficients|:
+
+    >>> from hydpy.core.parametertools import Keyword, KeywordGroup, KeywordGroups
+    >>> from hydpy.models.musk.musk_control import Coefficients
+    >>> keywords = Coefficients.KEYWORDS
+    >>> damp, kx = keywords
+    >>> Coefficients.KEYWORDS = KeywordGroups(
+    ...     damp, KeywordGroup(Keyword("k", time=False), setter=kx.setter)
+    ... )
+    >>> print(check_parameterkeywords(model, indent=4))
+        Parameter Coefficients: keyword group (k) has no matching overload; \
+overload (k, x) has no matching keyword group
+
+    Function |perform_consistencychecks| includes these checks:
+
+    >>> from hydpy.core.testtools import perform_consistencychecks
+    >>> print(perform_consistencychecks("musk_classic"))
+    Potential consistency problems between parameter keywords and overloads:
+        Parameter Coefficients: keyword group (k) has no matching overload; \
+overload (k, x) has no matching keyword group
+
+    To tidy up, we need to revert the above change:
+
+    >>> Coefficients.KEYWORDS = keywords
+    >>> print(check_parameterkeywords(model))
+    <BLANKLINE>
+    """
+    blanks = " " * indent
+    results: list[str] = []
+
+    def _describe(form: tuple[frozenset[str], frozenset[str]]) -> str:
+        required, optional = form
+        names = sorted(required) + [f"{n} (optional)" for n in sorted(optional)]
+        return f"({', '.join(names)})"
+
+    for subpars in model.parameters:
+        for parameter in subpars:
+            if not isinstance(parameter, parametertools.Parameter):
+                continue
+            partype = type(parameter)
+            overloads = _get_keywordforms(partype.__call__)
+            for base in partype.__mro__[1:]:
+                if (base.__module__ == "hydpy.core.parametertools") and (
+                    "__call__" in vars(base)
+                ):
+                    overloads -= _get_keywordforms(base.__call__)
+            groups = {
+                (
+                    frozenset(g.required_names),
+                    frozenset(g.names) - set(g.required_names),
+                )
+                for g in partype.KEYWORDS
+            }
+            problems = [
+                f"keyword group {_describe(f)} has no matching overload"
+                for f in sorted(groups - overloads, key=_describe)
+            ]
+            problems.extend(
+                f"overload {_describe(f)} has no matching keyword group"
+                for f in sorted(overloads - groups, key=_describe)
+            )
+            if problems:
+                results.append(
+                    f"{blanks}Parameter {partype.__name__}: {'; '.join(problems)}"
+                )
+    return "\n".join(results)
+
+
 def perform_consistencychecks(
     applicationmodel: types.ModuleType | str, indent: int = 0
 ) -> str:
     """Perform all available consistency checks for the given application model.
 
     At the moment, function |perform_consistencychecks| calls function
-    |check_selectedvariables| for each relevant model method and function
-    |check_methodorder| for the application model itself.  Note that
-    |perform_consistencychecks| executes only those checks not already executed in the
-    doctest of the respective method or model.  This alternative allows model
-    developers to perform the tests themselves whenever exceptional cases result in
-    misleading error reports and discuss any related potential pitfalls in the official
-    documentation.
+    |check_selectedvariables| for each relevant model method and functions
+    |check_methodorder| and |check_parameterkeywords| for the application model itself.
+    Note that |perform_consistencychecks| executes the first two checks only if they are
+    not already executed in the doctest of the respective method or model.  This
+    alternative allows model developers to perform the tests themselves whenever
+    exceptional cases result in misleading error reports and discuss any related
+    potential pitfalls in the official documentation.
 
     As an example, we apply |perform_consistencychecks| to the application model
     |lland_knauf|.  It does not report any potential problems (not already discussed in
@@ -2148,6 +2264,13 @@ result sequences of any of its predecessors: NKor
         if subresult:
             results.append(f"{blanks}Potential consistency problems between methods:")
             results.append(subresult)
+    subresult = check_parameterkeywords(model, indent + 4)
+    if subresult:
+        results.append(
+            f"{blanks}Potential consistency problems between parameter keywords and "
+            f"overloads:"
+        )
+        results.append(subresult)
     return "\n".join(results)
 
 

@@ -24,6 +24,7 @@ from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
+    from hydpy.core import masktools
     from hydpy.core import modeltools
     from hydpy.core import timetools
     from hydpy.cythons import pointerutils
@@ -2605,14 +2606,14 @@ module `pub` is not defined at the moment.
             )
         sequencemanager.save_file(self)
 
-    def save_mean(self, *args, **kwargs) -> None:
+    def save_mean(self, *args: masktools.MaskKey) -> None:
         """Average the time series data with method |IOSequence.average_series| of
         class |IOSequence| and write the result to file using method
         |SequenceManager.save_file| of class |SequenceManager|.
 
         The main documentation on class |SequenceManager| provides some examples.
         """
-        array = InfoArray(self.average_series(*args, **kwargs), aggregation="mean")
+        array = InfoArray(self.average_series(*args), aggregation="mean")
         with hydpy.pub.sequencemanager.aggregation("mean"):
             hydpy.pub.sequencemanager.save_file(self, array=array)
 
@@ -2654,7 +2655,7 @@ its series to a 2-dimensional matrix.
             f"for converting its series to a 2-dimensional matrix."
         )
 
-    def average_series(self, *args, **kwargs) -> InfoArray:
+    def average_series(self, *args: masktools.MaskKey) -> InfoArray:
         """Average the actual time series of the |IOSequence| object for all time
         points.
 
@@ -2711,7 +2712,7 @@ its series to a 2-dimensional matrix.
         >>> from hydpy.core.masktools import DefaultMask
         >>> class Soil(DefaultMask):
         ...     @classmethod
-        ...     def new(cls, variable, **kwargs):
+        ...     def new(cls, variable):
         ...         return cls.array2mask(maskvalues)
         >>> SoilMoisture.mask = Soil()
 
@@ -2736,7 +2737,7 @@ occurred: boolean index did not match indexed array ...
             if not self.NDIM:
                 array = self.series
             else:
-                mask = self.get_submask(*args, **kwargs)
+                mask = self.get_submask(*args)
                 if numpy.any(mask):
                     weights = self.refweights[mask]
                     weights /= numpy.sum(weights)
@@ -2753,7 +2754,7 @@ occurred: boolean index did not match indexed array ...
                 f"series of sequence {objecttools.devicephrase(self)}"
             )
 
-    def aggregate_series(self, *args, **kwargs) -> InfoArray:
+    def aggregate_series(self, *args: masktools.MaskKey) -> InfoArray:
         """Aggregate the time series data based on the actual |IOSequence.aggregation|
         attribute of the current |IOSequence| object.
 
@@ -2792,20 +2793,20 @@ occurred: boolean index did not match indexed array ...
         RuntimeError: Unknown aggregation mode `nonexistent` for sequence `nkor` of \
 element `element3`.
 
-        The following technical test confirms the propr passing of all potential
-        positional and keyword arguments:
+        The following technical test confirms the proper passing of all potential
+        positional arguments:
 
         >>> seq.aggregation = "mean"
         >>> from unittest import mock
         >>> seq.average_series = mock.MagicMock()
-        >>> _ = seq.aggregate_series(1, x=2)
-        >>> seq.average_series.assert_called_with(1, x=2)
+        >>> _ = seq.aggregate_series(1, 2)
+        >>> seq.average_series.assert_called_with(1, 2)
         """
         mode = self.aggregation
         if mode == "none":  # pylint: disable=comparison-with-callable
             return self.series
         if mode == "mean":  # pylint: disable=comparison-with-callable
-            return self.average_series(*args, **kwargs)
+            return self.average_series(*args)
         raise RuntimeError(
             f"Unknown aggregation mode `{mode}` for sequence "
             f"{objecttools.devicephrase(self)}."

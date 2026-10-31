@@ -18,13 +18,21 @@ if TYPE_CHECKING:
     from hydpy.core import parametertools
 
 
+MaskInput: TypeAlias = Union[
+    NDArrayBool, VectorInputBool, MatrixInputBool, TensorInputBool
+]
+"""Boolean values from which one can create a mask."""
+MaskKey: TypeAlias = Union[str, type["BaseMask"]]
+"""Name or type of a mask, as accepted when indexing |Masks| objects."""
+
+
 class BaseMask(numpy.ndarray[Any, numpy.dtype[numpy.bool_]]):
     """Base class for defining |CustomMask| and |DefaultMask| classes."""
 
     name: str
 
-    def __new__(cls, array=None, doc: str | None = None, **kwargs) -> Self:
-        self = cls.array2mask(array, **kwargs)
+    def __new__(cls, array: MaskInput | None = None, doc: str | None = None) -> Self:
+        self = cls.array2mask(array)
         self.__doc__ = doc
         return self
 
@@ -32,12 +40,11 @@ class BaseMask(numpy.ndarray[Any, numpy.dtype[numpy.bool_]]):
         cls.name = cls.__name__.lower()
 
     @classmethod
-    def array2mask(cls, array=None, **kwargs) -> Self:
+    def array2mask(cls, array: MaskInput | None = None) -> Self:
         """Create a new mask object based on the given |numpy.ndarray| and return it."""
-        kwargs["dtype"] = bool
         if array is None:
-            return numpy.ndarray.__new__(cls, 0, **kwargs)
-        return numpy.asarray(array, **kwargs).view(cls)
+            return numpy.ndarray.__new__(cls, 0, dtype=bool)
+        return numpy.asarray(array, dtype=bool).view(cls)
 
     def __repr__(self) -> str:  # ToDo: required?
         return numpy.ndarray.__repr__(self).replace(", dtype=bool", "")
@@ -149,15 +156,12 @@ class DefaultMask(BaseMask):
     variable: variabletools.Variable | None
 
     def __new__(
-        cls,
-        variable: variabletools.Variable | None = None,
-        doc: str | None = None,
-        **kwargs,
+        cls, variable: variabletools.Variable | None = None, doc: str | None = None
     ) -> Self:
         if variable is None:
             self = super().__new__(cls)
         else:
-            self = cls.new(variable, **kwargs)
+            self = cls.new(variable)
         self.__doc__ = doc
         self.variable = variable
         return self
@@ -171,17 +175,17 @@ class DefaultMask(BaseMask):
             return self
         return type(self)(obj)
 
-    def __call__(self, **kwargs) -> Self:
-        return type(self)(self.variable, **kwargs)
+    def __call__(self) -> Self:
+        return type(self)(self.variable)
 
-    def __contains__(self, other) -> bool:
+    def __contains__(self, other: NDArrayBool) -> bool:  # type: ignore[override]
         return bool(numpy.all(self()[other]))
 
     @classmethod
-    def new(cls, variable: variabletools.Variable, **kwargs) -> Self:
+    def new(cls, variable: variabletools.Variable) -> Self:
         """Return a new |DefaultMask| object associated with the given |Variable|
         object."""
-        return cls.array2mask(numpy.full(variable.shape, True), **kwargs)
+        return cls.array2mask(numpy.full(variable.shape, True))
 
 
 class IndexMask(DefaultMask):
@@ -201,7 +205,7 @@ class IndexMask(DefaultMask):
     """The variable for which |IndexMask| determines the relevant entries."""
 
     @classmethod
-    def new(cls, variable: variabletools.Variable, **kwargs) -> Self:
+    def new(cls, variable: variabletools.Variable) -> Self:
         """Return a properly prepared |IndexMask| object.
 
         If an |IndexMask| relies on a "reference index parameter", one must prepare this
@@ -230,7 +234,7 @@ as long as parameter `zonetype` is not prepared properly.
         """
         if (indices := cls.get_refindices(variable)) is None:
             mask = cls.array2mask(
-                numpy.full(variable.valuevector.shape, config.NP_BOOL), **kwargs
+                numpy.full(variable.valuevector.shape, config.NP_BOOL)
             )
         else:
             values = exceptiontools.getattr_(indices, "values", None)
@@ -246,7 +250,7 @@ as long as parameter `zonetype` is not prepared properly.
                 relevant = variable.relevant
             else:
                 relevant = cls.relevant
-            mask = cls.array2mask(numpy.isin(indices.values, relevant), **kwargs)
+            mask = cls.array2mask(numpy.isin(indices.values, relevant))
         if (refinement := cls.get_refinement(variable)) is not None:
             mask[~refinement.values] = False
         return mask
@@ -376,20 +380,33 @@ class Masks:
     >>> "indexmask" in dir(masks)
     True
 
-    The `in` operator is supported:
+    The `in` operator accepts strings (in whatever case) and mask classes:
 
     >>> IndexMask in masks
     True
     >>> CustomMask in masks
     False
+    >>> "IndexMask" in masks
+    True
+    >>> "indexmask" in masks
+    True
     >>> "mask" in masks
+    False
+
+    Mask objects and other types are not accepted:
+
+    >>> IndexMask() in masks
     Traceback (most recent call last):
     ...
-    TypeError: The given value `mask` of type `str` is neither a Mask class nor a \
-Mask object.
+    TypeError: While trying to check if key `IndexMask([])` defines an available \
+mask, the following error occurred: The given key is neither a string nor a mask type.
+    >>> 1 in masks
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to check if key `1` defines an available mask, the \
+following error occurred: The given key is neither a string nor a mask type.
 
-    Using item access, strings (in whatever case), mask classes, and mask objects are
-    accepted:
+    Item access accepts the same keys:
 
     >>> masks["IndexMask"] is IndexMask
     True
@@ -397,24 +414,34 @@ Mask object.
     True
     >>> masks[IndexMask] is IndexMask
     True
-    >>> masks[CustomMask()]
+    >>> masks[CustomMask]
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to retrieve a mask based on key `CustomMask([])`, the \
-following error occurred: The key does not define an available mask.
+    KeyError: 'No mask named `custommask` available.'
     >>> masks["test"]
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to retrieve a mask based on key `'test'`, the following \
-error occurred: The key does not define an available mask.
+    KeyError: 'No mask named `test` available.'
+    >>> masks["name"]
+    Traceback (most recent call last):
+    ...
+    KeyError: 'No mask named `name` available.'
     >>> masks[1]
     Traceback (most recent call last):
     ...
     TypeError: While trying to retrieve a mask based on key `1`, the following error \
-occurred: The given key is neither a `string` a `mask` type.
+occurred: The given key is neither a string nor a mask type.
+
+    Mask objects are not accepted:
+
+    >>> masks[IndexMask()]
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to retrieve a mask based on key `IndexMask([])`, the \
+following error occurred: The given key is neither a string nor a mask type.
     """
 
-    CLASSES: tuple[type[BaseMask], ...] = ()
+    CLASSES: tuple[type[DefaultMask], ...] = ()
 
     def __init__(self) -> None:
         for cls in self.CLASSES:
@@ -430,49 +457,40 @@ occurred: The given key is neither a `string` a `mask` type.
         """
         return "masks"
 
-    def __iter__(self) -> Iterator[type[BaseMask]]:
+    def __iter__(self) -> Iterator[type[DefaultMask]]:
         for cls in self.CLASSES:
             yield getattr(self, cls.__name__.lower())
 
-    def __contains__(self, mask: BaseMask | type[BaseMask]) -> bool:
-        if isinstance(mask, BaseMask):
-            mask = type(mask)
-        if mask in self.CLASSES:
-            return True
-        try:
-            if issubclass(mask, BaseMask):
-                return False
-        except TypeError:
-            pass
-        raise TypeError(
-            f"The given {objecttools.value_of_type(mask)} is neither a Mask class nor "
-            f"a Mask object."
-        )
+    @staticmethod
+    def _get_name(key: object) -> str:
+        if isinstance(key, str):
+            return key.lower()
+        if inspect.isclass(key) and issubclass(key, BaseMask):
+            return key.__name__.lower()
+        raise TypeError("The given key is neither a string nor a mask type.")
 
-    def __getitem__(
-        self, key: str | BaseMask | type[BaseMask]
-    ) -> BaseMask | type[BaseMask]:
-        _key = key
+    def _is_available(self, name: str) -> bool:
+        return any(cls.__name__.lower() == name for cls in self.CLASSES)
+
+    def __contains__(self, key: MaskKey) -> bool:
         try:
-            if inspect.isclass(key):
-                if issubclass(key, BaseMask):
-                    key = key.__name__.lower()
-            elif isinstance(key, BaseMask):
-                if key in self:
-                    return key
-                raise RuntimeError("The key does not define an available mask.")
-            if isinstance(key, str):
-                try:
-                    return getattr(self, key.lower())
-                except AttributeError:
-                    raise RuntimeError(
-                        "The key does not define an available mask."
-                    ) from None
-            raise TypeError("The given key is neither a `string` a `mask` type.")
+            name = self._get_name(key)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to retrieve a mask based on key `{repr(_key)}`"
+                f"While trying to check if key `{repr(key)}` defines an available mask"
             )
+        return self._is_available(name)
+
+    def __getitem__(self, key: MaskKey) -> type[DefaultMask]:
+        try:
+            name = self._get_name(key)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to retrieve a mask based on key `{repr(key)}`"
+            )
+        if self._is_available(name):
+            return getattr(self, name)
+        raise KeyError(f"No mask named `{name}` available.")
 
     def __repr__(self) -> str:
         lines = []

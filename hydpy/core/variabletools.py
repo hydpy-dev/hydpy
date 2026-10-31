@@ -10,7 +10,6 @@ import abc
 import contextlib
 import copy
 import functools
-import inspect
 import math
 import warnings
 
@@ -1753,7 +1752,7 @@ its values to a 1-dimensional vector.
             f"coefficients."
         )
 
-    def average_values(self, *args, **kwargs) -> float:
+    def average_values(self, *args: masktools.MaskKey) -> float:
         """Average the actual values of the |Variable| object.
 
         For 0-dimensional |Variable| objects, the result of method
@@ -1814,30 +1813,30 @@ any weighting coefficients.
         >>> from hydpy.core.masktools import DefaultMask
         >>> class Soil(DefaultMask):
         ...     @classmethod
-        ...     def new(cls, variable, **kwargs):
+        ...     def new(cls, variable):
         ...         return cls.array2mask([True, True, False])
         >>> SoilMoisture.mask = Soil()
         >>> sm.average_values()
         300.0
 
         Alternatively, method |Variable.average_values| accepts additional masking
-        information as positional or keyword arguments.  Therefore, the corresponding
-        model must implement some alternative masks, which are provided by property
+        information as positional arguments.  Therefore, the corresponding model must
+        implement some alternative masks, which are provided by property
         |Variable.availablemasks|.  We mock this property with a new |Masks| object,
         handling one mask for flat soils (only the first hru), one mask for deep soils
         (only the second hru), and one mask for water areas (only the third hru):
 
         >>> class FlatSoil(DefaultMask):
         ...     @classmethod
-        ...     def new(cls, variable, **kwargs):
+        ...     def new(cls, variable):
         ...         return cls.array2mask([True, False, False])
         >>> class DeepSoil(DefaultMask):
         ...     @classmethod
-        ...     def new(cls, variable, **kwargs):
+        ...     def new(cls, variable):
         ...         return cls.array2mask([False, True, False])
         >>> class Water(DefaultMask):
         ...     @classmethod
-        ...     def new(cls, variable, **kwargs):
+        ...     def new(cls, variable):
         ...         return cls.array2mask([False, False, True])
         >>> from hydpy.core import masktools
         >>> class Masks(masktools.Masks):
@@ -1865,52 +1864,25 @@ any weighting coefficients.
         Traceback (most recent call last):
         ...
         ValueError: While trying to calculate the mean value of variable \
-`soilmoisture`, the following error occurred: Based on the arguments \
-`('flatsoil', 'water')` and `{}` the mask `CustomMask([ True, False,  True])` \
-has been determined, which is not a submask of `Soil([ True,  True, False])`.
+`soilmoisture`, the following error occurred: Based on the arguments `('flatsoil', \
+'water')` the mask `CustomMask([ True, False,  True])` has been determined, which is \
+not a submask of `Soil([ True,  True, False])`.
 
-        Applying masks with custom options is also supported.  One can change the
-        behaviour of the following mask via the argument `complete`:
+        If the variable's general mask does not mark any entry as relevant, the mean
+        value is undefined, and |Variable.average_values| returns |numpy.nan|:
 
-        >>> class AllOrNothing(DefaultMask):
+        >>> class NoSoil(DefaultMask):
         ...     @classmethod
-        ...     def new(cls, variable, complete):
-        ...         if complete:
-        ...             bools = [True, True, True]
-        ...         else:
-        ...             bools = [False, False, False]
-        ...         return cls.array2mask(bools)
-        >>> class Masks(Masks):
-        ...     CLASSES = (FlatSoil,
-        ...                DeepSoil,
-        ...                Water,
-        ...                AllOrNothing)
-        >>> SoilMoisture.availablemasks = Masks()
-
-        Again, one can apply the mask class directly (but note that one has to pass the
-        relevant variable as the first argument):
-
-        >>> sm.average_values(   # doctest: +ELLIPSIS
-        ...     sm.availablemasks.allornothing(sm, complete=True))
-        Traceback (most recent call last):
-        ...
-        ValueError: While trying to...
-
-        Alternatively, one can pass the mask name as a keyword and pack the mask's
-        options into a |dict| object:
-
-        >>> sm.average_values(allornothing={"complete": False})
+        ...     def new(cls, variable):
+        ...         return cls.array2mask([False, False, False])
+        >>> SoilMoisture.mask = NoSoil()
+        >>> sm.average_values()
         nan
-
-        You can combine all variants explained above:
-
-        >>> sm.average_values("deepsoil", flatsoil={}, allornothing={"complete": False})
-        300.0
         """
         try:
             if self.NDIM == 0:
                 return self.value
-            mask = self.get_submask(*args, **kwargs)
+            mask = self.get_submask(*args)
             if numpy.any(mask):
                 weights = self.refweights[mask]
                 values = self.valuevector[mask]
@@ -1952,7 +1924,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return self.subvars.vars.masks
 
     def get_submask(
-        self, *args, **kwargs
+        self, *args: masktools.MaskKey
     ) -> masktools.CustomMask | masktools.DefaultMask:
         """Get a sub-mask of the mask handled by the actual |Variable| object based on
         the given arguments.
@@ -1960,20 +1932,15 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         See the documentation on method |Variable.average_values| for further
         information.
         """
-        if args or kwargs:
+        if args:
             masks = self.availablemasks
             mask = masktools.CustomMask(numpy.full(self.shape, False))
             for arg in args:
-                mask = cast(masktools.CustomMask, mask + self._prepare_mask(arg, masks))
-            for key, value in kwargs.items():
-                mask = cast(
-                    masktools.CustomMask, mask + self._prepare_mask(key, masks, **value)
-                )
+                mask = cast(masktools.CustomMask, mask + masks[arg](self))
             if mask not in self.mask:
                 raise ValueError(
-                    f"Based on the arguments `{args}` and `{kwargs}` the mask "
-                    f"`{repr(mask)}` has been determined, which is not a submask of "
-                    f"`{repr(self.mask)}`."
+                    f"Based on the arguments `{args}` the mask `{repr(mask)}` has been "
+                    f"determined, which is not a submask of `{repr(self.mask)}`."
                 )
             return mask
         return self.mask

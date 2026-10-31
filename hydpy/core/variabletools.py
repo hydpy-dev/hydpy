@@ -1221,7 +1221,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         self.value = args[0] if len(args) == 1 else args
 
     @property
-    def value(self) -> Any:
+    def value(self) -> GeneralHook:
         """The actual parameter or sequence value(s).
 
         First, we prepare a simple (not fully functional) |Variable| subclass:
@@ -1345,7 +1345,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         return value
 
     @value.setter
-    def value(self, value: Any) -> None:
+    def value(self, value: GeneralHook) -> None:
         try:
             value = self._prepare_setvalue(value)
             setattr(self.fastaccess, self.name, value)
@@ -1356,7 +1356,9 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
                 f"{objecttools.devicephrase(self)}"
             )
 
-    def _prepare_getvalue(self, readyflag: bool, value):
+    def _prepare_getvalue(
+        self, readyflag: bool, value: Any
+    ) -> float | NDArrayObject | None:
         if readyflag:
             if self.NDIM:
                 return numpy.asarray(value)
@@ -1365,7 +1367,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
             return numpy.asarray(value)
         return None
 
-    def _prepare_setvalue(self, value):
+    def _prepare_setvalue(self, value: Any) -> float | NDArrayObject:
         if self.NDIM:
             value = getattr(value, "value", value)
             try:
@@ -1396,12 +1398,12 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         return value
 
     @property
-    def values(self) -> Any:
+    def values(self) -> GeneralHook:
         """Alias for |Variable.value|."""
         return self.value
 
     @values.setter
-    def values(self, values: Any) -> None:
+    def values(self, values: GeneralHook) -> None:
         self.value = values
 
     @property
@@ -1978,7 +1980,7 @@ not a submask of `Soil([ True,  True, False])`.
         new.value = self.value
         return new
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: GeneralHook) -> GeneralHook:
         try:
             if self.NDIM:
                 return self.value[key]
@@ -1990,7 +1992,7 @@ not a submask of `Soil([ True,  True, False])`.
                 f"{objecttools.devicephrase(self)} with key `{key}`"
             )
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: GeneralHook, value: GeneralHook) -> None:
         try:
             if self.NDIM:
                 self.value[key] = value
@@ -2019,7 +2021,7 @@ not a submask of `Soil([ True,  True, False])`.
             )
         return self.shape[0]
 
-    def _do_math(self, other, methodname, description):
+    def _do_math(self, other: object, methodname: str, description: str) -> Any:
         try:
             value = other.value if isinstance(other, Variable) else other
             result = getattr(self.value, methodname)(value)
@@ -2033,102 +2035,102 @@ not a submask of `Soil([ True,  True, False])`.
                 f"object `{objecttools.repr_(other)}`"
             )
 
-    def __add__(self, other):
+    def __add__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__add__", "add")
 
-    def __radd__(self, other):
+    def __radd__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__radd__", "add")
 
-    def __iadd__(self, other):
+    def __iadd__(self, other: GeneralHook) -> Self:
         self.value = self._do_math(other, "__add__", "add")
         return self
 
-    def __sub__(self, other):
+    def __sub__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__sub__", "subtract")
 
-    def __rsub__(self, other):
+    def __rsub__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__rsub__", "subtract")
 
-    def __isub__(self, other):
+    def __isub__(self, other: GeneralHook) -> Self:
         self.value = self._do_math(other, "__sub__", "subtract")
         return self
 
-    def __mul__(self, other):
+    def __mul__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__mul__", "multiply")
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__rmul__", "multiply")
 
-    def __imul__(self, other):
+    def __imul__(self, other: GeneralHook) -> Self:
         self.value = self._do_math(other, "__mul__", "multiply")
         return self
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__truediv__", "divide")
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__rtruediv__", "divide")
 
-    def __itruediv__(self, other):
+    def __itruediv__(self, other: GeneralHook) -> Self:
         self.value = self._do_math(other, "__truediv__", "divide")
         return self
 
-    def __floordiv__(self, other):
+    def __floordiv__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__floordiv__", "floor divide")
 
-    def __rfloordiv__(self, other):
+    def __rfloordiv__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__rfloordiv__", "floor divide")
 
-    def __ifloordiv__(self, other):
+    def __ifloordiv__(self, other: GeneralHook) -> Self:
         self.value = self._do_math(other, "__floordiv__", "floor divide")
         return self
 
-    def __mod__(self, other):
+    def __mod__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__mod__", "mod divide")
 
-    def __rmod__(self, other):
+    def __rmod__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__rmod__", "mod divide")
 
-    def __imod__(self, other):
+    def __imod__(self, other: GeneralHook) -> Self:
         self.value = self._do_math(other, "__mod__", "mod divide")
         return self
 
-    def __divmod__(self, other):
+    def __divmod__(self, other: GeneralHook) -> GeneralHook:
         return self.__floordiv__(other), self.__mod__(other)
 
-    def __rdivmod__(self, other):
+    def __rdivmod__(self, other: GeneralHook) -> GeneralHook:
         return self.__rfloordiv__(other), self.__rmod__(other)
 
-    def __pow__(self, other):
+    def __pow__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__pow__", "exponentiate")
 
-    def __rpow__(self, other):
+    def __rpow__(self, other: GeneralHook) -> GeneralHook:
         return self._do_math(other, "__rpow__", "exponentiate (reflectively)")
 
-    def __ipow__(self, other):
+    def __ipow__(self, other: GeneralHook) -> Self:
         self.value = self._do_math(other, "__pow__", "exponentiate")
         return self
 
-    def __pos__(self):
+    def __pos__(self) -> GeneralHook:
         return +self.value
 
-    def __neg__(self):
+    def __neg__(self) -> GeneralHook:
         return -self.value
 
-    def __abs__(self):
+    def __abs__(self) -> GeneralHook:
         return abs(self.value)
 
-    def __invert__(self):
+    def __invert__(self) -> GeneralHook:
         return 1.0 / self.value
 
-    def __floor__(self):
+    def __floor__(self) -> GeneralHook:
         result = self.value // 1.0
         try:
             return int(result)
         except TypeError:
             return numpy.asarray(result, dtype=config.NP_INT)
 
-    def __ceil__(self):
+    def __ceil__(self) -> GeneralHook:
         result = numpy.ceil(self.value)
         try:
             return int(result)
@@ -2257,7 +2259,7 @@ not a submask of `Soil([ True,  True, False])`.
     def __int__(self) -> int:
         return self._typeconversion(int)
 
-    def __round__(self, ndigits: int = 0):
+    def __round__(self, ndigits: int = 0) -> GeneralHook:
         return numpy.round(self.value, ndigits)
 
     def __hash__(self) -> int:

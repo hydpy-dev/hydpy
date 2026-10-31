@@ -2136,7 +2136,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         return tuple(seriesshape)
 
     @property
-    def series(self) -> Any:
+    def series(self) -> GeneralHook:
         """The complete time series data of the current |IOSequence| object within an
         |InfoArray| covering the whole initialisation period (defined by the
         |Timegrids.init| |Timegrid| of the global |Timegrids| object available in
@@ -2150,7 +2150,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         )
 
     @series.setter
-    def series(self, values: Any) -> None:
+    def series(self, values: GeneralHook) -> None:
         if self.ramflag:
             self.__set_array(
                 numpy.full(self.seriesshape, values, dtype=config.NP_FLOAT)
@@ -2169,7 +2169,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
             self.__hydpy__set_fastaccessattribute__("ramflag", False)
 
     @property
-    def simseries(self) -> Any:
+    def simseries(self) -> GeneralHook:
         """Read and write access to the subset of the data of property
         |IOSequence.series| covering the actual simulation period (defined by the
         |Timegrids.sim| |Timegrid| of the global |Timegrids| object available in module
@@ -2198,12 +2198,12 @@ during a simulation run is not supported but tried for sequence `t` of element \
         return self.series[idx0:idx1]
 
     @simseries.setter
-    def simseries(self, values: Any) -> None:
+    def simseries(self, values: GeneralHook) -> None:
         idx0, idx1 = hydpy.pub.timegrids.simindices
         self.series[idx0:idx1] = values
 
     @property
-    def evalseries(self) -> Any:
+    def evalseries(self) -> GeneralHook:
         """Read and write access to the subset of the data of property |
         IOSequence.series| covering the actual evaluation period (defined by the
         |Timegrids.eval_| |Timegrid| of the global |Timegrids| object available in
@@ -2232,7 +2232,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         return self.series[idx0:idx1]
 
     @evalseries.setter
-    def evalseries(self, values: Any) -> None:
+    def evalseries(self, values: GeneralHook) -> None:
         idx0, idx1 = hydpy.pub.timegrids.evalindices
         self.series[idx0:idx1] = values
 
@@ -3675,7 +3675,7 @@ not broadcast input array from shape (3,) into shape (2,)
                 )
 
     @property
-    def new(self):
+    def new(self) -> GeneralHook:
         """State(s) after calling a |Model| calculation method. (Alias for property
         |Variable.value|).
 
@@ -3687,11 +3687,11 @@ not broadcast input array from shape (3,) into shape (2,)
         return self.value
 
     @new.setter
-    def new(self, value):
+    def new(self, value: GeneralHook) -> None:
         self.value = value
 
     @property
-    def old(self):
+    def old(self) -> GeneralHook:
         """State(s) before calling a |Model| calculation method.
 
         Note the similarity to property |StateSequence.new|. However, property
@@ -3703,7 +3703,7 @@ not broadcast input array from shape (3,) into shape (2,)
         )
 
     @old.setter
-    def old(self, value):
+    def old(self, value: GeneralHook) -> None:
         try:
             setattr(self.fastaccess_old, self.name, self._prepare_setvalue(value))
         except BaseException:
@@ -4169,7 +4169,7 @@ class NodeSequence(IOSequence):
         setattr(self.fastaccess, "_reset_obsdata", False)
 
     @property
-    def value(self) -> Any:
+    def value(self) -> GeneralHook:
         """The actual sequence value.
 
         For framework users, the property |NodeSequence.value| of class |NodeSequence|
@@ -4229,7 +4229,7 @@ the following error occurred: ...attribute name must be string...
             )
 
     @value.setter
-    def value(self, value: Any) -> None:
+    def value(self, value: GeneralHook) -> None:
         try:
             getattr(self.fastaccess, self.name)[0] = float(value)
         except BaseException:

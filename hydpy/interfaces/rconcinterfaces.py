@@ -13,7 +13,7 @@ class RConcModel_V1(modeltools.SubmodelInterface, abc.ABC):
     typeid: ClassVar[Literal[1]] = 1
     """Type identifier for |RConcModel_V1| submodels."""
 
-    def get_waterbalance(self, initial_conditions: ConditionsSubmodel) -> float:
+    def get_waterbalance(self, initial_conditions: ConditionsSubmodel[Self]) -> float:
         """Get the difference between currently stored water and the given initial
         conditions in mm."""
 

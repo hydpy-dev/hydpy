@@ -804,7 +804,7 @@ class Sequences(Generic[TM_co]):
         yield from self.logs
 
     @property
-    def conditions(self) -> ConditionsSubmodel:
+    def conditions(self) -> ConditionsSubmodel[TM_co]:
         """A nested dictionary that contains the values of all condition sequences of
         a single model instance.
 
@@ -818,7 +818,7 @@ class Sequences(Generic[TM_co]):
         return conditions
 
     @conditions.setter
-    def conditions(self, conditions: ConditionsSubmodel) -> None:
+    def conditions(self, conditions: ConditionsSubmodel[modeltools.Model]) -> None:
         with hydpy.pub.options.trimvariables(False):
             for subname, subconditions in conditions.items():
                 subseqs = getattr(self, subname)

@@ -4621,7 +4621,7 @@ class Main_RConcModel_V1(modeltools.AdHocModel):
         """
 
     def _get_rconcmodel_waterbalance(
-        self, initial_conditions: ConditionsModel
+        self, initial_conditions: ConditionsModel[Self]
     ) -> float:
         r"""Get the water balance of the rconc submodel if used."""
         if self.rconcmodel:

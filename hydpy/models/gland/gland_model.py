@@ -1375,7 +1375,7 @@ class Main_RConcModel_V1(modeltools.AdHocModel):
         """
 
     def _get_rconcmodel_waterbalance(
-        self, initial_conditions: ConditionsModel
+        self, initial_conditions: ConditionsModel[Self]
     ) -> float:
         """Get the water balance of the single runoff concentration submodel if
         used."""
@@ -1437,7 +1437,7 @@ class Main_RConcModel_V2(modeltools.AdHocModel):
         """
 
     def _get_rconcmodel_waterbalance_routingstore(
-        self, initial_conditions: ConditionsModel
+        self, initial_conditions: ConditionsModel[Self]
     ) -> float:
         r"""Get the water balance of the routing store runoff concentration submodel if
         used."""
@@ -1448,7 +1448,7 @@ class Main_RConcModel_V2(modeltools.AdHocModel):
         return 0.0
 
     def _get_rconcmodel_waterbalance_directflow(
-        self, initial_conditions: ConditionsModel
+        self, initial_conditions: ConditionsModel[Self]
     ) -> float:
         r"""Get the water balance of the direct flow runoff concentration submodel if
         used."""

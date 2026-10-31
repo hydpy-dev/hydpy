@@ -611,7 +611,7 @@ class IntegrationTest(Test):
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: Literal[None] = ...,
-        use_conditions: ConditionsModel | None = None,
+        use_conditions: ConditionsModel[modeltools.Model] | None = None,
     ) -> None:
         """do not return conditions"""
 
@@ -624,8 +624,8 @@ class IntegrationTest(Test):
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: timetools.DateConstrArg,
-        use_conditions: ConditionsModel | None,
-    ) -> ConditionsModel:
+        use_conditions: ConditionsModel[modeltools.Model] | None,
+    ) -> ConditionsModel[modeltools.Model]:
         """do return conditions"""
 
     def __call__(
@@ -636,8 +636,8 @@ class IntegrationTest(Test):
         axis2: typingtools.MayNonerable1[sequencetools.IOSequence] = None,
         update_parameters: bool = True,
         get_conditions: timetools.DateConstrArg | None = None,
-        use_conditions: ConditionsModel | None = None,
-    ) -> ConditionsModel | None:
+        use_conditions: ConditionsModel[modeltools.Model] | None = None,
+    ) -> ConditionsModel[modeltools.Model] | None:
         """Prepare and perform an integration test, and print and eventually plot its
         results.
 
@@ -655,7 +655,7 @@ class IntegrationTest(Test):
 
     def _perform_simulation(
         self, get_conditions: timetools.DateConstrArg | None
-    ) -> ConditionsModel | None:
+    ) -> ConditionsModel[modeltools.Model] | None:
         if get_conditions:
             sim = copy.deepcopy(hydpy.pub.timegrids.sim)
             date = timetools.Date(get_conditions)
@@ -763,7 +763,9 @@ standard library for for further information.
         return tuple(seqs)
 
     def prepare_model(
-        self, update_parameters: bool, use_conditions: ConditionsModel | None
+        self,
+        update_parameters: bool,
+        use_conditions: ConditionsModel[modeltools.Model] | None,
     ) -> None:
         """Derive the secondary parameter values, prepare all required time series and
         set the initial conditions."""

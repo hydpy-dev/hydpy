@@ -7,11 +7,14 @@ from collections.abc import (
     Collection,
     Generator,
     Hashable,
+    ItemsView,
     Iterable,
     Iterator,
+    KeysView,
     Mapping,
     Sized,
     Sequence,
+    ValuesView,
 )
 from contextlib import AbstractContextManager
 from typing import (
@@ -156,12 +159,95 @@ ArrayFloatFlex = TypeVar(
 )
 VectorFloatFlex = TypeVar("VectorFloatFlex", float, VectorFloat)
 
-ConditionsSubmodel: TypeAlias = dict[str, dict[str, float | NDArrayFloat]]
-ConditionsModel: TypeAlias = dict[str, ConditionsSubmodel]
-Conditions: TypeAlias = dict[str, ConditionsModel]
-
 TM_co = TypeVar("TM_co", bound="modeltools.Model", covariant=True)
 TOM_co = TypeVar("TOM_co", bound="modeltools.Model | None", covariant=True)
+TG_co = TypeVar("TG_co", bound=str, covariant=True)  # G -> sequence group
+
+ConditionValue: TypeAlias = float | NDArrayFloat
+
+
+class ConditionsGroup(Protocol[TM_co, TG_co]):
+    """The values of all condition sequences of a specific group (e.g. `states`) of a
+    specific model instance, accessible via the sequences' names.
+
+    The type parameters (the model type and the group name) only serve to allow HydPy's
+    Mypy plugin to determine the actual type of each condition value.
+    """
+
+    def __getitem__(self, key: str, /) -> ConditionValue: ...
+
+    def __setitem__(self, key: str, value: ConditionValue, /) -> None: ...
+
+    def __iter__(self) -> Iterator[str]: ...
+
+    def __len__(self) -> int: ...
+
+    def __contains__(self, key: object, /) -> bool: ...
+
+    def keys(self) -> KeysView[str]:
+        """Return the names of all entries."""
+
+    def values(self) -> ValuesView[ConditionValue]:
+        """Return all entries."""
+
+    def items(self) -> ItemsView[str, ConditionValue]:
+        """Return all (name, entry) pairs."""
+
+
+class ConditionsSubmodel(Protocol[TM_co]):
+    """The values of all condition sequences of a specific model instance, accessible
+    via the sequence groups' names (e.g. `states`).
+
+    The type parameter (the model type) only serves to allow HydPy's Mypy plugin to
+    determine the actual type of each condition value.
+    """
+
+    def __getitem__(self, key: str, /) -> ConditionsGroup[TM_co, str]: ...
+
+    def __iter__(self) -> Iterator[str]: ...
+
+    def __len__(self) -> int: ...
+
+    def __contains__(self, key: object, /) -> bool: ...
+
+    def keys(self) -> KeysView[str]:
+        """Return the names of all entries."""
+
+    def values(self) -> ValuesView[ConditionsGroup[TM_co, str]]:
+        """Return all entries."""
+
+    def items(self) -> ItemsView[str, ConditionsGroup[TM_co, str]]:
+        """Return all (name, entry) pairs."""
+
+
+class ConditionsModel(Protocol[TM_co]):
+    """The values of all condition sequences of a specific main model instance and its
+    submodels, accessible via the submodels' (dotted) names (e.g. `model` or
+    `model.rconcmodel`).
+
+    The type parameter (the main model type) only serves to allow HydPy's Mypy plugin
+    to determine the actual type of each condition value.
+    """
+
+    def __getitem__(self, key: str, /) -> ConditionsSubmodel[modeltools.Model]: ...
+
+    def __iter__(self) -> Iterator[str]: ...
+
+    def __len__(self) -> int: ...
+
+    def __contains__(self, key: object, /) -> bool: ...
+
+    def keys(self) -> KeysView[str]:
+        """Return the names of all entries."""
+
+    def values(self) -> ValuesView[ConditionsSubmodel[modeltools.Model]]:
+        """Return all entries."""
+
+    def items(self) -> ItemsView[str, ConditionsSubmodel[modeltools.Model]]:
+        """Return all (name, entry) pairs."""
+
+
+Conditions: TypeAlias = dict[str, "ConditionsModel[modeltools.Model]"]
 
 TypeNDIM: TypeAlias = int
 TypeTYPE: TypeAlias = type[float | int | bool]  # ToDo: is still `str` in some cases

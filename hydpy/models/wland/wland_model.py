@@ -3372,7 +3372,7 @@ class Model(modeltools.ELSModel):
 class BaseModel(modeltools.ELSModel):
     """Base model for |wland_wag| and |wland_gd|."""
 
-    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel[Self]) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |BaseModel.check_waterbalance| calculates the balance error as follows:

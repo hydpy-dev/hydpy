@@ -13,6 +13,14 @@ from warnings import warn
 
 from mypy.checker import TypeChecker
 from mypy.errorcodes import ARG_TYPE, ATTR_DEFINED, CALL_ARG, DEPRECATED
+from mypy.errorcodes import (
+    ARG_TYPE,
+    ASSIGNMENT,
+    ATTR_DEFINED,
+    CALL_ARG,
+    DEPRECATED,
+)
+from mypy.message_registry import ErrorMessage
 from mypy.nodes import (
     ARG_NAMED,
     ARG_NAMED_OPT,
@@ -32,6 +40,7 @@ from mypy.plugin import (
     MethodContext,
     MethodSigContext,
 )
+from mypy.subtypes import is_subtype
 from mypy.typeops import bind_self
 from mypy.types import (
     AnyType,
@@ -46,6 +55,7 @@ from mypy.types import (
     Type,
     TypeAliasType,
     TypeOfAny,
+    TypeVarType,
     UnionType,
 )
 
@@ -127,6 +137,10 @@ SERIES = set(
         "hydpy.core.sequencetools.IOSequence.evalseries",
     ]
 )
+CONDITION_GROUPS: Final = {
+    "states": "hydpy.core.sequencetools.StateSequences",
+    "logs": "hydpy.core.sequencetools.LogSequences",
+}
 
 DIRPATH = split(__file__)[0]
 
@@ -157,6 +171,10 @@ TOY_FORMAT: Final = re.compile(r"toy(_[0-9]{1,2}){1,5}")
 
 THRESHOLD_FORMAT: Final = re.compile(r"th_(0|[1-9][0-9]*)_(0|[0-9]*[1-9])")
 """Standard format of threshold names."""
+
+SUBMODELS_FORMAT: Final = re.compile(r"(.+)_(0|[1-9][0-9]*)")
+"""Standard format of the names of submodels handled by `SubmodelsProperty`
+instances."""
 
 
 def _standardize_toy(name: str) -> str | None:
@@ -894,7 +912,7 @@ def _get_ndim_and_type(
 
 
 def _get_vectorlike(
-    context: AttributeContext | MethodSigContext,
+    context: AttributeContext | MethodContext | MethodSigContext,
     ndim: int,
     type_: type[float],
     input_: bool,
@@ -920,13 +938,18 @@ def _get_vectorlike(
             return None
     middle = "InputComplete" if input_ else ""
     suffix = type_.__name__.capitalize()
-    vl_name = f"{prefix}{middle}{suffix}"
+    return _get_alias_target(api, f"{prefix}{middle}{suffix}")
+
+
+def _get_alias_target(api: TypeChecker, name: str) -> Type | None:
+    """Return the target of the type alias with the given name defined in module
+    `typingtools`, if available."""
     if (
         ((module := api.modules.get("hydpy.core.typingtools")) is not None)
-        and ((vl_sym := module.names.get(vl_name)) is not None)
-        and isinstance(vl_node := vl_sym.node, TypeAlias)
+        and ((sym := module.names.get(name)) is not None)
+        and isinstance(node := sym.node, TypeAlias)
     ):
-        return vl_node.target
+        return node.target
     return None
 
 
@@ -1006,6 +1029,207 @@ def shape_hook(context: AttributeContext) -> Type:
     return tuple_type
 
 
+def _get_literal_key(context: MethodContext) -> str | None:
+    """Return the value of the literal string given as the first argument of the given
+    method call, if available."""
+    if (len(context.arg_types) > 0) and (len(context.arg_types[0]) == 1):
+        key_type = get_proper_type(context.arg_types[0][0])
+        if isinstance(key_type, Instance) and (key_type.last_known_value is not None):
+            key_type = key_type.last_known_value
+        if isinstance(key_type, LiteralType) and isinstance(key_type.value, str):
+            return key_type.value
+    return None
+
+
+def _get_model_instance(type_: Type) -> Instance | None:
+    """Return the (upper bound of the) model type the given type refers to."""
+    type_ = get_proper_type(type_)
+    if isinstance(type_, TypeVarType):
+        type_ = get_proper_type(type_.upper_bound)
+    if isinstance(type_, Instance) and type_.type.has_base(
+        "hydpy.core.modeltools.Model"
+    ):
+        return type_
+    return None
+
+
+def _get_submodel_instance(model_inst: Instance, attr_name: str) -> Instance | None:
+    """Return the type of the submodel (interface) the given model handles via the
+    attribute with the given name."""
+    if match := SUBMODELS_FORMAT.fullmatch(attr_name):
+        attr_name = match.group(1)
+        descriptor = "hydpy.core.modeltools.SubmodelsProperty"
+    else:
+        descriptor = "hydpy.core.modeltools.SubmodelProperty"
+    if (
+        ((attr_sym := model_inst.type.get(attr_name)) is not None)
+        and ((attr_type := attr_sym.type) is not None)
+        and isinstance(attr_inst := get_proper_type(attr_type), Instance)
+        and (attr_inst.type.fullname == descriptor)
+        and (len(attr_inst.args) == 1)
+    ):
+        return _get_model_instance(attr_inst.args[0])
+    return None
+
+
+def _get_type_arg(context: MethodContext, position: int) -> Type | None:
+    """Return the type argument at the given position of the generic instance whose
+    method is called, if available."""
+    if isinstance(inst := context.type, Instance) and (len(inst.args) > position):
+        return inst.args[position]
+    return None
+
+
+def conditionsmodel_hook(context: MethodContext) -> Type:
+    """
+    `ConditionsModel[ModelX]["model.submodely"] -> ConditionsSubmodel[Model]`
+    -->
+    `ConditionsModel[ModelX]["model.submodely"] -> ConditionsSubmodel[SubmodelY]`
+    """
+    default = context.default_return_type
+    if (
+        ((key := _get_literal_key(context)) is None)
+        or ((model_type := _get_type_arg(context, 0)) is None)
+        or ((model_inst := _get_model_instance(model_type)) is None)
+        or not isinstance(default_inst := get_proper_type(default), Instance)
+    ):
+        return default
+    names = key.split(".")
+    if names[0] != "model":
+        context.api.msg.report(
+            msg=(
+                f"Condition key `{key}` does not start with `model`, the name of the "
+                f"main model."
+            ),
+            context=context.context,
+            severity="error",
+            code=ARG_TYPE,
+            origin_context=None,
+        )
+        return default
+    for name in names[1:]:
+        if (submodel_inst := _get_submodel_instance(model_inst, name)) is None:
+            return default
+        model_inst = submodel_inst
+    return default_inst.copy_modified(args=[model_inst])
+
+
+def conditionssubmodel_hook(context: MethodContext) -> Type:
+    """
+    `ConditionsSubmodel[ModelX]["states"] -> ConditionsGroup[ModelX, str]`
+    -->
+    `ConditionsSubmodel[ModelX]["states"] -> ConditionsGroup[ModelX, Literal["states"]]`
+    """
+    default = context.default_return_type
+    if (
+        not isinstance(api := context.api, TypeChecker)
+        or ((key := _get_literal_key(context)) is None)
+        or ((model_type := _get_type_arg(context, 0)) is None)
+        or not isinstance(default_inst := get_proper_type(default), Instance)
+    ):
+        return default
+    if key not in CONDITION_GROUPS:
+        context.api.msg.report(
+            msg=(
+                f"Condition group `{key}` does not exist (only `states` and `logs` are "
+                f"supported)."
+            ),
+            context=context.context,
+            severity="error",
+            code=ARG_TYPE,
+            origin_context=None,
+        )
+        return default
+    group_type = LiteralType(value=key, fallback=api.named_type("builtins.str"))
+    return default_inst.copy_modified(args=[model_type, group_type])
+
+
+def _get_condition_type(context: MethodContext) -> Type | None:
+    """Return the value type of the condition sequence selected by the literal key of
+    the given `ConditionsGroup.__getitem__` or `ConditionsGroup.__setitem__` call.
+
+    Return `None` if the type is not determinable.  Report an error and return an
+    `AnyType` if the model does not handle the selected sequence.
+    """
+    if (
+        ((key := _get_literal_key(context)) is None)
+        or ((model_type := _get_type_arg(context, 0)) is None)
+        or ((model_inst := _get_model_instance(model_type)) is None)
+        or ((model_map := VAR_MAP_1.get(model_inst.type.fullname)) is None)
+        or ((group_type := _get_type_arg(context, 1)) is None)
+        or not isinstance(group_literal := get_proper_type(group_type), LiteralType)
+        or ((group := CONDITION_GROUPS.get(str(group_literal.value))) is None)
+    ):
+        return None
+    if (key in (seqs := model_map.get(group, {}))) and (
+        (ndim_type := VAR_INFO.get(".".join(seqs[key]))) is not None
+    ):
+        return _get_vectorlike(
+            context=context, ndim=ndim_type[0], type_=ndim_type[1], input_=False
+        )
+    context.api.msg.report(
+        msg=(
+            f"Model `{model_inst.type.fullname}` has no "
+            f"{str(group_literal.value).rstrip('s')} sequence `{key}`."
+        ),
+        context=context.context,
+        severity="error",
+        code=ARG_TYPE,
+        origin_context=None,
+    )
+    return AnyType(type_of_any=TypeOfAny.from_error)
+
+
+def conditionsgroup_getitem_hook(context: MethodContext) -> Type:
+    """
+    `ConditionsGroup[ModelX, Literal["states"]]["y"] -> float | NDArrayFloat`
+    -->
+    `ConditionsGroup[ModelX, Literal["states"]]["y"] -> float`
+    """
+    value_type = _get_condition_type(context)
+    return context.default_return_type if value_type is None else value_type
+
+
+def conditionsgroup_setitem_hook(context: MethodContext) -> Type:
+    """
+    `ConditionsGroup[ModelX, Literal["states"]]["y"] <- float | NDArrayFloat`
+    -->
+    `ConditionsGroup[ModelX, Literal["states"]]["y"] <- float`
+    """
+    default = context.default_return_type
+    if (
+        not isinstance(api := context.api, TypeChecker)
+        or (len(context.arg_types) != 2)
+        or (len(context.arg_types[1]) != 1)
+        or ((target := _get_condition_type(context)) is None)
+        or isinstance(get_proper_type(target), AnyType)
+        or ((general := _get_alias_target(api, "ConditionValue")) is None)
+    ):
+        return default
+    value = context.arg_types[1][0]
+    # Mypy itself already reports cases where `not is_subtype(value, general)`:
+    if is_subtype(value, general):
+        api.check_subtype(
+            subtype=value,
+            supertype=target,
+            context=context.context,
+            msg=ErrorMessage("Incompatible value for condition assignment", ASSIGNMENT),
+            subtype_label="value",
+            supertype_label="condition sequence requires",
+        )
+    return default
+
+
+METHOD_HOOKS: Final[dict[str, Callable[[MethodContext], Type]]] = {
+    "hydpy.core.importtools.SubmodelAdder.__call__": submodeladder_call_hook,
+    "hydpy.core.importtools.SubmodelAdder.__enter__": submodeladder_enter_hook,
+    "hydpy.core.typingtools.ConditionsModel.__getitem__": conditionsmodel_hook,
+    "hydpy.core.typingtools.ConditionsSubmodel.__getitem__": conditionssubmodel_hook,
+    "hydpy.core.typingtools.ConditionsGroup.__getitem__": conditionsgroup_getitem_hook,
+    "hydpy.core.typingtools.ConditionsGroup.__setitem__": conditionsgroup_setitem_hook,
+}
+
+
 class MypyPlugin(Plugin):
     """Mypy plugin for HydPy."""
 
@@ -1043,10 +1267,8 @@ class MypyPlugin(Plugin):
         return []
 
     def get_method_hook(self, fullname: str) -> Callable[[MethodContext], Type] | None:
-        if fullname == "hydpy.core.importtools.SubmodelAdder.__call__":
-            return submodeladder_call_hook
-        if fullname == "hydpy.core.importtools.SubmodelAdder.__enter__":
-            return submodeladder_enter_hook
+        if (hook := METHOD_HOOKS.get(fullname)) is not None:
+            return hook
         return None
 
     def get_function_hook(

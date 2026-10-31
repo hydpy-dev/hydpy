@@ -268,6 +268,7 @@ class CySubstepModelProtocol(CyModelProtocol):
 SeriesFileType = Literal["npy", "asc", "nc"]
 SeriesAggregationType = Literal["none", "mean"]
 SeriesConventionType = Literal["model-specific", "HydPy"]
+SimulationMode = Literal["historical", "forecast"]
 
 l1: Literal[1] = 1
 
@@ -372,6 +373,7 @@ __all__ = [
     "Sequence2",
     "Sequence3",
     "SharableConfiguration",
+    "SimulationMode",
     "Sized",
     "StepSize",
     "T_inv",

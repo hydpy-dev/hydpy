@@ -74,6 +74,7 @@ the :ref:`model_overview` section, which clarifies this distinction more clearly
    HydPy-Musk
    HydPy-Rconc
    HydPy-Snow
+   HydPy-StatCorr
    HydPy-SW1D
    HydPy-Test
    HydPy-W

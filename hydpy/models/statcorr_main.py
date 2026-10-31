@@ -1,0 +1,139 @@
+# pylint: disable=unused-wildcard-import
+"""
+|statcorr_main| applies statistical output correction to discharge forecasts.  It reads
+the simulated discharge from its inlet node(s), passes it through one or more
+|OutputCorrModel_V1| submodels (e.g. |statcorr_arima010|), and delivers the corrected
+discharge to the outlet node.
+
+Integration test
+================
+
+    .. how_to_understand_integration_tests::
+
+    We prepare a simulation period of six days:
+
+    >>> from hydpy import pub
+    >>> pub.timegrids = "2000-01-01", "2000-01-07", "1d"
+
+    >>> from hydpy.models.statcorr_main import *
+    >>> parameterstep()
+
+    We connect the model to a single inlet and outlet node and set up the test object:
+
+    >>> from hydpy import Element, IntegrationTest
+    >>> element = Element("element", inlets="inlet", outlets="outlet")
+    >>> element.model = model
+
+    We attach a single |statcorr_arima010| submodel, which is responsible for all
+    discharges (its |EvaluationWindow| of one step means it assesses its
+    responsibility based on the current simulated discharge only).  We disable the
+    stationarity check via |StationarityCheck| and the variability check via
+    |VariabilityCheck|, so the ARIMA correction always applies unabated:
+
+    >>> from numpy import inf
+    >>> nmbsubmodels(1)
+    >>> propagate(True)
+    >>> with model.add_outputcorrmodel_v1(
+    ...     "statcorr_arima010", position=0
+    ... ) as submodel:
+    ...     submodel.parameters.control.active(True)
+    ...     submodel.parameters.control.correctionmode("both")
+    ...     submodel.parameters.control.lowerlimit(0.0)
+    ...     submodel.parameters.control.upperlimit(inf)
+    ...     submodel.parameters.control.evaluationwindow(1)
+    ...     submodel.parameters.control.maxnanskip(3)
+    ...     submodel.parameters.control.maxabsshift(100.0)
+    ...     submodel.parameters.control.maxrelshift(1000.0)
+    ...     submodel.parameters.control.averagingwindow(0)
+    ...     submodel.parameters.control.transitionsteps(0)
+    ...     submodel.parameters.control.stationaritycheck(False)
+    ...     submodel.parameters.control.variabilitycheck(False)
+    ...     submodel.parameters.control.reductionsteps(1)
+
+    >>> test = IntegrationTest(element)
+
+    The inlet provides the simulated discharge; |Discharge| carries the observations.
+    Observations are available for the first two steps only, simulating a forecast
+    period starting on day three:
+
+    >>> from numpy import nan
+    >>> element.inlets.inlet.sequences.sim.series = 1.0, 2.0, 3.0, 4.0, 5.0, 6.0
+    >>> with pub.options.checkseries(False):
+    ...     inputs.discharge.series = 1.5, 2.5, nan, nan, nan, nan
+
+    During the first two steps the correction is based on the concurrent residual
+    (``0.5``).  In the forecast period the model falls back to the most recent
+    available residual, which stays at ``0.5`` until it lies more than
+    |MaxNaNSkip| entries back on day five, after which no correction is applied:
+
+.. integration-test::
+
+    >>> test.dateformat = '%d/%m %H:00'
+    >>> test()
+    |        date | discharge | inflow | correctedq | inlet | outlet |
+    ------------------------------------------------------------------
+    | 01/01 00:00 |       1.5 |    1.0 |        1.5 |   1.0 |    1.5 |
+    | 02/01 00:00 |       2.5 |    2.0 |        2.5 |   2.0 |    2.5 |
+    | 03/01 00:00 |       nan |    3.0 |        3.5 |   3.0 |    3.5 |
+    | 04/01 00:00 |       nan |    4.0 |        4.5 |   4.0 |    4.5 |
+    | 05/01 00:00 |       nan |    5.0 |        5.0 |   5.0 |    5.0 |
+    | 06/01 00:00 |       nan |    6.0 |        6.0 |   6.0 |    6.0 |
+"""
+
+from hydpy.core import importtools
+from hydpy.core import modeltools
+from hydpy.exe.modelimports import *
+from hydpy.interfaces import statcorrinterfaces
+from hydpy.models.statcorr import statcorr_control
+from hydpy.models.statcorr import statcorr_model
+
+ADDITIONAL_CONTROLPARAMETERS = (
+    statcorr_control.NmbSubmodels,
+    statcorr_control.Propagate,
+)
+
+
+class Model(modeltools.AdHocModel):
+    """|statcorr_main.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(
+        short="StatCorr-Main",
+        description="main statistical output correction model for discharge forecasts",
+    )
+    __HYDPY_ROOTMODEL__ = True
+
+    INLET_METHODS = (statcorr_model.Pick_Inflow_V1,)
+    OBSERVER_METHODS = ()
+    RECEIVER_METHODS = ()
+    RUN_METHODS = (statcorr_model.Calc_OutputCorr_V1,)
+    INTERFACE_METHODS = ()
+    ADD_METHODS = ()
+    OUTLET_METHODS = (statcorr_model.Pass_CorrectedQ_V1,)
+    SENDER_METHODS = ()
+    SUBMODELINTERFACES = (statcorrinterfaces.OutputCorrModel_V1,)
+    SUBMODELS = ()
+
+    outputcorrmodels = modeltools.SubmodelsProperty(
+        statcorrinterfaces.OutputCorrModel_V1
+    )
+
+    @importtools.prepare_submodel(  # type: ignore[call-overload]
+        "outputcorrmodels", statcorrinterfaces.OutputCorrModel_V1, dimensionality=1
+    )
+    def add_outputcorrmodel_v1(
+        self,
+        outputcorrmodel: statcorrinterfaces.OutputCorrModel_V1,
+        *,
+        position: int,
+        refresh: bool,
+    ) -> None:
+        """Initialise the given submodel that follows the |OutputCorrModel_V1|
+        interface.
+
+        The submodel determines the length of its log from its own parameters (see
+        |NmbLogEntries|), so the main model does not need to pass any information.
+        """
+
+
+tester = Tester()
+cythonizer = Cythonizer()

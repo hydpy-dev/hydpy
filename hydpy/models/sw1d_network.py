@@ -700,7 +700,7 @@ class Model(modeltools.SubstepModel):
         routinginterfaces.RoutingModel_V3,
     )
 
-    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel[Self]) -> float:
         r"""Determine the water balance error of the previous simulation in 1000 m³.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:

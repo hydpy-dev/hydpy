@@ -1382,7 +1382,7 @@ class Model(modeltools.SegmentModel):
             self.run()
             self.new2old()
 
-    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel[Self]) -> float:
         r"""Determine the water balance error of the previous simulation run in %.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:

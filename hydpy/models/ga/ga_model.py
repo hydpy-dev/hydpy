@@ -2803,7 +2803,7 @@ class Model(modeltools.AdHocModel):
 class BaseModel(modeltools.AdHocModel):
     """General base class for GARTO-like Green-Ampt models."""
 
-    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel[Self]) -> float:
         r"""Determine the water balance error of the previous simulation run in mm.
 
         Method |ga_model.BaseModel.check_waterbalance| calculates the balance error as

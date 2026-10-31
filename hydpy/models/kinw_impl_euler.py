@@ -1725,7 +1725,7 @@ among the result sequences of any of its predecessors: InternalFlow
             finally:
                 length(length_orig)
 
-    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel[Self]) -> float:
         r"""Determine the water balance error of the previous simulation run in million
         m³.
 

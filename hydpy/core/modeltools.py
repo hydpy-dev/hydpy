@@ -3165,7 +3165,7 @@ the available directories (`calib_1` and `calib_2`).
                     submodel.update_parameters(ignore_errors=ignore_errors)
 
     @property
-    def conditions(self) -> ConditionsModel:
+    def conditions(self) -> ConditionsModel[Self]:
         """A nested dictionary that contains the values of all condition sequences of
         a model and its submodels.
 
@@ -3177,7 +3177,7 @@ the available directories (`calib_1` and `calib_2`).
         return conditions
 
     @conditions.setter
-    def conditions(self, conditions: ConditionsModel) -> None:
+    def conditions(self, conditions: ConditionsModel[Model]) -> None:
         for name, model in self.find_submodels(include_mainmodel=True).items():
             model.sequences.conditions = conditions[name]
 

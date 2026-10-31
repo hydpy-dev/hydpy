@@ -35,7 +35,7 @@ class Model(rconc_model.Sub_RConcModel, rconcinterfaces.RConcModel_V1):
     SUBMODELINTERFACES = ()
     SUBMODELS = ()
 
-    def get_waterbalance(self, initial_conditions: ConditionsSubmodel) -> float:
+    def get_waterbalance(self, initial_conditions: ConditionsSubmodel[Self]) -> float:
         """Return the water balance after the submodel has been executed."""
 
         waterbalance = self.sequences.states.sc - initial_conditions["states"]["sc"]

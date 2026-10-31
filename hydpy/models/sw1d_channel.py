@@ -2019,7 +2019,7 @@ as rm2:
         composite model |sw1d_network|."""
         return sw1d_network.combine_channels
 
-    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
+    def check_waterbalance(self, initial_conditions: ConditionsModel[Self]) -> float:
         r"""Determine the water balance error of the previous simulation in m³.
 
         Method |Model.check_waterbalance| calculates the balance error as follows:

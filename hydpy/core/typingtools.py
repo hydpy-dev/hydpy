@@ -258,6 +258,7 @@ TypeNUMERIC: TypeAlias = bool
 
 # The following type aliases are broad placeholders for typing different aspects of
 # |Variable| subclasses, which different hooks of HydPy's Mypy plugin narrow:
+GeneralHook: TypeAlias = Any
 ShapeHookGet: TypeAlias = tuple[int, ...]
 ShapeHookSet: TypeAlias = int | tuple[int, ...]
 TrimHook: TypeAlias = Union[
@@ -392,8 +393,10 @@ __all__ = [
     "ClassVar",
     "Collection",
     "Conditions",
+    "ConditionsGroup",
     "ConditionsModel",
     "ConditionsSubmodel",
+    "ConditionValue",
     "CyModelProtocol",
     "CySubstepModelProtocol",
     "Collection1",
@@ -402,6 +405,7 @@ __all__ = [
     "DeployMode",
     "Final",
     "Float",
+    "GeneralHook",
     "Generator",
     "Generic",
     "get_type_hints",

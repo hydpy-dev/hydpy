@@ -6578,7 +6578,7 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
         self._init_callback()
 
     @property
-    def value(self):
+    def value(self) -> GeneralHook:
         """The fixed value or the value last updated by the callback function."""
         if self._has_callback:
             assert (callback := self.callback) is not None
@@ -6587,7 +6587,7 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
         return super().value
 
     @value.setter
-    def value(self, value: Any) -> None:
+    def value(self, value: GeneralHook) -> None:
         self._init_callback()
         self._has_callback = False
         Parameter.value.fset(self, value)  # type: ignore[attr-defined]

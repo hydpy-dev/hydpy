@@ -485,7 +485,7 @@ def get_tolerance(values: float | NDArrayFloat) -> float | NDArrayFloat:
     return tolerance
 
 
-def _warn_trim(self, oldvalue: ArrayFloat, newvalue: ArrayFloat) -> None:
+def _warn_trim(self: Variable, oldvalue: ArrayFloat, newvalue: ArrayFloat) -> None:
     if hydpy.pub.options.warntrim:
         warnings.warn(
             f"For variable {objecttools.devicephrase(self)} at least one value "
@@ -520,13 +520,36 @@ class FastAccess:
     """Used as a surrogate for typed Cython classes handling parameters or sequences
     when working in pure Python mode."""
 
-    def _get_attribute(self, name, suffix, default=None):
+    @overload
+    def _get_attribute(self, name: str, suffix: Literal["ndim"]) -> int: ...
+
+    @overload
+    def _get_attribute(
+        self,
+        name: str,
+        suffix: Literal[
+            "inputflag", "outputflag", "diskflag_reading", "diskflag_writing", "ramflag"
+        ],
+        default: bool = False,
+    ) -> bool: ...
+
+    @overload
+    def _get_attribute(
+        self, name: str, suffix: Literal["inputpointer", "outputpointer"]
+    ) -> pointerutils.PDouble: ...
+
+    @overload
+    def _get_attribute(
+        self, name: str, suffix: Literal["array", "ncarray"]
+    ) -> NDArrayFloat: ...
+
+    def _get_attribute(self, name: str, suffix: str, default: object = None) -> object:
         return getattr(self, f"_{name}_{suffix}", default)
 
-    def _set_attribute(self, name, suffix, value):
-        return setattr(self, f"_{name}_{suffix}", value)
+    def _set_attribute(self, name: str, suffix: str, value: object) -> None:
+        setattr(self, f"_{name}_{suffix}", value)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         """Iterate over all sequence names."""
         for key in vars(self).keys():
             if not (key.startswith("_") or key.startswith("len_")):
@@ -1945,18 +1968,7 @@ not a submask of `Soil([ True,  True, False])`.
             return mask
         return self.mask
 
-    def _prepare_mask(
-        self,
-        mask: masktools.BaseMask | type[masktools.BaseMask] | str,
-        masks: masktools.Masks,
-        **kwargs,
-    ) -> masktools.BaseMask:
-        mask_ = masks[mask]
-        if inspect.isclass(mask_):
-            return mask_(self, **kwargs)
-        return mask_
-
-    def __deepcopy__(self, memo) -> Self:
+    def __deepcopy__(self, memo: dict[int, object] | None) -> Self:
         new = type(self)(None)  # type: ignore[arg-type]
         for key, value in vars(self).items():
             if key not in self._NOT_DEEPCOPYABLE_MEMBERS:
@@ -1992,7 +2004,7 @@ not a submask of `Soil([ True,  True, False])`.
             )
 
     @staticmethod
-    def _check_key(key):
+    def _check_key(key: object) -> None:
         if key not in (0, slice(None, None, None)):
             raise IndexError(
                 "The only allowed keys for 0-dimensional variables are `0` and `:`."
@@ -2588,7 +2600,11 @@ values are assigned.
         return cast(list[str], super().__dir__()) + list(self._name2variable.keys())
 
 
-def to_repr(self: Variable, values, brackets: bool = False) -> str:
+def to_repr(
+    self: Variable,
+    values: str | float | VectorInputObject | MatrixInputObject,
+    brackets: bool = False,
+) -> str:
     """Return a valid string representation for the given |Variable| object.
 
     Function |to_repr| is thought for internal purposes only, more specifically for
@@ -2653,9 +2669,11 @@ def to_repr(self: Variable, values, brackets: bool = False) -> str:
     if self.NDIM == 0:
         return f"{self.name}({objecttools.repr_(values)})"
     if self.NDIM == 1:
+        vector = cast(VectorInputObject, values)
         if brackets:
-            return objecttools.assignrepr_list(values, prefix, 72) + ")"
-        return objecttools.assignrepr_values(values, prefix, 72) + ")"
+            return objecttools.assignrepr_list(vector, prefix, 72) + ")"
+        return objecttools.assignrepr_values(vector, prefix, 72) + ")"
+    matrix = cast(MatrixInputObject, values)
     if brackets:
-        return objecttools.assignrepr_list2(values, prefix, 72) + ")"
-    return objecttools.assignrepr_values2(values, prefix, 72) + ")"
+        return objecttools.assignrepr_list2(matrix, prefix, 72) + ")"
+    return objecttools.assignrepr_values2(matrix, prefix, 72) + ")"

@@ -185,7 +185,7 @@ class _CurrentDirContext(str):
         exception_type: type[BaseException],
         exception_value: BaseException,
         traceback_: types.TracebackType,
-    ):
+    ) -> None:
         self._new_value = None
         self._property[0].manager2value[self._manager] = self._old_value
 
@@ -193,7 +193,7 @@ class _CurrentDirContext(str):
 def _check_unsafe_usage_currentdir(wrapped: Callable[P_, None]) -> Callable[P_, None]:
 
     @functools.wraps(wrapped)
-    def wrapper(*args: P_.args, **kwargs: P_.kwargs):
+    def wrapper(*args: P_.args, **kwargs: P_.kwargs) -> None:
         self = cast(_CurrentDirContext, args[0])
         get = object.__getattribute__
         called, entered = get(self, "_is_called"), get(self, "_is_entered")
@@ -1389,7 +1389,7 @@ Hence, the condition manager writes its data to a directory named \
         yield
         self._already_reported = None
 
-    def _print_info(self, dirname, task) -> None:
+    def _print_info(self, dirname: str, task: str) -> None:
         if hydpy.pub.options.printprogress:
             already_reported = self._already_reported
             message = (

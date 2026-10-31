@@ -91,7 +91,7 @@ class SetAutoMethod(Method):
     """
 
     @classmethod
-    def __call__(cls, model: Model, *values) -> None:
+    def __call__(cls, model: Model, *values: float) -> None:
         for method, value in zip(cls.SUBMETHODS, values):
             method.__call__(model, value)
         for method in cls.SUBMETHODS[len(values) :]:
@@ -117,7 +117,7 @@ class ReusableMethod(Method):
         cls.REUSEMARKER = f"__hydpy_reuse_{cls.__name__.lower()}__"
 
     @classmethod
-    def call_reusablemethod(cls, model: Model, *args) -> None:
+    def call_reusablemethod(cls, model: Model, *args: float) -> None:
         """Execute the "normal" model-specific `__call__` method only when indicated by
         the |ReusableMethod.REUSEMARKER| attribute and update this attribute when
         necessary."""
@@ -1021,7 +1021,7 @@ class DocName(NamedTuple):
     model"."""
 
     @property
-    def long(self):
+    def long(self) -> str:
         """Long name of a model.
 
         >>> from hydpy.models.wland_wag import Model

@@ -114,7 +114,7 @@ class SoilTypeBase(masktools.IndexMask):
     """Base class for all soil type-specific masks."""
 
     @staticmethod
-    def get_refindices(variable: variabletools.Variable):
+    def get_refindices(variable: variabletools.Variable) -> whmod_control.SoilType:
         """Reference to the associated instance of |SoilType|."""
         model = cast(whmod_model.Model, variable.subvars.vars.model)
         return model.parameters.control.soiltype

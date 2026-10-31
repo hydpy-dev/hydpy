@@ -466,7 +466,12 @@ and 'str'
     """
 
     @wrapt.decorator
-    def wrapper(wrapped, instance, args, kwargs):
+    def wrapper(
+        wrapped: Callable[..., object],
+        instance: object,
+        args: tuple[object, ...],
+        kwargs: dict[str, object],
+    ) -> object:
         """Apply |augment_excmessage| when the wrapped function fails."""
         try:
             return wrapped(*args, **kwargs)

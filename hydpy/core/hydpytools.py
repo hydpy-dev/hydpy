@@ -2608,7 +2608,7 @@ prepared so far.
             self.elements = selection.elements
         self._update_collectives_and_deviceorder(silent=silent)
 
-    def _update_collectives_and_deviceorder(self, silent: bool):
+    def _update_collectives_and_deviceorder(self, silent: bool) -> None:
         try:
             self._collectives = self.elements.unite_collectives()
         except exceptiontools.AttributeNotReady as exc:

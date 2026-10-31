@@ -132,7 +132,7 @@ class IntConstant(int):
     >>> assert c is deepcopy(c)
     """
 
-    def __new__(cls, value) -> Self:
+    def __new__(cls, value: int) -> Self:
         const = int.__new__(cls, value)
         const.__doc__ = None
         assert (frame := inspect.currentframe()) is not None
@@ -153,7 +153,7 @@ class Constants(dict[str, int]):
     value2name: dict[int, str]
     """Mapping from the the values of the constants to their names."""
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Mapping[str, int], **kwargs: int) -> None:
         if not (args or kwargs):
             assert ((frame1 := inspect.currentframe()) is not None) and (
                 (frame := frame1.f_back) is not None
@@ -449,7 +449,7 @@ yet: longitude(?).
             if subpars:
                 yield subpars
 
-    def __len__(self):
+    def __len__(self) -> int:
         return sum(1 for _ in self)
 
     def __bool__(self) -> bool:
@@ -2918,7 +2918,7 @@ broadcast input array from shape (2,) into shape (2,3)
             self._raise_wrong_kwargs_error(kwargs)
         self.trim()
 
-    def _get_values_from_auxiliaryfile(self, auxfile: str):
+    def _get_values_from_auxiliaryfile(self, auxfile: str) -> float | NDArrayObject:
         """Try to return the parameter values from the auxiliary control file with the
         given name.
 
@@ -4251,7 +4251,7 @@ broadcast input array from shape (2,) into shape (366,3)
     _trimmed_insufficiently: bool
     _trimming_disabled: bool
 
-    def __init__(self, subvars) -> None:
+    def __init__(self, subvars: SubParameters[modeltools.Model]) -> None:
         super().__init__(subvars)
         self._toy2values_unprotected = []
         self._trimming_disabled = False
@@ -5697,7 +5697,7 @@ given, but is not.
         return self.TYPE(self.values[0])
 
     @left.setter
-    def left(self, value):
+    def left(self, value: float) -> None:
         self.values[0] = value
 
     @property
@@ -5706,7 +5706,7 @@ given, but is not.
         return self.TYPE(self.values[1])
 
     @right.setter
-    def right(self, value):
+    def right(self, value: float) -> None:
         self.values[1] = value
 
     def __repr__(self) -> str:
@@ -5937,7 +5937,7 @@ solver parameter `tol` of element `?` has been defined so far.
     INIT: int | float | bool
     _alternative_initvalue: float | None
 
-    def __init__(self, subvars):
+    def __init__(self, subvars: SubParameters[modeltools.Model]) -> None:
         super().__init__(subvars)
         self._alternative_initvalue = None
 
@@ -5988,7 +5988,7 @@ solver parameter `tol` of element `?` has been defined so far.
         return self._alternative_initvalue
 
     @alternative_initvalue.setter
-    def alternative_initvalue(self, value) -> None:
+    def alternative_initvalue(self, value: float) -> None:
         self._alternative_initvalue = value
 
     @alternative_initvalue.deleter

@@ -2103,7 +2103,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
             write_jit=sm.diskflag_writing,
         )
 
-    def __set_array(self, values):
+    def __set_array(self, values: NDArrayFloat) -> None:
         values = numpy.asarray(values, dtype=config.NP_FLOAT)
         self.__hydpy__set_fastaccessattribute__("array", values)
 
@@ -3603,7 +3603,7 @@ not broadcast input array from shape (3,) into shape (2,)
     fastaccess_new: FastAccessOutputSequence
     fastaccess_old: variabletools.FastAccess
 
-    def __call__(self, *args) -> None:
+    def __call__(self, *args: CallHook) -> None:
         """The prefered way to pass values to |Sequence_| instances within initial
         condition files."""
         super().__call__(*args)

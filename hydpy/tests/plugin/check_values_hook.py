@@ -2,13 +2,23 @@
 
 if __name__ == "__main__":
 
-    from typing import assert_type
+    from typing import Any, assert_type
 
     import numpy
 
+    from hydpy.core import parametertools
+    from hydpy.core import sequencetools
     from hydpy.core import typingtools
     from hydpy.models.hland import hland_control
     from hydpy.models.hland import hland_states
+    from hydpy.models.sw1d import sw1d_control
+
+    # NDIM = ?, TYPE = ?
+    parameter: parametertools.Parameter
+    assert_type(parameter.value, Any)
+    assert_type(numpy.sum(numpy.isnan(parameter.values)), Any)
+    iosequence: sequencetools.IOSequence
+    assert_type(numpy.sum(numpy.isnan(iosequence.series)), Any)
 
     # NDIM = 0, TYPE = float
     area: hland_control.Area
@@ -78,3 +88,23 @@ if __name__ == "__main__":
     assert_type(uz.old, float)
     uz.new = 1.0
     uz.old = [1.0]  # type: ignore[assignment]
+
+    # callback parameters
+    gateheight: sw1d_control.GateHeight
+    assert_type(gateheight.value, float)
+    gateheight.value = 1.0
+    gateheight.value = [1.0]  # type: ignore[assignment]
+
+    # node sequences
+    sim: sequencetools.Sim
+    assert_type(sim.value, float)
+    assert_type(sim.values, float)
+    assert_type(sim.series, typingtools.VectorFloat)
+    sim.value = 1.0
+    sim.values = 1
+    sim.value = [1.0]  # type: ignore[assignment]
+    sim.series = [1.0]
+    obs: sequencetools.Obs
+    assert_type(obs.value, float)
+    assert_type(obs.values, float)
+    assert_type(obs.series, typingtools.VectorFloat)

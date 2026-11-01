@@ -124,10 +124,8 @@ VALUES = set(
     [
         "hydpy.core.variabletools.Variable.value",
         "hydpy.core.variabletools.Variable.values",
-        "hydpy.core.parametertools.Parameter.value",
-        "hydpy.core.parametertools.Parameter.values",
-        "hydpy.core.sequencetools.Sequence_.value",
-        "hydpy.core.sequencetools.Sequence_.values",
+        "hydpy.core.parametertools.CallbackParameter.value",
+        "hydpy.core.sequencetools.NodeSequence.value",
         "hydpy.core.sequencetools.StateSequence.new",
         "hydpy.core.sequencetools.StateSequence.old",
     ]

@@ -230,6 +230,9 @@ def _write_mypy_plugin_data() -> None:
     from hydpy.core.parametertools import KeywordParameter2D
     from hydpy.core.parametertools import Parameter
     from hydpy.core.parametertools import ZipParameter
+    from hydpy.core.sequencetools import NodeSequence
+    from hydpy.core.sequencetools import Obs
+    from hydpy.core.sequencetools import Sim
     from hydpy.core.variabletools import Variable
 
     autodoc_complete()
@@ -317,6 +320,10 @@ def _write_mypy_plugin_data() -> None:
                                     )
                     subdict_[f"{prefix}.{type(subvars).__name__}"] = subsubdict
             model2subgroup2attr2module_var[f"{modelmodule}.Model"] = subdict_
+
+    for nodeseq in (NodeSequence, Sim, Obs):
+        fullname = f"{nodeseq.__module__}.{nodeseq.__name__}"
+        var2ndim_type[fullname] = nodeseq.NDIM, nodeseq.TYPE
 
     vars_with_shape: set[str] = set()
 

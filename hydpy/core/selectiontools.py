@@ -773,8 +773,8 @@ the "outlet device", but the given `device` value is of type `int`.
         >>> pub.selections.headwaters.search_upstream(hp.nodes.lahn_kalk)
         Traceback (most recent call last):
         ...
-        KeyError: "While trying to determine an upstream network of selection \
-`headwaters`, the following error occurred: 'No node named `lahn_kalk` available.'"
+        KeyError: 'While trying to determine an upstream network of selection \
+`headwaters`, the following error occurred: No node named `lahn_kalk` available.'
 
         Method |Selection.select_upstream| restricts the current selection to the one
         determined with the method |Selection.search_upstream|:
@@ -920,8 +920,8 @@ required as the "inlet device", but the given `device` value is of type `int`.
         >>> pub.selections.headwaters.search_downstream(hp.nodes.lahn_kalk)
         Traceback (most recent call last):
         ...
-        KeyError: "While trying to determine a downstream network of selection \
-`headwaters`, the following error occurred: 'No node named `lahn_kalk` available.'"
+        KeyError: 'While trying to determine a downstream network of selection \
+`headwaters`, the following error occurred: No node named `lahn_kalk` available.'
 
         Method |Selection.select_downstream| restricts the current selection to the one
         determined with the method |Selection.search_upstream|:

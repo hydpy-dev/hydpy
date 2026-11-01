@@ -322,6 +322,18 @@ unsupported operand type(s) for +: 'int' and 'str' (This is a final remark.)
     hydpy.core.objecttools.WrongError: While showing how prefixing works, the \
 following error occurred: ('info 1', 'info 2')
 
+    The string representation of a |KeyError| quotes its message.  To prevent nested
+    quotes, |augment_excmessage| uses the unquoted message instead:
+
+    >>> try:
+    ...     raise KeyError("No item named `x` available.")
+    ... except BaseException:
+    ...     objecttools.augment_excmessage("While showing how prefixing works")
+    Traceback (most recent call last):
+    ...
+    KeyError: 'While showing how prefixing works, the following error occurred: No \
+item named `x` available.'
+
     Never use function |augment_excmessage| outside except clauses:
 
     >>> objecttools.augment_excmessage("While trying to do something")
@@ -336,7 +348,14 @@ inside except clauses.)
             "No exception available.  (Call function `augment_excmessage` only inside "
             "except clauses.)"
         )
-    message = str(exc_old)
+    if (
+        isinstance(exc_old, KeyError)
+        and (len(exc_old.args) == 1)
+        and isinstance(exc_old.args[0], str)
+    ):
+        message = exc_old.args[0]
+    else:
+        message = str(exc_old)
     if prefix is not None:
         message = f"{prefix}, the following error occurred: {message}"
     if suffix is not None:

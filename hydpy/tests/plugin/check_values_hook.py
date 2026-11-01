@@ -8,6 +8,7 @@ if __name__ == "__main__":
 
     from hydpy.core import typingtools
     from hydpy.models.hland import hland_control
+    from hydpy.models.hland import hland_states
 
     # NDIM = 0, TYPE = float
     area: hland_control.Area
@@ -65,3 +66,15 @@ if __name__ == "__main__":
     sred.value = [[1.0], [1.0]]
     sred.value = numpy.ones((1, 1), dtype=numpy.float64)
     sred.value = numpy.ones((1, 1), dtype=numpy.int64)
+
+    # `new` and `old` of state sequences
+    sm: hland_states.SM
+    assert_type(sm.new, typingtools.VectorFloat)
+    assert_type(sm.old, typingtools.VectorFloat)
+    sm.new = [1.0]
+    sm.old = [[1.0], [1.0]]  # type: ignore[list-item]
+    uz: hland_states.UZ
+    assert_type(uz.new, float)
+    assert_type(uz.old, float)
+    uz.new = 1.0
+    uz.old = [1.0]  # type: ignore[assignment]

@@ -128,6 +128,8 @@ VALUES = set(
         "hydpy.core.parametertools.Parameter.values",
         "hydpy.core.sequencetools.Sequence_.value",
         "hydpy.core.sequencetools.Sequence_.values",
+        "hydpy.core.sequencetools.StateSequence.new",
+        "hydpy.core.sequencetools.StateSequence.old",
     ]
 )
 SERIES = set(

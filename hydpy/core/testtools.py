@@ -27,6 +27,7 @@ import hydpy
 from hydpy import config
 from hydpy import data
 from hydpy import docs
+# from hydpy import mypy_plugin  actual import below
 from hydpy.docs import autofigs
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
@@ -2191,6 +2192,92 @@ overload (k, x) has no matching keyword group
                 results.append(
                     f"{blanks}Parameter {partype.__name__}: {'; '.join(problems)}"
                 )
+    return "\n".join(results)
+
+
+def check_generalhooks(indent: int = 0) -> str:
+    """Check that exactly those members of the classes defined in the modules of
+    subpackage `core` are annotated with |GeneralHook| whose types HydPy's Mypy plugin
+    refines.
+
+    |check_generalhooks| compares the members' annotations (found by parsing the
+    modules' source code, as |GeneralHook| is identical to `Any` at runtime) with the
+    member names listed in the constant `REFINED_MEMBERS` of the plugin module.  Hence,
+    it reports members we forgot to annotate as well as annotated members the plugin
+    ignores.  Currently, both agree:
+
+    >>> from hydpy.core.testtools import check_generalhooks
+    >>> print(check_generalhooks())
+    <BLANKLINE>
+
+    To show how |check_generalhooks| reports errors, we remove method `__add__` of class
+    |Variable| from and add property |Variable.shape| to `REFINED_MEMBERS`:
+
+    >>> from hydpy import mypy_plugin
+    >>> refined = mypy_plugin.REFINED_MEMBERS
+    >>> mypy_plugin.REFINED_MEMBERS -= {"hydpy.core.variabletools.Variable.__add__"}
+    >>> mypy_plugin.REFINED_MEMBERS |= {"hydpy.core.variabletools.Variable.shape"}
+    >>> print(check_generalhooks(indent=4))
+        Annotated with `GeneralHook` but not refined by the Mypy plugin:
+            hydpy.core.variabletools.Variable.__add__
+        Refined by the Mypy plugin but not annotated with `GeneralHook`:
+            hydpy.core.variabletools.Variable.shape
+
+    To tidy up, we need to revert the above change:
+
+    >>> mypy_plugin.REFINED_MEMBERS = refined
+    >>> print(check_generalhooks())
+    <BLANKLINE>
+    """
+    # pylint: disable=import-outside-toplevel
+    from hydpy import mypy_plugin
+
+    def _is_generalhook(node: ast.expr | None) -> bool:
+        return (node is not None) and any(
+            (isinstance(subnode, ast.Name) and (subnode.id == "GeneralHook"))
+            or (isinstance(subnode, ast.Attribute) and (subnode.attr == "GeneralHook"))
+            for subnode in ast.walk(node)
+        )
+
+    defined: set[str] = set()
+    annotated: set[str] = set()
+    dirpath: str = hydpy.core.__path__[0]
+    for filename in sorted(os.listdir(dirpath)):
+        if not filename.endswith(".py"):
+            continue
+        with open(os.path.join(dirpath, filename), encoding="utf-8") as file_:
+            tree = ast.parse(file_.read())
+        for class_ in (node for node in tree.body if isinstance(node, ast.ClassDef)):
+            for function in class_.body:
+                if not isinstance(function, ast.FunctionDef):
+                    continue
+                name = f"hydpy.core.{filename[:-3]}.{class_.name}.{function.name}"
+                defined.add(name)
+                args = function.args
+                arguments = (*args.posonlyargs, *args.args, *args.kwonlyargs)
+                annotations = [function.returns] + [a.annotation for a in arguments]
+                for arg in (args.vararg, args.kwarg):
+                    if arg is not None:
+                        annotations.append(arg.annotation)
+                if any(_is_generalhook(a) for a in annotations):
+                    annotated.add(name)
+
+    blanks = " " * indent
+    results: list[str] = []
+    refined = defined.intersection(mypy_plugin.REFINED_MEMBERS)
+    for members, description in (
+        (
+            annotated - refined,
+            "Annotated with `GeneralHook` but not refined by the Mypy plugin:",
+        ),
+        (
+            refined - annotated,
+            "Refined by the Mypy plugin but not annotated with `GeneralHook`:",
+        ),
+    ):
+        if members:
+            results.append(f"{blanks}{description}")
+            results.extend(f"{blanks}    {member}" for member in sorted(members))
     return "\n".join(results)
 
 

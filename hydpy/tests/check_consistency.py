@@ -4,7 +4,7 @@ import os
 import sys
 
 from hydpy import models
-from hydpy.core.testtools import perform_consistencychecks
+from hydpy.core.testtools import check_generalhooks, perform_consistencychecks
 
 print("Perform all available consistency checks:\n")
 dirpath: str = models.__path__[0]
@@ -22,6 +22,9 @@ for applicationmodel in applicationmodels:
             f"application model {applicationmodel}"
         )
         results.append(f"{subresult}\n")
+if subresult := check_generalhooks(indent=4):
+    results.append("Potential consistency problems between annotations and Mypy plugin")
+    results.append(f"{subresult}\n")
 if results:
     print("\n".join(results))
     sys.exit(1)

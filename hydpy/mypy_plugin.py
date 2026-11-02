@@ -270,6 +270,23 @@ SCALAR_FUNCTIONS: Final = {
 
 SIZED_FUNCTIONS: Final = ("builtins.len", "builtins.reversed")
 
+REFINED_MEMBERS: Final = frozenset(
+    VALUES
+    | SERIES
+    | {
+        f"hydpy.core.variabletools.Variable.{method}"
+        for method in (
+            *BINARY_OPERATORS,
+            *INPLACE_OPERATORS,
+            *UNARY_OPERATORS,
+            "__getitem__",
+            "__setitem__",
+        )
+    }
+)
+"""The full names of all members annotated with `GeneralHook` because the plugin refines
+their types."""
+
 CONDITION_GROUPS: Final = {
     "states": "hydpy.core.sequencetools.StateSequences",
     "logs": "hydpy.core.sequencetools.LogSequences",

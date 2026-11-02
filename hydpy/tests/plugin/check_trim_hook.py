@@ -16,6 +16,10 @@ if __name__ == "__main__":
     parameter.trim([[True]], [[True]])
     parameter.trim([[[True]]], [[[True]]])
     parameter.trim([[[[True]]]], [[[[True]]]])  # type: ignore[arg-type]
+    parameter.trim(numpy.ones(2, dtype=numpy.float64), None)
+    parameter.trim(numpy.ones(2, dtype=numpy.int64), None)
+    parameter.trim(None, numpy.ones((2, 2), dtype=numpy.bool_))
+    parameter.trim(numpy.ones(2, dtype=numpy.str_), None)  # type: ignore[arg-type]
     sequence: sequencetools.ConditionSequence
     sequence.trim("x", "x")  # type: ignore[arg-type]
     sequence.trim(True, True)

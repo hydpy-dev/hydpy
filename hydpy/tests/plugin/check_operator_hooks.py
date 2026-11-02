@@ -142,6 +142,8 @@ if __name__ == "__main__":
     assert_type(~zonetype, typingtools.VectorFloat)
     assert_type(math.floor(area), int)
     assert_type(math.ceil(zonearea), typingtools.VectorInt)
+    assert_type(math.trunc(area), int)
+    assert_type(math.trunc(zonearea), typingtools.VectorInt)
     assert_type(round(area), float)
     assert_type(round(zonearea, 1), typingtools.VectorFloat)
     assert_type(abs(parameter), Any)

@@ -737,6 +737,26 @@ has been defined so far.
     2
     >>> math.ceil(var)
     3
+    >>> math.trunc(var)
+    2
+
+    Rounding to integers fails for non-finite values:
+
+    >>> from numpy import inf, nan
+    >>> var.value = nan
+    >>> math.floor(var)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to apply function `floor` on variable `var`, the \
+following error occurred: cannot convert float NaN to integer
+    >>> var.value = inf
+    >>> math.ceil(var)
+    Traceback (most recent call last):
+    ...
+    OverflowError: While trying to apply function `ceil` on variable `var`, the \
+following error occurred: cannot convert float infinity to integer
+
+    >>> var.value = 2.5
     >>> bool(var)
     True
     >>> int(var)
@@ -843,6 +863,25 @@ has been defined so far.
     2, 2
     >>> print_vector(math.ceil(var))
     3, 3
+    >>> var.values = 2.5, -2.5
+    >>> print_vector(math.trunc(var))
+    2, -2
+
+    For multidimensional variables, rounding to integers fails for non-finite values,
+    too, instead of silently returning arbitrary integers:
+
+    >>> var.values = 2.5, nan
+    >>> math.trunc(var)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to apply function `trunc` on variable `var`, the \
+following error occurred: cannot convert float NaN to integer
+    >>> var.values = 2.5, -inf
+    >>> math.floor(var)
+    Traceback (most recent call last):
+    ...
+    OverflowError: While trying to apply function `floor` on variable `var`, the \
+following error occurred: cannot convert float infinity to integer
     >>> var.values = 1.67
     >>> print_vector(round(var, 1))
     1.7, 1.7
@@ -2126,18 +2165,33 @@ not a submask of `Soil([ True,  True, False])`.
         return 1.0 / self.value
 
     def __floor__(self) -> GeneralHook:
-        result = self.value // 1.0
-        try:
-            return int(result)
-        except TypeError:
-            return numpy.asarray(result, dtype=config.NP_INT)
+        return self._round_to_int(math.floor, numpy.floor)
 
     def __ceil__(self) -> GeneralHook:
-        result = numpy.ceil(self.value)
+        return self._round_to_int(math.ceil, numpy.ceil)
+
+    def __trunc__(self) -> GeneralHook:
+        return self._round_to_int(math.trunc, numpy.trunc)
+
+    def _round_to_int(
+        self, scalarfunction: Callable[[float], int], arrayfunction: numpy.ufunc
+    ) -> int | NDArrayInt:
         try:
-            return int(result)
-        except TypeError:
-            return numpy.asarray(result, dtype=config.NP_INT)
+            if self.NDIM == 0:
+                return scalarfunction(self.value)
+            result = arrayfunction(self.value)
+            # Mimic the errors of `math.floor`, `math.ceil`, and `math.trunc` instead
+            # of letting numpy cast non-finite values to arbitrary integers:
+            if numpy.isnan(result).any():
+                raise ValueError("cannot convert float NaN to integer")
+            if numpy.isinf(result).any():
+                raise OverflowError("cannot convert float infinity to integer")
+            return result.astype(config.NP_INT)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to apply function `{scalarfunction.__name__}` on "
+                f"variable {objecttools.devicephrase(self)}"
+            )
 
     def _compare(
         self,

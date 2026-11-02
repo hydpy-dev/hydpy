@@ -166,6 +166,7 @@ UNARY_OPERATORS: Final = (
     "__invert__",
     "__floor__",
     "__ceil__",
+    "__trunc__",
     "__round__",
 )
 
@@ -175,6 +176,7 @@ UNARY_FUNCTIONS: Final = {
     "builtins.round": "__round__",
     "math.floor": "__floor__",
     "math.ceil": "__ceil__",
+    "math.trunc": "__trunc__",
     **{
         fullname: f"__{method}__"
         for name, method in (
@@ -1576,7 +1578,7 @@ def _apply_unary_operator(
         or ((self_value := _get_value_type(context, var_inst)) is None)
     ):
         return default
-    if method in ("__floor__", "__ceil__"):
+    if method in ("__floor__", "__ceil__", "__trunc__"):
         result = _get_vectorlike(
             context=context, ndim=ndim_type[0], type_=int, input_=False
         )

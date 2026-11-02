@@ -26,15 +26,15 @@ if __name__ == "__main__":
 
     # NDIM = 0, TYPE = float
     area: hland_control.Area
-    # area.trim()
-    # area.trim(1.0, None)
-    # area.trim(None, 1.0)
-    # area.trim(1.0, 1.0)
-    # area.trim(1, 1)
-    # area.trim(1.0, upper=1.0)
-    # area.trim(lower=1.0, upper=1.0)
-    # area.trim("x", 1)  # type: ignore[arg-type]
-    # area.trim(1, "x")  # type: ignore[arg-type]
+    area.trim()
+    area.trim(1.0, None)
+    area.trim(None, 1.0)
+    area.trim(1.0, 1.0)
+    area.trim(1, 1)
+    area.trim(1.0, upper=1.0)
+    area.trim(lower=1.0, upper=1.0)
+    area.trim("x", 1)  # type: ignore[arg-type]
+    area.trim(1, "x")  # type: ignore[arg-type]
     area.trim([1.0], 1.0)  # type: ignore[arg-type]
     area.trim(numpy.ones((), dtype=numpy.float64), 1)  # type: ignore[arg-type]
 

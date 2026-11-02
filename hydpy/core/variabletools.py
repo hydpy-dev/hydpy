@@ -399,24 +399,26 @@ def _trim_float_0d(self: Variable, lower: float | None, upper: float | None) -> 
 def _trim_float_nd(self: Variable, lower: TrimHook, upper: TrimHook) -> bool:
     values = self.values
     shape = values.shape
-    if lower is None:
-        lower = -numpy.inf
-    lower = numpy.full(shape, lower, dtype=config.NP_FLOAT)
-    lower[numpy.where(numpy.isnan(lower))] = -numpy.inf
-    if upper is None:
-        upper = numpy.inf
-    upper = numpy.full(shape, upper, dtype=config.NP_FLOAT)
-    upper[numpy.where(numpy.isnan(upper))] = numpy.inf
+    lowers = numpy.full(
+        shape, -numpy.inf if lower is None else lower, dtype=config.NP_FLOAT
+    )
+    lowers[numpy.where(numpy.isnan(lowers))] = -numpy.inf
+    uppers = numpy.full(
+        shape, numpy.inf if upper is None else upper, dtype=config.NP_FLOAT
+    )
+    uppers[numpy.where(numpy.isnan(uppers))] = numpy.inf
     idxs = numpy.isnan(values)
     try:
-        values[idxs] = lower[idxs]
-        if numpy.any(values < lower) or numpy.any(values > upper):
+        values[idxs] = lowers[idxs]
+        if numpy.any(values < lowers) or numpy.any(values > uppers):
             old = values.copy()
-            trimmed = numpy.clip(values, lower, upper)
+            trimmed = numpy.clip(values, lowers, uppers)
             values[:] = trimmed
             if numpy.any(
-                (old + get_tolerance(old)) < (lower - get_tolerance(lower))
-            ) or numpy.any((old - get_tolerance(old)) > (upper + get_tolerance(upper))):
+                (old + get_tolerance(old)) < (lowers - get_tolerance(lowers))
+            ) or numpy.any(
+                (old - get_tolerance(old)) > (uppers + get_tolerance(uppers))
+            ):
                 _warn_trim(self, oldvalue=old, newvalue=trimmed)
                 return True
         return False

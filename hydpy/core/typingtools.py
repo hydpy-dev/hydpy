@@ -262,7 +262,17 @@ GeneralHook: TypeAlias = Any
 ShapeHookGet: TypeAlias = tuple[int, ...]
 ShapeHookSet: TypeAlias = int | tuple[int, ...]
 TrimHook: TypeAlias = Union[
-    float, VectorInputFloat, MatrixInputFloat, TensorInputFloat, None
+    float,
+    VectorInputFloat,
+    VectorInputInt,
+    VectorInputBool,
+    MatrixInputFloat,
+    MatrixInputInt,
+    MatrixInputBool,
+    TensorInputFloat,
+    TensorInputInt,
+    TensorInputBool,
+    None,
 ]
 CallHook: TypeAlias = Union[
     float,

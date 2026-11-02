@@ -8,27 +8,31 @@ from configparser import ConfigParser
 from os.path import join, split
 from pickle import load
 import re
+from functools import partial
 from typing import Callable, cast, Final, Literal, NamedTuple
 from warnings import warn
 
 from mypy.checker import TypeChecker
-from mypy.errorcodes import ARG_TYPE, ATTR_DEFINED, CALL_ARG, DEPRECATED
 from mypy.errorcodes import (
     ARG_TYPE,
     ASSIGNMENT,
     ATTR_DEFINED,
     CALL_ARG,
     DEPRECATED,
+    INDEX,
 )
 from mypy.message_registry import ErrorMessage
+from mypy.messages import format_type
 from mypy.nodes import (
     ARG_NAMED,
     ARG_NAMED_OPT,
+    ARG_POS,
     ARG_STAR2,
     CallExpr,
     Decorator,
     MemberExpr,
     MypyFile,
+    TempNode,
     TypeAlias,
     TypeInfo,
 )
@@ -40,8 +44,8 @@ from mypy.plugin import (
     MethodContext,
     MethodSigContext,
 )
-from mypy.subtypes import is_subtype
-from mypy.typeops import bind_self
+from mypy.subtypes import is_same_type, is_subtype
+from mypy.typeops import bind_self, make_simplified_union
 from mypy.types import (
     AnyType,
     CallableType,
@@ -62,6 +66,7 @@ from mypy.types import (
 VARS1 = set(
     ["hydpy.core.modeltools.Model.parameters", "hydpy.core.modeltools.Model.sequences"]
 )
+
 VARS2 = set(
     [
         "hydpy.core.variabletools.SubVariables.vars",
@@ -70,6 +75,7 @@ VARS2 = set(
         "hydpy.core.sequencetools.ModelSequences.seqs",
     ]
 )
+
 SUBVARS1 = set(
     [
         "hydpy.core.parametertools.Parameters.control",
@@ -89,6 +95,7 @@ SUBVARS1 = set(
         "hydpy.core.sequencetools.Sequences.senders",
     ]
 )
+
 SUBVARS2 = set(
     [
         "hydpy.core.variabletools.Variable.subvars",
@@ -120,6 +127,7 @@ SUBVARS2 = set(
         "hydpy.core.sequencetools.SenderSequence.subseqs",
     ]
 )
+
 VALUES = set(
     [
         "hydpy.core.variabletools.Variable.value",
@@ -137,6 +145,131 @@ SERIES = set(
         "hydpy.core.sequencetools.IOSequence.evalseries",
     ]
 )
+
+# '__add__': ('__add__', False), '__radd__': ('__add__', True), '__sub__': ...
+BINARY_OPERATORS: Final = {
+    f"__{prefix}{name}__": (f"__{name}__", prefix == "r")
+    for name in ("add", "sub", "mul", "truediv", "floordiv", "mod", "pow", "divmod")
+    for prefix in ("", "r")
+}
+
+# '__iadd__': '__add__', '__isub__': '__sub__', ...
+INPLACE_OPERATORS: Final = {
+    f"__i{name}__": f"__{name}__"
+    for name in ("add", "sub", "mul", "truediv", "floordiv", "mod", "pow")
+}
+
+UNARY_OPERATORS: Final = (
+    "__pos__",
+    "__neg__",
+    "__abs__",
+    "__invert__",
+    "__floor__",
+    "__ceil__",
+    "__round__",
+)
+
+# '_operator.pos': '__pos__', 'operator.__pos__': '__pos__', ...
+UNARY_FUNCTIONS: Final = {
+    "builtins.abs": "__abs__",
+    "builtins.round": "__round__",
+    "math.floor": "__floor__",
+    "math.ceil": "__ceil__",
+    **{
+        fullname: f"__{method}__"
+        for name, method in (
+            ("pos", "pos"),
+            ("neg", "neg"),
+            ("abs", "abs"),
+            ("invert", "invert"),
+            ("inv", "invert"),
+        )
+        for fullname in (f"_operator.{name}", f"operator.__{name}__")
+    },
+}
+
+# '_operator.add': '__add__', 'operator.__add__': '__add__', ...
+# (`divmod` is missing because Mypy uses `Variable.__divmod__` instead)
+BINARY_FUNCTIONS: Final = {
+    "builtins.pow": "__pow__",
+    **{
+        fullname: f"__{name}__"
+        for name in ("add", "sub", "mul", "truediv", "floordiv", "mod", "pow")
+        for fullname in (f"_operator.{name}", f"operator.__{name}__")
+    },
+}
+
+# '_operator.iadd': '__add__', 'operator.__iadd__': '__add__', ...
+INPLACE_FUNCTIONS: Final = {
+    fullname: f"__{name}__"
+    for name in ("add", "sub", "mul", "truediv", "floordiv", "mod", "pow")
+    for fullname in (f"_operator.i{name}", f"operator.__i{name}__")
+}
+
+SCALAR_TYPES: Final = {
+    "builtins.float": float,
+    "builtins.int": int,
+    "builtins.bool": bool,
+}
+
+# 'math.acos': 'float', 'math.acosh': 'float', ...
+SCALAR_FUNCTIONS: Final = {
+    "builtins.complex": "complex",
+    "builtins.float": "float",
+    "builtins.int": "int",
+    **{
+        f"math.{name}": "float"
+        for name in (
+            "acos",
+            "acosh",
+            "asin",
+            "asinh",
+            "atan",
+            "atan2",
+            "atanh",
+            "cbrt",
+            "copysign",
+            "cos",
+            "cosh",
+            "degrees",
+            "erf",
+            "erfc",
+            "exp",
+            "exp2",
+            "expm1",
+            "fabs",
+            "fma",
+            "fmod",
+            "frexp",
+            "gamma",
+            "hypot",
+            "isclose",
+            "isfinite",
+            "isinf",
+            "isnan",
+            "ldexp",
+            "lgamma",
+            "log",
+            "log10",
+            "log1p",
+            "log2",
+            "modf",
+            "nextafter",
+            "pow",
+            "radians",
+            "remainder",
+            "sin",
+            "sinh",
+            "sqrt",
+            "tan",
+            "tanh",
+            "ulp",
+        )
+    },
+}
+
+SIZED_FUNCTIONS: Final = ("builtins.len", "builtins.reversed")
+
 CONDITION_GROUPS: Final = {
     "states": "hydpy.core.sequencetools.StateSequences",
     "logs": "hydpy.core.sequencetools.LogSequences",
@@ -144,15 +277,44 @@ CONDITION_GROUPS: Final = {
 
 DIRPATH = split(__file__)[0]
 
+# 'hydpy.models.arma_rimorido': {
+#     'pick_q_v1': ('hydpy.models.arma.arma_model', 'Pick_Q_V1'),
+#     'pick_q': ('hydpy.models.arma.arma_model', 'Pick_Q_V1'), ...}, ...
 MODEL_MAP: dict[str, dict[str, tuple[str, str]]]
+
+# 'hydpy.models.arma_rimorido.Model': {
+#     'hydpy.core.parametertools.ControlParameters': {
+#         'responses': ('hydpy.models.arma.arma_control', 'Responses'), ...}, ...}, ...
 VAR_MAP_1: dict[str, dict[str, dict[str, tuple[str, str]]]]
+
+# 'hydpy.models.arma.arma_control.Responses': (
+#     'hydpy.models.arma.arma_model', 'hydpy.core.parametertools', 'ControlParameters'
+# ), ...
 VAR_MAP_2: dict[str, tuple[str, str, str]]
+
+# 'hydpy.models.arma.arma_derived.Nmb': (0, int),
+# 'hydpy.models.arma.arma_derived.MaxQ': (1, float), ...
 VAR_INFO: dict[str, tuple[int, type[float]]]
+
+# 'hydpy.core.variabletools.Variable.shape',
+# 'hydpy.core.parametertools.SeasonalParameter.shape', ...
 VAR_SHAPE: set[str]
+
+# 'hydpy.models.hland.hland_control.RecStep',
+# 'hydpy.models.rconc.rconc_control.NmbSteps', ...
 VAR_TIMEINT: set[str]
+
+# 'hydpy.models.evap.evap_control.Water': None, ...,
+# 'hydpy.models.hland.hland_control.ZoneArea': ('field', 'forest', ...), ...
 ZIP_CONSTANTS: dict[str, tuple[str, ...] | None]
+
+# 'hydpy.models.hland_96.Model.add_aetmodel_v1': ('field', 'forest', ...), ...
 ADDER_KEYWORDS: dict[str, tuple[str, ...]]
+
+# 'hydpy.models.evap.evap_control.Albedo': None, ...,
+# 'hydpy.models.evap.evap_control.MonthFactor': ('jan', 'feb', ...), ...
 KEYWORD_NAMES: dict[str, tuple[str, ...] | None]
+
 with open(join(DIRPATH, "conf", "mypy_plugin_data.pickle"), "rb") as file_:
     (
         MODEL_MAP,
@@ -902,7 +1064,7 @@ def _get_regular_parameter_type(type_: Type) -> Type:
 
 
 def _get_ndim_and_type(
-    context: AttributeContext | MethodSigContext,
+    context: AttributeContext | MethodContext | MethodSigContext,
 ) -> tuple[int, type] | None:
     if isinstance(var_inst := context.type, Instance) and (
         (fullname := var_inst.type.fullname) in VAR_INFO
@@ -912,7 +1074,7 @@ def _get_ndim_and_type(
 
 
 def _get_vectorlike(
-    context: AttributeContext | MethodContext | MethodSigContext,
+    context: AttributeContext | FunctionContext | MethodContext | MethodSigContext,
     ndim: int,
     type_: type[float],
     input_: bool,
@@ -941,6 +1103,34 @@ def _get_vectorlike(
     return _get_alias_target(api, f"{prefix}{middle}{suffix}")
 
 
+def _get_vectorlikes(
+    context: AttributeContext | FunctionContext | MethodContext, input_: bool
+) -> list[Type] | None:
+    """Return the vector-like types of all supported dimensionalities and value types,
+    which are the candidates for the values of variables with unknown dimensionality or
+    value type."""
+    vectorlikes = []
+    for ndim in range(4):
+        for type_ in (float, int, bool):
+            vectorlike = _get_vectorlike(
+                context=context, ndim=ndim, type_=type_, input_=input_
+            )
+            if vectorlike is None:
+                return None
+            vectorlikes.append(vectorlike)
+    return vectorlikes
+
+
+def _get_any_vectorlike(
+    context: AttributeContext | FunctionContext | MethodContext, input_: bool
+) -> Type | None:
+    """Return the union of the vector-like types of all supported dimensionalities and
+    value types."""
+    if (vectorlikes := _get_vectorlikes(context=context, input_=input_)) is None:
+        return None
+    return make_simplified_union(vectorlikes)
+
+
 def _get_alias_target(api: TypeChecker, name: str) -> Type | None:
     """Return the target of the type alias with the given name defined in module
     `typingtools`, if available."""
@@ -953,10 +1143,25 @@ def _get_alias_target(api: TypeChecker, name: str) -> Type | None:
     return None
 
 
+def _get_plain_any(type_: Type) -> Type:
+    """Replace `Any` stemming from the type alias `GeneralHook` with an explicit `Any`.
+
+    Without this adjustment, Mypy would infer `float64` instead of `Any` for
+    `numpy.sum(numpy.isnan(x))` with `x: GeneralHook` because it ignores `Any` stemming
+    from aliases when checking for overload matches.
+    """
+    if _is_alias(type_, "GeneralHook"):
+        return AnyType(TypeOfAny.explicit)
+    return type_
+
+
 def _get_values_or_series(context: AttributeContext, series: bool) -> Type:
+    default = _get_plain_any(context.default_attr_type)
     ndim_type = _get_ndim_and_type(context)
     if ndim_type is None:
-        return context.default_attr_type
+        # We cannot restrict assignments to all numerical values without making Mypy
+        # narrow, e.g., `x.values` to `float` after `x.values = 0.0`.
+        return default
     vectorlike = _get_vectorlike(
         context=context,
         ndim=ndim_type[0] + series,
@@ -964,7 +1169,7 @@ def _get_values_or_series(context: AttributeContext, series: bool) -> Type:
         input_=context.is_lvalue,
     )
     if vectorlike is None:
-        return context.default_attr_type
+        return default
     return vectorlike
 
 
@@ -1027,6 +1232,547 @@ def shape_hook(context: AttributeContext) -> Type:
     if (ndim_type[0] == 1) and context.is_lvalue:
         return UnionType([int_inst, tuple_type])
     return tuple_type
+
+
+def _get_value_type(
+    context: FunctionContext | MethodContext, type_: Type
+) -> Type | None:
+    """Return the type of the value of the given variable type or, if the given type is
+    not a variable type, the given type itself.
+
+    Return |None| if the given type is a variable type for which no further information
+    is available.
+    """
+    if not isinstance(inst := get_proper_type(type_), Instance):
+        return type_
+    if (ndim_type := VAR_INFO.get(inst.type.fullname)) is not None:
+        return _get_vectorlike(
+            context=context, ndim=ndim_type[0], type_=ndim_type[1], input_=False
+        )
+    if inst.type.has_base("hydpy.core.variabletools.Variable"):
+        return None
+    return type_
+
+
+def _get_scalar_type(
+    context: FunctionContext | MethodContext, ndim: int, type_: type[float]
+) -> Type | None:
+    """Return the type of the single values of a variable with the given dimensionality
+    and value type: a Python scalar type (e.g. `float`) for 0-dimensional variables and
+    a numpy scalar type (e.g. `numpy.float64`) for multidimensional variables."""
+    vectorlike = _get_vectorlike(context=context, ndim=ndim, type_=type_, input_=False)
+    if ndim == 0:
+        return vectorlike
+    if (
+        isinstance(array := get_proper_type(vectorlike), Instance)
+        and (len(array.args) == 2)
+        and isinstance(dtype := get_proper_type(array.args[1]), Instance)
+        and (len(dtype.args) == 1)
+    ):
+        return dtype.args[0]
+    return None
+
+
+def _get_dimensionality(
+    context: FunctionContext | MethodContext, type_: Type
+) -> tuple[int, type[float]] | None:
+    """Return the dimensionality and the (Python) value type of the given variable,
+    scalar, or vector-like type, if determinable."""
+    proper = get_proper_type(type_)
+    if isinstance(proper, Instance):
+        if (ndim_type := VAR_INFO.get(proper.type.fullname)) is not None:
+            return ndim_type
+        if (scalar := SCALAR_TYPES.get(proper.type.fullname)) is not None:
+            return 0, scalar
+    for scalar in (float, int, bool):
+        for ndim in (1, 2, 3):
+            vectorlike = _get_vectorlike(
+                context=context, ndim=ndim, type_=scalar, input_=False
+            )
+            if (vectorlike is not None) and is_same_type(proper, vectorlike):
+                return ndim, scalar
+        element = _get_scalar_type(context=context, ndim=1, type_=scalar)
+        if (element is not None) and is_same_type(proper, element):
+            return 0, scalar
+    return None
+
+
+def _set_dimensionality(
+    context: FunctionContext | MethodContext, type_: Type, ndim: int
+) -> Type | None:
+    """Replace the (unspecific) shape of the given array type, or of all array types
+    contained in the given tuple type, with the shape of the given dimensionality."""
+    proper = get_proper_type(type_)
+    if isinstance(proper, TupleType):
+        items = [_set_dimensionality(context, item, ndim) for item in proper.items]
+        if any(item is None for item in items):
+            return None
+        return proper.copy_modified(items=[i for i in items if i is not None])
+    if (
+        isinstance(proper, Instance)
+        and (proper.type.fullname == "numpy.ndarray")
+        and (len(proper.args) == 2)
+        and isinstance(
+            template := get_proper_type(
+                _get_vectorlike(context=context, ndim=ndim, type_=float, input_=False)
+            ),
+            Instance,
+        )
+    ):
+        return proper.copy_modified(args=[template.args[0], proper.args[1]])
+    return None
+
+
+def _check_binary_operation(
+    context: FunctionContext | MethodContext, method: str, left: Type, right: Type
+) -> Type:
+    """Check the given binary operation based on the types of the given values and
+    return its result type.
+
+    Mypy checks the operation based on the available stubs.  However, the overloaded
+    operator methods of numpy's `ndarray` often lose the dimensionality (and sometimes
+    the precise data type) of the result.  Hence, if the dimensionalities and value
+    types of both operands are known, we replace numpy's result type by applying the
+    operation to the value types and "lifting" the result to the broadcast
+    dimensionality.  If this is impossible (for example, for `float ** float`, which
+    might be complex for Python scalars, or for `divmod`), we only replace the shape of
+    numpy's result type(s).
+    """
+    assert isinstance(api := context.api, TypeChecker)
+    result = api.expr_checker.check_op(
+        method=method,
+        base_type=left,
+        arg=TempNode(right, context=context.context),
+        context=context.context,
+        allow_reverse=True,
+    )[0]
+    if (
+        ((left_info := _get_dimensionality(context, left)) is None)
+        or ((right_info := _get_dimensionality(context, right)) is None)
+        or ((ndim := max(left_info[0], right_info[0])) == 0)
+        or ((reshaped := _set_dimensionality(context, result, ndim)) is None)
+    ):
+        return result
+    if ((left_info[1], right_info[1]) == (bool, bool)) or isinstance(
+        get_proper_type(result), TupleType
+    ):
+        return reshaped
+    with api.msg.filter_errors():
+        scalar = api.expr_checker.check_op(
+            method=method,
+            base_type=api.named_type(f"builtins.{left_info[1].__name__}"),
+            arg=TempNode(
+                api.named_type(f"builtins.{right_info[1].__name__}"),
+                context=context.context,
+            ),
+            context=context.context,
+            allow_reverse=True,
+        )[0]
+    if isinstance(scalar := get_proper_type(scalar), Instance) and (
+        (type_ := SCALAR_TYPES.get(scalar.type.fullname)) is not None
+    ):
+        lifted = _get_vectorlike(context=context, ndim=ndim, type_=type_, input_=False)
+        if lifted is not None:
+            return lifted
+    return reshaped
+
+
+def _check_unknown_operation(
+    context: FunctionContext | MethodContext,
+    method: str,
+    left: Type | None,
+    right: Type | None,
+) -> None:
+    """Check the given binary operation involving at least one variable with unknown
+    dimensionality or value type (indicated by |None|).
+
+    The operation is erroneous only if it fails for all possible value types.  We then
+    report the error for scalar `float` values.
+    """
+    if (
+        not isinstance(api := context.api, TypeChecker)
+        or ((left is None) and (right is None))
+        or ((candidates := _get_vectorlikes(context, input_=False)) is None)
+    ):
+        return
+    for candidate in candidates:
+        with api.msg.filter_errors() as watcher:
+            api.expr_checker.check_op(
+                method=method,
+                base_type=candidate if left is None else left,
+                arg=TempNode(
+                    candidate if right is None else right, context=context.context
+                ),
+                context=context.context,
+                allow_reverse=True,
+            )
+        if not watcher.has_new_errors():
+            return
+    api.expr_checker.check_op(
+        method=method,
+        base_type=candidates[0] if left is None else left,
+        arg=TempNode(
+            candidates[0] if right is None else right, context=context.context
+        ),
+        context=context.context,
+        allow_reverse=True,
+    )
+
+
+def binary_operator_hook(context: MethodContext, method: str, reflected: bool) -> Type:
+    """
+    `VariableX.__add__(object) -> Any`
+    -->
+    `VariableX.__add__(float) -> float`
+    `VariableX.__add__(VectorFloat) -> VectorFloat`
+    `VariableX.__add__(VariableY) -> VectorFloat`
+    ...
+    """
+    default = _get_plain_any(context.default_return_type)
+    if (
+        not isinstance(context.api, TypeChecker)
+        or (len(context.arg_types) != 1)
+        or (len(context.arg_types[0]) != 1)
+    ):
+        return default
+    self_value = _get_value_type(context, context.type)
+    other_value = _get_value_type(context, context.arg_types[0][0])
+    left, right = (other_value, self_value) if reflected else (self_value, other_value)
+    if (left is None) or (right is None):
+        _check_unknown_operation(context=context, method=method, left=left, right=right)
+        return default
+    return _check_binary_operation(
+        context=context, method=method, left=left, right=right
+    )
+
+
+def binary_function_hook(context: FunctionContext, method: str) -> Type:
+    """
+    `pow(VariableX, object) -> Any`
+    -->
+    `pow(VariableX, float) -> float`
+    `operator.add(float, VariableY) -> VectorFloat`
+    `operator.mul(VariableX, VariableY) -> VectorFloat`
+    ...
+    """
+    default = context.default_return_type
+    arg_types = context.arg_types
+    if (
+        (len(arg_types) < 2)
+        or (len(arg_types[0]) != 1)
+        or (len(arg_types[1]) != 1)
+        or any(len(types) > 0 for types in arg_types[2:])
+    ):
+        return default
+    left, right = arg_types[0][0], arg_types[1][0]
+    left_value = _get_value_type(context, left)
+    right_value = _get_value_type(context, right)
+    if (left_value is left) and (right_value is right):
+        return default  # no variable involved
+    if (left_value is None) or (right_value is None):
+        _check_unknown_operation(
+            context=context, method=method, left=left_value, right=right_value
+        )
+        return _get_plain_any(default)
+    if not isinstance(context.api, TypeChecker):
+        return _get_plain_any(default)
+    return _check_binary_operation(
+        context=context, method=method, left=left_value, right=right_value
+    )
+
+
+def inplace_operator_hook(context: MethodContext, method: str) -> Type:
+    """
+    `VariableX.__iadd__(object) -> VariableX`
+    -->
+    `VariableX.__iadd__(float) -> VariableX`
+    `VariableX.__iadd__(str) -> error`
+    `VariableY.__iadd__(float) -> error`  (if the result does not fit, e.g. `int`)
+    ...
+    """
+    result = binary_operator_hook(context=context, method=method, reflected=False)
+    _check_inplace_result(context=context, var_type=context.type, result=result)
+    return context.default_return_type
+
+
+def inplace_function_hook(context: FunctionContext, method: str) -> Type:
+    """
+    `operator.iadd(VariableX, object) -> Any`
+    -->
+    `operator.iadd(VariableX, float) -> VariableX`
+    `operator.iadd(VariableX, str) -> error`
+    `operator.iadd(VariableY, float) -> error`  (if the result does not fit)
+    `operator.iadd(float, VariableX) -> float`  (falls back to `float + VariableX`)
+    ...
+    """
+    result = binary_function_hook(context=context, method=method)
+    if (
+        (len(context.arg_types) > 0)
+        and (len(context.arg_types[0]) == 1)
+        and isinstance(var_inst := get_proper_type(context.arg_types[0][0]), Instance)
+        and var_inst.type.has_base("hydpy.core.variabletools.Variable")
+    ):
+        _check_inplace_result(context=context, var_type=var_inst, result=result)
+        return var_inst
+    return result
+
+
+def _check_inplace_result(
+    context: FunctionContext | MethodContext, var_type: Type, result: Type
+) -> None:
+    """Report an error if the given variable type cannot accept the given result type
+    of an in-place operation."""
+    if (
+        isinstance(api := context.api, TypeChecker)
+        and not isinstance(get_proper_type(result), AnyType)
+        and isinstance(var_inst := get_proper_type(var_type), Instance)
+        and ((ndim_type := VAR_INFO.get(var_inst.type.fullname)) is not None)
+        and (
+            (
+                target := _get_vectorlike(
+                    context=context, ndim=ndim_type[0], type_=ndim_type[1], input_=True
+                )
+            )
+            is not None
+        )
+    ):
+        api.check_subtype(
+            subtype=result,
+            supertype=target,
+            context=context.context,
+            msg=ErrorMessage(
+                "Incompatible result of in-place operation", code=ASSIGNMENT
+            ),
+            subtype_label="result",
+            supertype_label="variable accepts",
+        )
+
+
+def _apply_unary_operator(
+    context: FunctionContext | MethodContext, var_type: Type, method: str
+) -> Type:
+    default = _get_plain_any(context.default_return_type)
+    if (
+        not isinstance(api := context.api, TypeChecker)
+        or not isinstance(var_inst := get_proper_type(var_type), Instance)
+        or ((ndim_type := VAR_INFO.get(var_inst.type.fullname)) is None)
+        or ((self_value := _get_value_type(context, var_inst)) is None)
+    ):
+        return default
+    if method in ("__floor__", "__ceil__"):
+        result = _get_vectorlike(
+            context=context, ndim=ndim_type[0], type_=int, input_=False
+        )
+        return default if result is None else result
+    if method == "__invert__":
+        return _check_binary_operation(
+            context=context,
+            method="__truediv__",
+            left=api.named_type("builtins.float"),
+            right=self_value,
+        )
+    if method == "__round__":
+        return self_value
+    return api.expr_checker.check_method_call_by_name(
+        method=method,
+        base_type=self_value,
+        args=[],
+        arg_kinds=[],
+        context=context.context,
+    )[0]
+
+
+def unary_operator_hook(context: MethodContext, method: str) -> Type:
+    """
+    `VariableX.__neg__() -> Any`
+    -->
+    `VariableX.__neg__() -> float`
+    `VariableY.__neg__() -> VectorFloat`
+    ...
+    """
+    return _apply_unary_operator(context=context, var_type=context.type, method=method)
+
+
+def unary_function_hook(context: FunctionContext, method: str) -> Type:
+    """
+    `abs(VariableX) -> Any`
+    -->
+    `abs(VariableX) -> float`
+    `abs(VariableY) -> VectorFloat`
+    ...
+    """
+    if (len(arg_types := context.arg_types) == 0) or (len(arg_types[0]) != 1):
+        return _get_plain_any(context.default_return_type)
+    return _apply_unary_operator(
+        context=context, var_type=arg_types[0][0], method=method
+    )
+
+
+def getitem_hook(context: MethodContext) -> Type:
+    """
+    `VariableX.__getitem__(object) -> Any`
+    -->
+    `VariableX.__getitem__(int) -> float`
+    `VariableY.__getitem__(slice) -> VectorFloat`
+    ...
+    """
+    default = _get_plain_any(context.default_return_type)
+    if (
+        not isinstance(api := context.api, TypeChecker)
+        or (len(context.arg_types) != 1)
+        or (len(context.arg_types[0]) != 1)
+        or ((ndim_type := _get_ndim_and_type(context)) is None)
+        or ((self_value := _get_value_type(context, context.type)) is None)
+    ):
+        return default
+    ndim, type_ = ndim_type
+    if ndim == 0:
+        return self_value
+    key = context.arg_types[0][0]
+    result = api.expr_checker.check_method_call_by_name(
+        method="__getitem__",
+        base_type=self_value,
+        args=[TempNode(key, context=context.context)],
+        arg_kinds=[ARG_POS],
+        context=context.context,
+    )[0]
+    proper = get_proper_type(key)
+    items = proper.items if isinstance(proper, TupleType) else [proper]
+    names = [
+        item.type.fullname if isinstance(item, Instance) else None
+        for item in (get_proper_type(i) for i in items)
+    ]
+    if (len(names) <= ndim) and all(
+        name in ("builtins.int", "builtins.slice") for name in names
+    ):
+        newdim = ndim - names.count("builtins.int")
+        refined = _get_scalar_type(context=context, ndim=ndim, type_=type_)
+        if newdim > 0:
+            refined = _get_vectorlike(
+                context=context, ndim=newdim, type_=type_, input_=False
+            )
+        if refined is not None:
+            return refined
+    return result
+
+
+def setitem_hook(context: MethodContext) -> Type:
+    """
+    `VariableX.__setitem__(object, object) -> None`
+    -->
+    `VariableX.__setitem__(int, float) -> None`
+    `VariableX.__setitem__(str, float) -> error`
+    `VariableY.__setitem__(int, float) -> error`  (if the value does not fit)
+    ...
+    """
+    if (
+        not isinstance(api := context.api, TypeChecker)
+        or (len(context.arg_types) != 2)
+        or (len(context.arg_types[0]) != 1)
+        or (len(context.arg_types[1]) != 1)
+    ):
+        return context.default_return_type
+    key, value = context.arg_types[0][0], context.arg_types[1][0]
+    if ((ndim_type := _get_ndim_and_type(context)) is None) or (
+        (self_value := _get_value_type(context, context.type)) is None
+    ):
+        # unknown dimensionality or value type: accept all numerical values
+        if (
+            (anylike := _get_any_vectorlike(context, input_=True)) is not None
+        ) and not is_subtype(value, anylike):
+            api.fail(
+                f"Incompatible value for item assignment (value "
+                f"{format_type(value, api.options)}, variable accepts only numbers "
+                f"and arrays or nested sequences of numbers)",
+                context.context,
+                code=ASSIGNMENT,
+            )
+        return context.default_return_type
+    ndim, type_ = ndim_type
+    if ndim == 0:
+        api.check_subtype(
+            subtype=key,
+            supertype=UnionType(
+                [api.named_type("builtins.int"), api.named_type("builtins.slice")]
+            ),
+            context=context.context,
+            msg=ErrorMessage(
+                "Invalid key for a 0-dimensional variable (only `0` and `:` are "
+                "allowed)",
+                code=INDEX,
+            ),
+        )
+    else:
+        api.expr_checker.check_method_call_by_name(
+            method="__getitem__",
+            base_type=self_value,
+            args=[TempNode(key, context=context.context)],
+            arg_kinds=[ARG_POS],
+            context=context.context,
+        )
+    targets = [
+        _get_vectorlike(context=context, ndim=n, type_=type_, input_=True)
+        for n in range(ndim + 1)
+    ]
+    if all(target is not None for target in targets):
+        api.check_subtype(
+            subtype=value,
+            supertype=UnionType.make_union([t for t in targets if t is not None]),
+            context=context.context,
+            msg=ErrorMessage("Incompatible value for item assignment", code=ASSIGNMENT),
+            subtype_label="value",
+            supertype_label="variable accepts",
+        )
+    return context.default_return_type
+
+
+def _get_variable_args(context: FunctionContext) -> list[tuple[int, str]]:
+    """Return the dimensionalities and names of all arguments of the given function
+    call that are variables with known dimensionality."""
+    infos = []
+    for arg_types in context.arg_types:
+        for arg_type in arg_types:
+            if isinstance(var_inst := get_proper_type(arg_type), Instance) and (
+                (ndim_type := VAR_INFO.get(var_inst.type.fullname)) is not None
+            ):
+                infos.append((ndim_type[0], var_inst.type.name))
+    return infos
+
+
+def scalar_function_hook(context: FunctionContext, scalar: str) -> Type:
+    """
+    `float(VariableX) -> float`
+    `float(VariableY) -> error`  (if `VariableY` is multidimensional)
+    `math.exp(VariableX) -> float`
+    `math.atan2(VariableX, VariableY) -> error`  (if `VariableY` is multidimensional)
+    ...
+    """
+    for ndim, name in _get_variable_args(context):
+        if ndim:
+            context.api.fail(
+                f'Variable "{name}" is {ndim}-dimensional and thus cannot be '
+                f"converted to a scalar {scalar} value",
+                context.context,
+                code=ARG_TYPE,
+            )
+    return context.default_return_type
+
+
+def sized_function_hook(context: FunctionContext, fullname: str) -> Type:
+    """
+    `len(VariableX) -> int`
+    `len(VariableY) -> error`  (if `VariableY` is 0-dimensional)
+    """
+    funcname = fullname.rpartition(".")[2]
+    for ndim, name in _get_variable_args(context):
+        if not ndim:
+            context.api.fail(
+                f'Variable "{name}" is 0-dimensional and thus does not support '
+                f"`{funcname}`",
+                context.context,
+                code=ARG_TYPE,
+            )
+    return context.default_return_type
 
 
 def _get_literal_key(context: MethodContext) -> str | None:
@@ -1269,7 +2015,31 @@ class MypyPlugin(Plugin):
     def get_method_hook(self, fullname: str) -> Callable[[MethodContext], Type] | None:
         if (hook := METHOD_HOOKS.get(fullname)) is not None:
             return hook
+        prefix, _, name = fullname.rpartition(".")
+        if (prefix in VAR_INFO) or self._is_variable(prefix):
+            if (binary := BINARY_OPERATORS.get(name)) is not None:
+                return partial(
+                    binary_operator_hook, method=binary[0], reflected=binary[1]
+                )
+            if (inplace := INPLACE_OPERATORS.get(name)) is not None:
+                return partial(inplace_operator_hook, method=inplace)
+            if name in UNARY_OPERATORS:
+                return partial(unary_operator_hook, method=name)
+            if name == "__getitem__":
+                return getitem_hook
+            if name == "__setitem__":
+                return setitem_hook
         return None
+
+    def _is_variable(self, fullname: str) -> bool:
+        """Tell whether the given full name identifies a (base or concrete) subclass of
+        `Variable`."""
+        return (
+            fullname.startswith("hydpy.")
+            and ((symbol := self.lookup_fully_qualified(fullname)) is not None)
+            and isinstance(info := symbol.node, TypeInfo)
+            and info.has_base("hydpy.core.variabletools.Variable")
+        )
 
     def get_function_hook(
         self, fullname: str
@@ -1277,6 +2047,16 @@ class MypyPlugin(Plugin):
         """Hooks for refining return types."""
         if fullname == "hydpy.core.importtools.prepare_model":
             return prepare_model_hook
+        if (method := UNARY_FUNCTIONS.get(fullname)) is not None:
+            return partial(unary_function_hook, method=method)
+        if (method := BINARY_FUNCTIONS.get(fullname)) is not None:
+            return partial(binary_function_hook, method=method)
+        if (method := INPLACE_FUNCTIONS.get(fullname)) is not None:
+            return partial(inplace_function_hook, method=method)
+        if (scalar := SCALAR_FUNCTIONS.get(fullname)) is not None:
+            return partial(scalar_function_hook, scalar=scalar)
+        if fullname in SIZED_FUNCTIONS:
+            return partial(sized_function_hook, fullname=fullname)
         return None
 
     def get_method_signature_hook(

@@ -26,7 +26,7 @@ class PrecipModel_V2(modeltools.SubmodelInterface, abc.ABC):
     def prepare_nmbzones(self, nmbzones: int) -> None:
         """Set the number of zones in which the actual calculations take place."""
 
-    def prepare_subareas(self, subareas: Sequence[float]) -> None:
+    def prepare_subareas(self, subareas: VectorInputFloat) -> None:
         """Set the areas of the individual zones in km²."""
 
     @modeltools.abstractmodelmethod

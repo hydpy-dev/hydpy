@@ -26,13 +26,13 @@ class AETModel_V1(modeltools.SubmodelInterface, abc.ABC):
     def prepare_nmbzones(self, nmbzones: int) -> None:
         """Set the number of zones in which the actual calculations take place."""
 
-    def prepare_subareas(self, subareas: Sequence[float]) -> None:
+    def prepare_subareas(self, subareas: VectorInputFloat) -> None:
         """Set the areas of the individual zones in km²."""
 
-    def prepare_elevations(self, elevations: Sequence[float]) -> None:
+    def prepare_elevations(self, elevations: VectorInputFloat) -> None:
         """Set the elevations of the individual zones in m."""
 
-    def prepare_zonetypes(self, zonetypes: Sequence[int]) -> None:
+    def prepare_zonetypes(self, zonetypes: VectorInputInt) -> None:
         """Set the types (usually land cover types) of the individual zones."""
 
     def prepare_water(self, water: VectorInputBool) -> None:

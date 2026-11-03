@@ -4,6 +4,7 @@ if __name__ == "__main__":
 
     import math
     import operator
+    from collections.abc import Iterator
     from typing import Any, assert_type
 
     import numpy
@@ -11,6 +12,7 @@ if __name__ == "__main__":
     from hydpy.core import parametertools
     from hydpy.core import sequencetools
     from hydpy.core import typingtools
+    from hydpy.models.evap import evap_control
     from hydpy.models.hland import hland_control
 
     area: hland_control.Area  # NDIM = 0, TYPE = float
@@ -18,6 +20,7 @@ if __name__ == "__main__":
     resparea: hland_control.RespArea  # NDIM = 0, TYPE = bool
     zonearea: hland_control.ZoneArea  # NDIM = 1, TYPE = float
     zonetype: hland_control.ZoneType  # NDIM = 1, TYPE = int
+    water: evap_control.Water  # NDIM = 1, TYPE = bool
     sred: hland_control.SRed  # NDIM = 2, TYPE = float
     parameter: parametertools.Parameter  # NDIM and TYPE unknown
     sim: sequencetools.Sim  # NDIM = 0, TYPE = float
@@ -172,6 +175,46 @@ if __name__ == "__main__":
     assert_type(zonearea[0] + zonearea, typingtools.VectorFloat)
     assert_type(zonearea[[0, 1]], typingtools.NDArrayFloat)
     assert_type(numpy.sum(numpy.isnan(parameter[0])), Any)
+
+    # iteration
+    for value_float in zonearea:
+        assert_type(value_float, numpy.float64)
+    for value_int in zonetype:
+        assert_type(value_int, numpy.int64)
+    for row in sred:
+        assert_type(row, typingtools.VectorFloat)
+    for _ in area:  # type: ignore[attr-defined]
+        pass
+    for _ in sim:  # type: ignore[attr-defined]
+        pass
+    _ = 1.0 in area  # type: ignore[attr-defined]
+    assert_type(1.0 in zonearea, bool)
+    assert_type(1 in sred, bool)
+    first, second = area  # type: ignore[attr-defined]
+    for value_any in parameter:
+        assert_type(value_any, Any)
+    for value_zonearea in zonearea:
+        assert_type(value_zonearea, numpy.float64)
+
+    # functions iterating over variables
+    assert_type(list(zonearea), list[numpy.float64])
+    assert_type(tuple(zonetype), tuple[numpy.int64, ...])
+    assert_type(sorted(zonearea), list[numpy.float64])
+    assert_type(iter(sred), Iterator[typingtools.VectorFloat])
+    assert_type(enumerate(zonearea), enumerate[numpy.float64])
+    assert_type(sum(zonearea), numpy.float64)
+    assert_type(sum(water), numpy.int64)
+    assert_type(sum(sred), typingtools.VectorFloat)
+    assert_type(min(zonearea), numpy.float64)
+    assert_type(max(zonetype), numpy.int64)
+    _ = max(area, 1.0)  # no iteration
+    assert_type(list(parameter), list[Any])
+    assert_type(list(zonearea), list[numpy.float64])
+    _ = list(area)  # type: ignore[arg-type]
+    _ = sum(area)  # type: ignore[arg-type]
+    _ = min(area)  # type: ignore[arg-type]
+    _ = zip(zonearea, area)  # type: ignore[arg-type]
+    _ = map(abs, area)  # type: ignore[arg-type]
 
     # item assignment
     area[0] = 1.0

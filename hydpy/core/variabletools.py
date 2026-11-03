@@ -1046,7 +1046,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     >>> len(var)
     Traceback (most recent call last):
     ...
-    TypeError: The `len` operator was applied on `var`, but this variable is \
+    TypeError: The `len` operator was applied to `var`, but this variable is \
 0-dimensional and thus unsized.  Consider using the `numberofvalues` property instead.
 
     For higher-dimensional variables, `len` always returns the length of the first
@@ -1062,6 +1062,47 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     >>> var.shape = (2, 1, 4)
     >>> len(var)
     2
+
+    Likewise, iterating over 0-dimensional variables does not work:
+
+    >>> Var.NDIM = 0
+    >>> var = Var(None)
+    >>> var.shape = ()
+    >>> list(var)
+    Traceback (most recent call last):
+    ...
+    TypeError: Iterating over 0-dimensional variables such as `var` is not supported.
+
+    The same holds for the `in` operator:
+
+    >>> 1.0 in var
+    Traceback (most recent call last):
+    ...
+    TypeError: Applying the `in` operator to 0-dimensional variables such as `var` is \
+not supported.
+
+    For higher-dimensional variables, iteration works along the first dimension:
+
+    >>> Var.NDIM = 1
+    >>> var = Var(None)
+    >>> var.shape = (3,)
+    >>> var.values = 1.0, 2.0, 3.0
+    >>> print(*var)
+    1.0 2.0 3.0
+    >>> Var.NDIM = 2
+    >>> var = Var(None)
+    >>> var.shape = (2, 2)
+    >>> var.values = [[1.0, 2.0], [3.0, 4.0]]
+    >>> for row in var:
+    ...     print_vector(row)
+    1.0, 2.0
+    3.0, 4.0
+
+    The `in` operator checks if any single value of a higher-dimensional variable
+    equals the given value:
+
+    >>> 3.0 in var, 5.0 in var
+    (True, False)
 
     |Variable| objects are hashable based on their |id| value to avoid avoiding
     confusion when adding different but equal objects into one |set| or |dict| object.
@@ -2056,11 +2097,27 @@ not a submask of `Soil([ True,  True, False])`.
     def __len__(self) -> int:
         if self.NDIM == 0:
             raise TypeError(
-                f"The `len` operator was applied on {objecttools.devicephrase(self)}, "
+                f"The `len` operator was applied to {objecttools.devicephrase(self)}, "
                 f"but this variable is 0-dimensional and thus unsized.  Consider "
                 f"using the `numberofvalues` property instead."
             )
         return self.shape[0]
+
+    def __iter__(self) -> Iterator[GeneralHook]:
+        if self.NDIM == 0:
+            raise TypeError(
+                f"Iterating over 0-dimensional variables such as "
+                f"{objecttools.devicephrase(self)} is not supported."
+            )
+        return iter(self.value)
+
+    def __contains__(self, value: GeneralHook) -> bool:
+        if self.NDIM == 0:
+            raise TypeError(
+                f"Applying the `in` operator to 0-dimensional variables such as "
+                f"{objecttools.devicephrase(self)} is not supported."
+            )
+        return bool(value in self.value)
 
     def _do_math(self, other: object, methodname: str, description: str) -> Any:
         try:

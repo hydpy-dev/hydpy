@@ -35,6 +35,20 @@ else:
     from hydpy.cythons.autogen import sequenceutils
 
 
+# Suffixes of the flags available for all IO sequences:
+_FlagSuffixIO: TypeAlias = Literal["ramflag", "diskflag_reading", "diskflag_writing"]
+
+# Suffixes of the flags available for 0-dimensional input or output sequences only:
+_FlagSuffixInOut: TypeAlias = Literal["inputflag", "outputflag"]
+
+# Suffixes of the lengths of the individual dimensions of multidimensional sequences.
+_LengthSuffix: TypeAlias = Literal["length_0", "length_1", "length_2"]
+
+_LENGTHSUFFIXES: Final[
+    tuple[Literal["length_0"], Literal["length_1"], Literal["length_2"]]
+] = ("length_0", "length_1", "length_2")
+
+
 TypeSequences = TypeVar(
     "TypeSequences", "Sequences[modeltools.Model]", "devicetools.Node"
 )
@@ -1263,15 +1277,70 @@ class Sequence_(variabletools.Variable, abc.ABC):
         super().__hydpy__connect_variable2subgroup__()
         self.__hydpy__set_fastaccessattribute__("ndim", self.NDIM)
         self.__hydpy__set_fastaccessattribute__("length", 0)
-        for idx in range(self.NDIM):
-            self.__hydpy__set_fastaccessattribute__(f"length_{idx}", 0)
+        for suffix in _LENGTHSUFFIXES[: self.NDIM]:
+            self.__hydpy__set_fastaccessattribute__(suffix, 0)
+
+    @overload
+    def __hydpy__get_fastaccessattribute__(self, suffix: _FlagSuffixIO) -> bool: ...
+
+    @overload
+    def __hydpy__get_fastaccessattribute__(
+        self, suffix: _FlagSuffixInOut
+    ) -> bool | None: ...
+
+    @overload
+    def __hydpy__get_fastaccessattribute__(
+        self, suffix: _FlagSuffixIO | _FlagSuffixInOut, default: bool
+    ) -> bool: ...
+
+    @overload
+    def __hydpy__get_fastaccessattribute__(
+        self, suffix: Literal["array"]
+    ) -> object: ...
+
+    @overload
+    def __hydpy__get_fastaccessattribute__(
+        self, suffix: Literal["pointer"]
+    ) -> pointerutils.PDouble | pointerutils.PPDouble | None: ...
 
     def __hydpy__get_fastaccessattribute__(
         self, suffix: str, default: object = None
-    ) -> Any:
+    ) -> object:
         return getattr(self.fastaccess, f"_{self.name}_{suffix}", default)
 
-    def __hydpy__set_fastaccessattribute__(self, suffix: str, value: Any) -> None:
+    @overload
+    def __hydpy__set_fastaccessattribute__(
+        self, suffix: _FlagSuffixIO | _FlagSuffixInOut, value: bool
+    ) -> None: ...
+
+    @overload
+    def __hydpy__set_fastaccessattribute__(
+        self, suffix: Literal["ndim", "length"] | _LengthSuffix, value: int
+    ) -> None: ...
+
+    @overload
+    def __hydpy__set_fastaccessattribute__(
+        self, suffix: Literal["ncarray"], value: NDArrayFloat
+    ) -> None: ...
+
+    @overload
+    def __hydpy__set_fastaccessattribute__(
+        self,
+        suffix: Literal["array", "points", "integrals", "results"],
+        value: NDArrayFloat | None,
+    ) -> None: ...
+
+    @overload
+    def __hydpy__set_fastaccessattribute__(
+        self, suffix: Literal["sum"], value: float | NDArrayFloat | None
+    ) -> None: ...
+
+    @overload
+    def __hydpy__set_fastaccessattribute__(
+        self, suffix: Literal["pointer"], value: pointerutils.PPDouble | None
+    ) -> None: ...
+
+    def __hydpy__set_fastaccessattribute__(self, suffix: str, value: object) -> None:
         setattr(self.fastaccess, f"_{self.name}_{suffix}", value)
 
     def _finalise_connections(self) -> None:
@@ -1900,9 +1969,9 @@ overwrite flag.  Either set it manually or prepare `pub.sequencemanager` correct
         3
         """
         length = 1
-        for idx in range(self.NDIM):
+        for idx, suffix in enumerate(_LENGTHSUFFIXES[: self.NDIM]):
             length *= self.shape[idx]
-            self.__hydpy__set_fastaccessattribute__(f"length_{idx}", self.shape[idx])
+            self.__hydpy__set_fastaccessattribute__(suffix, self.shape[idx])
         self.__hydpy__set_fastaccessattribute__("length", length)
 
     def connect_netcdf(self, ncarray: NDArrayFloat) -> None:
@@ -2649,7 +2718,8 @@ module `pub` is not defined at the moment.
 its series to a 2-dimensional matrix.
         """
         if self.NDIM == 1:
-            return self.series
+            matrix: MatrixFloat = self.series
+            return matrix
         raise NotImplementedError(
             f"Sequence {objecttools.devicephrase(self)} does not implement a method "
             f"for converting its series to a 2-dimensional matrix."
@@ -2804,7 +2874,8 @@ element `element3`.
         """
         mode = self.aggregation
         if mode == "none":  # pylint: disable=comparison-with-callable
-            return self.series
+            series: InfoArray = self.series
+            return series
         if mode == "mean":  # pylint: disable=comparison-with-callable
             return self.average_series(*args)
         raise RuntimeError(
@@ -3192,7 +3263,7 @@ class InputSequence(BaseLinkInputSequence, abc.ABC):
 
         See the main documentation on class |InputSequence| for further information.
         """
-        return self.__hydpy__get_fastaccessattribute__("inputflag")
+        return self.__hydpy__get_fastaccessattribute__("inputflag", False)
 
 
 class OutputSequence(ModelIOSequence, abc.ABC):
@@ -3336,7 +3407,7 @@ class OutputSequence(ModelIOSequence, abc.ABC):
 
         See the main documentation on class |OutputSequence| for further information.
         """
-        return self.__hydpy__get_fastaccessattribute__("outputflag")
+        return self.__hydpy__get_fastaccessattribute__("outputflag", False)
 
 
 class DependentSequence(OutputSequence, abc.ABC):

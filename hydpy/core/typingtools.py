@@ -166,6 +166,53 @@ TG_co = TypeVar("TG_co", bound=str, covariant=True)  # G -> sequence group
 ConditionValue: TypeAlias = float | NDArrayFloat
 
 
+class FastAccessVector(Protocol[T_inv]):
+    """A 1-dimensional array handled by a `fastaccess` object.
+
+    HydPy's Mypy plugin applies this protocol to all 1-dimensional variables.  In
+    contrast to Numpy's type stubs, indexing with an integer returns a scalar of the
+    array's value type.
+    """
+
+    def __getitem__(self, index: int, /) -> T_inv: ...
+
+    def __setitem__(self, index: int, value: T_inv, /) -> None: ...
+
+    def __len__(self) -> int: ...
+
+
+class FastAccessMatrix(Protocol[T_inv]):
+    """A 2-dimensional array handled by a `fastaccess` object.
+
+    HydPy's Mypy plugin applies this protocol to all 2-dimensional variables.  In
+    contrast to Numpy's type stubs, indexing with a tuple of two integers returns a
+    scalar of the array's value type, and indexing with a single integer returns a
+    |FastAccessVector|.
+    """
+
+    @overload
+    def __getitem__(self, index: tuple[int, int], /) -> T_inv: ...
+
+    @overload
+    def __getitem__(self, index: int, /) -> FastAccessVector[T_inv]: ...
+
+    def __getitem__(
+        self, index: tuple[int, int] | int, /
+    ) -> T_inv | FastAccessVector[T_inv]: ...
+
+    @overload
+    def __setitem__(self, index: tuple[int, int], value: T_inv, /) -> None: ...
+
+    @overload
+    def __setitem__(self, index: int, value: FastAccessVector[T_inv], /) -> None: ...
+
+    def __setitem__(
+        self, index: tuple[int, int] | int, value: T_inv | FastAccessVector[T_inv], /
+    ) -> None: ...
+
+    def __len__(self) -> int: ...
+
+
 class ConditionsGroup(Protocol[TM_co, TG_co]):
     """The values of all condition sequences of a specific group (e.g. `states`) of a
     specific model instance, accessible via the sequences' names.
@@ -413,6 +460,8 @@ __all__ = [
     "Collection2",
     "Collection3",
     "DeployMode",
+    "FastAccessMatrix",
+    "FastAccessVector",
     "Final",
     "Float",
     "GeneralHook",

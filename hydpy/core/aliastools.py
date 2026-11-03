@@ -98,7 +98,9 @@ class LazyInOutSequenceImport:
     def _get_sequencetype(self) -> sequencetools.InOutSequenceTypes:
         dict_ = object.__getattribute__(self, "__dict__")
         module = importlib.import_module(dict_["_modulename"])
-        return getattr(module, dict_["_classname"])
+        sequencetype: sequencetools.InOutSequenceTypes
+        sequencetype = getattr(module, dict_["_classname"])
+        return sequencetype
 
     def __getattribute__(self, name: str) -> Any:
         class_ = LazyInOutSequenceImport._get_sequencetype(self)

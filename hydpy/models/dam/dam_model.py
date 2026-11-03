@@ -6629,7 +6629,7 @@ class Main_PrecipModel_V2(modeltools.Model, abc.ABC):
         """
         control = self.parameters.control
         precipmodel.prepare_nmbzones(1)
-        precipmodel.prepare_subareas(control.surfacearea.value)
+        precipmodel.prepare_subareas([control.surfacearea.value])
 
 
 class Main_PEModel_V1(modeltools.Model, abc.ABC):
@@ -6676,7 +6676,7 @@ class Main_PEModel_V1(modeltools.Model, abc.ABC):
         """
         control = self.parameters.control
         pemodel.prepare_nmbzones(1)
-        pemodel.prepare_subareas(control.surfacearea.value)
+        pemodel.prepare_subareas([control.surfacearea.value])
 
 
 class Main_TransferModel_V1(modeltools.Model, abc.ABC):

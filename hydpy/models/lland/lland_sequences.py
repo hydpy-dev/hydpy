@@ -2,7 +2,6 @@
 
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
-from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_derived
 from hydpy.models.lland import lland_variables
 
@@ -33,8 +32,7 @@ class Flux1DSequence(lland_variables.MixinHRUs, sequencetools.FluxSequence):
     def refweights(self) -> lland_derived.AbsFHRU:
         """Alias for the associated instance of |AbsFHRU| for calculating
         areal values."""
-        model = cast(lland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.derived.absfhru
+        return self.subseqs.seqs.model.parameters.derived.absfhru
 
 
 class State1DSequence(lland_variables.MixinHRUs, sequencetools.StateSequence):
@@ -66,5 +64,4 @@ class State1DSequence(lland_variables.MixinHRUs, sequencetools.StateSequence):
     def refweights(self) -> lland_derived.AbsFHRU:
         """Alias for the associated instance of |AbsFHRU| for calculating
         areal values."""
-        model = cast(lland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.derived.absfhru
+        return self.subseqs.seqs.model.parameters.derived.absfhru

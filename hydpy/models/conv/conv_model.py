@@ -127,7 +127,10 @@ class Return_Mean_V1(modeltools.Method):
 
     @staticmethod
     def __call__(
-        model: modeltools.Model, values: VectorFloat, mask: VectorFloat, number: int
+        model: modeltools.Model,
+        values: FastAccessVector[float],
+        mask: FastAccessVector[float],
+        number: int,
     ) -> float:
         counter = 0
         result: float = 0.0
@@ -382,7 +385,10 @@ class Interpolate_InverseDistance_V1(modeltools.Method):
 
     @staticmethod
     def __call__(
-        model: modeltools.Model, inputs: VectorFloat, outputs: VectorFloat, /
+        model: modeltools.Model,
+        inputs: FastAccessVector[float],
+        outputs: FastAccessVector[float],
+        /,
     ) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess

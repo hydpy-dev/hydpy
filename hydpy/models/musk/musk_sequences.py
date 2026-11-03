@@ -6,22 +6,15 @@ import numpy
 
 from hydpy import config
 from hydpy.core import objecttools
-from hydpy.core import modeltools
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 from hydpy.models.musk import musk_variables
 
 
-class MixinSequence1D:
+class MixinSequence1D(sequencetools.ModelIOSequence):
     """Mixin class for the 1-dimensional sequences."""
 
     NDIM: Final[Literal[1]] = 1
-
-    subseqs: sequencetools.ModelIOSequences[
-        modeltools.Model,
-        sequencetools.ModelIOSequence,
-        sequencetools.FastAccessIOSequence,
-    ]
 
     @property
     def refweights(self) -> VectorFloat:
@@ -38,7 +31,7 @@ class MixinSequence1D:
         return numpy.full(nmbsegments, 1.0 / nmbsegments, dtype=config.NP_FLOAT)
 
 
-class StateSequence1D(  # type: ignore[misc]
+class StateSequence1D(
     MixinSequence1D, musk_variables.MixinSegments, sequencetools.StateSequence
 ):
     """Base class for the 1-dimensional state sequences.
@@ -80,13 +73,13 @@ array from shape (2,) into shape (3,)
             )
 
 
-class FactorSequence1D(  # type: ignore[misc]
+class FactorSequence1D(
     MixinSequence1D, musk_variables.MixinSegments, sequencetools.FactorSequence
 ):
     """Base class for the 1-dimensional factor sequences."""
 
 
-class FluxSequence1D(  # type: ignore[misc]
+class FluxSequence1D(
     MixinSequence1D, musk_variables.MixinSegments, sequencetools.FluxSequence
 ):
     """Base class for the 1-dimensional flux sequences."""

@@ -2484,12 +2484,17 @@ class Return_InitialWaterVolume_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
 
-        model.wqmodel.use_waterdepth(waterdepth)
-        sublength: float = con.length / con.nmbsegments if con.nmbsegments > 0 else 0.0
-        return (
-            model.wqmodel.get_wettedarea() * sublength / 1e3
-            + model.wqmodel.get_discharge() * der.seconds / 1e6
+        cast(routinginterfaces.CrossSectionModel_V1, model.wqmodel).use_waterdepth(
+            waterdepth
         )
+        sublength: float = con.length / con.nmbsegments if con.nmbsegments > 0 else 0.0
+        wettedarea: float = cast(
+            routinginterfaces.CrossSectionModel_V1, model.wqmodel
+        ).get_wettedarea()
+        discharge: float = cast(
+            routinginterfaces.CrossSectionModel_V1, model.wqmodel
+        ).get_discharge()
+        return wettedarea * sublength / 1e3 + discharge * der.seconds / 1e6
 
 
 class Return_VolumeError_V1(modeltools.Method):
@@ -2799,9 +2804,10 @@ class Update_WaterVolume_V2(modeltools.Method):
         if (fac.waterdepth[i] == 0.0) or (con.length == 0.0):
             new.watervolume[i] = 0.0
         else:
-            new.watervolume[i] = (
-                model.wqmodel.get_wettedarea() * con.length / con.nmbsegments / 1e3
-            )
+            wettedarea: float = cast(
+                routinginterfaces.CrossSectionModel_V1, model.wqmodel
+            ).get_wettedarea()
+            new.watervolume[i] = wettedarea * con.length / con.nmbsegments / 1e3
 
 
 class Calc_InternalFlow_Outflow_V1(modeltools.Method):
@@ -3489,7 +3495,7 @@ class BaseModelProfile(modeltools.ELSModel):
         hs = [
             0.0,
             con.hm / 2.0,
-            con.hm,
+            con.hm.value,
             con.hm + der.hv[0] / 2.0,
             con.hm + der.hv[0],
             con.hm + der.hv[1] / 2.0,

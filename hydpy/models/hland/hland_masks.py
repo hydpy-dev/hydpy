@@ -6,7 +6,6 @@ from hydpy.core import masktools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 
-# from hydpy.models.hland import hland_model  # actual import below
 from hydpy.models.hland.hland_constants import FIELD, FOREST, ILAKE, GLACIER, SEALED
 
 if TYPE_CHECKING:
@@ -19,11 +18,7 @@ class HLandBaseMask(masktools.IndexMask):
     @staticmethod
     def get_refindices(variable: variabletools.Variable) -> hland_control.ZoneType:
         """Reference to the associated instance of |ZoneType|."""
-        # pylint: disable=import-outside-toplevel
-        from hydpy.models.hland import hland_model
-
-        model = cast(hland_model.Model, variable.subvars.vars.model)
-        return model.parameters.control.zonetype
+        return variable.subvars.vars.model.parameters.control.zonetype
 
 
 class Complete(HLandBaseMask):

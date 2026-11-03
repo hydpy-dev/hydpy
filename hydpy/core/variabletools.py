@@ -557,16 +557,11 @@ class FastAccess:
             if not (key.startswith("_") or key.startswith("len_")):
                 yield key
 
-    # ToDo: Replace this hack with a Mypy plugin?
+    # Only for type checkers (refined by HydPy's Mypy plugin):
     def __getattr__(self, item: str) -> Any:
         assert False
 
     del __getattr__
-
-    def __setattr__(self, key: str, value: Any) -> None:
-        assert False
-
-    del __setattr__
 
 
 class MixinVariable:
@@ -1453,7 +1448,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         if self.NDIM:
             value = getattr(value, "value", value)
             try:
-                value = numpy.full(
+                return numpy.full(
                     self.shape, value, dtype=config.TYPES_PY2NP[self.TYPE]
                 )
             except BaseException:
@@ -1461,23 +1456,21 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
                     f"While trying to convert the value(s) `{value}` to a numpy "
                     f"ndarray with shape `{self.shape}` and type `{self.TYPE.__name__}`"
                 )
-        else:
-            if isinstance(value, Sequence):
-                if len(value) > 1:
-                    given = objecttools.Inflect.count(len(value), "value", "is")
-                    raise ValueError(
-                        f"The scalar variable {objecttools.devicephrase(self)} "
-                        f"requires a single value, but {given} assigned."
-                    )
-                value = value[0]
-            try:
-                value = self.TYPE(value)
-            except BaseException:
-                raise TypeError(
-                    f"The given value `{value}` cannot be converted to type "
-                    f"`{self.TYPE.__name__}`."
-                ) from None
-        return value
+        if isinstance(value, Sequence):
+            if len(value) > 1:
+                given = objecttools.Inflect.count(len(value), "value", "is")
+                raise ValueError(
+                    f"The scalar variable {objecttools.devicephrase(self)} "
+                    f"requires a single value, but {given} assigned."
+                )
+            value = value[0]
+        try:
+            return self.TYPE(value)
+        except BaseException:
+            raise TypeError(
+                f"The given value `{value}` cannot be converted to type "
+                f"`{self.TYPE.__name__}`."
+            ) from None
 
     @property
     def values(self) -> GeneralHook:
@@ -1839,7 +1832,8 @@ its values to a 1-dimensional vector.
         2.5, 3.5, 4.5
         """
         if self.NDIM == 1:
-            return self.value
+            vector: VectorFloat = self.value
+            return vector
         raise NotImplementedError(
             f"Variable {objecttools.devicephrase(self)} does not implement a method "
             f"for converting its values to a 1-dimensional vector."
@@ -1988,7 +1982,8 @@ not a submask of `Soil([ True,  True, False])`.
         """
         try:
             if self.NDIM == 0:
-                return self.value
+                value: float = self.value
+                return value
             mask = self.get_submask(*args)
             if numpy.any(mask):
                 weights = self.refweights[mask]
@@ -2025,10 +2020,8 @@ not a submask of `Soil([ True,  True, False])`.
         >>> hp.nodes.dill_assl.sequences.sim.availablemasks
         defaultmask of module hydpy.core.masktools
         """
-        model = getattr(self.subvars.vars, "model", None)
-        if model:
-            return model.masks
-        return self.subvars.vars.masks
+        model: modeltools.Model | None = getattr(self.subvars.vars, "model", None)
+        return model.masks if model else self.subvars.vars.masks
 
     def get_submask(
         self, *args: masktools.MaskKey
@@ -2236,7 +2229,7 @@ not a submask of `Soil([ True,  True, False])`.
         try:
             if self.NDIM == 0:
                 return scalarfunction(self.value)
-            result = arrayfunction(self.value)
+            result: NDArrayFloat = arrayfunction(self.value)
             # Mimic the errors of `math.floor`, `math.ceil`, and `math.trunc` instead
             # of letting numpy cast non-finite values to arbitrary integers:
             if numpy.isnan(result).any():
@@ -2255,7 +2248,7 @@ not a submask of `Soil([ True,  True, False])`.
         other: object,
         comparefunc: Callable[..., Any],
         callingfunc: Literal["lt", "le", "eq", "ne", "ge", "gt"],
-    ) -> bool:
+    ) -> bool | NDArrayBool:
         try:
             v1 = self.value
             v2 = other.value if isinstance(other, Variable) else numpy.asarray(other)
@@ -2264,7 +2257,7 @@ not a submask of `Soil([ True,  True, False])`.
                     if callingfunc in ("le", "eq", "ge"):
                         return True
                     return False
-                return comparefunc(v1, v2)
+                return cast(bool | NDArrayBool, comparefunc(v1, v2))
             try:
                 idxs = ~(numpy.isnan(v1) * numpy.isnan(v2))
             except BaseException as exc:
@@ -2277,7 +2270,7 @@ not a submask of `Soil([ True,  True, False])`.
                 if callingfunc in ("le", "eq", "ge"):
                     return True
                 return False
-            return comparefunc(v1, v2)[idxs]
+            return cast(NDArrayBool, comparefunc(v1, v2)[idxs])
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to compare variable {objecttools.elementphrase(self)} "
@@ -2422,7 +2415,8 @@ this was attempted for element `?`.
         See the documentation on property |Variable.shape| of class |Variable| for
         further information.
         """
-        return super().shape  # type: ignore[misc]
+        shape: ShapeHookGet = super().shape  # type: ignore[misc]
+        return shape
 
     @shape.setter
     def shape(self, shape: ShapeHookSet) -> None:

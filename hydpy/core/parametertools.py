@@ -2946,7 +2946,8 @@ broadcast input array from shape (2,) into shape (2,3)
             filetools.ControlManager.read2dict(auxfile, subnamespace)
             subself = subnamespace[self.name]
             try:
-                return subself.value
+                value: float | NDArrayObject = subself.value
+                return value
             except exceptiontools.AttributeNotReady:
                 raise RuntimeError(
                     f"The selected auxiliary file does not define "
@@ -4004,7 +4005,7 @@ index parameter.
         values[:] = self.apply_timefactor(values)
         self.trim()
 
-    def __getattr__(self, name: str) -> float:
+    def __getattr__(self, name: str) -> VectorFloat:
         name_ = name.upper()
         if (not name.islower()) or (name_ not in self.constants):
             names = objecttools.enumeration(
@@ -4021,7 +4022,8 @@ index parameter.
             )
         sel_constant = self.constants[name_]
         used_constants = self.mask.refindices.values
-        return self.values[used_constants == sel_constant]
+        values: VectorFloat = self.values[used_constants == sel_constant]
+        return values
 
     def __setattr__(self, name: str, value: float) -> None:
         name_ = name.upper()
@@ -5477,7 +5479,8 @@ constant `ROWNAMES_FROM_MAINMODEL` is not `True`.
     def __getattr__(self, key: str) -> float | VectorFloat:
         if key in self.rownames:
             try:
-                return self.values[self.rownames.index(key), :]
+                row: VectorFloat = self.values[self.rownames.index(key), :]
+                return row
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to retrieve values from parameter "
@@ -5486,7 +5489,8 @@ constant `ROWNAMES_FROM_MAINMODEL` is not `True`.
                 )
         if key in self.columnnames:
             try:
-                return self.values[:, self.columnnames.index(key)]
+                column: VectorFloat = self.values[:, self.columnnames.index(key)]
+                return column
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to retrieve values from parameter "
@@ -6540,9 +6544,12 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
     def callback(self) -> Callable[[modeltools.Model], None] | None:
         """The currently handled callback function for updating the parameter value."""
         if self._has_callback:
+            callback: Callable[[modeltools.Model], None]
             if get := getattr(self.fastaccess, f"get_{self.name}_callback", None):
-                return get()
-            return getattr(self.fastaccess, f"{self.name}_callback")
+                callback = get()
+            else:
+                callback = getattr(self.fastaccess, f"{self.name}_callback")
+            return callback
         return None
 
     @callback.setter

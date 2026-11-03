@@ -192,7 +192,9 @@ class Return_T_V1(modeltools.Method):
     DERIVEDPARAMETERS = (snow_derived.DOY, snow_derived.ZMean)
 
     @staticmethod
-    def __call__(model: modeltools.Model, t: float, k: int, g: VectorFloat, /) -> float:
+    def __call__(
+        model: modeltools.Model, t: float, k: int, g: FastAccessVector[float], /
+    ) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
 

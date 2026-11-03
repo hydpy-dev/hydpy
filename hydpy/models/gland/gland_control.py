@@ -55,7 +55,7 @@ class X2(parametertools.Parameter):
         >>> round_(x2.value)
         4.70513
         """
-        return super().get_timefactor() ** 0.125
+        return float(super().get_timefactor() ** 0.125)
 
 
 class X3(parametertools.Parameter):
@@ -85,7 +85,7 @@ class X3(parametertools.Parameter):
         >>> round_(x3.value)
         66.400915
         """
-        return super().get_timefactor() ** -0.25
+        return float(super().get_timefactor() ** -0.25)
 
 
 class X5(parametertools.Parameter):

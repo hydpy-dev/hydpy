@@ -357,14 +357,18 @@ TYPE2STR: dict[type[Any] | str | None, str] = {  # pylint: disable=duplicate-key
     None: "void",
     "None": "void",
     type(None): "void",
-    Vector: "double[:]",  # to be removed as soon as possible
-    "Vector": "double[:]",
-    "Vector": "double[:]",
-    VectorFloat: "double[:]",  # This works because the `__getitem__`
-    # of `_ProtocolMeta` is decorated by `_tp_cache`.  I don't know if this caching
-    # is documented behaviour, so this might cause (little) trouble in the future.
-    "VectorFloat": "double[:]",
-    "VectorFloat": "double[:]",
+    FastAccessVector[float]: "double[:]",
+    "FastAccessVector[float]": "double[:]",
+    FastAccessVector[int]: f"{INT}[:]",
+    "FastAccessVector[int]": f"{INT}[:]",
+    FastAccessVector[bool]: "numpy.npy_bool[:]",
+    "FastAccessVector[bool]": "numpy.npy_bool[:]",
+    FastAccessMatrix[float]: "double[:, :]",
+    "FastAccessMatrix[float]": "double[:, :]",
+    FastAccessMatrix[int]: f"{INT}[:, :]",
+    "FastAccessMatrix[int]": f"{INT}[:, :]",
+    FastAccessMatrix[bool]: "numpy.npy_bool[:, :]",
+    "FastAccessMatrix[bool]": "numpy.npy_bool[:, :]",
 }
 """Maps Python types to Cython-compatible type declarations.
 
@@ -2893,7 +2897,7 @@ class FuncConverter:
 
         >>> from types import MethodType
         >>> from hydpy.core.modeltools import Method, Model
-        >>> from hydpy.core.typingtools import Vector
+        >>> from hydpy.core.typingtools import FastAccessVector
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
@@ -2923,12 +2927,14 @@ class FuncConverter:
                 self.sequences.fluxes.pc[k] = pc
         <BLANKLINE>
 
-        The second example shows that `float` and `Vector` annotations translate into
-        `double` and `double[:]` types, respectively:
+        The second example shows that `float` and `FastAccessVector[float]` annotations
+        translate into `double` and `double[:]` types, respectively:
 
         >>> class Calc_Test_V2(Method):
         ...     @staticmethod
-        ...     def __call__(model: Model, value: float, values: Vector) -> float:
+        ...     def __call__(
+        ...         model: Model, value: float, values: FastAccessVector[float]
+        ...     ) -> float:
         ...         con = model.parameters.control.fastaccess
         ...         return con.kg[0]*value*values[1]
         >>> model.calc_test_discontinous = MethodType(Calc_Test_V2.__call__, model)

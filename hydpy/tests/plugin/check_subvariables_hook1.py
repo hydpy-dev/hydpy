@@ -8,12 +8,14 @@ if __name__ == "__main__":
     from hydpy.core import sequencetools
     from hydpy.models import hland_96
 
+    # parameter subgroups:
     p: parametertools.Parameters[hland_96.Model]
     assert_type(p.control, parametertools.ControlParameters[hland_96.Model])
     assert_type(p.derived, parametertools.DerivedParameters[hland_96.Model])
     assert_type(p.fixed, parametertools.FixedParameters[hland_96.Model])
     assert_type(p.solver, parametertools.SolverParameters[hland_96.Model])
 
+    # sequence subgroups:
     s: sequencetools.Sequences[hland_96.Model]
     assert_type(s.inputs, sequencetools.InputSequences[hland_96.Model])
     assert_type(s.factors, sequencetools.FactorSequences[hland_96.Model])

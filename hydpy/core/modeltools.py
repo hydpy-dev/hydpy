@@ -35,6 +35,9 @@ if TYPE_CHECKING:
     from hydpy.core import masktools
     from hydpy.core import selectiontools
     from hydpy.cythons import interfaceutils
+    from hydpy.cythons import pointerutils
+else:
+    from hydpy.cythons.autogen import pointerutils
 
 
 TypeModel_co = TypeVar("TypeModel_co", bound="Model", covariant=True)
@@ -950,9 +953,12 @@ class SharedProperty(Generic[T_inv]):
     def __get__(self, obj: Model | None, objtype: type[Model]) -> Self | T_inv:
         if obj is None:
             return self
+        value: T_inv
         if obj.cymodel:
-            return getattr(obj.cymodel, self.name)
-        return vars(obj).get(self.name, 0)
+            value = getattr(obj.cymodel, self.name)
+        else:
+            value = vars(obj).get(self.name, 0)
+        return value
 
     def __set__(self, obj: Model, value: T_inv) -> None:
         if obj.cymodel:
@@ -1003,7 +1009,7 @@ class Threading(SharedProperty[bool]):
         for input_ in obj.sequences.inputs:
             if input_.NDIM == 0:
                 input_.__hydpy__set_fastaccessattribute__(
-                    "inputflag", input_.node2idx and not value
+                    "inputflag", bool(input_.node2idx) and not value
                 )
         for submodel in obj.find_submodels(include_subsubmodels=False).values():
             setattr(submodel, self.name, value)
@@ -2558,9 +2564,9 @@ the available directories (`calib_1` and `calib_2`).
         if not self.threading:
             for seq in subseqs:
                 pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
-                if (pointer is not None) and (seq.NDIM == 0):
+                if isinstance(pointer, pointerutils.PDouble):
                     setattr(seq.fastaccess, seq.name, pointer[0])
-                else:
+                elif pointer is not None:
                     values = getattr(seq.fastaccess, seq.name, None)
                     if values is not None:
                         for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
@@ -2575,9 +2581,9 @@ the available directories (`calib_1` and `calib_2`).
         if not self.threading:
             for seq in subseqs:
                 pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
-                if (pointer is not None) and (seq.NDIM == 0):
+                if isinstance(pointer, pointerutils.PDouble):
                     pointer[0] += getattr(seq.fastaccess, seq.name)
-                else:
+                elif pointer is not None:
                     values = getattr(seq.fastaccess, seq.name, None)
                     if values is not None:
                         for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
@@ -4762,9 +4768,11 @@ class ELSIEModel(ELSModel):
         >>> assert isclose(model.determine_ytol(10.1), 1.0)
         """
         sol = self.parameters.solver.fastaccess
-        if (x == 0.0) or modelutils.isnan(sol.relerrormax):
-            return sol.abserrormax
-        return min(sol.abserrormax, sol.relerrormax * abs(x))
+        abserrormax: float = sol.abserrormax
+        relerrormax: float = sol.relerrormax
+        if (x == 0.0) or modelutils.isnan(relerrormax):
+            return abserrormax
+        return min(abserrormax, relerrormax * abs(x))
 
     def calculate_backwards_error(self, value: float) -> float:
         """Determine the "backwards error" of the current Pegasus iteration step."""

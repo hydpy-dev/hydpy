@@ -832,7 +832,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
                 if self._seasonalinterpolator.nmb_algorithms > 1:
                     self._interp()
                 else:
-                    self._seasonalinterpolator.ratios[:, 0] = 1.0
+                    self.ratios[:, 0] = 1.0
                 self.verify()
             else:
                 self.__seasonalinterpolator = None

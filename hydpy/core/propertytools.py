@@ -341,7 +341,7 @@ has not been prepared so far.
         """Return |True| or |False| to indicate if the protected
         property is ready for the given object.  If the object is
         unknown, |ProtectedProperty.isready| returns |False|."""
-        return vars(obj).get(self.name, False)
+        return bool(vars(obj).get(self.name, False))
 
     def getter(self, fget: FGet[T_co]) -> ProtectedProperty[T_contra, T_co]:
         """Add the given getter function and its docstring to the property

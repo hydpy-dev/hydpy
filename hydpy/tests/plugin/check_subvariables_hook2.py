@@ -6,6 +6,8 @@ if __name__ == "__main__":
 
     from hydpy.core import parametertools
     from hydpy.core import sequencetools
+    from hydpy.core import variabletools
+    from hydpy.core.typingtools import VectorFloat
     from hydpy.models.dam import (
         dam_model,
         dam_solver,
@@ -28,10 +30,11 @@ if __name__ == "__main__":
         hland_states,
     )
 
+    # parameters:
     beta: hland_control.Beta
     assert_type(beta.subvars, parametertools.ControlParameters[hland_model.Model])
     assert_type(beta.subpars, parametertools.ControlParameters[hland_model.Model])
-    assert_type(beta.forest, float)
+    assert_type(beta.forest, VectorFloat)
     dt: hland_derived.DT
     assert_type(dt.subvars, parametertools.DerivedParameters[hland_model.Model])
     assert_type(dt.subpars, parametertools.DerivedParameters[hland_model.Model])
@@ -49,6 +52,7 @@ if __name__ == "__main__":
     assert_type(targets.subpars, parametertools.ControlParameters[exch_model.Model])
     assert_type(targets.subseqs, Any)  # type: ignore[attr-defined]
 
+    # sequences:
     p: hland_inputs.P
     assert_type(p.subvars, sequencetools.InputSequences[hland_model.Model])
     assert_type(p.subseqs, sequencetools.InputSequences[hland_model.Model])
@@ -89,3 +93,7 @@ if __name__ == "__main__":
     assert_type(r.subvars, sequencetools.SenderSequences[dam_model.Model])
     assert_type(r.subseqs, sequencetools.SenderSequences[dam_model.Model])
     assert_type(r.subpars, Any)  # type: ignore[attr-defined]
+
+    # generic variables outside base model packages (refined only inside such packages):
+    v: variabletools.Variable
+    assert_type(v.subvars, variabletools.SubVariables[Any, Any, Any, Any])

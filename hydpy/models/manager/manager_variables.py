@@ -6,7 +6,6 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
-from hydpy.models.manager import manager_model
 
 # from hydpy.models.manager import manager_derived  actual import below
 
@@ -59,7 +58,7 @@ class MixinSourceSequence(MixinSources, abc.ABC):
     """
 
     def __repr__(self) -> str:
-        model = cast(manager_model.Model, self.subvars.vars.model)
+        model = self.subvars.vars.model
         sourcenames = model.parameters.control.sources.sourcenames
         repr_ = objecttools.repr_
         n2v = tuple(f"{n}={repr_(v)}" for n, v in zip(sourcenames, self.values))

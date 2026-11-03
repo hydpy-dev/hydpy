@@ -65,9 +65,8 @@ class Beta(parametertools.Parameter):
 
     @property
     def _nominator(self) -> int:
-        return round(
-            4.0 * (5.25 * (3600.0 / hydpy.pub.options.simulationstep.seconds) ** 0.25)
-        )
+        seconds = hydpy.pub.options.simulationstep.seconds
+        return round(4.0 * (5.25 * float((3600.0 / seconds) ** 0.25)))
 
     def __repr__(self) -> str:
         nominator = self._nominator

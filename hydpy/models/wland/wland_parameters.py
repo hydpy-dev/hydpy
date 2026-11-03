@@ -9,7 +9,6 @@ from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.wland import wland_constants
 
-# from hydpy.models.wland import wland_model  # actual import below
 from hydpy.models.wland import wland_masks
 from hydpy.models.wland import wland_variables
 
@@ -153,11 +152,7 @@ class LanduseParameterLand(
     def refweights(self) -> wland_control.AUR:
         """Alias for the associated instance of |AUR| for calculating areal mean
         values."""
-        # pylint: disable=import-outside-toplevel
-        from hydpy.models.wland import wland_model
-
-        model = cast(wland_model.Model, self.subpars.pars.model)
-        return model.parameters.control.aur
+        return self.subpars.pars.model.parameters.control.aur
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D, abc.ABC):

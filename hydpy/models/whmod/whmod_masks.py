@@ -6,7 +6,6 @@ from hydpy.core import masktools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
-from hydpy.models.whmod import whmod_model
 from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod.whmod_constants import *
 
@@ -28,8 +27,7 @@ class LandTypeBase(masktools.IndexMask):
     @staticmethod
     def get_refindices(variable: variabletools.Variable) -> whmod_control.LandType:
         """Reference to the associated instance of |LandType|."""
-        model = cast(whmod_model.Model, variable.subvars.vars.model)
-        return model.parameters.control.landtype
+        return variable.subvars.vars.model.parameters.control.landtype
 
 
 class LandTypeComplete(LandTypeBase):
@@ -116,8 +114,7 @@ class SoilTypeBase(masktools.IndexMask):
     @staticmethod
     def get_refindices(variable: variabletools.Variable) -> whmod_control.SoilType:
         """Reference to the associated instance of |SoilType|."""
-        model = cast(whmod_model.Model, variable.subvars.vars.model)
-        return model.parameters.control.soiltype
+        return variable.subvars.vars.model.parameters.control.soiltype
 
 
 class SoilTypeComplete(SoilTypeBase):

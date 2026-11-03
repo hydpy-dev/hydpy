@@ -8,7 +8,6 @@ from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.hland.hland_constants import CONSTANTS
 
-# from hydpy.models.hland import hland_model  # actual import below
 from hydpy.models.hland import hland_masks
 from hydpy.models.hland import hland_variables
 
@@ -25,11 +24,7 @@ class ParameterBase(hland_variables.MixinZones, parametertools.ZipParameter, abc
     def refweights(self) -> hland_derived.RelZoneAreas:
         """Reference to the associated instance of |RelZoneAreas| for calculating areal
         mean values."""
-        # pylint: disable=import-outside-toplevel
-        from hydpy.models.hland import hland_model
-
-        model = cast(hland_model.Model, self.subpars.pars.model)
-        return model.parameters.derived.relzoneareas
+        return self.subpars.pars.model.parameters.derived.relzoneareas
 
 
 class ParameterComplete(ParameterBase, abc.ABC):

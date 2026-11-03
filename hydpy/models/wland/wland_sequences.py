@@ -19,7 +19,7 @@ class BaseFluxSequence1D(wland_variables.MixinHRUs, sequencetools.FluxSequence):
     @property
     def refweights(self) -> wland_control.AUR:
         """Alias for the associated instance of |AUR| for calculating areal values."""
-        return cast(wland_control.AUR, self.subseqs.seqs.model.parameters.control.aur)
+        return self.subseqs.seqs.model.parameters.control.aur
 
 
 class FluxSequence1DComplete(BaseFluxSequence1D):
@@ -108,4 +108,4 @@ class StateSequence1DLand(
     @property
     def refweights(self) -> wland_control.AUR:
         """Alias for the associated instance of |AUR| for calculating areal values."""
-        return cast(wland_control.AUR, self.subseqs.seqs.model.parameters.control.aur)
+        return self.subseqs.seqs.model.parameters.control.aur

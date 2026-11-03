@@ -8,6 +8,7 @@ if __name__ == "__main__":
     from hydpy.core import typingtools
     from hydpy.interfaces import rconcinterfaces
     from hydpy.models import arma_rimorido
+    from hydpy.models.dam import dam_model
     from hydpy.models import gland_gr5
     from hydpy.models import hland_96
     from hydpy.models import rconc_nash
@@ -56,6 +57,11 @@ if __name__ == "__main__":
     h96.conditions["model"]["states"]["uz"] = vector  # type: ignore[assignment]
     rimorido: arma_rimorido.Model
     assert_type(rimorido.conditions["model"]["logs"]["login"], typingtools.MatrixFloat)
+
+    # model classes defined in base model modules (like mixins) without own entries:
+    mixin: typingtools.ConditionsModel[dam_model.MixinSimpleWaterBalance]
+    assert_type(mixin["model"]["states"]["watervolume"], float)
+    _ = mixin["model"]["states"]["wrong"]  # type: ignore[arg-type]
 
     # non-literal keys
     key: str

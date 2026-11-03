@@ -221,10 +221,10 @@ class Return_Conductivity_V1(modeltools.Method):
     def __call__(model: modeltools.Model, b: int, s: int, /) -> float:
         con = model.parameters.control.fastaccess
 
-        return con.saturatedconductivity[s] * (
-            model.return_relativemoisture_v1(b, s)
-            ** (3.0 + 2.0 / con.poresizedistribution[s])
+        factor: float = model.return_relativemoisture_v1(b, s) ** (
+            3.0 + 2.0 / con.poresizedistribution[s]
         )
+        return con.saturatedconductivity[s] * factor
 
 
 class Return_CapillaryDrive_V1(modeltools.Method):
@@ -290,9 +290,10 @@ class Return_CapillaryDrive_V1(modeltools.Method):
             subtrahend: float = model.return_relativemoisture_v1(b2, s) ** exp
         else:
             subtrahend = 3.0 * con.poresizedistribution[s] + 2.0
+        minuend: float = model.return_relativemoisture_v1(b1, s) ** exp
         return (
             con.airentrypotential[s]
-            * (subtrahend - model.return_relativemoisture_v1(b1, s) ** exp)
+            * (subtrahend - minuend)
             / (3.0 * con.poresizedistribution[s] + 1.0)
         )
 
@@ -424,9 +425,8 @@ class Return_DryDepth_V1(modeltools.Method):
                 * con.saturatedconductivity[s]
                 / (con.saturationmoisture[s] - sta.moisture[0, s])
             )
-            return 0.5 * (
-                tau + (tau**2 + 4.0 * tau * der.effectivecapillarysuction[s]) ** 0.5
-            )
+            root: float = (tau**2 + 4.0 * tau * der.effectivecapillarysuction[s]) ** 0.5
+            return 0.5 * (tau + root)
         return modelutils.inf
 
 
@@ -2824,8 +2824,7 @@ class BaseModel(modeltools.AdHocModel):
         fluxes = self.sequences.fluxes
         first = initial_conditions["model"]["states"]
         old_watercontent = self._calc_watercontent(
-            frontdepth=first["frontdepth"],  # type: ignore[arg-type]
-            moisture=first["moisture"],  # type: ignore[arg-type]
+            frontdepth=first["frontdepth"], moisture=first["moisture"]
         )
         return float(
             numpy.sum(inputs.rainfall.evalseries)

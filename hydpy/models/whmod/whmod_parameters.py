@@ -6,7 +6,6 @@ import abc
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
-from hydpy.models.whmod import whmod_model
 from hydpy.models.whmod import whmod_masks
 from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod import whmod_variables
@@ -26,8 +25,7 @@ class LandTypeBaseParameter(
     def refweights(self) -> whmod_control.ZoneArea:
         """Reference to the associated instance of |ZoneRatio| for calculating areal
         mean values."""
-        model = cast(whmod_model.Model, self.subpars.pars.model)
-        return model.parameters.control.zonearea
+        return self.subpars.pars.model.parameters.control.zonearea
 
 
 class LandTypeCompleteParameter(LandTypeBaseParameter, abc.ABC):
@@ -163,5 +161,4 @@ class SoilTypeParameter(whmod_variables.MixinZones, parametertools.ZipParameter)
     def refweights(self) -> whmod_control.ZoneArea:
         """Reference to the associated instance of |ZoneRatio| for calculating areal
         mean values."""
-        model = cast(whmod_model.Model, self.subpars.pars.model)
-        return model.parameters.control.zonearea
+        return self.subpars.pars.model.parameters.control.zonearea

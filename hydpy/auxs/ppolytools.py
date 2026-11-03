@@ -428,9 +428,7 @@ the actual number of constants held by vector `x0s` (3).
         TypeError: You must provide at least one `Poly` object.
         """
         if not polynomials:
-            raise TypeError(
-                f"You must provide at least one `{Poly.__name__}` object."
-            )
+            raise TypeError(f"You must provide at least one `{Poly.__name__}` object.")
         self = cls._make_self()
         self._use_polynomials(*polynomials)
         return self

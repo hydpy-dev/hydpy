@@ -564,9 +564,12 @@ class MaxAbsShift(parametertools.Parameter):
 
 
 class MaxRelShift(parametertools.Parameter):
-    """The maximum relative shift (in %) applied when the current forecast value
-    is at or below the simulated value at the point the residual was
-    determined (see |Determine_OutputCorrection_V1|)."""
+    """The maximum relative shift applied when the current forecast value is at or
+    below the simulated value at the point the residual was determined (see
+    |Determine_OutputCorrection_V1|) [-].
+
+    |MaxRelShift| is a fraction, not a percentage.  For example, a value of
+    ``0.1`` restricts the multiplicative correction to ±10 %."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float

@@ -20,7 +20,7 @@ ages past |MaxNaNSkip|.
 How the residual is applied depends on how the current simulated value
 compares to the simulated value at the point the residual was determined:
 if it is higher, the residual is added unchanged (capped at
-|MaxAbsShift|); otherwise, it is applied as a percentage of that anchor
+|MaxAbsShift|); otherwise, it is applied relative to that anchor
 value instead (capped at |MaxRelShift|), which keeps the correction from
 overshooting or turning negative while the simulated values recede.  See
 |Determine_OutputCorrection_V1| for the exact formulas.
@@ -67,7 +67,7 @@ Example workflow
     >>> control.reductionsteps(1)
     >>> control.maxnanskip(3)
     >>> control.maxabsshift(100.0)
-    >>> control.maxrelshift(1000.0)
+    >>> control.maxrelshift(10.0)
     >>> control.averagingwindow(0)
     >>> control.transitionsteps(0)
     >>> derived.nmblogentries.update()

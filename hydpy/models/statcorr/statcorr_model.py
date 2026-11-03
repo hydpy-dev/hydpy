@@ -97,7 +97,7 @@ class Calc_OutputCorr_V1(modeltools.Method):
         ...     submodel.parameters.control.evaluationwindow(1)
         ...     submodel.parameters.control.maxnanskip(3)
         ...     submodel.parameters.control.maxabsshift(100.0)
-        ...     submodel.parameters.control.maxrelshift(1000.0)
+        ...     submodel.parameters.control.maxrelshift(10.0)
         ...     submodel.parameters.control.averagingwindow(0)
         ...     submodel.parameters.control.transitionsteps(0)
         ...     submodel.parameters.control.stationaritycheck(False)
@@ -616,14 +616,14 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
     * Otherwise (including :math:`sim_k \leq 0`, for which a relative shift
       would be undefined), it shifts :math:`sim_0` *multiplicatively* instead,
-      expressing the damped residual as a percentage of :math:`sim_k` and
-      capping that percentage at |MaxRelShift|:
+      expressing the damped residual as a fraction of :math:`sim_k` and
+      capping that fraction at |MaxRelShift|:
 
         :math:`q_{corr} = sim_0 \cdot \left(1 + \mathrm{clip}\left((obs_k -
-        sim_k) \cdot f_{red} / sim_k,\ \pm MaxRelShift / 100\right)
+        sim_k) \cdot f_{red} / sim_k,\ \pm MaxRelShift\right)
         \right)`
 
-      Applying the residual as a percentage rather than a constant offset
+      Applying the residual as a fraction rather than a constant offset
       keeps the correction from overshooting or turning negative while the
       forecasted values recede towards zero.
 
@@ -732,7 +732,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> control.reductionsteps(2)
         >>> control.maxnanskip(3)
         >>> control.maxabsshift(100.0)
-        >>> control.maxrelshift(1000.0)
+        >>> control.maxrelshift(10.0)
         >>> control.averagingwindow(0)
         >>> control.transitionsteps(0)
         >>> states.reductionfactor(1.0)
@@ -1016,8 +1016,8 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         determined, so all examples above used the additive (or, at position
         0 itself, an equivalent) shift.  Resetting the log to a *receding*
         forecast — position 0 has already dropped clearly below the value at
-        the residual's log position — switches to the relative (percentage)
-        shift instead:
+        the residual's log position — switches to the relative
+        (multiplicative) shift instead:
 
         >>> logs.loggedsimulatedvalue = 2.0, 10.0, 10.0, nan, nan
         >>> logs.loggedobservedvalue = nan, 12.0, nan, nan, nan
@@ -1025,10 +1025,10 @@ class Determine_OutputCorrection_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(2.4)
 
-        Limiting |MaxRelShift| caps that percentage before it is
-        converted back into an absolute shift:
+        Limiting |MaxRelShift| to ``0.1`` caps that fraction at 10 % before it
+        is converted back into an absolute shift:
 
-        >>> control.maxrelshift(10.0)
+        >>> control.maxrelshift(0.1)
         >>> model.determine_outputcorrection_v1(False)
         >>> fluxes.correctedq
         correctedq(2.2)
@@ -1064,7 +1064,7 @@ class Determine_OutputCorrection_V1(modeltools.Method):
 
         >>> control.maxnanskip(4)
         >>> control.maxabsshift(100.0)
-        >>> control.maxrelshift(1000.0)
+        >>> control.maxrelshift(10.0)
         >>> control.averagingwindow(2)
         >>> control.transitionsteps(2)
         >>> derived.nmblogentries(4)
@@ -1372,10 +1372,9 @@ class Determine_OutputCorrection_V1(modeltools.Method):
             * (sta.averagedresidual - residual)
         )
         damped_residual: float = effective_residual * sta.reductionfactor
-        max_fraction: float = con.maxrelshift / 100.0
         shift: float = (
             forecast_value
-            * min(max_fraction, max(-max_fraction, damped_residual / sim_anchor))
+            * min(con.maxrelshift, max(-con.maxrelshift, damped_residual / sim_anchor))
             if sim_anchor > 0.0 and forecast_value <= sim_anchor
             else min(con.maxabsshift, max(-con.maxabsshift, damped_residual))
         )

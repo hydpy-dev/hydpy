@@ -43,7 +43,7 @@ Integration test
     ...     submodel.parameters.control.evaluationwindow(1)
     ...     submodel.parameters.control.maxnanskip(3)
     ...     submodel.parameters.control.maxabsshift(100.0)
-    ...     submodel.parameters.control.maxrelshift(1000.0)
+    ...     submodel.parameters.control.maxrelshift(10.0)
     ...     submodel.parameters.control.averagingwindow(0)
     ...     submodel.parameters.control.transitionsteps(0)
     ...     submodel.parameters.control.stationaritycheck(False)

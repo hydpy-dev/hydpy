@@ -163,7 +163,7 @@ class HydPyReferenceStyle(AuthorYearReferenceStyle):
     bracket_year: BracketStyle = _make_bracketstylefield()
 
     def __post_init__(self) -> None:
-        super().__post_init__()
+        super().__post_init__()  # type: ignore[no-untyped-call]
         for style in self.styles:
             if isinstance(style, BasicAuthorYearTextualReferenceStyle):
                 style.__class__ = HydPyTextualReferenceStyle

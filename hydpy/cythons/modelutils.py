@@ -491,7 +491,8 @@ def compile_(cyname: str, pyxfilepath: str, buildpath: str) -> None:
             )
         ]
         setuptools.setup(
-            ext_modules=build.cythonize(exc_modules), include_dirs=[numpy.get_include()]
+            ext_modules=build.cythonize(exc_modules),  # type: ignore[no-untyped-call]
+            include_dirs=[numpy.get_include()],
         )
     finally:
         sys.argv = argv

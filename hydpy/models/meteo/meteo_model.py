@@ -2873,7 +2873,7 @@ class Sub_BaseModel(modeltools.AdHocModel):
         self.parameters.control.nmbhru(nmbzones)
 
     @importtools.define_targetparameter(meteo_control.HRUArea)
-    def prepare_subareas(self, subareas: Sequence[float]) -> None:
+    def prepare_subareas(self, subareas: VectorInputFloat) -> None:
         """Set the area of all hydrological response units in km².
 
         >>> from hydpy.models.meteo_precip_io import *

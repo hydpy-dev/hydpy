@@ -20,6 +20,7 @@ from mypy.errorcodes import (
     CALL_ARG,
     DEPRECATED,
     INDEX,
+    OPERATOR,
 )
 from mypy.message_registry import ErrorMessage
 from mypy.messages import format_type
@@ -272,6 +273,25 @@ SCALAR_FUNCTIONS: Final = {
 
 SIZED_FUNCTIONS: Final = ("builtins.len", "builtins.reversed")
 
+# functions iterating over their first argument:
+FIRST_ITERABLE_FUNCTIONS: Final = (
+    "builtins.list",
+    "builtins.tuple",
+    "builtins.set",
+    "builtins.frozenset",
+    "builtins.sorted",
+    "builtins.enumerate",
+    "builtins.sum",
+    "builtins.any",
+    "builtins.all",
+)
+
+# functions iterating over their first argument only if it is the only positional one:
+SINGLE_ITERABLE_FUNCTIONS: Final = ("builtins.min", "builtins.max", "builtins.iter")
+
+# functions iterating over all their arguments (or all but a leading function):
+ALL_ITERABLE_FUNCTIONS: Final = ("builtins.zip", "builtins.map", "builtins.filter")
+
 REFINED_MEMBERS: Final = frozenset(
     VALUES
     | SERIES
@@ -283,6 +303,8 @@ REFINED_MEMBERS: Final = frozenset(
             *UNARY_OPERATORS,
             "__getitem__",
             "__setitem__",
+            "__iter__",
+            "__contains__",
         )
     }
 )
@@ -1777,6 +1799,124 @@ def scalar_function_hook(context: FunctionContext, scalar: str) -> Type:
     return context.default_return_type
 
 
+def _get_item_type(
+    context: FunctionContext | MethodContext, ndim: int, type_: type[float]
+) -> Type | None:
+    """Return the type of the items yielded when iterating over a variable with the
+    given (non-zero) dimensionality and value type."""
+    if ndim == 1:
+        return _get_scalar_type(context=context, ndim=ndim, type_=type_)
+    return _get_vectorlike(context=context, ndim=ndim - 1, type_=type_, input_=False)
+
+
+def iter_hook(context: MethodContext) -> Type:
+    """
+    `VariableX.__iter__() -> Iterator[Any]`
+    -->
+    `VariableX.__iter__() -> error`  (if `VariableX` is 0-dimensional)
+    `VariableY.__iter__() -> Iterator[numpy.float64]`  (if `VariableY` is 1-dimensional)
+    `VariableZ.__iter__() -> Iterator[VectorFloat]`  (if `VariableZ` is 2-dimensional)
+    ...
+    """
+    default = context.default_return_type
+    if (
+        not isinstance(api := context.api, TypeChecker)
+        or not isinstance(var_inst := context.type, Instance)
+        or ((ndim_type := _get_ndim_and_type(context)) is None)
+    ):
+        return default
+    ndim, type_ = ndim_type
+    if ndim == 0:
+        api.fail(
+            f'Variable "{var_inst.type.name}" is 0-dimensional and thus not iterable',
+            context.context,
+            code=ATTR_DEFINED,
+        )
+        return default
+    if (item := _get_item_type(context=context, ndim=ndim, type_=type_)) is None:
+        return default
+    return api.named_generic_type("typing.Iterator", [item])
+
+
+def contains_hook(context: MethodContext) -> Type:
+    """
+    `VariableX.__contains__(object) -> bool`
+    `VariableY.__contains__(object) -> error`  (if `VariableY` is 0-dimensional)
+
+    For the `in` operator, Mypy suppresses this error and then falls back on checking
+    iteration, so that `iter_hook` reports the 0-dimensional variable instead.
+    """
+    if (
+        isinstance(var_inst := context.type, Instance)
+        and ((ndim_type := _get_ndim_and_type(context)) is not None)
+        and (ndim_type[0] == 0)
+    ):
+        context.api.fail(
+            f'Variable "{var_inst.type.name}" is 0-dimensional and thus does not '
+            f"support the `in` operator",
+            context.context,
+            code=OPERATOR,
+        )
+    return context.default_return_type
+
+
+def iterable_function_hook(
+    context: FunctionContext, fullname: str, first_only: bool
+) -> Type:
+    """
+    `list(VariableX) -> list[Any]`
+    -->
+    `list(VariableX) -> error`  (if `VariableX` is 0-dimensional)
+    `list(VariableY) -> list[numpy.float64]`  (if `VariableY` is 1-dimensional)
+    `sum(VariableZ) -> VectorFloat`  (if `VariableZ` is 2-dimensional)
+    ...
+    """
+    default = context.default_return_type
+    nmb_positional = sum(
+        kind == ARG_POS for kinds in context.arg_kinds for kind in kinds
+    )
+    if (fullname in SINGLE_ITERABLE_FUNCTIONS) and (nmb_positional != 1):
+        return default
+    infos: list[tuple[str, int, type[float]]] = []
+    for arg_types in context.arg_types[:1] if first_only else context.arg_types:
+        for arg_type in arg_types:
+            if isinstance(var_inst := get_proper_type(arg_type), Instance) and (
+                (ndim_type := VAR_INFO.get(var_inst.type.fullname)) is not None
+            ):
+                infos.append((var_inst.type.name, *ndim_type))
+    for name, ndim, _ in infos:
+        if not ndim:
+            context.api.fail(
+                f'Variable "{name}" is 0-dimensional and thus not iterable',
+                context.context,
+                code=ARG_TYPE,
+            )
+    if (len(infos) != 1) or (nmb_positional != 1) or ((ndim := infos[0][1]) == 0):
+        return default
+    type_ = infos[0][2]
+    funcname = fullname.rpartition(".")[2]
+    if funcname == "sum":
+        # `sum` starts with `0`, so summing booleans results in integers:
+        type_ = int if issubclass(type_, bool) else type_
+        item = _get_item_type(context=context, ndim=ndim, type_=type_)
+        return default if item is None else item
+    if funcname in ("min", "max"):
+        # comparing arrays is ambiguous, so we refine only 1-dimensional cases:
+        if ndim > 1:
+            return default
+        item = _get_item_type(context=context, ndim=ndim, type_=type_)
+        return default if item is None else item
+    item = _get_item_type(context=context, ndim=ndim, type_=type_)
+    if (
+        (item is not None)
+        and isinstance(proper := get_proper_type(default), Instance)
+        and (len(proper.args) == 1)
+        and isinstance(get_proper_type(proper.args[0]), AnyType)
+    ):
+        return proper.copy_modified(args=[item])
+    return default
+
+
 def sized_function_hook(context: FunctionContext, fullname: str) -> Type:
     """
     `len(VariableX) -> int`
@@ -2048,6 +2188,10 @@ class MypyPlugin(Plugin):
                 return getitem_hook
             if name == "__setitem__":
                 return setitem_hook
+            if name == "__iter__":
+                return iter_hook
+            if name == "__contains__":
+                return contains_hook
         return None
 
     def _is_variable(self, fullname: str) -> bool:
@@ -2076,6 +2220,12 @@ class MypyPlugin(Plugin):
             return partial(scalar_function_hook, scalar=scalar)
         if fullname in SIZED_FUNCTIONS:
             return partial(sized_function_hook, fullname=fullname)
+        if fullname in FIRST_ITERABLE_FUNCTIONS:
+            return partial(iterable_function_hook, fullname=fullname, first_only=True)
+        if fullname in SINGLE_ITERABLE_FUNCTIONS:
+            return partial(iterable_function_hook, fullname=fullname, first_only=True)
+        if fullname in ALL_ITERABLE_FUNCTIONS:
+            return partial(iterable_function_hook, fullname=fullname, first_only=False)
         return None
 
     def get_method_signature_hook(

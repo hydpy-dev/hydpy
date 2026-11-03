@@ -4191,10 +4191,10 @@ attribute nor does it handle a "time of year" named `toy_2_1`.
     AttributeError: Seasonal parameter `par` of element `?` has neither a normal \
 attribute nor does it handle a "time of year" named `toy_2_1`.
 
-    Applying the |len| operator on |SeasonalParameter| objects returns the number of
-    toy-value pairs.
+    Property |SeasonalParameter.toys| provides the times of year of all toy-value
+    pairs:
 
-    >>> len(par)
+    >>> len(par.toys)
     2
 
     New values are checked to be compatible with the predefined shape:
@@ -4428,7 +4428,7 @@ broadcast input array from shape (2,) into shape (366,3)
         toy2values = self._toy2values_unprotected
         if not toy2values:
             self.value = 0.0
-        elif len(self) == 1:
+        elif len(toy2values) == 1:
             self.values[:] = self.apply_timefactor(toy2values[0][1])
         else:
             centred = timetools.TOY.centred_timegrid()
@@ -4439,7 +4439,7 @@ broadcast input array from shape (2,) into shape (366,3)
             self.value = values
         self.trim()
 
-    def interp(self, date: timetools.Date) -> float:
+    def interp(self, date: timetools.Date) -> float | NDArrayFloat:
         """Perform a linear value interpolation for the given `date` and return the
         result.
 
@@ -4517,7 +4517,7 @@ broadcast input array from shape (2,) into shape (366,3)
             >>> del pub.timegrids
         """
         xnew = timetools.TOY(date)
-        xys = list(self)
+        xys = self._toy2values_protected
         for idx, (x1, y1) in enumerate(xys):
             if x1 > xnew:
                 x0, y0 = xys[idx - 1]
@@ -4662,14 +4662,6 @@ Using the latter without modification might result in inconsistencies.
         ...     round_(bottomlowwaterthreshold.toy_1_1_12)  # doctest: +ELLIPSIS
         3.0
         UserWarning: The "background values"...result in inconsistencies.
-        >>> with pub.options.warntrim(True), warn_later():
-        ...     tuple(bottomlowwaterthreshold)  # doctest: +ELLIPSIS
-        ((TOY("1_1_12_0_0"), 3.0), (TOY("1_3_12_0_0"), 1.0))
-        UserWarning: The "background values"...result in inconsistencies.
-        >>> with pub.options.warntrim(True), warn_later():
-        ...     len(bottomlowwaterthreshold)  # doctest: +ELLIPSIS
-        2
-        UserWarning: The "background values"...result in inconsistencies.
 
         .. testsetup::
 
@@ -4678,9 +4670,6 @@ Using the latter without modification might result in inconsistencies.
         if not self._trimming_disabled:
             self._trimmed_insufficiently = super().trim(lower, upper)
         return self._trimmed_insufficiently
-
-    def __iter__(self) -> Iterator[tuple[timetools.TOY, Any]]:
-        return iter(self._toy2values_protected)
 
     def __getattr__(self, name: str) -> float | NDArrayFloat:
         selected = timetools.TOY.from_name(name)
@@ -4732,20 +4721,17 @@ Using the latter without modification might result in inconsistencies.
         if not toy2values:
             return f"{self.name}()"
         toy0 = timetools.TOY0
-        if (len(self) == 1) and (toy0 == toy2values[0][0]):
+        if (len(toy2values) == 1) and (toy0 == toy2values[0][0]):
             return f'{_assignrepr(toy2values[0][1], f"{self.name}(")})'
         lines = []
         blanks = " " * (len(self.name) + 1)
-        for idx, (toy, value) in enumerate(self):
+        for idx, (toy, value) in enumerate(toy2values):
             if idx == 0:
                 lines.append(_assignrepr(value, f"{self.name}({toy}="))
             else:
                 lines.append(_assignrepr(value, f"{blanks}{toy}="))
         lines[-1] += ")"
         return ",\n".join(lines)
-
-    def __len__(self) -> int:
-        return len(self._toy2values_protected)
 
     def __dir__(self) -> list[str]:
         """
@@ -4766,7 +4752,7 @@ Using the latter without modification might result in inconsistencies.
 
             >>> del pub.timegrids
         """
-        return cast(list[str], super().__dir__()) + [str(toy) for (toy, dummy) in self]
+        return cast(list[str], super().__dir__()) + [str(toy) for toy in self.toys]
 
 
 class KeywordParameter1D(_MixinModifiableParameter, Parameter, abc.ABC):

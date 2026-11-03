@@ -31,8 +31,10 @@ from mypy.nodes import (
     ARG_STAR2,
     CallExpr,
     Decorator,
+    FuncDef,
     MemberExpr,
     MypyFile,
+    OverloadedFuncDef,
     TempNode,
     TypeAlias,
     TypeInfo,
@@ -56,6 +58,7 @@ from mypy.types import (
     LiteralType,
     Instance,
     NoneType,
+    Overloaded,
     TupleType,
     Type,
     TypeAliasType,
@@ -878,6 +881,67 @@ def _is_alias(type_: Type, name: str) -> bool:
     )
 
 
+def _refers_to_generalhook(type_: Type | None) -> bool:
+    """Tell whether the given type is or contains the type alias `GeneralHook`."""
+    if type_ is None:
+        return False
+    if _is_alias(type_, "GeneralHook"):
+        return True
+    if isinstance(type_, TypeAliasType):
+        return any(_refers_to_generalhook(arg) for arg in type_.args)
+    proper = get_proper_type(type_)
+    if isinstance(proper, Overloaded):
+        return any(_refers_to_generalhook(item) for item in proper.items)
+    if isinstance(proper, CallableType):
+        return _refers_to_generalhook(proper.ret_type) or any(
+            _refers_to_generalhook(arg) for arg in proper.arg_types
+        )
+    if isinstance(proper, Instance):
+        return any(_refers_to_generalhook(arg) for arg in proper.args)
+    if isinstance(proper, (TupleType, UnionType)):
+        return any(_refers_to_generalhook(item) for item in proper.items)
+    return False
+
+
+def _has_generalhook_member(info: TypeInfo, name: str) -> bool:
+    """Tell whether the given member of the given class is annotated with `GeneralHook`
+    where it is defined, which is the class itself or one of its base classes.
+
+    If a subclass overrides such a member with a more specific annotation, the result
+    is `False`, so that the plugin respects this annotation instead of refining the
+    member's type.
+    """
+    if (definer := info.get_containing_type_info(name)) is None:
+        return False
+    node = definer.names[name].node
+    if isinstance(node, Decorator):
+        node = node.func
+    return isinstance(node, (FuncDef, OverloadedFuncDef)) and _refers_to_generalhook(
+        node.type
+    )
+
+
+def _may_refine(type_: Type, name: str) -> bool:
+    """Tell whether the plugin may refine an operation that involves the given member of
+    the given (operand) type.
+
+    Only variables can prevent refinement by overriding a member annotated with
+    `GeneralHook` more specifically (see `_has_generalhook_member`).  Hence, the result
+    is always `True` for non-variable types.
+    """
+    if isinstance(inst := get_proper_type(type_), Instance) and inst.type.has_base(
+        "hydpy.core.variabletools.Variable"
+    ):
+        return _has_generalhook_member(inst.type, name)
+    return True
+
+
+def _reflect(method: str, reflected: bool) -> str:
+    """Return the name of the reflected version of the given binary operator method
+    (e.g. `__radd__` for `__add__`) if required."""
+    return f"__r{method[2:]}" if reflected else method
+
+
 def method_hook(context: AttributeContext) -> Type:
     """
     `ModelX.__getattr__("calc_x_v1" or "calc_x") -> modeltools.Method`
@@ -1474,6 +1538,7 @@ def binary_operator_hook(context: MethodContext, method: str, reflected: bool) -
         not isinstance(context.api, TypeChecker)
         or (len(context.arg_types) != 1)
         or (len(context.arg_types[0]) != 1)
+        or not _may_refine(context.arg_types[0][0], _reflect(method, not reflected))
     ):
         return default
     self_value = _get_value_type(context, context.type)
@@ -1506,6 +1571,8 @@ def binary_function_hook(context: FunctionContext, method: str) -> Type:
     ):
         return default
     left, right = arg_types[0][0], arg_types[1][0]
+    if not (_may_refine(left, method) and _may_refine(right, _reflect(method, True))):
+        return default
     left_value = _get_value_type(context, left)
     right_value = _get_value_type(context, right)
     if (left_value is left) and (right_value is right):
@@ -1546,6 +1613,12 @@ def inplace_function_hook(context: FunctionContext, method: str) -> Type:
     `operator.iadd(float, VariableX) -> float`  (falls back to `float + VariableX`)
     ...
     """
+    if (
+        (len(context.arg_types) > 0)
+        and (len(context.arg_types[0]) == 1)
+        and not _may_refine(context.arg_types[0][0], f"__i{method[2:]}")
+    ):
+        return context.default_return_type
     result = binary_function_hook(context=context, method=method)
     if (
         (len(context.arg_types) > 0)
@@ -1642,7 +1715,11 @@ def unary_function_hook(context: FunctionContext, method: str) -> Type:
     `abs(VariableY) -> VectorFloat`
     ...
     """
-    if (len(arg_types := context.arg_types) == 0) or (len(arg_types[0]) != 1):
+    if (
+        (len(arg_types := context.arg_types) == 0)
+        or (len(arg_types[0]) != 1)
+        or not _may_refine(arg_types[0][0], method)
+    ):
         return _get_plain_any(context.default_return_type)
     return _apply_unary_operator(
         context=context, var_type=arg_types[0][0], method=method
@@ -1880,8 +1957,10 @@ def iterable_function_hook(
     infos: list[tuple[str, int, type[float]]] = []
     for arg_types in context.arg_types[:1] if first_only else context.arg_types:
         for arg_type in arg_types:
-            if isinstance(var_inst := get_proper_type(arg_type), Instance) and (
-                (ndim_type := VAR_INFO.get(var_inst.type.fullname)) is not None
+            if (
+                isinstance(var_inst := get_proper_type(arg_type), Instance)
+                and ((ndim_type := VAR_INFO.get(var_inst.type.fullname)) is not None)
+                and _has_generalhook_member(var_inst.type, "__iter__")
             ):
                 infos.append((var_inst.type.name, *ndim_type))
     for name, ndim, _ in infos:
@@ -2125,6 +2204,22 @@ def conditionsgroup_setitem_hook(context: MethodContext) -> Type:
     return default
 
 
+def _get_variable_method_hook(name: str) -> Callable[[MethodContext], Type] | None:
+    """Return the hook refining the variable method with the given name, if any."""
+    if (binary := BINARY_OPERATORS.get(name)) is not None:
+        return partial(binary_operator_hook, method=binary[0], reflected=binary[1])
+    if (inplace := INPLACE_OPERATORS.get(name)) is not None:
+        return partial(inplace_operator_hook, method=inplace)
+    if name in UNARY_OPERATORS:
+        return partial(unary_operator_hook, method=name)
+    return {
+        "__getitem__": getitem_hook,
+        "__setitem__": setitem_hook,
+        "__iter__": iter_hook,
+        "__contains__": contains_hook,
+    }.get(name)
+
+
 METHOD_HOOKS: Final[dict[str, Callable[[MethodContext], Type]]] = {
     "hydpy.core.importtools.SubmodelAdder.__call__": submodeladder_call_hook,
     "hydpy.core.importtools.SubmodelAdder.__enter__": submodeladder_enter_hook,
@@ -2175,34 +2270,25 @@ class MypyPlugin(Plugin):
         if (hook := METHOD_HOOKS.get(fullname)) is not None:
             return hook
         prefix, _, name = fullname.rpartition(".")
-        if (prefix in VAR_INFO) or self._is_variable(prefix):
-            if (binary := BINARY_OPERATORS.get(name)) is not None:
-                return partial(
-                    binary_operator_hook, method=binary[0], reflected=binary[1]
-                )
-            if (inplace := INPLACE_OPERATORS.get(name)) is not None:
-                return partial(inplace_operator_hook, method=inplace)
-            if name in UNARY_OPERATORS:
-                return partial(unary_operator_hook, method=name)
-            if name == "__getitem__":
-                return getitem_hook
-            if name == "__setitem__":
-                return setitem_hook
-            if name == "__iter__":
-                return iter_hook
-            if name == "__contains__":
-                return contains_hook
+        if (
+            ((hook := _get_variable_method_hook(name)) is not None)
+            and ((info := self._get_variable_info(prefix)) is not None)
+            and _has_generalhook_member(info, name)
+        ):
+            return hook
         return None
 
-    def _is_variable(self, fullname: str) -> bool:
-        """Tell whether the given full name identifies a (base or concrete) subclass of
-        `Variable`."""
-        return (
+    def _get_variable_info(self, fullname: str) -> TypeInfo | None:
+        """Return the type information of the (base or concrete) subclass of `Variable`
+        identified by the given full name, if available."""
+        if (
             fullname.startswith("hydpy.")
             and ((symbol := self.lookup_fully_qualified(fullname)) is not None)
             and isinstance(info := symbol.node, TypeInfo)
             and info.has_base("hydpy.core.variabletools.Variable")
-        )
+        ):
+            return info
+        return None
 
     def get_function_hook(
         self, fullname: str

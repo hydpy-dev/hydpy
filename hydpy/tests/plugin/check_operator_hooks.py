@@ -5,7 +5,7 @@ if __name__ == "__main__":
     import math
     import operator
     from collections.abc import Iterator
-    from typing import Any, assert_type
+    from typing import Any, assert_type, Self
 
     import numpy
 
@@ -25,6 +25,23 @@ if __name__ == "__main__":
     parameter: parametertools.Parameter  # NDIM and TYPE unknown
     sim: sequencetools.Sim  # NDIM = 0, TYPE = float
     vector: typingtools.VectorFloat
+
+    class StrParameter(parametertools.Parameter):
+        """Overrides members annotated with `GeneralHook` more specifically."""
+
+        NDIM = 0
+        TYPE = float
+
+        def __add__(self, other: str) -> str:
+            return other
+
+        def __iadd__(self, other: str) -> Self:
+            return self
+
+        def __floor__(self) -> str:
+            return ""
+
+    strparameter: StrParameter
 
     # binary operators
     assert_type(area + 1.0, float)
@@ -134,6 +151,14 @@ if __name__ == "__main__":
     assert_type(operator.iadd(1.0, area), float)
     assert_type(operator.iadd(vector, zonearea), typingtools.VectorFloat)
     assert_type(operator.iadd(1.0, 2.0), Any)
+
+    # more specific annotations of overriding members
+    assert_type(strparameter + "a", str)
+    assert_type(operator.add(strparameter, "a"), Any)
+    strparameter += "a"
+    assert_type(operator.iadd(strparameter, "a"), Any)
+    assert_type(math.floor(strparameter), str)
+    _ = "a" + strparameter  # type: ignore[operator]
 
     # unary operators and functions
     assert_type(+area, float)

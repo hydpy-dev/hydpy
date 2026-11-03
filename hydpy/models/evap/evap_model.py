@@ -5599,7 +5599,7 @@ class Calc_PotentialWaterEvaporation_V1(modeltools.Method):
             )
         elif model.petmodel_typeid == 2:
             model.calc_potentialwaterevaporation_petmodel_v2(
-                cast(petinterfaces.PETModel_V1, model.petmodel)
+                cast(petinterfaces.PETModel_V2, model.petmodel)
             )
 
 
@@ -6291,7 +6291,7 @@ class Calc_PotentialInterceptionEvaporation_V3(modeltools.Method):
             )
         elif model.petmodel_typeid == 2:
             model.calc_potentialinterceptionevaporation_petmodel_v2(
-                cast(petinterfaces.PETModel_V1, model.petmodel)
+                cast(petinterfaces.PETModel_V2, model.petmodel)
             )
 
 
@@ -6599,7 +6599,7 @@ class Calc_PotentialSoilEvapotranspiration_V2(modeltools.Method):
             )
         elif model.petmodel_typeid == 2:
             model.calc_potentialsoilevapotranspiration_petmodel_v2(
-                cast(petinterfaces.PETModel_V1, model.petmodel)
+                cast(petinterfaces.PETModel_V2, model.petmodel)
             )
 
 

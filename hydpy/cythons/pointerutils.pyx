@@ -588,7 +588,7 @@ cdef class PPDouble:
         return values
 
     def __setitem__(self, idxs, values):
-        cdef float value
+        cdef double value
         idxs = self._prepare_indices(idxs)
         values = numpy.full(len(idxs), values, dtype=config.NP_FLOAT)
         check0(self.length)

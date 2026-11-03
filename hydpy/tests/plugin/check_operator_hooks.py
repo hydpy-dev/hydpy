@@ -1,4 +1,5 @@
 # pylint: disable=missing-module-docstring, used-before-assignment
+# mypy: disable-error-code="no-untyped-call"
 
 if __name__ == "__main__":
 

@@ -6,7 +6,6 @@ from hydpy.core import masktools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
-from hydpy.models.wland import wland_model
 from hydpy.models.wland import wland_constants
 from hydpy.models.wland.wland_constants import WATER, SEALED
 
@@ -28,8 +27,7 @@ class Complete(masktools.IndexMask):
     @staticmethod
     def get_refindices(variable: variabletools.Variable) -> wland_control.LT:
         """Reference to the associated instance of |LT|."""
-        model = cast(wland_model.Model, variable.subvars.vars.model)
-        return model.parameters.control.lt
+        return variable.subvars.vars.model.parameters.control.lt
 
 
 class Land(Complete):

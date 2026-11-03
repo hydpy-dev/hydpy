@@ -14,6 +14,7 @@ if __name__ == "__main__":
         wq_trapeze,
     )
 
+    # submodel adders without additional arguments:
     main1: hland_96.Model
 
     with main1.add_aetmodel_v1(evap_aet_hbv96) as sub_unknown:
@@ -30,6 +31,7 @@ if __name__ == "__main__":
         with sub_aet.add_petmodel_v1("evap_pet_hbv96") as sub_pet:
             assert_type(sub_pet, evap_pet_hbv96.Model)
 
+    # submodel adders with a `position` argument:
     main2: sw1d_channel.Model
 
     with main2.add_routingmodel_v2(sw1d_lias, position=1) as sub_unknown:

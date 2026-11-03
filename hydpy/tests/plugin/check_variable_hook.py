@@ -10,6 +10,7 @@ if __name__ == "__main__":
     from hydpy.models import hland_96
     from hydpy.models.dam import (
         dam_model,
+        dam_fluxes,
         dam_solver,
         dam_logs,
         dam_inlets,
@@ -29,6 +30,7 @@ if __name__ == "__main__":
         hland_states,
     )
 
+    # parameter subgroups:
     control: parametertools.ControlParameters[hland_96.Model]
     assert_type(control.beta, hland_control.Beta)
     assert_type(control.name, str)
@@ -58,6 +60,7 @@ if __name__ == "__main__":
     assert_type(solver.name, str)
     assert_type(solver.asdf, Any)  # type: ignore[attr-defined]
 
+    # sequence subgroups:
     inputs: sequencetools.InputSequences[hland_96.Model]
     assert_type(inputs.p, hland_inputs.P)
     assert_type(inputs.name, str)
@@ -98,3 +101,17 @@ if __name__ == "__main__":
     assert_type(senders.r, dam_senders.R)
     assert_type(senders.name, str)
     assert_type(senders.asdf, Any)  # type: ignore[attr-defined]
+
+    # model classes defined in base model modules (like mixins) without own entries:
+    mixin: dam_model.MixinSimpleWaterBalance
+    assert_type(mixin.sequences.fluxes.inflow, dam_fluxes.Inflow)
+    assert_type(mixin.sequences.fluxes.asdf, Any)  # type: ignore[attr-defined]
+
+    # generic subgroups (like `self.subpars` in abstract base classes):
+    subpars: parametertools.SubParameters[hland_96.Model]
+    assert_type(subpars.zonetype, hland_control.ZoneType)
+    assert_type(subpars.relzoneareas, hland_derived.RelZoneAreas)
+    assert_type(subpars.asdf, Any)  # type: ignore[attr-defined]
+    subseqs: sequencetools.ModelSequences[hland_96.Model, Any, Any]
+    assert_type(subseqs.sm, hland_states.SM)
+    assert_type(subseqs.asdf, Any)  # type: ignore[attr-defined]

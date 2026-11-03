@@ -1067,7 +1067,8 @@ class XMLConditions(XMLBase):
         conditionmanager = hydpy.pub.conditionmanager
         prefix = None if (p := self.find("prefix")) is None else str(p.text)
         with conditionmanager.prefix(prefix):
-            return getattr(conditionmanager, f"{type_}path")
+            path: str = getattr(conditionmanager, f"{type_}path")
+            return path
 
     def load_conditions(self, currentdir: str | None = None) -> None:
         """Load the condition files of the |Model| objects of all |Element| objects

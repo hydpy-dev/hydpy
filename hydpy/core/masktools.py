@@ -489,7 +489,8 @@ following error occurred: The given key is neither a string nor a mask type.
                 f"While trying to retrieve a mask based on key `{repr(key)}`"
             )
         if self._is_available(name):
-            return getattr(self, name)
+            mask: type[DefaultMask] = getattr(self, name)
+            return mask
         raise KeyError(f"No mask named `{name}` available.")
 
     def __repr__(self) -> str:

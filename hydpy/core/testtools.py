@@ -730,7 +730,8 @@ standard library for for further information.
 
     def get_output_array(self, parseqs: sequencetools.IOSequence) -> NDArrayFloat:
         """Return the array containing the output results of the given sequence."""
-        return parseqs.series
+        series: NDArrayFloat = parseqs.series
+        return series
 
     def prepare_node_sequences(self) -> None:
         """Prepare the simulation series of all nodes.
@@ -1076,7 +1077,8 @@ class UnitTest(Test):
     def get_output_array(self, parseqs: variabletools.Variable) -> NDArrayFloat:
         """Return the array containing the output results of the given
         parameter or sequence."""
-        return getattr(self.results, parseqs.name)
+        results: NDArrayFloat = getattr(self.results, parseqs.name)
+        return results
 
     @property
     def raw_first_col_strings(self) -> tuple[str, ...]:

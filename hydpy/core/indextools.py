@@ -17,7 +17,9 @@ Date2Float: TypeAlias = Callable[[timetools.Date], float]
 
 
 def _get_timegrids(func: Date2Float) -> timetools.Timegrids:
-    timegrids = exceptiontools.getattr_(hydpy.pub, "timegrids", None)
+    timegrids = exceptiontools.getattr_(
+        hydpy.pub, "timegrids", None, timetools.Timegrids
+    )
     if timegrids is None:
         name = func.__name__[1:]
         raise exceptiontools.AttributeNotReady(

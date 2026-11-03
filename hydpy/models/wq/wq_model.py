@@ -3849,8 +3849,8 @@ class WidthsModel(modeltools.AdHocModel):
             pys.insert(0, y)
 
         for t in ts:
-            t = int(t)
-            _add_to_points(fx=fws[t], tx=tws[t], y=hs[t])
+            i = int(t)
+            _add_to_points(fx=fws[i], tx=tws[i], y=hs[i])
 
         pyplot.xlabel("distance from centre [m]")
         pyplot.ylabel("height [m]")

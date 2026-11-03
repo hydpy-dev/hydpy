@@ -400,7 +400,7 @@ into steps with an even number of seconds each, but the actual step size is `7h`
                     break
             x0, y0 = xs[i - 1], ys[i - 1]
             dx, dy = xs[i] - x0, ys[i] - y0
-            return (x - x0) * dy / dx + y0
+            return float((x - x0) * dy / dx + y0)
 
         def _get_ppolys(delta: float) -> ppolytools.PPolys:
             name2ppoly: dict[str, ppolytools.PPoly] = {}

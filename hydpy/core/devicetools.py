@@ -1141,7 +1141,7 @@ conflict with using their names as identifiers.
     def __compare(self, other: object, func: Callable[[Any, Any], bool]) -> bool:
         if isinstance(other, type(self)):
             return func(set(self), set(other))
-        return NotImplemented
+        return NotImplemented  # type: ignore[no-any-return]
 
     def __lt__(self: TypeDevices, other: TypeDevices) -> bool:
         return self.__compare(other, operator.lt)

@@ -2361,7 +2361,8 @@ class Return_SaturationVapourPressure_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model, temperature: float, /) -> float:
-        return 6.1078 * 2.71828 ** (17.08085 * temperature / (temperature + 234.175))
+        factor: float = 2.71828 ** (17.08085 * temperature / (temperature + 234.175))
+        return 6.1078 * factor
 
 
 class Calc_SaturationVapourPressure_V1(modeltools.Method):

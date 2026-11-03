@@ -609,7 +609,7 @@ decimal fraction of a second than "0" allowed.
         ...
         AttributeError: Date format style `iso` is not available.
         """
-        return vars(self).get("style", "iso2")
+        return str(vars(self).get("style", "iso2"))
 
     @style.setter
     def style(self, style: str) -> None:

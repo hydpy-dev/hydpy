@@ -1493,7 +1493,8 @@ class Return_DVH_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         h = smoothutils.smooth_max1(h, con.psiae, der.rh1)
-        return con.thetas * (1.0 - (h / con.psiae) ** (-1.0 / con.b))
+        relsat: float = (h / con.psiae) ** (-1.0 / con.b)
+        return con.thetas * (1.0 - relsat)
 
 
 class Calc_DVEq_V2(modeltools.Method):
@@ -1747,9 +1748,8 @@ class Return_DVH_V2(modeltools.Method):
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         h = smoothutils.smooth_max1(h, con.psiae, der.rh1)
-        return con.thetar + (
-            (con.thetas - con.thetar) * (1.0 - (h / con.psiae) ** (-1.0 / con.b))
-        )
+        relsat: float = (h / con.psiae) ** (-1.0 / con.b)
+        return con.thetar + ((con.thetas - con.thetar) * (1.0 - relsat))
 
 
 class Calc_DVEq_V4(modeltools.Method):

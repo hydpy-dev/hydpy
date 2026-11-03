@@ -7,7 +7,6 @@ import numpy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
-from hydpy.models.manager import manager_model
 from hydpy.models.manager import manager_variables
 
 
@@ -134,7 +133,7 @@ the following error occurred: The sources `d` and `e` are unknown.
                         "Providing keyword arguments and more than one positional "
                         "argument simultaneously is not supported."
                     ) from None
-                model = cast(manager_model.Model, self.subpars.pars.model)
+                model = self.subpars.pars.model
                 sourcenames = model.parameters.control.sources.sourcenames
                 required_names = set(sourcenames)
                 given_names = set(kwargs)
@@ -143,8 +142,7 @@ the following error occurred: The sources `d` and `e` are unknown.
                     n = len(diff)
                     raise ValueError(
                         f"For the {inflect.listing('source', sorted(diff))}, no "
-                        f"{inflect.plural('value', n)} {inflect.plural('is', n)} "
-                        f"given."
+                        f"{inflect.plural('value', n)} {inflect.plural('is', n)} given."
                     ) from None
                 if diff := given_names - required_names:
                     listing = objecttools.Inflect.listing
@@ -167,7 +165,7 @@ the following error occurred: The sources `d` and `e` are unknown.
 
     def __repr__(self) -> str:
         if self._valueready and (len(numpy.unique_values(self.values))) > 1:
-            model = cast(manager_model.Model, self.subpars.pars.model)
+            model = self.subpars.pars.model
             sourcenames = model.parameters.control.sources.sourcenames
             n2v = tuple(f"{n}={v}" for n, v in zip(sourcenames, self.values))
             return objecttools.assignrepr_values(n2v, f"{self.name}(") + ")"

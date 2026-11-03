@@ -89,11 +89,11 @@ def _get_splineclass(
     name: Literal["cubic", "akima", "pchip"], /
 ) -> type[interpolate.CubicHermiteSpline]:
     if name == "cubic":
-        return interpolate.CubicSpline
+        return interpolate.CubicSpline  # type: ignore[no-any-return]
     if name == "akima":
-        return interpolate.Akima1DInterpolator
+        return interpolate.Akima1DInterpolator  # type: ignore[no-any-return]
     if name == "pchip":
-        return interpolate.PchipInterpolator
+        return interpolate.PchipInterpolator  # type: ignore[no-any-return]
     assert_never(name)
 
 

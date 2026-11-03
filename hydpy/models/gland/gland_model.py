@@ -1347,7 +1347,7 @@ class Main_PETModel_V1(modeltools.AdHocModel):
         """
         control = self.parameters.control
         petmodel.prepare_nmbzones(1)
-        petmodel.prepare_subareas(control.area.value)
+        petmodel.prepare_subareas([control.area.value])
 
 
 class Main_RConcModel_V1(modeltools.AdHocModel):

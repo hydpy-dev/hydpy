@@ -9,8 +9,10 @@ if __name__ == "__main__":
     from hydpy.models import hland, hland_96
     from hydpy.models.hland import hland_model
 
+    # unknown model names:
     prepare_model("hland_69")  # type: ignore[arg-type]
 
+    # model modules and model names:
     assert_type(prepare_model(hland), modeltools.Model)
     assert_type(prepare_model("hland"), hland_model.Model)
     assert_type(prepare_model("hland_96"), hland_96.Model)

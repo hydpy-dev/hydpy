@@ -11,6 +11,7 @@ if __name__ == "__main__":
     from hydpy.models.exch import exch_control
     from hydpy.models.hland import hland_control, hland_derived
 
+    # regular parameters:
     control: parametertools.ControlParameters[hland_96.Model]
     assert_type(
         control.regular,
@@ -26,6 +27,7 @@ if __name__ == "__main__":
     derived: parametertools.DerivedParameters[hland_96.Model]
     assert_type(derived.regular.dt, hland_derived.DT)
 
+    # special parameters:
     control_exch: parametertools.ControlParameters[exch_branch_io.Model]
     assert_type(control_exch.regular.minstream, exch_control.MinStream)
     assert_type(control_exch.special.targets, exch_control.Targets)
@@ -34,6 +36,7 @@ if __name__ == "__main__":
     assert_type(control_exch.regular.targets, Any)  # type: ignore[attr-defined]
     assert_type(control_exch.special.minstream, Any)  # type: ignore[attr-defined]
 
+    # generic parameter subsets:
     subset: parametertools.ParameterSubset[
         parametertools.ControlParameters[exch_branch_io.Model], parametertools.Parameter
     ]
@@ -41,6 +44,7 @@ if __name__ == "__main__":
     assert_type(subset.targets, exch_control.Targets)
     assert_type(subset.asdf, Any)  # type: ignore[attr-defined]
 
+    # unknown models:
     control_any: parametertools.ControlParameters[Any]
     assert_type(control_any.regular.beta, parametertools.Parameter)
     assert_type(control_any.special.beta, parametertools.SpecialParameter)

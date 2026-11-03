@@ -8,6 +8,7 @@ if __name__ == "__main__":
     from hydpy.core import sequencetools
     from hydpy.models import hland_96
 
+    # parameter subgroups:
     p = parametertools.Parameters[hland_96.Model]
     control: parametertools.ControlParameters[hland_96.Model]
     assert_type(control.vars, p)
@@ -30,6 +31,7 @@ if __name__ == "__main__":
     assert_type(solver.seqs, Any)  # type: ignore[attr-defined]
     assert_type(solver.asdf, Any)  # type: ignore[attr-defined]
 
+    # sequence subgroups:
     s = sequencetools.Sequences[hland_96.Model]
     inputs: sequencetools.InputSequences[hland_96.Model]
     assert_type(inputs.vars, s)

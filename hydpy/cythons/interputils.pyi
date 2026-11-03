@@ -3,19 +3,13 @@
 from hydpy.auxs.interptools import InterpAlgorithm
 from hydpy.core.typingtools import *
 
-if TYPE_CHECKING:
-    from hydpy.cythons.annutils import ANN
-    from hydpy.cythons.ppolyutils import PPoly
-else:
-    from hydpy.cythons.autogen.annutils import ANN
-    from hydpy.cythons.autogen.ppolyutils import PPoly
-
 class SimpleInterpolator:
     nmb_inputs: int
     nmb_outputs: int
-    algorithm: ANN | PPoly
-    inputs: VectorFloat
-    outputs: VectorFloat
+    algorithm_type: int
+    inputs: FastAccessVector[float]
+    outputs: FastAccessVector[float]
+    output_derivatives: FastAccessVector[float]
     def __init__(self, algorithm: InterpAlgorithm) -> None: ...
     def calculate_values(self) -> None: ...
     def calculate_derivatives(self, idx: int, /) -> None: ...
@@ -24,9 +18,9 @@ class SeasonalInterpolator:
     nmb_inputs: int
     nmb_outputs: int
     nmb_algorithms: int
-    algorithms: tuple[ANN | PPoly, ...]
-    ratios: MatrixFloat
-    inputs: VectorFloat
-    outputs: VectorFloat
-    def __init__(self, algorithms: Sequence[InterpAlgorithm]): ...
+    algorithm_types: FastAccessVector[int]
+    ratios: FastAccessMatrix[float]
+    inputs: FastAccessVector[float]
+    outputs: FastAccessVector[float]
+    def __init__(self, algorithms: Sequence[InterpAlgorithm]) -> None: ...
     def calculate_values(self, idx: int, /) -> None: ...

@@ -8,7 +8,7 @@ import inspect
 import os
 import pickle
 import sys
-from typing import get_type_hints, Literal, TYPE_CHECKING
+from typing import get_type_hints, Literal, TypeAlias, TYPE_CHECKING
 
 import click
 import Cython.Build
@@ -220,6 +220,103 @@ def _get_adder_keywords(model: modeltools.Model) -> dict[str, tuple[str, ...]]:
     return name2keywords
 
 
+_ApplicationModelData: TypeAlias = tuple[
+    str, dict[str, tuple[str, str]], dict[str, dict[str, tuple[str, str]]]
+]
+"""The base model name and the method and variable maps of an application model."""
+
+
+def _include_applicationmodels(
+    model2subgroup2attr2module_var: dict[str, dict[str, dict[str, tuple[str, str]]]],
+    applicationmodels: list[_ApplicationModelData],
+) -> None:
+    """Let the variable maps of base models also include the variables of all
+    corresponding application models."""
+    for basename, _, subdict in applicationmodels:
+        basemodule = f"hydpy.models.{basename}.{basename}_model"
+        basemap = model2subgroup2attr2module_var.get(f"{basemodule}.Model")
+        if basemap is None:
+            continue
+        for subgroup, attr2module_var in subdict.items():
+            basesubmap = basemap.setdefault(subgroup, {})
+            for attr, (module, var_name) in attr2module_var.items():
+                if module.startswith(f"hydpy.models.{basename}."):
+                    basesubmap[attr] = (module, var_name)
+
+
+def _include_applicationmethods(
+    model2attr2module_var: dict[str, dict[str, tuple[str, str]]],
+    applicationmodels: list[_ApplicationModelData],
+) -> None:
+    """Let the method maps of base models also include the methods of all corresponding
+    application models.
+
+    Short names like `calc_tc` are only included if they refer to the same method in the
+    base model and all its application models).
+    """
+    ambiguous: dict[str, set[str]] = {}
+    for basename, attr2module_method, _ in applicationmodels:
+        basemodule = f"hydpy.models.{basename}.{basename}_model"
+        if (basemethods := model2attr2module_var.get(basemodule)) is None:
+            continue
+        for attr, module_method in attr2module_method.items():
+            if not module_method[0].startswith(f"hydpy.models.{basename}."):
+                continue
+            if attr in ambiguous.get(basemodule, set()):
+                continue
+            if basemethods.setdefault(attr, module_method) != module_method:
+                del basemethods[attr]
+                ambiguous.setdefault(basemodule, set()).add(attr)
+
+
+class _VariableInfo:
+    """Collects the variable-specific information required by the Mypy plugin."""
+
+    def __init__(self) -> None:
+        self.ndim_type: dict[str, tuple[int, type[float]]] = {}
+        self.timedependent_ints: set[str] = set()
+        self.zip2constants: dict[str, tuple[str, ...] | None] = {}
+        self.keywordparameter2names: dict[str, tuple[str, ...] | None] = {}
+        self.special2ctype: dict[str, str] = {}
+
+    def register(self, var: object, fullname: str) -> None:
+        """Register the relevant information on the given variable."""
+
+        from hydpy.core.parametertools import KeywordParameter1D
+        from hydpy.core.parametertools import KeywordParameter2D
+        from hydpy.core.parametertools import Parameter
+        from hydpy.core.parametertools import SpecialParameter
+        from hydpy.core.parametertools import ZipParameter
+        from hydpy.core.variabletools import Variable
+
+        if isinstance(var, SpecialParameter):
+            ctype = type(var).CTYPE
+            # The plugin assumes that special parameters with the default `CTYPE` hand
+            # over nothing but `None` to the model methods:
+            assert (ctype != "object") or (
+                getattr(var.fastaccess, var.name) is None
+            ), f"`{fullname}` hands over something other than `None`."
+            self.special2ctype[fullname] = ctype
+        if not isinstance(var, Variable):
+            return
+        self.ndim_type[fullname] = var.NDIM, var.TYPE
+        if isinstance(var, Parameter) and (var.TYPE is int) and (var.TIME is not None):
+            self.timedependent_ints.add(fullname)
+        if isinstance(var, ZipParameter):
+            constants = type(var).constants
+            self.zip2constants[fullname] = (
+                tuple(sorted(c.lower() for c in constants)) if constants else None
+            )
+        elif isinstance(var, KeywordParameter1D):
+            self.keywordparameter2names[fullname] = (
+                None if type(var).ENTRYNAMES_FROM_MAINMODEL else type(var).entrynames
+            )
+        elif isinstance(var, KeywordParameter2D):
+            self.keywordparameter2names[fullname] = (
+                None if type(var).ROWNAMES_FROM_MAINMODEL else type(var).rownames
+            )
+
+
 def _write_mypy_plugin_data() -> None:
     """Infer and write model-specific data required by the Mypy plugin."""
 
@@ -228,10 +325,6 @@ def _write_mypy_plugin_data() -> None:
     from hydpy import pub
     from hydpy.core.autodoctools import autodoc_complete
     from hydpy.core.importtools import prepare_model
-    from hydpy.core.parametertools import KeywordParameter1D
-    from hydpy.core.parametertools import KeywordParameter2D
-    from hydpy.core.parametertools import Parameter
-    from hydpy.core.parametertools import ZipParameter
     from hydpy.core.sequencetools import NodeSequence
     from hydpy.core.sequencetools import Obs
     from hydpy.core.sequencetools import Sim
@@ -244,11 +337,9 @@ def _write_mypy_plugin_data() -> None:
         {}
     )
     var2modelmodule_subgroupmodule_subgrouptype: dict[str, tuple[str, str, str]] = {}
-    var2ndim_type: dict[str, tuple[int, type[float]]] = {}
-    timedependent_ints: set[str] = set()
-    zip2constants: dict[str, tuple[str, ...] | None] = {}
+    varinfo = _VariableInfo()
     adder2keywords: dict[str, tuple[str, ...]] = {}
-    keywordparameter2names: dict[str, tuple[str, ...] | None] = {}
+    applicationmodels: list[_ApplicationModelData] = []
 
     with pub.options.usecython(False):
         dirpath = models.__path__[0]
@@ -256,13 +347,16 @@ def _write_mypy_plugin_data() -> None:
             modelpath = os.path.join(dirpath, modelname)
             if os.path.isdir(modelpath) and (modelname != "__pycache__"):
                 basemodel = True
+                basename = modelname
                 modelmodule = f"hydpy.models.{modelname}.{modelname}_model"
             elif modelpath.endswith(".py") and (modelname != "__init__.py"):
                 basemodel = False
                 modelname = modelname.removesuffix(".py")
+                basename = modelname.partition("_")[0]
                 modelmodule = f"hydpy.models.{modelname}"
             else:
                 continue
+            basemodule = f"hydpy.models.{basename}.{basename}_model"
             model = prepare_model(modelname, ignore_deprecated=True)
             subdict = {}
             for method in model.get_methods():
@@ -286,46 +380,31 @@ def _write_mypy_plugin_data() -> None:
                             type(var).__module__,
                             type(var).__name__,
                         )
-                        if basemodel:
-                            fullname = f"{type(var).__module__}.{type(var).__name__}"
+                        fullname = f"{type(var).__module__}.{type(var).__name__}"
+                        if basemodel or (
+                            type(var).__module__.startswith(f"hydpy.models.{basename}.")
+                            and (
+                                fullname
+                                not in var2modelmodule_subgroupmodule_subgrouptype
+                            )
+                        ):
                             var2modelmodule_subgroupmodule_subgrouptype[fullname] = (
-                                modelmodule,
+                                basemodule,
                                 prefix,
                                 type(subvars).__name__,
                             )
-                            if isinstance(var, Variable):
-                                var2ndim_type[fullname] = var.NDIM, var.TYPE
-                                if (
-                                    isinstance(var, Parameter)
-                                    and (var.TYPE is int)
-                                    and (var.TIME is not None)
-                                ):
-                                    timedependent_ints.add(fullname)
-                                if isinstance(var, ZipParameter):
-                                    constants = type(var).constants
-                                    zip2constants[fullname] = (
-                                        tuple(sorted(c.lower() for c in constants))
-                                        if constants
-                                        else None
-                                    )
-                                elif isinstance(var, KeywordParameter1D):
-                                    keywordparameter2names[fullname] = (
-                                        None
-                                        if type(var).ENTRYNAMES_FROM_MAINMODEL
-                                        else type(var).entrynames
-                                    )
-                                elif isinstance(var, KeywordParameter2D):
-                                    keywordparameter2names[fullname] = (
-                                        None
-                                        if type(var).ROWNAMES_FROM_MAINMODEL
-                                        else type(var).rownames
-                                    )
+                            varinfo.register(var, fullname)
                     subdict_[f"{prefix}.{type(subvars).__name__}"] = subsubdict
             model2subgroup2attr2module_var[f"{modelmodule}.Model"] = subdict_
+            if not basemodel:
+                applicationmodels.append((basename, subdict, subdict_))
+
+    _include_applicationmodels(model2subgroup2attr2module_var, applicationmodels)
+    _include_applicationmethods(model2attr2module_var, applicationmodels)
 
     for nodeseq in (NodeSequence, Sim, Obs):
         fullname = f"{nodeseq.__module__}.{nodeseq.__name__}"
-        var2ndim_type[fullname] = nodeseq.NDIM, nodeseq.TYPE
+        varinfo.ndim_type[fullname] = nodeseq.NDIM, nodeseq.TYPE
 
     vars_with_shape: set[str] = set()
 
@@ -353,12 +432,13 @@ def _write_mypy_plugin_data() -> None:
             model2attr2module_var,
             model2subgroup2attr2module_var,
             var2modelmodule_subgroupmodule_subgrouptype,
-            var2ndim_type,
+            varinfo.ndim_type,
             vars_with_shape,
-            timedependent_ints,
-            zip2constants,
+            varinfo.timedependent_ints,
+            varinfo.zip2constants,
             adder2keywords,
-            keywordparameter2names,
+            varinfo.keywordparameter2names,
+            varinfo.special2ctype,
         )
         pickle.dump(data, file_, protocol=pickle.HIGHEST_PROTOCOL)
 

@@ -14,6 +14,7 @@ from typing import Callable, cast, Final, Literal, NamedTuple
 from warnings import warn
 
 from mypy.checker import TypeChecker
+from mypy.checkmember import analyze_member_access
 from mypy.errorcodes import (
     ARG_TYPE,
     ASSIGNMENT,
@@ -32,9 +33,11 @@ from mypy.nodes import (
     ARG_STAR2,
     CallExpr,
     Decorator,
+    Expression,
     FuncDef,
     MemberExpr,
     MypyFile,
+    NameExpr,
     OverloadedFuncDef,
     TempNode,
     TypeAlias,
@@ -43,10 +46,12 @@ from mypy.nodes import (
 from mypy.options import Options
 from mypy.plugin import (
     AttributeContext,
+    CheckerPluginInterface,
     FunctionContext,
     Plugin,
     MethodContext,
     MethodSigContext,
+    ReportConfigContext,
 )
 from mypy.subtypes import is_same_type, is_subtype
 from mypy.typeops import bind_self, make_simplified_union
@@ -130,6 +135,44 @@ SUBVARS2 = set(
         "hydpy.core.sequencetools.ReceiverSequence.subseqs",
         "hydpy.core.sequencetools.SenderSequence.subvars",
         "hydpy.core.sequencetools.SenderSequence.subseqs",
+    ]
+)
+
+FASTACCESS = set(
+    [
+        "hydpy.core.variabletools.SubVariables.fastaccess",
+        "hydpy.core.sequencetools.StateSequences.fastaccess_old",
+        "hydpy.core.sequencetools.StateSequences.fastaccess_new",
+    ]
+)
+
+SUBGROUPS = set(
+    [
+        "hydpy.core.parametertools.ControlParameters",
+        "hydpy.core.parametertools.DerivedParameters",
+        "hydpy.core.parametertools.FixedParameters",
+        "hydpy.core.parametertools.SolverParameters",
+        "hydpy.core.sequencetools.InputSequences",
+        "hydpy.core.sequencetools.FactorSequences",
+        "hydpy.core.sequencetools.FluxSequences",
+        "hydpy.core.sequencetools.StateSequences",
+        "hydpy.core.sequencetools.LogSequences",
+        "hydpy.core.sequencetools.AideSequences",
+        "hydpy.core.sequencetools.InletSequences",
+        "hydpy.core.sequencetools.OutletSequences",
+        "hydpy.core.sequencetools.ObserverSequences",
+        "hydpy.core.sequencetools.ReceiverSequences",
+        "hydpy.core.sequencetools.SenderSequences",
+    ]
+)
+
+LINKSEQUENCES = set(
+    [
+        "hydpy.core.sequencetools.InletSequences",
+        "hydpy.core.sequencetools.OutletSequences",
+        "hydpy.core.sequencetools.ObserverSequences",
+        "hydpy.core.sequencetools.ReceiverSequences",
+        "hydpy.core.sequencetools.SenderSequences",
     ]
 )
 
@@ -360,6 +403,11 @@ ADDER_KEYWORDS: dict[str, tuple[str, ...]]
 # 'hydpy.models.evap.evap_control.MonthFactor': ('jan', 'feb', ...), ...
 KEYWORD_NAMES: dict[str, tuple[str, ...] | None]
 
+# 'hydpy.models.arma.arma_control.Responses': 'object', ...,
+# 'hydpy.models.dam.dam_control.WaterVolume2WaterLevel':
+#     'interputils.SimpleInterpolator', ...
+SPECIAL_CTYPES: dict[str, str]
+
 with open(join(DIRPATH, "conf", "mypy_plugin_data.pickle"), "rb") as file_:
     _DATA: Final = file_.read()
 (
@@ -372,6 +420,7 @@ with open(join(DIRPATH, "conf", "mypy_plugin_data.pickle"), "rb") as file_:
     ZIP_CONSTANTS,
     ADDER_KEYWORDS,
     KEYWORD_NAMES,
+    SPECIAL_CTYPES,
 ) = loads(_DATA)
 
 DATA_HASH: Final = sha256(_DATA).hexdigest()
@@ -386,6 +435,14 @@ THRESHOLD_FORMAT: Final = re.compile(r"th_(0|[1-9][0-9]*)_(0|[0-9]*[1-9])")
 SUBMODELS_FORMAT: Final = re.compile(r"(.+)_(0|[1-9][0-9]*)")
 """Standard format of the names of submodels handled by `SubmodelsProperty`
 instances."""
+
+BASEMODEL_MODULE_FORMAT: Final = re.compile(r"hydpy\.models\.([a-z0-9]+)\.\1_model")
+"""Standard format of the names of base model modules."""
+
+BASEMODEL_PACKAGE_FORMAT: Final = re.compile(
+    r"hydpy\.models\.([a-z0-9]+)\.\1_[a-z0-9_]+"
+)
+"""Standard format of the names of all modules of base model packages."""
 
 
 def _standardize_toy(name: str) -> str | None:
@@ -952,40 +1009,119 @@ def method_hook(context: AttributeContext) -> Type:
     `ModelX.__getattr__("calc_x_v1" or "calc_x") -> modeltools.Method`
     -->
     `ModelX.__getattr__("calc_x_v1" or "calc_x") -> modelx.modelx_model.Calc_X_V1`
+
+    Within base model packages, the general model classes of `modeltools` referenced by
+    `model`, `self`, or `.model` fall back to the base model.  Then, the plugin also
+    resolves old-style submodels (like `pegasush`) and other members of the base model
+    class, including those inherited from mixins like `SegmentModel` (e.g. submodel type
+    IDs or index properties like `idx_segment`).  Submodels handled by
+    `SubmodelProperty` or `SubmodelsProperty` objects remain `Any` (model methods access
+    them via `cast`).  The plugin reports all other members as unknown.
     """
-    if (
+    if not (
         isinstance(api := context.api, TypeChecker)
         and isinstance(model_inst := context.type, Instance)
-        and (model_map := MODEL_MAP.get(model_inst.type.fullname.rpartition(".")[0]))
         and isinstance(member_expr := context.context, MemberExpr)
         and isinstance(default := get_proper_type(context.default_attr_type), AnyType)
         and (default.type_of_any == TypeOfAny.explicit)
     ):
-        if (attr_name := member_expr.name) in model_map:
-            module_name, method_name = model_map[attr_name]
-            if (module_type := api.modules.get(module_name)) is None:
-                return context.default_attr_type
-            if (
-                isinstance(method_info := module_type.names[method_name].node, TypeInfo)
-                and ((call_sym := method_info.get("__call__")) is not None)
-                and isinstance(call_node := call_sym.node, Decorator)
-                and isinstance(
-                    call_type := get_proper_type(call_node.var.type), CallableType
-                )
-            ):
-                if method_info.has_base("hydpy.core.modeltools.AutoMethod"):
-                    return bind_self(
-                        bind_self(call_type, is_classmethod=True), model_inst
-                    )
-                return bind_self(call_type, model_inst)
-        context.api.msg.report(
-            msg=f"Model `{model_inst.type.fullname}` has no method `{attr_name}`.",
-            context=member_expr,
-            severity="error",
-            code=ATTR_DEFINED,
-            origin_context=None,
-        )
+        return context.default_attr_type
+    basemodule = (
+        _get_basemodel_module(api, model_inst)
+        if _is_own_model_expression(member_expr.expr)
+        else None
+    )
+    model_module = (
+        model_inst.type.fullname.rpartition(".")[0]
+        if basemodule is None
+        else basemodule
+    )
+    if not (model_map := MODEL_MAP.get(model_module)):
+        return context.default_attr_type
+    if (attr_name := member_expr.name) in model_map:
+        module_name, method_name = model_map[attr_name]
+        if (module_type := api.modules.get(module_name)) is None:
+            return context.default_attr_type
+        if (
+            isinstance(method_info := module_type.names[method_name].node, TypeInfo)
+            and ((call_sym := method_info.get("__call__")) is not None)
+            and isinstance(call_node := call_sym.node, Decorator)
+            and isinstance(
+                call_type := get_proper_type(call_node.var.type), CallableType
+            )
+        ):
+            if method_info.has_base("hydpy.core.modeltools.AutoMethod"):
+                return bind_self(bind_self(call_type, is_classmethod=True), model_inst)
+            return bind_self(call_type, model_inst)
+    if basemodule is not None:
+        if (
+            submodel := _get_old_style_submodel_instance(api, basemodule, attr_name)
+        ) is not None:
+            return submodel
+        if (
+            member_type := _get_basemodel_member_type(api, basemodule, member_expr)
+        ) is not None:
+            return member_type
+    model_name = (
+        model_inst.type.fullname if basemodule is None else f"{basemodule}.Model"
+    )
+    context.api.msg.report(
+        msg=f"Model `{model_name}` has no member `{attr_name}`.",
+        context=member_expr,
+        severity="error",
+        code=ATTR_DEFINED,
+        origin_context=None,
+    )
     return context.default_attr_type
+
+
+def _get_basemodel_member_type(
+    api: TypeChecker, module_name: str, member_expr: MemberExpr
+) -> Type | None:
+    """Return the type of the member of the base model defined in the given module that
+    the given member expression refers to, if available.
+
+    For submodels handled by `SubmodelProperty` or `SubmodelsProperty` objects, the type
+    is still `Any` (we might change this later).
+    """
+    if ((info := _get_typeinfo(api, f"{module_name}.Model")) is None) or (
+        (symbol := info.get(name := member_expr.name)) is None
+    ):
+        return None
+    if isinstance(symbol_type := get_proper_type(symbol.type), Instance) and (
+        symbol_type.type.has_base("hydpy.core.modeltools.SubmodelProperty")
+        or symbol_type.type.has_base("hydpy.core.modeltools.SubmodelsProperty")
+    ):
+        return AnyType(TypeOfAny.special_form)
+    base_inst = Instance(info, args=[])
+    with api.msg.filter_errors():
+        return analyze_member_access(
+            name,
+            base_inst,
+            member_expr,
+            is_lvalue=False,
+            is_super=False,
+            is_operator=False,
+            original_type=base_inst,
+            chk=api,
+            suppress_errors=True,
+        )
+
+
+def _get_old_style_submodel_instance(
+    api: TypeChecker, module_name: str, attr_name: str
+) -> Instance | None:
+    """Return the type of the "old-style" submodel defined in the given module that
+    models handle via the given attribute name, if available."""
+    if (module := api.modules.get(module_name)) is not None:
+        for name, symbol in module.names.items():
+            if (
+                (name.lower() == attr_name)
+                and isinstance(info := symbol.node, TypeInfo)
+                and info.has_base("hydpy.core.modeltools.Submodel")
+            ):
+                return Instance(info, args=[])
+    return None
 
 
 def variables_hook1(context: AttributeContext) -> Type:
@@ -994,9 +1130,15 @@ def variables_hook1(context: AttributeContext) -> Type:
     -->
     `ModelX.Parameters[ModelX, ...]`
     """
-    if isinstance(model_inst := context.type, Instance) and isinstance(
+    if (model_inst := _get_model_instance(context.type)) and isinstance(
         vars_inst := get_proper_type(context.default_attr_type), Instance
     ):
+        if (
+            isinstance(member_expr := context.context, MemberExpr)
+            and _is_own_model_expression(member_expr.expr)
+            and (base_inst := _get_basemodel_instance(context.api, model_inst))
+        ):
+            model_inst = base_inst
         new_inst = vars_inst.copy_modified(args=(model_inst,) + vars_inst.args[1:])
         new_inst.extra_attrs = _forward_landtypes(model_inst)
         return new_inst
@@ -1056,6 +1198,177 @@ def subvariables_hook2(context: AttributeContext) -> Type:
             and isinstance(subgroup_info := subgroup_sym.node, TypeInfo)
         ):
             return Instance(subgroup_info, args=[Instance(model_info, args=[])])
+    if (subvars_type := _get_generic_subvars_type(context)) is not None:
+        return subvars_type
+    return context.default_attr_type
+
+
+def _get_generic_subvars_type(context: AttributeContext) -> Type | None:
+    """
+    `Variable.subvars` --> `SubVariables[Any, Any, ...]`
+    -->
+    `Variable.subvars` --> `SubVariables[BaseModelX, Parameters[BaseModelX] |
+    Sequences[BaseModelX], ...]`
+
+    Only applies within the modules of base model packages, where generic variables
+    belong to the base model.
+    """
+    if (
+        isinstance(api := context.api, TypeChecker)
+        and isinstance(default := get_proper_type(context.default_attr_type), Instance)
+        and (default.type.fullname == "hydpy.core.variabletools.SubVariables")
+        and (len(default.args) == 4)
+        and isinstance(get_proper_type(default.args[0]), AnyType)
+        and (match := BASEMODEL_PACKAGE_FORMAT.fullmatch(api.tree.fullname))
+    ):
+        base = match.group(1)
+        model_info = _get_typeinfo(api, f"hydpy.models.{base}.{base}_model.Model")
+        pars_info = _get_typeinfo(api, "hydpy.core.parametertools.Parameters")
+        seqs_info = _get_typeinfo(api, "hydpy.core.sequencetools.Sequences")
+        if (model_info is None) or (pars_info is None) or (seqs_info is None):
+            return None
+        model_inst = Instance(model_info, args=[])
+        group_type = UnionType(
+            [
+                Instance(pars_info, args=[model_inst]),
+                Instance(seqs_info, args=[model_inst]),
+            ]
+        )
+        return default.copy_modified(args=[model_inst, group_type, *default.args[2:]])
+    return None
+
+
+def fastaccess_hook(context: AttributeContext) -> Type:
+    """
+    `ControlParameters[ModelX].fastaccess -> FastAccessParameter`
+    -->
+    `ControlParameters[ModelX].fastaccess -> FastAccessParameter` with the types of the
+    values of all control parameters of `ModelX` as extra attributes
+    """
+    default = context.default_attr_type
+    if (
+        isinstance(api := context.api, TypeChecker)
+        and isinstance(default_inst := get_proper_type(default), Instance)
+        and isinstance(subvars_inst := context.type, Instance)
+        and ((subvars_name := subvars_inst.type.fullname) in SUBGROUPS)
+        and (len(subvars_inst.args) > 0)
+        and (model_inst := _get_model_instance(subvars_inst.args[0]))
+        and (name_map := _get_model_map(model_inst))
+    ):
+        subvars_map = name_map[1].get(subvars_name, {})
+        link = subvars_name in LINKSEQUENCES
+        int_inst = api.named_type("builtins.int")
+        attrs: dict[str, Type] = {}
+        for attr_name, (module_name, var_name) in subvars_map.items():
+            ndim_type = VAR_INFO.get(f"{module_name}.{var_name}")
+            if ndim_type is None:
+                attrs[attr_name] = _get_special_fastaccess_type(
+                    api, f"{module_name}.{var_name}"
+                )
+                continue
+            ndim, type_ = ndim_type
+            if (attr_type := _get_fastaccess_type(api, ndim, type_)) is None:
+                return default
+            attrs[attr_name] = attr_type
+            if link and (ndim == 1):
+                attrs[f"len_{attr_name}"] = int_inst
+            if (var_info := _get_typeinfo(api, f"{module_name}.{var_name}")) is None:
+                continue
+            if var_info.has_base("hydpy.core.parametertools.KeywordParameter1D"):
+                attrs[f"_{attr_name}_entrymin"] = int_inst
+            elif var_info.has_base("hydpy.core.parametertools.KeywordParameter2D"):
+                attrs[f"_{attr_name}_rowmin"] = int_inst
+                attrs[f"_{attr_name}_columnmin"] = int_inst
+            if var_info.has_base("hydpy.core.parametertools.CallbackParameter"):
+                model_info = _get_typeinfo(api, "hydpy.core.modeltools.Model")
+                attrs[f"{attr_name}_callback"] = CallableType(
+                    arg_types=[
+                        (
+                            AnyType(TypeOfAny.special_form)
+                            if model_info is None
+                            else Instance(model_info, args=[])
+                        )
+                    ],
+                    arg_kinds=[ARG_POS],
+                    arg_names=[None],
+                    ret_type=NoneType(),
+                    fallback=api.named_type("builtins.function"),
+                )
+        new_inst = default_inst.copy_modified()
+        new_inst.extra_attrs = ExtraAttrs(attrs=attrs)
+        return new_inst
+    if (
+        isinstance(api := context.api, TypeChecker)
+        and not api.tree.fullname.startswith("hydpy.")
+        and isinstance(subvars_inst := context.type, Instance)
+        and (len(subvars_inst.args) > 0)
+        and (_get_model_instance(subvars_inst.args[0]) is not None)
+    ):
+        return AnyType(TypeOfAny.special_form)
+    return default
+
+
+def _get_fastaccess_type(
+    api: TypeChecker, ndim: int, type_: type[float]
+) -> Type | None:
+    """Return the type of the values of a variable with the given dimensionality and
+    value type, as seen by the methods of a model via `fastaccess` objects."""
+    scalar = api.named_type(f"builtins.{type_.__name__}")
+    if ndim == 0:
+        return scalar
+    name = {1: "FastAccessVector", 2: "FastAccessMatrix"}.get(ndim)
+    if (name is None) or (
+        (info := _get_typeinfo(api, f"hydpy.core.typingtools.{name}")) is None
+    ):
+        return None
+    return Instance(info, args=[scalar])
+
+
+def _get_special_fastaccess_type(api: TypeChecker, fullname: str) -> Type:
+    """Return the type of the object a special parameter hands over to the methods of a
+    model via its `fastaccess` object.
+
+    The type follows from the parameter's `CTYPE`: `object` means the parameter hands
+    over nothing but `None`, and names like `interputils.SimpleInterpolator` refer to
+    the corresponding extension classes of subpackage `hydpy.cythons`.
+    """
+    if (ctype := SPECIAL_CTYPES.get(fullname)) is None:
+        return AnyType(TypeOfAny.special_form)
+    if ctype == "object":
+        return NoneType()
+    if (info := _get_typeinfo(api, f"hydpy.cythons.{ctype}")) is None:
+        return AnyType(TypeOfAny.special_form)
+    return Instance(info, args=[])
+
+
+def fastaccess_member_hook(context: AttributeContext) -> Type:
+    """
+    `FastAccess.__getattr__("var") -> Any`
+    -->
+    `FastAccess.__getattr__("var") -> float` (or another type stored as an extra
+    attribute by `fastaccess_hook`)
+
+    Report an error if a `fastaccess` object with known extra attributes does not
+    handle the requested variable.
+    """
+    if (
+        isinstance(fastaccess_inst := context.type, Instance)
+        and ((extra_attrs := fastaccess_inst.extra_attrs) is not None)
+        and isinstance(member_expr := context.context, MemberExpr)
+    ):
+        if (attr_type := extra_attrs.attrs.get(member_expr.name)) is not None:
+            return attr_type
+        context.api.msg.report(
+            msg=(
+                f"The `fastaccess` object does not handle a variable named "
+                f"`{member_expr.name}`."
+            ),
+            context=member_expr,
+            severity="error",
+            code=ATTR_DEFINED,
+            origin_context=None,
+        )
+        return AnyType(type_of_any=TypeOfAny.from_error)
     return context.default_attr_type
 
 
@@ -1099,6 +1412,19 @@ def parametersubset_hook(context: AttributeContext) -> Type:
     return context.default_attr_type
 
 
+def _get_typeinfo(api: TypeChecker, fullname: str) -> TypeInfo | None:
+    """Return the type information on the class with the given full name, if
+    available."""
+    module_name, _, class_name = fullname.rpartition(".")
+    if (
+        ((module := api.modules.get(module_name)) is not None)
+        and ((symbol := module.names.get(class_name)) is not None)
+        and isinstance(info := symbol.node, TypeInfo)
+    ):
+        return info
+    return None
+
+
 def _get_variable_type(
     context: AttributeContext,
     subvars_type: Type,
@@ -1113,15 +1439,26 @@ def _get_variable_type(
         and isinstance(subvars_inst := get_proper_type(subvars_type), Instance)
         and (len(args := subvars_inst.args) > 0)
         and isinstance(model_inst := get_proper_type(args[0]), Instance)
-        and (model_map := VAR_MAP_1.get(model_inst.type.fullname))
+        and (name_map := _get_model_map(model_inst))
         and isinstance(member_expr := context.context, MemberExpr)
         and (owner_inst.type.get(member_expr.name) is None)
     ):
+        model_name, model_map = name_map
         attr_name = member_expr.name
-        if (subvars_map := model_map.get(subvars_inst.type.fullname)) and (
-            attr_name in subvars_map
-        ):
-            module_name, var_name = subvars_map[attr_name]
+        group_name = subvars_inst.type.fullname
+        if group_name in model_map:
+            subvars_maps = [model_map[group_name]]
+        else:
+            subvars_maps = [
+                subvars_map
+                for name, subvars_map in model_map.items()
+                if (info := _get_typeinfo(api, name)) and info.has_base(group_name)
+            ]
+        var_refs = [m[attr_name] for m in subvars_maps if attr_name in m]
+        if len(var_refs) > 1:
+            return None
+        if var_refs:
+            module_name, var_name = var_refs[0]
             if (module_type := api.modules.get(module_name)) is None:
                 return context.default_attr_type
             var_info = module_type.names[var_name].node
@@ -1136,15 +1473,18 @@ def _get_variable_type(
                     extra_attrs = _forward_landtypes(model_inst)
                 return Instance(typ=var_info, args=[], extra_attrs=extra_attrs)
         var_type = (
-            subvars_inst.type.fullname.rpartition(".")[-1]
+            group_name.rpartition(".")[-1]
+            .removeprefix("Sub")
+            .replace("Variables", " variable")
             .replace("Parameters", " parameter")
             .replace("Sequences", " sequence")
             .lower()
+            .strip()
         )
         if kind is not None:
             var_type = f"{kind} {var_type}"
         context.api.msg.report(
-            msg=f"Model `{model_inst.type.fullname}` has no {var_type} `{attr_name}`.",
+            msg=f"Model `{model_name}` has no {var_type} `{attr_name}`.",
             context=member_expr,
             severity="error",
             code=ATTR_DEFINED,
@@ -2042,6 +2382,73 @@ def _get_model_instance(type_: Type) -> Instance | None:
     return None
 
 
+def _get_model_map(
+    model_inst: Instance,
+) -> tuple[str, dict[str, dict[str, tuple[str, str]]]] | None:
+    """Return the name and the variable map of the given model.
+
+    For model classes without their own entry but defined in a base model module (for
+    example, mixin classes), fall back to the corresponding base model.
+
+    Note that the variable maps of base models also include the variables of all
+    corresponding application models, so that the fallbacks cover, for example, solver
+    parameters only used by some application models.
+    """
+    name = model_inst.type.fullname
+    if (model_map := VAR_MAP_1.get(name)) is not None:
+        return name, model_map
+    if BASEMODEL_MODULE_FORMAT.fullmatch(module := model_inst.type.module_name):
+        name = f"{module}.Model"
+        if (model_map := VAR_MAP_1.get(name)) is not None:
+            return name, model_map
+    return None
+
+
+def _is_own_model_expression(expr: Expression) -> bool:
+    """Tell whether the given expression (presumably) refers to the model the current
+    code belongs to: the names `model` (e.g. the first argument of the `__call__`
+    methods of `Method` subclasses) and `self` or attributes named `model` (e.g.
+    `self.subpars.pars.model`).
+
+    The base model fallback (see `_get_basemodel_module`) only applies to such
+    expressions, so that other model objects, for example, a main model passed to a
+    submodel, remain unrefined.
+    """
+    if isinstance(expr, NameExpr):
+        return expr.name in ("model", "self")
+    return isinstance(expr, MemberExpr) and (expr.name == "model")
+
+
+def _get_basemodel_module(
+    api: CheckerPluginInterface, model_inst: Instance
+) -> str | None:
+    """If the given model type is one of the general model classes defined in module
+    `modeltools` and referenced within a module of a base model package, return the name
+    of the base model's module."""
+    if (
+        (model_inst.type.module_name == "hydpy.core.modeltools")
+        and isinstance(api, TypeChecker)
+        and (match := BASEMODEL_PACKAGE_FORMAT.fullmatch(api.tree.fullname))
+    ):
+        base = match.group(1)
+        return f"hydpy.models.{base}.{base}_model"
+    return None
+
+
+def _get_basemodel_instance(
+    api: CheckerPluginInterface, model_inst: Instance
+) -> Instance | None:
+    """Return the base model type `_get_basemodel_module` selects for the given model
+    type, if available."""
+    if (
+        isinstance(api, TypeChecker)
+        and ((module := _get_basemodel_module(api, model_inst)) is not None)
+        and ((info := _get_typeinfo(api, f"{module}.Model")) is not None)
+    ):
+        return Instance(info, args=[])
+    return None
+
+
 def _get_submodel_instance(model_inst: Instance, attr_name: str) -> Instance | None:
     """Return the type of the submodel (interface) the given model handles via the
     attribute with the given name."""
@@ -2144,12 +2551,13 @@ def _get_condition_type(context: MethodContext) -> Type | None:
         ((key := _get_literal_key(context)) is None)
         or ((model_type := _get_type_arg(context, 0)) is None)
         or ((model_inst := _get_model_instance(model_type)) is None)
-        or ((model_map := VAR_MAP_1.get(model_inst.type.fullname)) is None)
+        or ((name_map := _get_model_map(model_inst)) is None)
         or ((group_type := _get_type_arg(context, 1)) is None)
         or not isinstance(group_literal := get_proper_type(group_type), LiteralType)
         or ((group := CONDITION_GROUPS.get(str(group_literal.value))) is None)
     ):
         return None
+    model_name, model_map = name_map
     if (key in (seqs := model_map.get(group, {}))) and (
         (ndim_type := VAR_INFO.get(".".join(seqs[key]))) is not None
     ):
@@ -2158,7 +2566,7 @@ def _get_condition_type(context: MethodContext) -> Type | None:
         )
     context.api.msg.report(
         msg=(
-            f"Model `{model_inst.type.fullname}` has no "
+            f"Model `{model_name}` has no "
             f"{str(group_literal.value).rstrip('s')} sequence `{key}`."
         ),
         context=context.context,
@@ -2339,6 +2747,7 @@ class MypyPlugin(Plugin):
         self, fullname: str
     ) -> Callable[[AttributeContext], Type] | None:
         """Hooks for refining attribute types."""
+        # pylint: disable=too-many-return-statements
         if fullname in VALUES:
             return values_hook
         if fullname in VAR_SHAPE:
@@ -2353,11 +2762,18 @@ class MypyPlugin(Plugin):
             return subvariables_hook1
         if fullname in SUBVARS2:
             return subvariables_hook2
-        return {
-            "hydpy.core.variabletools.SubVariables": variable_hook,
-            "hydpy.core.parametertools.ParameterSubset": parametersubset_hook,
-            "hydpy.core.modeltools.Model": method_hook,
-        }.get(fullname.rpartition(".")[0])
+        if fullname in FASTACCESS:
+            return fastaccess_hook
+        classname = fullname.rpartition(".")[0]
+        if classname == "hydpy.core.variabletools.SubVariables":
+            return variable_hook
+        if classname == "hydpy.core.parametertools.ParameterSubset":
+            return parametersubset_hook
+        if classname == "hydpy.core.modeltools.Model":
+            return method_hook
+        if classname == "hydpy.core.variabletools.FastAccess":
+            return fastaccess_member_hook
+        return None
 
 
 def plugin(version: str) -> type[MypyPlugin]:  # pylint: disable=unused-argument

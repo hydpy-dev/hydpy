@@ -1780,11 +1780,11 @@ class Model(
         last = self.sequences.states
         first = initial_conditions["model"]["states"]
         areas = derived.relzoneareas.value
-        idxs_lake = self.parameters.control.zonetype.values == ILAKE
-        idxs_land = ~idxs_lake
-        idxs_glac = self.parameters.control.zonetype.values == GLACIER
-        idxs_seal = self.parameters.control.zonetype.values == SEALED
-        idxs_soil = idxs_land * ~idxs_glac * ~idxs_seal
+        zonetype = self.parameters.control.zonetype
+        idxs_lake = hland_masks.ILake(zonetype)
+        idxs_land = hland_masks.Land(zonetype)
+        idxs_glac = hland_masks.Glacier(zonetype)
+        idxs_soil = hland_masks.Soil(zonetype)
         return (
             numpy.sum(fluxes.pc.series * areas)
             + numpy.sum((fluxes.glmelt.series * areas)[:, idxs_glac])

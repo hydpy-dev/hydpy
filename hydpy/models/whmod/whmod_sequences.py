@@ -3,7 +3,6 @@
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 
-from hydpy.models.whmod import whmod_model
 from hydpy.models.whmod import whmod_masks
 from hydpy.models.whmod import whmod_derived
 from hydpy.models.whmod import whmod_variables
@@ -18,8 +17,7 @@ class Mixin1DSequence(whmod_variables.MixinZones, sequencetools.ModelSequence):
     def refweights(self) -> whmod_derived.ZoneRatio:
         """Reference to the associated instance of |ZoneRatio| for calculating areal
         mean values."""
-        model = cast(whmod_model.Model, self.subseqs.seqs.model)
-        return model.parameters.derived.zoneratio
+        return self.subseqs.seqs.model.parameters.derived.zoneratio
 
 
 class Factor1DSoilSequence(Mixin1DSequence, sequencetools.FactorSequence):

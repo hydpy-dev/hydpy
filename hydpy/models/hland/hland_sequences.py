@@ -4,7 +4,6 @@ import numpy
 
 from hydpy.core.typingtools import *
 from hydpy.core import sequencetools
-from hydpy.models.hland import hland_model
 from hydpy.models.hland import hland_derived
 from hydpy.models.hland import hland_variables
 
@@ -34,8 +33,7 @@ class Factor1DSequence(hland_variables.MixinZones, sequencetools.FactorSequence)
     def refweights(self) -> hland_derived.RelZoneAreas:
         """Alias for the associated instance of |RelZoneAreas| for calculating areal
         values."""
-        model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.derived.relzoneareas
+        return self.subseqs.seqs.model.parameters.derived.relzoneareas
 
 
 class Factor2DSequence(
@@ -67,8 +65,7 @@ class Factor2DSequence(
     def refweights(self) -> hland_derived.RelZoneAreas:
         """Alias for the associated instance of |RelZoneAreas| for calculating areal
         values."""
-        model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.derived.relzoneareas
+        return self.subseqs.seqs.model.parameters.derived.relzoneareas
 
     @property
     def valuevector(self) -> VectorFloat:
@@ -160,8 +157,7 @@ class Flux1DSequence(hland_variables.MixinZones, sequencetools.FluxSequence):
     def refweights(self) -> hland_derived.RelZoneAreas:
         """Alias for the associated instance of |RelZoneAreas| for calculating areal
         values."""
-        model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.derived.relzoneareas
+        return self.subseqs.seqs.model.parameters.derived.relzoneareas
 
 
 class Flux2DSequence(hland_variables.MixinSnowClassesZones, sequencetools.FluxSequence):
@@ -191,8 +187,7 @@ class Flux2DSequence(hland_variables.MixinSnowClassesZones, sequencetools.FluxSe
     def refweights(self) -> hland_derived.RelZoneAreas:
         """Alias for the associated instance of |RelZoneAreas| for calculating areal
         values."""
-        model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.derived.relzoneareas
+        return self.subseqs.seqs.model.parameters.derived.relzoneareas
 
     @property
     def valuevector(self) -> VectorFloat:
@@ -285,8 +280,7 @@ class State1DSequence(hland_variables.MixinZones, sequencetools.StateSequence):
     def refweights(self) -> hland_derived.RelZoneAreas:
         """Alias for the associated instance of |RelZoneAreas| for calculating
         areal values."""
-        model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.derived.relzoneareas
+        return self.subseqs.seqs.model.parameters.derived.relzoneareas
 
 
 class State2DSequence(
@@ -318,8 +312,7 @@ class State2DSequence(
     def refweights(self) -> hland_derived.RelZoneAreas:
         """Alias for the associated instance of |RelZoneAreas| for calculating areal
         values."""
-        model = cast(hland_model.Model, self.subseqs.seqs.model)
-        return model.parameters.derived.relzoneareas
+        return self.subseqs.seqs.model.parameters.derived.relzoneareas
 
     @property
     def valuevector(self) -> VectorFloat:

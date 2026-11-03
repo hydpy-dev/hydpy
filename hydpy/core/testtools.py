@@ -27,6 +27,7 @@ import hydpy
 from hydpy import config
 from hydpy import data
 from hydpy import docs
+
 # from hydpy import mypy_plugin  actual import below
 from hydpy.docs import autofigs
 from hydpy.core import devicetools
@@ -2196,9 +2197,14 @@ overload (k, x) has no matching keyword group
 
 
 def check_generalhooks(indent: int = 0) -> str:
-    """Check that exactly those members of the classes defined in the modules of
-    subpackage `core` are annotated with |GeneralHook| whose types HydPy's Mypy plugin
-    refines.
+    """Check that exactly those members of the classes defined in HydPy's modules are
+    annotated with |GeneralHook| whose types HydPy's Mypy plugin refines.
+
+    |check_generalhooks| considers all modules except those of the subpackages `docs`
+    and `tests` and the automatically generated ones.  Note that the plugin also refines
+    the types of members of subclasses that override members annotated with
+    |GeneralHook| as long as they annotate them with |GeneralHook|, too, so that
+    |check_generalhooks| requires adding their full names to `REFINED_MEMBERS`.
 
     |check_generalhooks| compares the members' annotations (found by parsing the
     modules' source code, as |GeneralHook| is identical to `Any` at runtime) with the
@@ -2211,17 +2217,22 @@ def check_generalhooks(indent: int = 0) -> str:
     <BLANKLINE>
 
     To show how |check_generalhooks| reports errors, we remove method `__add__` of class
-    |Variable| from and add property |Variable.shape| to `REFINED_MEMBERS`:
+    |Variable| from and add property |Variable.shape| and method `trim` of the |hland|
+    parameter |hland_control.ZoneArea| to `REFINED_MEMBERS`:
 
     >>> from hydpy import mypy_plugin
     >>> refined = mypy_plugin.REFINED_MEMBERS
     >>> mypy_plugin.REFINED_MEMBERS -= {"hydpy.core.variabletools.Variable.__add__"}
-    >>> mypy_plugin.REFINED_MEMBERS |= {"hydpy.core.variabletools.Variable.shape"}
+    >>> mypy_plugin.REFINED_MEMBERS |= {
+    ...     "hydpy.core.variabletools.Variable.shape",
+    ...     "hydpy.models.hland.hland_control.ZoneArea.trim",
+    ... }
     >>> print(check_generalhooks(indent=4))
         Annotated with `GeneralHook` but not refined by the Mypy plugin:
             hydpy.core.variabletools.Variable.__add__
         Refined by the Mypy plugin but not annotated with `GeneralHook`:
             hydpy.core.variabletools.Variable.shape
+            hydpy.models.hland.hland_control.ZoneArea.trim
 
     To tidy up, we need to revert the above change:
 
@@ -2241,17 +2252,28 @@ def check_generalhooks(indent: int = 0) -> str:
 
     defined: set[str] = set()
     annotated: set[str] = set()
-    dirpath: str = hydpy.core.__path__[0]
-    for filename in sorted(os.listdir(dirpath)):
-        if not filename.endswith(".py"):
-            continue
-        with open(os.path.join(dirpath, filename), encoding="utf-8") as file_:
+    hydpypath: str = hydpy.__path__[0]
+    excluded = (
+        os.path.join(hydpypath, "docs"),
+        os.path.join(hydpypath, "tests"),
+        os.path.join(hydpypath, "cythons", "autogen"),
+    )
+    filepaths: list[str] = []
+    for dirpath, _, filenames in os.walk(hydpypath):
+        if not dirpath.startswith(excluded):
+            filepaths.extend(
+                os.path.join(dirpath, fn) for fn in filenames if fn.endswith(".py")
+            )
+    for filepath in sorted(filepaths):
+        relpath = os.path.relpath(filepath, os.path.dirname(hydpypath))[:-3]
+        modulename = ".".join(relpath.split(os.sep)).removesuffix(".__init__")
+        with open(filepath, encoding="utf-8") as file_:
             tree = ast.parse(file_.read())
         for class_ in (node for node in tree.body if isinstance(node, ast.ClassDef)):
             for function in class_.body:
                 if not isinstance(function, ast.FunctionDef):
                     continue
-                name = f"hydpy.core.{filename[:-3]}.{class_.name}.{function.name}"
+                name = f"{modulename}.{class_.name}.{function.name}"
                 defined.add(name)
                 args = function.args
                 arguments = (*args.posonlyargs, *args.args, *args.kwonlyargs)

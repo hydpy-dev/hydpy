@@ -93,7 +93,7 @@ class Sealed(HLandBaseMask):
 
 
 class NoGlacier(HLandBaseMask):
-    """Mask including zones of type |FIELD|, |FOREST|, and |ILAKE|."""
+    """Mask including zones of type |FIELD|, |FOREST|, |ILAKE|, and |SEALED|."""
 
     relevant = (FIELD, FOREST, ILAKE, SEALED)
 

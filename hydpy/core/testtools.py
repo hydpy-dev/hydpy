@@ -1354,8 +1354,7 @@ class TestIO:
         self._olds = None
 
     def __enter__(self) -> TestIO:
-        assert (path := os.getcwd()) is not None
-        self._path = path
+        self._path = os.getcwd()
         iotestingpath: str = iotesting.__path__[0]
         os.chdir(os.path.join(iotestingpath))
         if self._clear_own:

@@ -275,8 +275,7 @@ class IUH(metaclass=MetaIUH):
         parts = [type(self).__name__, "("]
         for name, primpar in sorted(self._PRIMARY_PARAMETERS.items()):
             value = primpar.__get__(self)
-            if value is not None:
-                parts.extend([name, "=", objecttools.repr_(value), ", "])
+            parts.extend([name, "=", objecttools.repr_(value), ", "])
         if parts[-1] == ", ":
             parts[-1] = ")"
         else:

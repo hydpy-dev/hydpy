@@ -5569,12 +5569,11 @@ constant `ROWNAMES_FROM_MAINMODEL` is not `True`.
         ['apr2sep', 'north', 'north_apr2sep', 'north_oct2mar', 'oct2mar', 'south', \
 'south_apr2sep', 'south_oct2mar']
         """
-        assert (rowcolmappings := self._rowcolumnmappings) is not None
         return (
             cast(list[str], super().__dir__())
             + list(self.rownames)
             + list(self.columnnames)
-            + list(rowcolmappings)
+            + list(self._rowcolumnmappings)
         )
 
 

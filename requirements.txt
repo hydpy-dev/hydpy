@@ -17,6 +17,7 @@ packaging
 pandas
 pandas-stubs
 plotly
+plotly-stubs
 pylint
 pynsist
 scipy

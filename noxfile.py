@@ -163,6 +163,7 @@ def mypy(session: nox.Session) -> None:
         "sphinx",
         "sphinxcontrib-bibtex",
         "types-docutils",
+        "types-setuptools",
     )
     session.run("mypy", "hydpy")
 

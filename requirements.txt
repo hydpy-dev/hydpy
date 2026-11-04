@@ -22,9 +22,11 @@ setuptools
 types-docutils
 typing_extensions
 scipy
+scipy-stubs
 sphinx
 sphinxcontrib-bibtex
 sphinxcontrib-fulltoc
+types-setuptools
 wheel
 wrapt
 xmlschema

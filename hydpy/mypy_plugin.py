@@ -6,7 +6,8 @@ potential problems in situations where HydPy relies on runtime behaviour that is
 from calendar import monthrange
 from configparser import ConfigParser
 from os.path import join, split
-from pickle import load
+from hashlib import sha256
+from pickle import loads
 import re
 from functools import partial
 from typing import Callable, cast, Final, Literal, NamedTuple
@@ -360,17 +361,21 @@ ADDER_KEYWORDS: dict[str, tuple[str, ...]]
 KEYWORD_NAMES: dict[str, tuple[str, ...] | None]
 
 with open(join(DIRPATH, "conf", "mypy_plugin_data.pickle"), "rb") as file_:
-    (
-        MODEL_MAP,
-        VAR_MAP_1,
-        VAR_MAP_2,
-        VAR_INFO,
-        VAR_SHAPE,
-        VAR_TIMEINT,
-        ZIP_CONSTANTS,
-        ADDER_KEYWORDS,
-        KEYWORD_NAMES,
-    ) = load(file_)
+    _DATA: Final = file_.read()
+(
+    MODEL_MAP,
+    VAR_MAP_1,
+    VAR_MAP_2,
+    VAR_INFO,
+    VAR_SHAPE,
+    VAR_TIMEINT,
+    ZIP_CONSTANTS,
+    ADDER_KEYWORDS,
+    KEYWORD_NAMES,
+) = loads(_DATA)
+
+DATA_HASH: Final = sha256(_DATA).hexdigest()
+"""Hash of the plugin data (for invalidating Mypy's cache after updates)."""
 
 TOY_FORMAT: Final = re.compile(r"toy(_[0-9]{1,2}){1,5}")
 """Standard format of time of year names."""
@@ -2257,6 +2262,13 @@ class MypyPlugin(Plugin):
             warn(f"The config file `{name}` misses the required {cls.option} option.")
             return ()
         return tuple(v.strip() for v in cf.get(cls.section, cls.option).split(","))
+
+    def report_config_data(  # pylint: disable=unused-argument
+        self, ctx: ReportConfigContext
+    ) -> str:
+        """Report the hash of the plugin data so that Mypy invalidates its cache after
+        regenerating the data."""
+        return DATA_HASH
 
     def get_additional_deps(self, file: MypyFile) -> list[tuple[int, str, int]]:
         """Add all model main modules and variable modules the dependencies."""

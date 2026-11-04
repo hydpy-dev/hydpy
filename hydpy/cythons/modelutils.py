@@ -2968,6 +2968,23 @@ nogil:
             (<masterinterface.MasterInterface>self.routingmodels[0]).\
 get_partialdischargedownstream()
         <BLANKLINE>
+
+        One statement can contain multiple casts:
+
+        >>> class Calc_Test_V5(Method):
+        ...     @staticmethod
+        ...     def __call__(model: Model) -> float:
+        ...         return cast(
+        ...             routinginterfaces.StorageModel_V1, model.soilmodel
+        ...         ).get_watervolume() + cast(
+        ...             routinginterfaces.StorageModel_V1, model.soilmodel
+        ...         ).get_watervolume()
+        >>> model.calc_test_v5 = MethodType(Calc_Test_V5.__call__, model)
+        >>> FuncConverter(model, "calc_test_v5", model.calc_test_v5).pyxlines
+        cpdef inline double calc_test_v5(self) noexcept nogil:
+            return (<masterinterface.MasterInterface>self.soilmodel).get_watervolume() \
++ (<masterinterface.MasterInterface>self.soilmodel).get_watervolume()
+        <BLANKLINE>
         """
 
         def _get_cytype(name_: str) -> str:
@@ -3002,11 +3019,12 @@ get_partialdischargedownstream()
                 cytype = TYPE2STR[int]
             lines.insert(1, f"    cdef {cytype} {name}")
         for idx, line in enumerate(lines):
-            if "cast(" in line:
+            while "cast(" in line:
                 part1, _, part23 = line.partition("cast(")
                 part2, _, part3 = part23.partition(")")
                 part2 = part2.strip().strip(",").rpartition(",")[2].strip()
-                lines[idx] = f"{part1}(<masterinterface.MasterInterface>{part2}){part3}"
+                line = f"{part1}(<masterinterface.MasterInterface>{part2}){part3}"
+            lines[idx] = line
         return Lines(*lines)
 
 

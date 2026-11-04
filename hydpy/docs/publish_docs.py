@@ -8,7 +8,7 @@ Only pushes when the current branch is among the relevant branches listed in
 import os
 import sys
 
-import ghp_import
+import ghp_import  # type: ignore[import-untyped]
 
 
 def print_(*message: str) -> None:

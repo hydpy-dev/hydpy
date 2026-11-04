@@ -19,13 +19,13 @@ import os
 import sys
 from typing import Any
 
-import pybtex.plugin
-from pybtex.database import Person
-from pybtex.richtext import Tag, Text
-from pybtex.style.formatting.plain import Style as PlainFormattingStyle
-from pybtex.style.names.plain import NameStyle as PlainNameStyle
-from pybtex.style.names import name_part
-from pybtex.style.template import Node
+import pybtex.plugin  # type: ignore[import-untyped]
+from pybtex.database import Person  # type: ignore[import-untyped]
+from pybtex.richtext import Tag, Text  # type: ignore[import-untyped]
+from pybtex.style.formatting.plain import Style as PlainFormattingStyle  # type: ignore[import-untyped]
+from pybtex.style.names.plain import NameStyle as PlainNameStyle  # type: ignore[import-untyped]
+from pybtex.style.names import name_part  # type: ignore[import-untyped]
+from pybtex.style.template import Node  # type: ignore[import-untyped]
 
 import sphinxcontrib.bibtex.plugin
 from sphinxcontrib.bibtex.style.referencing import BracketStyle

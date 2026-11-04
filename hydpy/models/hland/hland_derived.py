@@ -396,7 +396,8 @@ at least one cycle: `(1, 4)`, `(4, 5)`, and `(5, 1)`.
                     f"{objecttools.enumeration(first_cycle, backticks=True)}."
                 )
             except networkx.NetworkXNoCycle:
-                self.values = tuple(networkx.topological_sort(networkx.line_graph(dg)))
+                lg = cast("networkx.DiGraph[tuple[int, int]]", networkx.line_graph(dg))
+                self.values = tuple(networkx.topological_sort(lg))
         else:
             self.values = 0
 

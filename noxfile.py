@@ -158,6 +158,7 @@ def mypy(session: nox.Session) -> None:
     _install_hydpy(session)
     session.install(
         "coverage",
+        "ghp_import",
         "mypy",
         "pandas-stubs",
         "plotly-stubs",

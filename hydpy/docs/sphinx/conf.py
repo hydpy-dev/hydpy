@@ -105,7 +105,7 @@ HYDPYBIBLIOGRAPHYSTYLE = "hydpybibliographystyle"
 HYDPYREFERENCESTYLE = "hydpyreferencestyle"
 
 
-class HydPyNameStyle(PlainNameStyle):
+class HydPyNameStyle(PlainNameStyle):  # type: ignore[misc]
     """Change compared to the base class: write last names in bold letters."""
 
     def format(self, person: Person, abbr: bool = False) -> Text:
@@ -123,7 +123,7 @@ class HydPyNameStyle(PlainNameStyle):
 pybtex.plugin.register_plugin("pybtex.style.names", HYDPYNAMESTYLE, HydPyNameStyle)
 
 
-class HydPyBibliographyStyle(PlainFormattingStyle):
+class HydPyBibliographyStyle(PlainFormattingStyle):  # type: ignore[misc]
     """Change compared to the base class: use `HydPyNameStyle`."""
 
     default_name_style = HYDPYNAMESTYLE

@@ -35,7 +35,7 @@
 .. |Pylint| image:: https://img.shields.io/badge/Pylint-10.00/10-green
    :alt: Pylint
    :target: https://www.pylint.org/
-.. |Mypy| image:: https://img.shields.io/badge/Mypy-work%20in%20progress-orange
+.. |Mypy| image:: https://img.shields.io/badge/Mypy-strict-green
    :alt: Mypy
    :target: https://mypy.readthedocs.io/en/stable
 

@@ -2715,7 +2715,7 @@ occurred: Attribute `timegrids` of module `pub` is not defined at the moment.
                 else:
                     ps = seriestools.aggregate_series(
                         series=sequence.series, stepsize=stepsize, aggregator=numpy.mean
-                    )
+                    ).iloc[:, 0]
                     period = "15d" if stepsize.startswith("m") else "12h"
                     ps.index += timetools.Period(period).timedelta
                     ps.name = label_
@@ -2895,7 +2895,7 @@ mean: '-.'?
                 kwargs = self._get_kwargs_for_plot(
                     color=color, label=label, linestyle=linestyle, linewidth=linewidth
                 )
-                ax.plot(xs, curve, **kwargs)  # type: ignore[arg-type]
+                ax.plot(xs, curve, **kwargs)
             if logscale:
                 ax.set_yscale("log")
             else:
@@ -2914,8 +2914,8 @@ mean: '-.'?
         color: str | None,
         linestyle: str | None,
         linewidth: int | None,
-    ) -> dict[str, str | int]:
-        kwargs: dict[str, str | int] = {"label": label}
+    ) -> dict[str, Any]:
+        kwargs: dict[str, Any] = {"label": label}
         if color is not None:
             kwargs["color"] = color
         if linestyle is not None:
@@ -3773,7 +3773,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
                 label_ = f"{label_}, averaged"
             else:
                 series = sequence.evalseries
-            kwargs = {"label": label_, "ax": pyplot.gca()}
+            kwargs: dict[str, Any] = {"label": label_, "ax": pyplot.gca()}
             if color is not None:
                 kwargs["color"] = color
             if linestyle is not None:

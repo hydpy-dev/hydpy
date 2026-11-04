@@ -159,6 +159,8 @@ def mypy(session: nox.Session) -> None:
     session.install(
         "coverage",
         "mypy",
+        "pandas-stubs",
+        "plotly-stubs",
         "scipy-stubs",
         "sphinx",
         "sphinxcontrib-bibtex",

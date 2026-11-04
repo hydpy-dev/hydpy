@@ -938,7 +938,7 @@ sequence (`SM`).
                 f"relevant sequence (`{type(sequence).__name__}`).  The file-specific "
                 f"information is prioritised."
             )
-        elif left != opts.timestampleft:
+        elif left != bool(opts.timestampleft):
             warnings.warn(
                 f"The `timereference` attribute (`{ncfile.timereference}`) of the "
                 f"NetCDF file `{ncfile.filepath()}` conflicts with the current value "
@@ -2837,7 +2837,6 @@ data for (sub)device `land_lahn_kalk_0` is available in NetCDF file \
                     # make information for reading and writing temporarily available:
                     for variable, sequences in variable2sequences.items():
                         ncfile = variable2ncfile[variable]
-                        assert ncfile is not None
                         get = variable.query_subdevice2index(ncfile).get_index
                         data: NDArrayFloat
                         data = numpy.full(

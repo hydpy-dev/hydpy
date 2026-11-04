@@ -574,7 +574,6 @@ be exactly two outlet nodes, but three outlet nodes are defined (`overflow1`, \
 
     def _connect_receivers(self, report_noconnect: bool = True) -> None:
         element = self.element
-        assert element is not None
         receivers = element.receivers
         if (n := len(receivers)) != 2:
             names = objecttools.enumeration(receivers.names, backticks=True)
@@ -587,7 +586,6 @@ be exactly two outlet nodes, but three outlet nodes are defined (`overflow1`, \
 
     def _connect_outlets(self, report_noconnect: bool = True) -> None:
         element = self.element
-        assert element is not None
         outlets = element.outlets
         if (n := len(outlets)) != 2:
             names = objecttools.enumeration(outlets.names, backticks=True)

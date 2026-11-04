@@ -157,7 +157,12 @@ def mypy(session: nox.Session) -> None:
     """
     _install_hydpy(session)
     session.install(
-        "mypy", "types-docutils", "sphinx", "sphinxcontrib-bibtex", "coverage"
+        "coverage",
+        "mypy",
+        "scipy-stubs",
+        "sphinx",
+        "sphinxcontrib-bibtex",
+        "types-docutils",
     )
     session.run("mypy", "hydpy")
 

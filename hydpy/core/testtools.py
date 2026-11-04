@@ -13,12 +13,14 @@ import inspect
 import io
 import itertools
 import os
+import pathlib
 import shutil
 import sys
 import types
 import typing
 import warnings
 
+# from plotly import graph_objects  actual import below
 import numpy
 
 import hydpy
@@ -56,7 +58,6 @@ if TYPE_CHECKING:
     from matplotlib import figure
     from matplotlib import pyplot
     import pandas
-    import plotly
     from plotly import subplots
 
     class TestIOSequence(sequencetools.IOSequence, abc.ABC):
@@ -915,8 +916,10 @@ standard library for for further information.
         for idx, (name, series, unit) in enumerate(
             zip(sel_names, sel_series, sel_units)
         ):
+            from plotly import graph_objects  # pylint: disable=import-outside-toplevel
+
             fig.add_trace(
-                plotly.graph_objects.Scattergl(
+                graph_objects.Scattergl(
                     x=dates,
                     y=series,
                     name=f"{name} [{unit}] (1)",
@@ -926,7 +929,7 @@ standard library for for further information.
                 )
             )
             fig.add_trace(
-                plotly.graph_objects.Scattergl(
+                graph_objects.Scattergl(
                     x=dates,
                     y=series,
                     name=f"{name} [{unit}] (2)",
@@ -993,7 +996,8 @@ standard library for for further information.
 
         docspath = docs.__path__[0]
         fig.write_html(
-            os.path.join(docspath, "html_", filename), include_plotlyjs="directory"
+            pathlib.Path(os.path.join(docspath, "html_", filename)),
+            include_plotlyjs="directory",
         )
 
 

@@ -1,6 +1,8 @@
 """This module implements statistical functionalities frequently used in hydrological
 modelling."""
 
+from __future__ import annotations
+
 import abc
 import collections
 import copy
@@ -28,12 +30,15 @@ else:
     special = exceptiontools.OptionalImport("special", ["scipy.special"], locals())
 
 
-class SimObs(NamedTuple):
-    """A named tuple containing one array of simulated and one array of observed
-    values."""
+TypeSimObs = TypeVar("TypeSimObs", VectorFloat, "pandas.Series[float]")
 
-    sim: VectorFloat
-    obs: VectorFloat
+
+class SimObs(NamedTuple, Generic[TypeSimObs]):
+    """A named tuple containing one array or series of simulated and one array or
+    series of observed values."""
+
+    sim: TypeSimObs
+    obs: TypeSimObs
 
 
 @overload
@@ -42,14 +47,14 @@ def filter_series(
     sim: VectorInputFloat,
     obs: VectorInputFloat,
     date_ranges: Iterable[tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
-) -> SimObs:
+) -> SimObs[pandas.Series[float]]:
     """sim and obs and date_ranges as arguments"""
 
 
 @overload
 def filter_series(
     *, sim: VectorInputFloat, obs: VectorInputFloat, months: Iterable[int]
-) -> SimObs:
+) -> SimObs[pandas.Series[float]]:
     """sim and obs and month as arguments"""
 
 
@@ -58,12 +63,14 @@ def filter_series(
     *,
     node: devicetools.Node,
     date_ranges: Iterable[tuple[timetools.DateConstrArg, timetools.DateConstrArg]],
-) -> SimObs:
+) -> SimObs[pandas.Series[float]]:
     """node and date_ranges as arguments"""
 
 
 @overload
-def filter_series(*, node: devicetools.Node, months: Iterable[int]) -> SimObs:
+def filter_series(
+    *, node: devicetools.Node, months: Iterable[int]
+) -> SimObs[pandas.Series[float]]:
     """node and month as arguments"""
 
 
@@ -77,7 +84,7 @@ def filter_series(
         Iterable[tuple[timetools.DateConstrArg, timetools.DateConstrArg]]
     ) = None,
     months: Iterable[int] | None = None,
-) -> SimObs:
+) -> SimObs[pandas.Series[float]]:
     """Filter time series for the given date ranges or months.
 
     Often, we want to apply objective functions like |nse| on a subset of the available
@@ -302,7 +309,7 @@ def prepare_arrays(
     skip_nan: bool = False,
     skip_notpositive: bool = False,
     subperiod: bool | None = None,
-) -> SimObs:
+) -> SimObs[VectorFloat]:
     """Prepare and return two |numpy| arrays based on the given arguments.
 
     Note that many functions provided by module |statstools| apply function
@@ -2291,18 +2298,20 @@ name are given.
     data = numpy.empty((len(nodes), len(criteria)), dtype=config.NP_FLOAT)
     for idx, node in enumerate(nodes):
         if stepsize is not None:
-            sim = seriestools.aggregate_series(
+            sim_ = seriestools.aggregate_series(
                 series=node.sequences.sim.series,
                 stepsize=stepsize,
                 aggregator=aggregator,
                 subperiod=subperiod,
-            ).values
-            obs = seriestools.aggregate_series(
+            )
+            sim = sim_.iloc[:, 0].to_numpy()
+            obs_ = seriestools.aggregate_series(
                 series=node.sequences.obs.series,
                 stepsize=stepsize,
                 aggregator=aggregator,
                 subperiod=subperiod,
-            ).values
+            )
+            obs = obs_.iloc[:, 0].to_numpy()
         else:
             sim, obs = prepare_arrays(node=node, skip_nan=False, subperiod=subperiod)
         availability = 0.0 if len(obs) == 0 else 1.0 - sum(numpy.isnan(obs)) / len(obs)

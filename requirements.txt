@@ -15,6 +15,7 @@ nox
 numpy
 packaging
 pandas
+pandas-stubs
 plotly
 pylint
 pynsist

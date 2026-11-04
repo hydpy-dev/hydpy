@@ -3339,9 +3339,9 @@ method `simulate` instead.
 
 def create_directedgraph(
     nodes: devicetools.Nodes, elements: devicetools.Elements
-) -> networkx.DiGraph:
+) -> networkx.DiGraph[devicetools.NodeOrElement]:
     """Create a directed graph based on the given devices."""
-    digraph = networkx.DiGraph()
+    digraph: networkx.DiGraph[devicetools.NodeOrElement] = networkx.DiGraph()
     digraph.add_nodes_from(elements)
     digraph.add_nodes_from(nodes)
     for element in elements:

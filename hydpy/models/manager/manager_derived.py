@@ -3,6 +3,7 @@
 import itertools
 
 import networkx
+import numpy
 
 from hydpy.core import devicetools
 from hydpy.core import hydpytools
@@ -284,6 +285,7 @@ and the target node `t`, but there must be exactly one.
             name2element = {n: elements[n] for n in sources.sourcenames}
             target = self._target
 
+            subgraph: "networkx.DiGraph[devicetools.NodeOrElement]"
             subgraph = networkx.DiGraph()
             subgraph.add_node(target)
             subgraph.add_nodes_from(name2element.values())
@@ -314,7 +316,9 @@ and the target node `t`, but there must be exactly one.
                 _fill_subgraph(upstream=source, downstream=subtarget, check=False)
 
             self.value = networkx.to_numpy_array(
-                subgraph, nodelist=(target,) + tuple(name2element.values()), dtype=bool
+                subgraph,
+                nodelist=(target,) + tuple(name2element.values()),
+                dtype=numpy.dtype(bool),
             )[1:, :]
 
         except BaseException:

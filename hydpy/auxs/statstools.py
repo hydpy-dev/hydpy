@@ -1651,7 +1651,7 @@ def hsepd(
     for using |hsepd|.
     """
 
-    def transform(pars: tuple[float, float, float, float]) -> float:
+    def transform(pars: VectorFloat) -> float:
         """Transform the actual optimisation problem into a function to be minimised
         and apply parameter constraints."""
         sigma1, sigma2, xi, beta = constrain(*pars)
@@ -1683,7 +1683,7 @@ def hsepd(
     if inits is None:
         inits = [0.1, 0.2, 3.0, 1.0]
     original_values = optimize.fmin(
-        transform, inits, ftol=1e-12, xtol=1e-12, disp=not silent
+        transform, tuple(inits), ftol=1e-12, xtol=1e-12, disp=not silent
     )
     constrained_values = constrain(*original_values)
     result = _hsepd_manual(

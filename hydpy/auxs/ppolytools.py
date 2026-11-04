@@ -85,20 +85,30 @@ class _OriginalData(NamedTuple):
     method: MethodNames
 
 
-def _get_splineclass(
-    name: Literal["cubic", "akima", "pchip"], /
-) -> type[interpolate.CubicHermiteSpline]:
+SplineClass: TypeAlias = type[
+    interpolate.CubicSpline
+    | interpolate.Akima1DInterpolator
+    | interpolate.PchipInterpolator
+]
+_SPLINECLASSES = (
+    interpolate.CubicSpline,
+    interpolate.Akima1DInterpolator,
+    interpolate.PchipInterpolator,
+)
+
+
+def _get_splineclass(name: Literal["cubic", "akima", "pchip"], /) -> SplineClass:
     if name == "cubic":
-        return interpolate.CubicSpline  # type: ignore[no-any-return]
+        return interpolate.CubicSpline
     if name == "akima":
-        return interpolate.Akima1DInterpolator  # type: ignore[no-any-return]
+        return interpolate.Akima1DInterpolator
     if name == "pchip":
-        return interpolate.PchipInterpolator  # type: ignore[no-any-return]
+        return interpolate.PchipInterpolator
     assert_never(name)
 
 
 def _get_splinename(
-    class_: type[interpolate.CubicHermiteSpline], /
+    class_: SplineClass, /
 ) -> Literal["cubic", "akima", "pchip"] | None:
     names: tuple[Literal["cubic", "akima", "pchip"], ...] = ("cubic", "akima", "pchip")
     for name in names:
@@ -325,7 +335,7 @@ the actual number of constants held by vector `x0s` (3).
         *,
         xs: VectorInputFloat,
         ys: VectorInputFloat,
-        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | SplineClass = "linear",
     ) -> Self: ...
 
     def __new__(
@@ -333,7 +343,7 @@ the actual number of constants held by vector `x0s` (3).
         *polynomials: Poly,
         xs: VectorInputFloat | None = None,
         ys: VectorInputFloat | None = None,
-        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | SplineClass = "linear",
     ) -> Self:
         self = cls._make_self()
         if polynomials or (xs is not None) or (ys is not None):
@@ -360,7 +370,7 @@ the actual number of constants held by vector `x0s` (3).
         *,
         xs: VectorInputFloat,
         ys: VectorInputFloat,
-        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | SplineClass = "linear",
     ) -> None: ...
 
     def __call__(
@@ -368,7 +378,7 @@ the actual number of constants held by vector `x0s` (3).
         *polynomials: Poly,
         xs: VectorInputFloat | None = None,
         ys: VectorInputFloat | None = None,
-        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | SplineClass = "linear",
     ) -> None:
         self._call(*polynomials, xs=xs, ys=ys, method=method)
 
@@ -377,7 +387,7 @@ the actual number of constants held by vector `x0s` (3).
         *polynomials: Poly,
         xs: VectorInputFloat | None = None,
         ys: VectorInputFloat | None = None,
-        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | SplineClass = "linear",
     ) -> None:
         nmb_vectors = (xs is not None) + (ys is not None)
         if polynomials:
@@ -448,7 +458,7 @@ the actual number of constants held by vector `x0s` (3).
         cls,
         xs: VectorInputFloat,
         ys: VectorInputFloat,
-        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | SplineClass = "linear",
     ) -> Self:
         """Prepare a |PPoly| object based on x-y data.
 
@@ -581,9 +591,8 @@ the actual number of constants held by vector `x0s` (3).
             method="cubic",
         )
 
-        You can even pass other subclasses of |scipy|'s `CubicHermiteSpline` class.
-        However, the string representation then falls back to listing the estimated
-        polynomials:
+        You can even pass subclasses of these |scipy| classes.  However, the string
+        representation then falls back to listing the estimated polynomials:
 
         >>> class MySpline(CubicSpline):
         ...     pass
@@ -601,7 +610,8 @@ the actual number of constants held by vector `x0s` (3).
         ValueError: While trying to derive polynomials from the vectors `x` (`[1.0, \
 2.0, 3.0]`) and `y` (`[1.0, 2.0, 3.5]`), the following error occurred: `spline` is \
 not a supported interpolation method.  Please select "linear", "cubic", "akima", or \
-"pchip" or pass a subclass of SciPy's `CubicHermiteSpline` class.
+"pchip" or pass SciPy's `CubicSpline`, `Akima1DInterpolator`, or `PchipInterpolator` \
+class or one of their subclasses.
 
         |PPoly| also checks the type of the method argument, even if the given data
         set contains so few x-y pairs that it does not need a spline at all:
@@ -614,7 +624,8 @@ not a supported interpolation method.  Please select "linear", "cubic", "akima",
         TypeError: While trying to derive polynomials from the vectors `x` (`[0.0, \
 1.0]`) and `y` (`[2.0, 5.0]`), the following error occurred: `MyOtherSpline` is not a \
 supported interpolation method.  Please select "linear", "cubic", "akima", or \
-"pchip" or pass a subclass of SciPy's `CubicHermiteSpline` class.
+"pchip" or pass SciPy's `CubicSpline`, `Akima1DInterpolator`, or `PchipInterpolator` \
+class or one of their subclasses.
 
         Passing data sets with one or two x-y pairs works fine:
 
@@ -648,20 +659,21 @@ vectors `x` (2) and `y` (3) must be identical.
         self,
         xs: VectorInputFloat,
         ys: VectorInputFloat,
-        method: MethodNames | type[interpolate.CubicHermiteSpline] = "linear",
+        method: MethodNames | SplineClass = "linear",
     ) -> None:
 
         def _make_error_message(method: object, /) -> str:
             methodname = method.__name__ if inspect.isclass(method) else method
             return (
                 f"`{methodname}` is not a supported interpolation method.  Please "
-                f'select "linear", "cubic", "akima", or "pchip" or pass a subclass of '
-                f"SciPy's `CubicHermiteSpline` class."
+                f'select "linear", "cubic", "akima", or "pchip" or pass '
+                f"SciPy's `CubicSpline`, `Akima1DInterpolator`, or `PchipInterpolator` "
+                f"class or one of their subclasses."
             )
 
         try:
             name: MethodNames | None
-            spline: type[interpolate.CubicHermiteSpline] | None
+            spline: SplineClass | None
             if isinstance(method, str):
                 if method not in ("linear", "cubic", "akima", "pchip"):
                     raise ValueError(_make_error_message(method))
@@ -669,8 +681,8 @@ vectors `x` (2) and `y` (3) must be identical.
                 spline = None if name == "linear" else _get_splineclass(name)
             else:
                 if not (
-                    inspect.isclass(method)
-                    and issubclass(method, interpolate.CubicHermiteSpline)
+                    inspect.isclass(method)  # type: ignore[redundant-expr]
+                    and issubclass(method, _SPLINECLASSES)
                 ):
                     raise TypeError(_make_error_message(method))
                 name = _get_splinename(method)
@@ -697,10 +709,9 @@ vectors `x` (2) and `y` (3) must be identical.
                 cs[:, 0] = ys[:-1]
                 cs[:, 1] = numpy.diff(ys) / numpy.diff(xs)
             else:
-                # Mypy bug?
-                interpolator = spline(x=xs, y=ys)  # type: ignore[call-arg]
+                interpolator = spline(x=xs, y=ys)
                 x0s = xs[:-1].copy()
-                cs = interpolator.c[::-1].T  # type: ignore[union-attr]
+                cs = interpolator.c[::-1].T
                 nmb_ps = len(x0s)
                 nmb_cs = numpy.asarray(
                     [numpy.max(numpy.nonzero(cs_), initial=0) + 1 for cs_ in cs],

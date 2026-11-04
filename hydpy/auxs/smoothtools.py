@@ -174,7 +174,7 @@ def calc_smoothpar_logistic2(
         return float(
             optimize.newton(
                 _error_smoothpar_logistic2,
-                0.3 * metapar**0.84,
+                0.3 * float(metapar) ** 0.84,
                 _smooth_logistic2_derivative1,
                 args=(metapar,),
             )
@@ -279,7 +279,7 @@ def calc_smoothpar_min1(metapar: float) -> float:
 # Load the supporting points required for method `calc_smoothpar_logistic2`:
 confpath = conf.__path__[0]
 xys = numpy.load(os.path.join(confpath, "support_points_for_smoothpar_logistic2.npy"))
-_interpolator_for_smoothpar_logistic2: Callable[[ArrayFloatFlex], ArrayFloatFlex] = (
-    interpolate.interp1d(xys[0], xys[1], kind="cubic", fill_value="extrapolate")
+_interpolator_for_smoothpar_logistic2 = interpolate.interp1d(
+    xys[0], xys[1], kind="cubic", fill_value="extrapolate"
 )
 del xys

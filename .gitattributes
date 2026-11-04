@@ -1,0 +1,2 @@
+# to convince GitHub that ASCII time series files are not AGS Script files:
+*.asc linguist-detectable=false

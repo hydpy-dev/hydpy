@@ -307,11 +307,19 @@ from hydpy.cythons import autogenpath
 
 if TYPE_CHECKING:
     import Cython.Build as build
+    from hydpy.cythons import settingutils
 else:
     build = exceptiontools.OptionalImport("build", ["Cython.Build"], locals())
+    from hydpy.cythons.autogen import settingutils
 
 
 Pegasus_IMPL_EULER = "PegasusImplEuler"
+
+HISTORICAL: Final[int] = settingutils.HISTORICAL
+"""Constant for the simulation mode "historical" (see |Options.simulationmode|)."""
+
+FORECAST: Final[int] = settingutils.FORECAST
+"""Constant for the simulation mode "forecast" (see |Options.simulationmode|)."""
 
 
 def get_dllextension() -> str:
@@ -907,13 +915,15 @@ class PyxWriter:
         add(0, "from cpython.mem cimport PyMem_Malloc")
         add(0, "from cpython.mem cimport PyMem_Realloc")
         add(0, "from cpython.mem cimport PyMem_Free")
-        add(0, "from hydpy.cythons.autogen cimport configutils")
+        add(0, "import hydpy")
         add(0, "from hydpy.cythons.autogen cimport interfaceutils")
         add(0, "from hydpy.cythons.autogen cimport interputils")
         add(0, "from hydpy.cythons.autogen import pointerutils")
         add(0, "from hydpy.cythons.autogen cimport pointerutils")
         add(0, "from hydpy.cythons.autogen cimport quadutils")
         add(0, "from hydpy.cythons.autogen cimport rootutils")
+        add(0, "from hydpy.cythons.autogen cimport settingutils")
+        add(0, "from hydpy.cythons.autogen.settingutils cimport FORECAST, HISTORICAL")
         add(0, "from hydpy.cythons.autogen cimport smoothutils")
         add(0, "from hydpy.cythons.autogen cimport masterinterface")
 
@@ -1395,7 +1405,6 @@ class PyxWriter:
                 pxd(1, f"cdef public {TYPE2STR[int]} {name}")
             for name in ("dt_increase", "dt_decrease"):
                 pxd(1, f"cdef public {TYPE2STR[float]} {name}")
-            pxd(1, "cdef public configutils.Config pub")
             pxd(1, "cdef public double[:, :, :] a_coefs")
 
             both(0, "@cython.final")
@@ -1486,6 +1495,7 @@ class PyxWriter:
         if self.model.parameters:
             pxd(1, "cdef public Parameters parameters")
         pxd(1, "cdef public Sequences sequences")
+        pxd(1, "cdef public settingutils.RunSettings runsettings")
         for name in submodelnames_new:
             if name.endswith("_*"):
                 name = name[:-2]
@@ -1502,21 +1512,21 @@ class PyxWriter:
             pxd(1, "cdef public NumConsts numconsts")
         if hasattr(self.model, "numvars"):
             pxd(1, "cdef public NumVars numvars")
-        if submodeltypes_old or submodelnames_new:
-            pyx(1, "def __init__(self):")
-            pyx(2, "super().__init__()")
-            for name in submodelnames_new:
-                if name.endswith("_*"):
-                    name = name[:-2]
-                    pyx(2, f"self.{name} = interfaceutils.SubmodelsProperty()")
-                else:
-                    pyx(2, f"self.{name} = None")
-                    pyx(2, f"self.{name}_is_mainmodel = False")
-            for submodel in submodeltypes_old:
-                pyx(2, f"self.{submodel.name} = {submodel.__name__}(self)")
-            if isinstance(self.model, modeltools.ELSIEModel):
-                name = Pegasus_IMPL_EULER
-                pyx(2, f"self.{name.lower()} = {name}(self)")
+        pyx(1, "def __init__(self):")
+        pyx(2, "super().__init__()")
+        pyx(2, "self.runsettings = hydpy.pub.runsettings")
+        for name in submodelnames_new:
+            if name.endswith("_*"):
+                name = name[:-2]
+                pyx(2, f"self.{name} = interfaceutils.SubmodelsProperty()")
+            else:
+                pyx(2, f"self.{name} = None")
+                pyx(2, f"self.{name}_is_mainmodel = False")
+        for submodel in submodeltypes_old:
+            pyx(2, f"self.{submodel.name} = {submodel.__name__}(self)")
+        if isinstance(self.model, modeltools.ELSIEModel):
+            name = Pegasus_IMPL_EULER
+            pyx(2, f"self.{name.lower()} = {name}(self)")
         baseinterface = "masterinterface.MasterInterface | None"
         for name in submodelnames_new:
             if not name.endswith("_*"):

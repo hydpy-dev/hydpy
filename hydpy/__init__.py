@@ -10,7 +10,6 @@ from __future__ import annotations
 import importlib
 import os
 import warnings
-from typing import TYPE_CHECKING
 
 import numpy
 from numpy import nan
@@ -22,11 +21,6 @@ pub = pubtools.Pub("pub")
 from hydpy import config
 from hydpy import models
 from hydpy.core import indextools, objecttools, optiontools, sequencetools
-
-if TYPE_CHECKING:
-    from hydpy.cythons import configutils
-else:
-    from hydpy.cythons.autogen import configutils
 from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Element, Elements, FusedVariable, Node, Nodes
 from hydpy.core.exceptiontools import AttributeNotReady, attrready, getattr_, hasattr_
@@ -121,7 +115,6 @@ __version__ = "7.0dev0"
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
-pub.config = configutils.Config()
 
 pub.scriptfunctions["await_server"] = await_server
 pub.scriptfunctions["exec_commands"] = exec_commands

@@ -213,11 +213,11 @@ requires one, two, or three `Timegrid` objects or two dates objects (of type `Da
     """
 
     options: optiontools.Options
+    indexer: indextools.Indexer
     runsettings: settingutils.RunSettings
     scriptfunctions: dict[str, Callable[..., int | None]]
 
     projectname = _ProjectnameProperty()
-    indexer = _PubProperty[indextools.Indexer, indextools.Indexer]()
     networkmanager = _PubProperty[filetools.NetworkManager, filetools.NetworkManager]()
     controlmanager = _PubProperty[filetools.ControlManager, filetools.ControlManager]()
     conditionmanager = _PubProperty[
@@ -232,6 +232,7 @@ requires one, two, or three `Timegrid` objects or two dates objects (of type `Da
     def __init__(self, name: str, doc: str | None = None) -> None:
         super().__init__(name=name, doc=doc)
         self.options = optiontools.Options()
+        self.indexer = indextools.Indexer()
         self.runsettings = settingutils.RunSettings()
         self.scriptfunctions = {}
 

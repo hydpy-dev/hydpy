@@ -48,13 +48,10 @@ class OutputCorrModel_V1(modeltools.SubmodelInterface):
 
         The main model passes its current |Options.simulationmode| via
         `isforecastmode` (|True| for `forecast`, |False| for `historical`)
-        instead of leaving the submodel to inspect the global option itself,
-        because a submodel cannot safely track *changes* of
-        |Options.simulationmode| between simulation steps on its own (there is
-        no per-step hook comparable to |OutputCorrModel_V1.set_simulatedvalue|
-        for it, and refreshing a submodel-owned derived parameter via
-        |Model.update_parameters| would also needlessly re-run its submodel
-        attachment/initialisation logic, wiping its logged history)."""
+        instead of leaving the submodel to inspect the global option itself.
+        Hence, the main model is the only place that evaluates
+        |Options.simulationmode|, and submodels do not need their own derived
+        parameter that must be kept in sync with it."""
 
     @modeltools.abstractmodelmethod
     def is_active(self) -> bool:

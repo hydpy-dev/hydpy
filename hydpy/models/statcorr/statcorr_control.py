@@ -22,7 +22,7 @@ class NmbSubmodels(parametertools.NmbParameter):
 
     SPAN = (0, None)
 
-    def __call__(self, *args, **kwargs) -> None:
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         super().__call__(*args, **kwargs)
         self.subpars.pars.model.outputcorrmodels.number = self.value
 

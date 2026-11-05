@@ -202,13 +202,12 @@ class Calc_OutputCorr_V1(modeltools.Method):
         also forwards the current |Options.simulationmode| to each submodel's
         |OutputCorrModel_V1.determine_outputcorrection| call (see
         |Determine_OutputCorrection_V1|), so submodels never need to inspect the
-        global option themselves.  |Parameters.update| (usually triggered via
-        |HydPy.update_parameters|) must be called after changing
-        |Options.simulationmode| for |IsForecastMode| (and hence
-        |Calc_OutputCorr_V1|) to take effect; deliberately, this does *not*
-        require (or recommend) calling |Model.update_parameters|, which would
-        also needlessly re-run the submodels' attachment/initialisation logic
-        and wipe their logged history:
+        global option themselves.  After changing |Options.simulationmode|, one
+        must call |Parameters.update| (or |Model.update_parameters| or
+        |HydPy.update_parameters|) for |IsForecastMode| (and hence
+        |Calc_OutputCorr_V1|) to take effect.  This leaves the submodels' logs and
+        states untouched as long as their number of log entries (see
+        |NmbLogEntries|) does not change:
 
         >>> nmbsubmodels(1)
         >>> with model.add_outputcorrmodel_v1(
@@ -353,12 +352,13 @@ class Model(modeltools.AdHocModel):
         statcorrinterfaces.OutputCorrModel_V1
     )
 
-    @importtools.prepare_submodel(  # type: ignore[call-overload]
+    @importtools.prepare_submodel(  # type: ignore[call-overload, untyped-decorator]
         "outputcorrmodels", statcorrinterfaces.OutputCorrModel_V1, dimensionality=1
     )
     def add_outputcorrmodel_v1(
         self,
         outputcorrmodel: statcorrinterfaces.OutputCorrModel_V1,
+        /,
         *,
         position: int,
         refresh: bool,

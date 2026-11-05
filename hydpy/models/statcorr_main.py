@@ -339,12 +339,13 @@ class Model(modeltools.AdHocModel):
         statcorrinterfaces.OutputCorrModel_V1
     )
 
-    @importtools.prepare_submodel(  # type: ignore[call-overload]
+    @importtools.prepare_submodel(  # type: ignore[call-overload, untyped-decorator]
         "outputcorrmodels", statcorrinterfaces.OutputCorrModel_V1, dimensionality=1
     )
     def add_outputcorrmodel_v1(
         self,
         outputcorrmodel: statcorrinterfaces.OutputCorrModel_V1,
+        /,
         *,
         position: int,
         refresh: bool,

@@ -144,12 +144,8 @@ class NmbLogEntries(parametertools.NmbParameter):
         residual(2.0)
         """
         control = self.subpars.pars.control
-        stationaritycheck = cast(
-            statcorr_control.StationarityCheck, control.stationaritycheck
-        )
-        variabilitycheck = cast(
-            statcorr_control.VariabilityCheck, control.variabilitycheck
-        )
+        stationaritycheck = control.stationaritycheck
+        variabilitycheck = control.variabilitycheck
         if not (
             stationaritycheck.configured
             and variabilitycheck.configured
@@ -167,12 +163,14 @@ class NmbLogEntries(parametertools.NmbParameter):
         )
         self(nmb)
 
-    def __call__(self, *args, **kwargs) -> None:
+    def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         old = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
         if self.value != old:
             for state in self.subpars.pars.model.sequences.states:
-                state(state.INIT)
+                init = state.INIT
+                if init is not None:
+                    state(init)
 
 
 class StationarityWindow(parametertools.Parameter):
@@ -206,10 +204,7 @@ class StationarityWindow(parametertools.Parameter):
         >>> derived.stationaritywindow
         stationaritywindow(0)
         """
-        stationaritycheck = cast(
-            statcorr_control.StationarityCheck,
-            self.subpars.pars.control.stationaritycheck,
-        )
+        stationaritycheck = self.subpars.pars.control.stationaritycheck
         if stationaritycheck.configured:
             self(stationaritycheck.window)
 
@@ -245,10 +240,7 @@ class RatioMinMax(parametertools.Parameter):
         >>> derived.ratiominmax
         ratiominmax(0.0)
         """
-        stationaritycheck = cast(
-            statcorr_control.StationarityCheck,
-            self.subpars.pars.control.stationaritycheck,
-        )
+        stationaritycheck = self.subpars.pars.control.stationaritycheck
         if stationaritycheck.configured:
             self(stationaritycheck.ratiominmax)
 
@@ -285,10 +277,7 @@ class MaxRelSumDelta(parametertools.Parameter):
         >>> derived.maxrelsumdelta
         maxrelsumdelta(0.0)
         """
-        variabilitycheck = cast(
-            statcorr_control.VariabilityCheck,
-            self.subpars.pars.control.variabilitycheck,
-        )
+        variabilitycheck = self.subpars.pars.control.variabilitycheck
         if variabilitycheck.configured:
             self(variabilitycheck.maxrelsumdelta)
 
@@ -325,9 +314,6 @@ class StationaryAveragingWindow(parametertools.Parameter):
         >>> derived.stationaryaveragingwindow
         stationaryaveragingwindow(0)
         """
-        variabilitycheck = cast(
-            statcorr_control.VariabilityCheck,
-            self.subpars.pars.control.variabilitycheck,
-        )
+        variabilitycheck = self.subpars.pars.control.variabilitycheck
         if variabilitycheck.configured:
             self(variabilitycheck.averagingwindow)

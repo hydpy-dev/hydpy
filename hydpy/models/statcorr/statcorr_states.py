@@ -26,7 +26,9 @@ class Stationary(sequencetools.StateSequence):
     determined at the most recent `historical` assessment, so |ReductionFactor|
     keeps ramping towards zero (or stays at ``1.0``) throughout the whole forecast
     horizon instead of jumping back to ``1.0`` once the logged observations run
-    out."""
+    out.  Also in `historical` mode, a |numpy.nan| value within the
+    |StationarityWindow| prevents a new assessment, so |Stationary| keeps its
+    previous value."""
 
     NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, 1.0)
@@ -97,7 +99,7 @@ class AveragedResidual(sequencetools.StateSequence):
     values over the |AveragingWindow| log entries immediately
     preceding the current forecast run), determined once at the first
     forecast step and kept unchanged for the remainder of the forecast
-    horizon."""
+    horizon [unit of the corrected variable]."""
 
     NDIM: Final[Literal[0]] = 0
     INIT = 0.0
@@ -106,7 +108,8 @@ class AveragedResidual(sequencetools.StateSequence):
 class Residual(sequencetools.StateSequence):
     """The pointwise ARIMA residual (observed minus simulated values, taken
     from the most recently logged entry with a non-|numpy.nan| observation,
-    searching back at most |MaxNaNSkip| entries).
+    skipping at most |MaxNaNSkip| entries with missing observations)
+    [unit of the corrected variable].
 
     Like |Stationary|, |statcorr_arima010| only
     reassesses |Residual| while |Options.simulationmode| equals `historical`.
@@ -122,7 +125,7 @@ class Residual(sequencetools.StateSequence):
 
 class ResidualAnchor(sequencetools.StateSequence):
     """The simulated value at the log position from which
-    |Residual| was determined.
+    |Residual| was determined [unit of the corrected variable].
 
     Frozen together with |Residual| while |Options.simulationmode| equals
     `forecast`; see |Residual| for details."""

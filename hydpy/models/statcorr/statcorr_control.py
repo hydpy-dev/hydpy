@@ -7,7 +7,7 @@ from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 
 
-class NmbSubmodels(parametertools.Parameter):
+class NmbSubmodels(parametertools.NmbParameter):
     """The number of output correction submodels [-].
 
     Setting |NmbSubmodels| automatically resizes the
@@ -20,8 +20,6 @@ class NmbSubmodels(parametertools.Parameter):
     3
     """
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
     SPAN = (0, None)
 
     def __call__(self, *args, **kwargs) -> None:
@@ -30,16 +28,20 @@ class NmbSubmodels(parametertools.Parameter):
 
 
 class EvaluationWindow(parametertools.Parameter):
-    """The length of the time period for evaluating the current conditions."""
+    """The length (in log entries) of the time period for evaluating the current
+    conditions [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
+    SPAN = (1, None)
 
 
 class MaxNaNSkip(parametertools.Parameter):
-    """The maximum number of log entries to search back for the most recently
-    available residual when the current or recent observed values are
-    missing."""
+    """The maximum number of log entries with missing observed values to skip
+    when searching back for the most recently available residual [-].
+
+    The search covers the current log entry and the |MaxNaNSkip| preceding ones.
+    A value of zero restricts the search to the current log entry."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -62,43 +64,34 @@ class CorrectionMode(parametertools.Parameter):
     """The simulation mode(s) in which the submodel may correct the simulated
     values [-].
 
-    Pass one of the strings `historical`, `forecast`, or `both`, corresponding to
-    the possible values of |Options.simulationmode|.  Internally, |CorrectionMode|
-    stores them as the integer values 1, 2, and 3:
+    Pass one of the options `historical`, `forecast`, or `both` (corresponding to
+    the possible values of |Options.simulationmode|) via the keyword argument
+    `option`.  Internally, |CorrectionMode| stores them as the integer values 1, 2,
+    and 3:
 
     >>> from hydpy.models.statcorr_arima010 import *
     >>> parameterstep()
     >>> correctionmode
     correctionmode(?)
-    >>> correctionmode("historical")
+    >>> correctionmode(option="historical")
     >>> correctionmode
-    correctionmode("historical")
+    correctionmode(option="historical")
     >>> correctionmode.value
     1
-    >>> correctionmode("forecast")
-    >>> correctionmode
-    correctionmode("forecast")
+    >>> correctionmode(option="forecast")
     >>> correctionmode.value
     2
-    >>> correctionmode("both")
-    >>> correctionmode
-    correctionmode("both")
+    >>> correctionmode(option="both")
     >>> correctionmode.value
     3
 
-    Other strings are not allowed:
+    Other options are not allowed:
 
-    >>> correctionmode("always")
+    >>> correctionmode(option="always")
     Traceback (most recent call last):
     ...
-    ValueError: For parameter `correctionmode` of element `?`, the given mode \
-`always` is not among the supported modes `historical`, `forecast`, and `both`.
-
-    Passing the integer values directly is also possible:
-
-    >>> correctionmode(1)
-    >>> correctionmode
-    correctionmode("historical")
+    ValueError: Parameter `correctionmode` of element `?` supports the options \
+`historical`, `forecast`, and `both`, but `always` is given.
 
     Regardless of |CorrectionMode|, the submodel keeps updating its log and states
     in both simulation modes (see |Determine_OutputCorrection_V1|).
@@ -108,26 +101,25 @@ class CorrectionMode(parametertools.Parameter):
     TYPE: Final = int
     SPAN = (1, 3)
 
-    MODES: Final = {"historical": 1, "forecast": 2, "both": 3}
-
-    def __call__(self, *args, **kwargs) -> None:
-        if (len(args) == 1) and not kwargs and isinstance(args[0], str):
-            mode = args[0]
-            if mode not in self.MODES:
-                raise ValueError(
-                    f"For parameter {objecttools.elementphrase(self)}, the given "
-                    f"mode `{mode}` is not among the supported modes `historical`, "
-                    f"`forecast`, and `both`."
-                )
-            super().__call__(self.MODES[mode])
+    def _set_option(self, *, option: str) -> dict[str, str]:
+        if option == "historical":
+            self.values = 1
+        elif option == "forecast":
+            self.values = 2
+        elif option == "both":
+            self.values = 3
         else:
-            super().__call__(*args, **kwargs)
+            raise ValueError(
+                f"Parameter {objecttools.elementphrase(self)} supports the options "
+                f"`historical`, `forecast`, and `both`, but `{option}` is given."
+            )
+        return {"option": option}
 
-    def __repr__(self) -> str:
-        for mode, value in self.MODES.items():
-            if exceptiontools.getattr_(self, "value", None) == value:
-                return f'{self.name}("{mode}")'
-        return super().__repr__()
+    KEYWORDS = parametertools.KeywordGroups(
+        parametertools.KeywordGroup(
+            parametertools.Keyword("option", type_=str), setter=_set_option
+        )
+    )
 
 
 class LowerLimit(parametertools.Parameter):
@@ -137,6 +129,23 @@ class LowerLimit(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     SPAN = (0.0, None)
+
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
+        r"""Trim upper values in accordance with :math:`LowerLimit \leq UpperLimit`.
+
+        >>> from hydpy.models.statcorr_arima010 import *
+        >>> parameterstep()
+        >>> upperlimit.value = 2.0
+        >>> lowerlimit(1.0)
+        >>> lowerlimit
+        lowerlimit(1.0)
+        >>> lowerlimit(3.0)
+        >>> lowerlimit
+        lowerlimit(2.0)
+        """
+        if upper is None:
+            upper = exceptiontools.getattr_(self.subpars.upperlimit, "value", None)
+        return super().trim(lower, upper)
 
 
 class UpperLimit(parametertools.Parameter):
@@ -148,6 +157,23 @@ class UpperLimit(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     SPAN = (0.0, None)
+
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
+        r"""Trim lower values in accordance with :math:`LowerLimit \leq UpperLimit`.
+
+        >>> from hydpy.models.statcorr_arima010 import *
+        >>> parameterstep()
+        >>> lowerlimit.value = 2.0
+        >>> upperlimit(3.0)
+        >>> upperlimit
+        upperlimit(3.0)
+        >>> upperlimit(1.0)
+        >>> upperlimit
+        upperlimit(2.0)
+        """
+        if lower is None:
+            lower = exceptiontools.getattr_(self.subpars.lowerlimit, "value", None)
+        return super().trim(lower, upper)
 
 
 class StationarityCheck(parametertools.SpecialParameter):
@@ -579,11 +605,9 @@ class MaxRelShift(parametertools.Parameter):
 class AveragingWindow(parametertools.Parameter):
     """The length (in log entries) of the averaging period immediately
     preceding the current forecast run, used to determine the mean-value-based
-    ARIMA residual (see |Determine_OutputCorrection_V1|).  Set to zero to
+    ARIMA residual (see |Determine_OutputCorrection_V1|) [-].  Set to zero to
     disable mean-value-based correction and rely on the single most recent
-    (pointwise) residual only, as |Determine_OutputCorrection_V1| already did
-    before |AveragingWindow| and |TransitionSteps| were
-    introduced."""
+    (pointwise) residual only."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -594,7 +618,7 @@ class TransitionSteps(parametertools.Parameter):
     """The number of forecast steps over which the applied residual
     transitions linearly from the single most recent (pointwise) residual to
     the mean-value-based residual determined via |AveragingWindow|,
-    avoiding an abrupt jump right at the start of the forecast horizon."""
+    avoiding an abrupt jump right at the start of the forecast horizon [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -605,7 +629,7 @@ class Propagate(parametertools.Parameter):
     """Flag determining whether the corrected discharge is passed on to the
     downstream network (|True|) or calculated only for local output at the
     current gauge, while the uncorrected inflow is passed on instead
-    (|False|)."""
+    (|False|) [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool

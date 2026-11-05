@@ -34,12 +34,26 @@ class IsForecastMode(parametertools.Parameter):
         self(hydpy.pub.options.simulationmode == "forecast")
 
 
-class NmbLogEntries(parametertools.Parameter):
+class NmbLogEntries(parametertools.NmbParameter):
     """The number of log entries required for memorising the simulated and observed
-    values [-]."""
+    values [-].
 
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = int
+    Besides setting the shape of all log sequences (see |MixinLogEntries|),
+    |NmbLogEntries| resets all state sequences to their initial values whenever its
+    value changes, as the latter depend on the logged data:
+
+    >>> from hydpy.models.statcorr_arima010 import *
+    >>> parameterstep()
+    >>> derived.nmblogentries(2)
+    >>> states.residual(2.0)
+    >>> derived.nmblogentries(2)
+    >>> states.residual
+    residual(2.0)
+    >>> derived.nmblogentries(3)
+    >>> states.residual
+    residual(0.0)
+    """
+
     SPAN = (1, None)
     CONTROLPARAMETERS = (
         statcorr_control.EvaluationWindow,
@@ -54,8 +68,8 @@ class NmbLogEntries(parametertools.Parameter):
         parameters and adjust the shape of all log sequences.
 
         The log must cover the |EvaluationWindow|, the assessment period of the
-        stationarity check (see |StationarityCheck|), and the |MaxNaNSkip| most
-        recent entries.  The mean-value-based residual (see
+        stationarity check (see |StationarityCheck|), and the current entry plus the
+        |MaxNaNSkip| preceding ones.  The mean-value-based residual (see
         |Calc_AveragedResidual_V1|) relies on the |AveragingWindow| (or the averaging
         period of the variability check, see |VariabilityCheck|) entries preceding
         the current one, which requires one additional entry.
@@ -68,7 +82,7 @@ class NmbLogEntries(parametertools.Parameter):
         >>> evaluationwindow(3)
         >>> stationaritycheck(window=4, ratiominmax=0.5)
         >>> variabilitycheck(False)
-        >>> maxnanskip(2)
+        >>> maxnanskip(1)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(?)
@@ -85,7 +99,7 @@ class NmbLogEntries(parametertools.Parameter):
         nmblogentries(6)
 
         >>> variabilitycheck(False)
-        >>> maxnanskip(7)
+        >>> maxnanskip(6)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(7)
@@ -147,21 +161,17 @@ class NmbLogEntries(parametertools.Parameter):
         nmb = max(
             control.evaluationwindow.value,
             stationaritycheck.window,
-            control.maxnanskip.value,
+            control.maxnanskip.value + 1,
             control.averagingwindow.value + 1,
             variabilitycheck.averagingwindow + 1,
         )
         self(nmb)
-        nmb = int(self.value)
-        sequences = self.subpars.pars.model.sequences
-        resized = False
-        for seq in sequences.logs:
-            shape = exceptiontools.getattr_(seq, "shape", (None,))
-            if nmb != shape[-1]:
-                seq.shape = nmb
-                resized = True
-        if resized:
-            for state in sequences.states:
+
+    def __call__(self, *args, **kwargs) -> None:
+        old = exceptiontools.getattr_(self, "value", None)
+        super().__call__(*args, **kwargs)
+        if self.value != old:
+            for state in self.subpars.pars.model.sequences.states:
                 state(state.INIT)
 
 

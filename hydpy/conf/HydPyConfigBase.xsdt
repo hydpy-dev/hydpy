@@ -44,6 +44,15 @@
                         </restriction>
                     </simpleType>
                 </element>
+                <element name="simulationmode"
+                         minOccurs="0">
+                    <simpleType>
+                        <restriction base="string">
+                            <enumeration value="historical"/>
+                            <enumeration value="forecast"/>
+                        </restriction>
+                    </simpleType>
+                </element>
                 <element name="threads"
                          minOccurs="0">
                     <simpleType>

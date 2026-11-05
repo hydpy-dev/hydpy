@@ -5,22 +5,22 @@ based on an ARIMA(0,1,0) error model.
 
 The corrected value is derived from the most recently available residual
 (observed minus simulated values).  While |Options.simulationmode| equals
-`historical`, this residual is (re)determined every step by searching back at
-most |MaxNaNSkip| log entries for the latest non-|numpy.nan|
-observation — this is the random-walk persistence of the error whenever the
-*current* observation is missing.  When no observation is available within
+`historical`, this residual is (re)determined every step by skipping at most
+|MaxNaNSkip| log entries with missing observations to find the latest
+non-|numpy.nan| observation — this is the random-walk persistence of the error
+whenever the *current* observation is missing.  When no observation is available within
 that range (or the entire log, whichever is smaller), no correction is
 applied.  While |Options.simulationmode| equals `forecast`, this search is
 not repeated: the residual (and the simulated value it was measured
 against) stays frozen at whatever the most recent `historical` assessment
 found, so the correction persists throughout the whole forecast horizon
 (subject only to |ReductionFactor|) instead of fading once that log entry
-ages past |MaxNaNSkip|.
+lies more than |MaxNaNSkip| entries back.
 
 How the residual is applied depends on how the current simulated value
 compares to the simulated value at the point the residual was determined:
-if it is higher, the residual is added unchanged (capped at
-|MaxAbsShift|); otherwise, it is applied relative to that anchor
+if it is higher (or the anchor value is not positive), the residual is added
+unchanged (capped at |MaxAbsShift|); otherwise, it is applied relative to that anchor
 value instead (capped at |MaxRelShift|), which keeps the correction from
 overshooting or turning negative while the simulated values recede.  See
 |Determine_OutputCorrection_V1| for the exact formulas.
@@ -54,7 +54,7 @@ Example workflow
     >>> parameterstep()
     >>> from numpy import inf
     >>> control.active(True)
-    >>> control.correctionmode("both")
+    >>> control.correctionmode(option="both")
     >>> control.lowerlimit(0.0)
     >>> control.upperlimit(inf)
     >>> control.evaluationwindow(3)
@@ -65,7 +65,7 @@ Example workflow
     >>> derived.maxrelsumdelta.update()
     >>> derived.stationaryaveragingwindow.update()
     >>> control.reductionsteps(1)
-    >>> control.maxnanskip(3)
+    >>> control.maxnanskip(2)
     >>> control.maxabsshift(100.0)
     >>> control.maxrelshift(10.0)
     >>> control.averagingwindow(0)

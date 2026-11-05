@@ -16,9 +16,18 @@ class CorrectedQ(sequencetools.FluxSequence):
     NDIM: Final[Literal[0]] = 0
 
 
+class ForecastMode(sequencetools.FluxSequence):
+    """Flag (1.0: `forecast`, 0.0: `historical`) telling the simulation mode the main
+    model passed to |Determine_OutputCorrection_V1| in the current simulation step
+    [-]."""
+
+    NDIM: Final[Literal[0]] = 0
+    SPAN = (0.0, 1.0)
+
+
 class IsActive(sequencetools.FluxSequence):
     """Flag (1.0: yes, 0.0: no) telling whether the submodel corrected the discharge
-    in the current simulation step (see |Determine_OutputCorrection_V1|) [-]."""
+    in the current simulation step (see |Calc_IsActive_V1|) [-]."""
 
     NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, 1.0)

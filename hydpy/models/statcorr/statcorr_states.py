@@ -40,7 +40,7 @@ class EvaluatedValue(sequencetools.StateSequence):
     entries, as determined at the last `historical` assessment [unit of the
     corrected variable].
 
-    |Determine_OutputCorrection_V1| compares |EvaluatedValue| with |LowerLimit|
+    |Calc_IsActive_V1| compares |EvaluatedValue| with |LowerLimit|
     and |UpperLimit| to decide whether the submodel is responsible for correcting
     the simulated values.  Like |Stationary|, |statcorr_arima010| only reassesses
     |EvaluatedValue| while |Options.simulationmode| equals `historical`.
@@ -84,7 +84,7 @@ class ForecastStep(sequencetools.StateSequence):
     forecast run (``0.0`` on the first forecast step), reset to ``0.0``
     whenever |Options.simulationmode| equals `historical` [-].
 
-    |Determine_OutputCorrection_V1| uses |ForecastStep| to linearly blend the
+    |Calc_CorrectedQ_V1| uses |ForecastStep| to linearly blend the
     applied residual from the single most recent (pointwise) value towards
     the mean-value-based residual determined via |AveragingWindow|
     over |TransitionSteps| forecast steps."""

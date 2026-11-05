@@ -7,8 +7,8 @@ The corrected value is derived from the most recently available residual
 (observed minus simulated values).  While |Options.simulationmode| equals
 `historical`, this residual is (re)determined every step by skipping at most
 |MaxNaNSkip| log entries with missing observations to find the latest
-non-|numpy.nan| observation — this is the random-walk persistence of the error
-whenever the *current* observation is missing.  When no observation is available within
+non-|numpy.nan| observation, so that the error persists whenever the *current*
+observation is missing.  When no observation is available within
 that range (or the entire log, whichever is smaller), no correction is
 applied.  While |Options.simulationmode| equals `forecast`, this search is
 not repeated: the residual (and the simulated value it was measured
@@ -19,19 +19,19 @@ lies more than |MaxNaNSkip| entries back.
 
 How the residual is applied depends on how the current simulated value
 compares to the simulated value at the point the residual was determined:
-if it is higher (or the anchor value is not positive), the residual is added
-unchanged (capped at |MaxAbsShift|); otherwise, it is applied relative to that anchor
-value instead (capped at |MaxRelShift|), which keeps the correction from
-overshooting or turning negative while the simulated values recede.  See
-|Determine_OutputCorrection_V1| for the exact formulas.
+if it is positive and lower than this anchor value, the residual is applied
+relative to the anchor value (capped at |MaxRelShift|), which keeps the correction
+from overshooting or turning negative while the simulated values recede;
+otherwise, the residual is added unchanged (capped at |MaxAbsShift|).  See
+|Calc_CorrectedQ_V1| for the exact formulas.
 
 Setting |AveragingWindow| to a value greater than zero switches from
 that pointwise residual to a mean-value-based one (mean observed minus mean
 simulated values over the given number of log entries immediately
 preceding the current forecast run), blended in linearly over
 |TransitionSteps| forecast steps to avoid a jump right where the
-forecast begins.  See |Determine_OutputCorrection_V1| and
-|Calc_AveragedResidual_V1| for details.
+forecast begins.  See |Calc_AveragedResidual_V1| and |Calc_CorrectedQ_V1| for
+details.
 
 Each |statcorr_arima010| instance is responsible for a specific value range
 only, defined by |LowerLimit| and |UpperLimit|, and can be switched off completely
@@ -58,10 +58,10 @@ Example workflow
     >>> control.lowerlimit(0.0)
     >>> control.upperlimit(inf)
     >>> control.evaluationwindow(3)
-    >>> control.stationaritycheck(False)
+    >>> control.stationaritycheck(active=False)
     >>> derived.stationaritywindow.update()
     >>> derived.ratiominmax.update()
-    >>> control.variabilitycheck(False)
+    >>> control.variabilitycheck(active=False)
     >>> derived.maxrelsumdelta.update()
     >>> derived.stationaryaveragingwindow.update()
     >>> control.reductionsteps(1)
@@ -95,7 +95,7 @@ Example workflow
     loggedobservedvalue(nan, 4.0, 3.0)
 
     |OutputCorrModel_V1.determine_outputcorrection| computes the corrected
-    value from the random-walk residual (here taken from log position 1,
+    value from the most recent residual (here taken from log position 1,
     since position 0 has no observation) and stores it internally;
     |OutputCorrModel_V1.is_active| confirms the submodel is responsible for the
     current value, and |OutputCorrModel_V1.get_correctedoutput| returns the
@@ -121,8 +121,7 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
     """|statcorr_arima010.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
-        short="StatCorr-ARIMA010",
-        description="ARIMA(0,1,0) — random walk — output correction ",
+        short="StatCorr-ARIMA010", description="ARIMA(0,1,0) output correction "
     )
     __HYDPY_ROOTMODEL__ = False
 
@@ -137,7 +136,19 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
         statcorr_model.Is_Active_V1,
         statcorr_model.Get_CorrectedOutput_V1,
     )
-    ADD_METHODS = (statcorr_model.Calc_AveragedResidual_V1,)
+    ADD_METHODS = (
+        statcorr_model.Set_ForecastMode_V1,
+        statcorr_model.Calc_EvaluatedValue_V1,
+        statcorr_model.Calc_IsActive_V1,
+        statcorr_model.Calc_Residual_ResidualAnchor_V1,
+        statcorr_model.Calc_Stationary_V1,
+        statcorr_model.Calc_ReductionFactor_V1,
+        statcorr_model.Calc_RelSumDelta_V1,
+        statcorr_model.Calc_LowVariability_V1,
+        statcorr_model.Calc_AveragedResidual_V1,
+        statcorr_model.Calc_CorrectedQ_V1,
+        statcorr_model.Update_ForecastStep_V1,
+    )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()

@@ -54,7 +54,7 @@ class Active(parametertools.Parameter):
 
     Even when |Active| is |True|, the submodel only corrects the simulated values
     while the relevant mean simulated value lies within the range defined by
-    |LowerLimit| and |UpperLimit| (see |Determine_OutputCorrection_V1|)."""
+    |LowerLimit| and |UpperLimit| (see |Calc_IsActive_V1|)."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
@@ -181,11 +181,11 @@ class StationarityCheck(parametertools.SpecialParameter):
     stationary way [-].
 
     |StationarityCheck| is a special parameter (see |SpecialParameter|).  Either
-    switch the check off by passing |False| or switch it on by passing the length of
-    the assessment period (`window`, in log entries) and the threshold for the ratio
-    of the minimum and the maximum observed values within this period
-    (`ratiominmax`), below which |Determine_OutputCorrection_V1| considers the
-    conditions instationary:
+    switch the check off by passing `active=False` or switch it on by passing
+    `active=True` together with the length of the assessment period (`window`, in log
+    entries) and the threshold for the ratio of the minimum and the maximum observed
+    values within this period (`ratiominmax`), below which |Calc_Stationary_V1|
+    considers the conditions instationary:
 
     >>> from hydpy.models.statcorr_arima010 import *
     >>> parameterstep()
@@ -197,37 +197,31 @@ class StationarityCheck(parametertools.SpecialParameter):
     RuntimeError: For parameter `stationaritycheck` of element `?`, it is still \
 unknown whether the stationarity check is enabled.
 
-    >>> stationaritycheck(False)
+    >>> stationaritycheck(active=False)
     >>> stationaritycheck
-    stationaritycheck(False)
+    stationaritycheck(active=False)
     >>> stationaritycheck.verify()
 
-    Passing `window` and `ratiominmax` implicitly enables the check:
-
-    >>> stationaritycheck(window=10, ratiominmax=0.5)
+    >>> stationaritycheck(active=True, window=10, ratiominmax=0.5)
     >>> stationaritycheck
-    stationaritycheck(window=10, ratiominmax=0.5)
+    stationaritycheck(active=True, window=10, ratiominmax=0.5)
     >>> stationaritycheck.enabled, stationaritycheck.window
     (True, 10)
     >>> from hydpy import round_
     >>> round_(stationaritycheck.ratiominmax)
     0.5
 
-    Passing |True| explicitly is allowed but optional:
+    `active` is always required:
 
-    >>> stationaritycheck(True, window=5, ratiominmax=0.8)
-    >>> stationaritycheck
-    stationaritycheck(window=5, ratiominmax=0.8)
+    >>> stationaritycheck(window=5, ratiominmax=0.8)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `stationaritycheck` of element `?`, the keyword \
+argument `active` must be given.
 
     An enabled check requires both `window` and `ratiominmax`:
 
-    >>> stationaritycheck(True)
-    Traceback (most recent call last):
-    ...
-    ValueError: For parameter `stationaritycheck` of element `?`, both `window` and \
-`ratiominmax` must be given when enabling the stationarity check.
-
-    >>> stationaritycheck(window=5)
+    >>> stationaritycheck(active=True, window=5)
     Traceback (most recent call last):
     ...
     ValueError: For parameter `stationaritycheck` of element `?`, both `window` and \
@@ -235,28 +229,22 @@ unknown whether the stationarity check is enabled.
 
     A disabled check does not accept `window` or `ratiominmax`:
 
-    >>> stationaritycheck(False, window=5, ratiominmax=0.8)
+    >>> stationaritycheck(active=False, window=5, ratiominmax=0.8)
     Traceback (most recent call last):
     ...
     ValueError: For parameter `stationaritycheck` of element `?`, `window` and \
 `ratiominmax` must not be given when disabling the stationarity check.
 
-    >>> stationaritycheck()
-    Traceback (most recent call last):
-    ...
-    ValueError: For parameter `stationaritycheck` of element `?`, pass either a \
-boolean value or the keyword arguments `window` and `ratiominmax`.
-
     `window` must be a positive integer, and `ratiominmax` must lie between zero and
     one:
 
-    >>> stationaritycheck(window=0, ratiominmax=0.8)
+    >>> stationaritycheck(active=True, window=0, ratiominmax=0.8)
     Traceback (most recent call last):
     ...
     ValueError: For parameter `stationaritycheck` of element `?`, `window` must be a \
 positive integer, but `0` is given.
 
-    >>> stationaritycheck(window=5, ratiominmax=1.5)
+    >>> stationaritycheck(active=True, window=5, ratiominmax=1.5)
     Traceback (most recent call last):
     ...
     ValueError: For parameter `stationaritycheck` of element `?`, `ratiominmax` must \
@@ -265,7 +253,7 @@ lie between zero and one, but `1.5` is given.
     Failed calls leave the previous configuration untouched:
 
     >>> stationaritycheck
-    stationaritycheck(window=5, ratiominmax=0.8)
+    stationaritycheck(active=True, window=10, ratiominmax=0.5)
     """
 
     _config: tuple[bool, int, float] | None
@@ -274,27 +262,35 @@ lie between zero and one, but `1.5` is given.
         super().__init__(subvars)
         self._config = None
 
+    @overload
+    def __call__(self, *, active: Literal[False]) -> None: ...
+
+    @overload
+    def __call__(
+        self, *, active: Literal[True], window: int, ratiominmax: float
+    ) -> None: ...
+
     def __call__(
         self,
-        value: bool | None = None,
         *,
+        active: bool | None = None,
         window: int | None = None,
         ratiominmax: float | None = None,
     ) -> None:
-        if (value is False) and ((window is not None) or (ratiominmax is not None)):
+        if active is None:
+            raise ValueError(
+                f"For parameter {objecttools.elementphrase(self)}, the keyword "
+                f"argument `active` must be given."
+            )
+        if (not active) and ((window is not None) or (ratiominmax is not None)):
             raise ValueError(
                 f"For parameter {objecttools.elementphrase(self)}, `window` and "
                 f"`ratiominmax` must not be given when disabling the stationarity "
                 f"check."
             )
-        if value is False:
+        if not active:
             self._config = (False, 0, 0.0)
             return
-        if (value is None) and (window is None) and (ratiominmax is None):
-            raise ValueError(
-                f"For parameter {objecttools.elementphrase(self)}, pass either a "
-                f"boolean value or the keyword arguments `window` and `ratiominmax`."
-            )
         if (window is None) or (ratiominmax is None):
             raise ValueError(
                 f"For parameter {objecttools.elementphrase(self)}, both `window` and "
@@ -317,9 +313,9 @@ lie between zero and one, but `1.5` is given.
             return f"{self.name}(?)"
         enabled, window, ratiominmax = self._config
         if not enabled:
-            return f"{self.name}(False)"
+            return f"{self.name}(active=False)"
         return (
-            f"{self.name}(window={window}, "
+            f"{self.name}(active=True, window={window}, "
             f"ratiominmax={objecttools.repr_(ratiominmax)})"
         )
 
@@ -340,7 +336,7 @@ lie between zero and one, but `1.5` is given.
         >>> parameterstep()
         >>> stationaritycheck.configured
         False
-        >>> stationaritycheck(False)
+        >>> stationaritycheck(active=False)
         >>> stationaritycheck.configured
         True
         """
@@ -374,12 +370,12 @@ class VariabilityCheck(parametertools.SpecialParameter):
     enough to base the correction on a long-term mean residual [-].
 
     |VariabilityCheck| is a special parameter (see |SpecialParameter|).  Either
-    switch the check off by passing |False| or switch it on by passing the threshold
-    for the sum of the absolute changes of the simulated values within the
-    |EvaluationWindow| divided by |EvaluatedValue| (`maxrelsumdelta`) and the
-    length of the averaging period (`averagingwindow`, in log entries) for
-    determining the mean-value-based residual under stationary conditions (see
-    |Determine_OutputCorrection_V1|):
+    switch the check off by passing `active=False` or switch it on by passing
+    `active=True` together with the threshold for the sum of the absolute changes of
+    the simulated values within the |EvaluationWindow| divided by |EvaluatedValue|
+    (`maxrelsumdelta`, see |Calc_LowVariability_V1|) and the length of the averaging
+    period (`averagingwindow`, in log entries) for determining the mean-value-based
+    residual under stationary conditions (see |Calc_AveragedResidual_V1|):
 
     >>> from hydpy.models.statcorr_arima010 import *
     >>> parameterstep()
@@ -391,38 +387,31 @@ class VariabilityCheck(parametertools.SpecialParameter):
     RuntimeError: For parameter `variabilitycheck` of element `?`, it is still \
 unknown whether the variability check is enabled.
 
-    >>> variabilitycheck(False)
+    >>> variabilitycheck(active=False)
     >>> variabilitycheck
-    variabilitycheck(False)
+    variabilitycheck(active=False)
     >>> variabilitycheck.verify()
 
-    Passing `maxrelsumdelta` and `averagingwindow` implicitly enables the check:
-
-    >>> variabilitycheck(maxrelsumdelta=0.2, averagingwindow=24)
+    >>> variabilitycheck(active=True, maxrelsumdelta=0.2, averagingwindow=24)
     >>> variabilitycheck
-    variabilitycheck(maxrelsumdelta=0.2, averagingwindow=24)
+    variabilitycheck(active=True, maxrelsumdelta=0.2, averagingwindow=24)
     >>> variabilitycheck.enabled, variabilitycheck.averagingwindow
     (True, 24)
     >>> from hydpy import round_
     >>> round_(variabilitycheck.maxrelsumdelta)
     0.2
 
-    Passing |True| explicitly is allowed but optional:
+    `active` is always required:
 
-    >>> variabilitycheck(True, maxrelsumdelta=0.1, averagingwindow=12)
-    >>> variabilitycheck
-    variabilitycheck(maxrelsumdelta=0.1, averagingwindow=12)
+    >>> variabilitycheck(maxrelsumdelta=0.1, averagingwindow=12)
+    Traceback (most recent call last):
+    ...
+    ValueError: For parameter `variabilitycheck` of element `?`, the keyword \
+argument `active` must be given.
 
     An enabled check requires both `maxrelsumdelta` and `averagingwindow`:
 
-    >>> variabilitycheck(True)
-    Traceback (most recent call last):
-    ...
-    ValueError: For parameter `variabilitycheck` of element `?`, both \
-`maxrelsumdelta` and `averagingwindow` must be given when enabling the variability \
-check.
-
-    >>> variabilitycheck(maxrelsumdelta=0.1)
+    >>> variabilitycheck(active=True, maxrelsumdelta=0.1)
     Traceback (most recent call last):
     ...
     ValueError: For parameter `variabilitycheck` of element `?`, both \
@@ -431,28 +420,22 @@ check.
 
     A disabled check does not accept `maxrelsumdelta` or `averagingwindow`:
 
-    >>> variabilitycheck(False, maxrelsumdelta=0.1, averagingwindow=12)
+    >>> variabilitycheck(active=False, maxrelsumdelta=0.1, averagingwindow=12)
     Traceback (most recent call last):
     ...
     ValueError: For parameter `variabilitycheck` of element `?`, `maxrelsumdelta` \
 and `averagingwindow` must not be given when disabling the variability check.
 
-    >>> variabilitycheck()
-    Traceback (most recent call last):
-    ...
-    ValueError: For parameter `variabilitycheck` of element `?`, pass either a \
-boolean value or the keyword arguments `maxrelsumdelta` and `averagingwindow`.
-
     `maxrelsumdelta` must not be negative, and `averagingwindow` must be a positive
     integer:
 
-    >>> variabilitycheck(maxrelsumdelta=-0.1, averagingwindow=12)
+    >>> variabilitycheck(active=True, maxrelsumdelta=-0.1, averagingwindow=12)
     Traceback (most recent call last):
     ...
     ValueError: For parameter `variabilitycheck` of element `?`, `maxrelsumdelta` \
 must not be negative, but `-0.1` is given.
 
-    >>> variabilitycheck(maxrelsumdelta=0.1, averagingwindow=0)
+    >>> variabilitycheck(active=True, maxrelsumdelta=0.1, averagingwindow=0)
     Traceback (most recent call last):
     ...
     ValueError: For parameter `variabilitycheck` of element `?`, `averagingwindow` \
@@ -461,7 +444,7 @@ must be a positive integer, but `0` is given.
     Failed calls leave the previous configuration untouched:
 
     >>> variabilitycheck
-    variabilitycheck(maxrelsumdelta=0.1, averagingwindow=12)
+    variabilitycheck(active=True, maxrelsumdelta=0.2, averagingwindow=24)
     """
 
     _config: tuple[bool, float, int] | None
@@ -470,14 +453,27 @@ must be a positive integer, but `0` is given.
         super().__init__(subvars)
         self._config = None
 
+    @overload
+    def __call__(self, *, active: Literal[False]) -> None: ...
+
+    @overload
+    def __call__(
+        self, *, active: Literal[True], maxrelsumdelta: float, averagingwindow: int
+    ) -> None: ...
+
     def __call__(
         self,
-        value: bool | None = None,
         *,
+        active: bool | None = None,
         maxrelsumdelta: float | None = None,
         averagingwindow: int | None = None,
     ) -> None:
-        if (value is False) and (
+        if active is None:
+            raise ValueError(
+                f"For parameter {objecttools.elementphrase(self)}, the keyword "
+                f"argument `active` must be given."
+            )
+        if (not active) and (
             (maxrelsumdelta is not None) or (averagingwindow is not None)
         ):
             raise ValueError(
@@ -485,15 +481,9 @@ must be a positive integer, but `0` is given.
                 f"and `averagingwindow` must not be given when disabling the "
                 f"variability check."
             )
-        if value is False:
+        if not active:
             self._config = (False, 0.0, 0)
             return
-        if (value is None) and (maxrelsumdelta is None) and (averagingwindow is None):
-            raise ValueError(
-                f"For parameter {objecttools.elementphrase(self)}, pass either a "
-                f"boolean value or the keyword arguments `maxrelsumdelta` and "
-                f"`averagingwindow`."
-            )
         if (maxrelsumdelta is None) or (averagingwindow is None):
             raise ValueError(
                 f"For parameter {objecttools.elementphrase(self)}, both "
@@ -517,9 +507,10 @@ must be a positive integer, but `0` is given.
             return f"{self.name}(?)"
         enabled, maxrelsumdelta, averagingwindow = self._config
         if not enabled:
-            return f"{self.name}(False)"
+            return f"{self.name}(active=False)"
         return (
-            f"{self.name}(maxrelsumdelta={objecttools.repr_(maxrelsumdelta)}, "
+            f"{self.name}(active=True, "
+            f"maxrelsumdelta={objecttools.repr_(maxrelsumdelta)}, "
             f"averagingwindow={averagingwindow})"
         )
 
@@ -540,7 +531,7 @@ must be a positive integer, but `0` is given.
         >>> parameterstep()
         >>> variabilitycheck.configured
         False
-        >>> variabilitycheck(False)
+        >>> variabilitycheck(active=False)
         >>> variabilitycheck.configured
         True
         """
@@ -580,9 +571,13 @@ class ReductionSteps(parametertools.Parameter):
 
 
 class MaxAbsShift(parametertools.Parameter):
-    """The maximum absolute shift applied when the current forecast value
-    exceeds the simulated value at the point the residual was determined (see
-    |Determine_OutputCorrection_V1|) [unit of the corrected variable]."""
+    """The maximum absolute shift applied when the current simulated value is not
+    positive or not below |ResidualAnchor| (the simulated value at the time the
+    residual was determined, see |Calc_CorrectedQ_V1|) [unit of the corrected
+    variable].
+
+    This includes the `historical` mode whenever the current observation is
+    available, as |ResidualAnchor| then equals the current simulated value."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
@@ -590,9 +585,9 @@ class MaxAbsShift(parametertools.Parameter):
 
 
 class MaxRelShift(parametertools.Parameter):
-    """The maximum relative shift applied when the current forecast value is at or
-    below the simulated value at the point the residual was determined (see
-    |Determine_OutputCorrection_V1|) [-].
+    """The maximum relative shift applied when the current simulated value is
+    positive and below |ResidualAnchor| (the simulated value at the time the residual
+    was determined, see |Calc_CorrectedQ_V1|) [-].
 
     |MaxRelShift| is a fraction, not a percentage.  For example, a value of
     ``0.1`` restricts the multiplicative correction to ±10 %."""
@@ -605,7 +600,7 @@ class MaxRelShift(parametertools.Parameter):
 class AveragingWindow(parametertools.Parameter):
     """The length (in log entries) of the averaging period immediately
     preceding the current forecast run, used to determine the mean-value-based
-    ARIMA residual (see |Determine_OutputCorrection_V1|) [-].  Set to zero to
+    ARIMA residual (see |Calc_AveragedResidual_V1|) [-].  Set to zero to
     disable mean-value-based correction and rely on the single most recent
     (pointwise) residual only."""
 

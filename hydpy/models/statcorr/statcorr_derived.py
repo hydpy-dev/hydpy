@@ -80,8 +80,8 @@ class NmbLogEntries(parametertools.NmbParameter):
         >>> from hydpy.models.statcorr_arima010 import *
         >>> parameterstep()
         >>> evaluationwindow(3)
-        >>> stationaritycheck(window=4, ratiominmax=0.5)
-        >>> variabilitycheck(False)
+        >>> stationaritycheck(active=True, window=4, ratiominmax=0.5)
+        >>> variabilitycheck(active=False)
         >>> maxnanskip(1)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
@@ -92,13 +92,13 @@ class NmbLogEntries(parametertools.NmbParameter):
         >>> derived.nmblogentries
         nmblogentries(4)
 
-        >>> stationaritycheck(False)
-        >>> variabilitycheck(maxrelsumdelta=0.2, averagingwindow=5)
+        >>> stationaritycheck(active=False)
+        >>> variabilitycheck(active=True, maxrelsumdelta=0.2, averagingwindow=5)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(6)
 
-        >>> variabilitycheck(False)
+        >>> variabilitycheck(active=False)
         >>> maxnanskip(6)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
@@ -196,12 +196,12 @@ class StationarityWindow(parametertools.Parameter):
         >>> derived.stationaritywindow
         stationaritywindow(?)
 
-        >>> stationaritycheck(window=4, ratiominmax=0.5)
+        >>> stationaritycheck(active=True, window=4, ratiominmax=0.5)
         >>> derived.stationaritywindow.update()
         >>> derived.stationaritywindow
         stationaritywindow(4)
 
-        >>> stationaritycheck(False)
+        >>> stationaritycheck(active=False)
         >>> derived.stationaritywindow.update()
         >>> derived.stationaritywindow
         stationaritywindow(0)
@@ -235,12 +235,12 @@ class RatioMinMax(parametertools.Parameter):
         >>> derived.ratiominmax
         ratiominmax(?)
 
-        >>> stationaritycheck(window=4, ratiominmax=0.5)
+        >>> stationaritycheck(active=True, window=4, ratiominmax=0.5)
         >>> derived.ratiominmax.update()
         >>> derived.ratiominmax
         ratiominmax(0.5)
 
-        >>> stationaritycheck(False)
+        >>> stationaritycheck(active=False)
         >>> derived.ratiominmax.update()
         >>> derived.ratiominmax
         ratiominmax(0.0)
@@ -275,12 +275,12 @@ class MaxRelSumDelta(parametertools.Parameter):
         >>> derived.maxrelsumdelta
         maxrelsumdelta(?)
 
-        >>> variabilitycheck(maxrelsumdelta=0.2, averagingwindow=24)
+        >>> variabilitycheck(active=True, maxrelsumdelta=0.2, averagingwindow=24)
         >>> derived.maxrelsumdelta.update()
         >>> derived.maxrelsumdelta
         maxrelsumdelta(0.2)
 
-        >>> variabilitycheck(False)
+        >>> variabilitycheck(active=False)
         >>> derived.maxrelsumdelta.update()
         >>> derived.maxrelsumdelta
         maxrelsumdelta(0.0)
@@ -315,12 +315,12 @@ class StationaryAveragingWindow(parametertools.Parameter):
         >>> derived.stationaryaveragingwindow
         stationaryaveragingwindow(?)
 
-        >>> variabilitycheck(maxrelsumdelta=0.2, averagingwindow=24)
+        >>> variabilitycheck(active=True, maxrelsumdelta=0.2, averagingwindow=24)
         >>> derived.stationaryaveragingwindow.update()
         >>> derived.stationaryaveragingwindow
         stationaryaveragingwindow(24)
 
-        >>> variabilitycheck(False)
+        >>> variabilitycheck(active=False)
         >>> derived.stationaryaveragingwindow.update()
         >>> derived.stationaryaveragingwindow
         stationaryaveragingwindow(0)

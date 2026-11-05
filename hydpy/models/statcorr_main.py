@@ -49,8 +49,8 @@ Integration tests
     ...     control.maxrelshift(10.0)
     ...     control.averagingwindow(0)
     ...     control.transitionsteps(0)
-    ...     control.stationaritycheck(False)
-    ...     control.variabilitycheck(False)
+    ...     control.stationaritycheck(active=False)
+    ...     control.variabilitycheck(active=False)
     ...     control.reductionsteps(1)
 
     The inlet provides the simulated discharge; |Discharge| carries the
@@ -195,7 +195,7 @@ __________________
 
     >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0) as sub:
     ...     configure(sub)
-    ...     stationaritycheck(window=3, ratiominmax=0.5)
+    ...     stationaritycheck(active=True, window=3, ratiominmax=0.5)
     ...     reductionsteps(4)
     >>> element.inlets.inlet.sequences.sim.series = 5.0
     >>> with pub.options.checkseries(False):
@@ -234,7 +234,7 @@ _________________
     ...     configure(sub)
     ...     evaluationwindow(3)
     ...     averagingwindow(1)
-    ...     variabilitycheck(maxrelsumdelta=0.1, averagingwindow=4)
+    ...     variabilitycheck(active=True, maxrelsumdelta=0.1, averagingwindow=4)
     >>> with pub.options.checkseries(False):
     ...     inputs.discharge.series = 6.0, 6.0, 6.0, 7.0, 6.0, nan, nan, nan, nan, nan
 
@@ -278,9 +278,10 @@ __________________
     ...     inputs.discharge.series = 1.5, 2.5, 8.0, 9.0, 3.5, nan, nan, nan, nan, nan
 
     During the `historical` run, the second submodel takes over on days three and
-    four, where its restricted relative shift prevents reproducing the
-    observations.  During the `forecast` run, the responsible submodel does not
-    change (see |EvaluatedValue|).  Hence, the first submodel, which was
+    four, where its restricted absolute shift prevents reproducing the observations
+    (the relative shift does not apply, as the current observation is available,
+    see |Calc_CorrectedQ_V1|).  During the `forecast` run, the responsible submodel
+    does not change (see |EvaluatedValue|).  Hence, the first submodel, which was
     responsible at the end of the `historical` run, keeps applying the residual of
     ``0.5`` unrestricted, even when the forecasted discharge exceeds ``5.0``:
 
@@ -291,8 +292,8 @@ __________________
     ------------------------------------------------------------
     | 01/01 |       1.5 |    1.0 |        1.5 |   1.0 |    1.5 |
     | 02/01 |       2.5 |    2.0 |        2.5 |   2.0 |    2.5 |
-    | 03/01 |       8.0 |    6.0 |        6.3 |   6.0 |    6.3 |
-    | 04/01 |       9.0 |    7.0 |       7.35 |   7.0 |   7.35 |
+    | 03/01 |       8.0 |    6.0 |       6.25 |   6.0 |   6.25 |
+    | 04/01 |       9.0 |    7.0 |       7.25 |   7.0 |   7.25 |
     | 05/01 |       3.5 |    3.0 |        3.5 |   3.0 |    3.5 |
     | 06/01 |       nan |    4.0 |        4.5 |   4.0 |    4.5 |
     | 07/01 |       nan |    6.0 |        6.5 |   6.0 |    6.5 |
@@ -328,7 +329,7 @@ class Model(modeltools.AdHocModel):
     RECEIVER_METHODS = ()
     RUN_METHODS = (statcorr_model.Calc_OutputCorr_V1,)
     INTERFACE_METHODS = ()
-    ADD_METHODS = ()
+    ADD_METHODS = (statcorr_model.Calc_OutputCorr_OutputCorrModel_V1,)
     OUTLET_METHODS = (statcorr_model.Pass_CorrectedQ_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (statcorrinterfaces.OutputCorrModel_V1,)

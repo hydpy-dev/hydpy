@@ -20,7 +20,7 @@ pub = pubtools.Pub("pub")
 
 from hydpy import config
 from hydpy import models
-from hydpy.core import indextools, objecttools, optiontools, sequencetools
+from hydpy.core import objecttools, sequencetools
 from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Element, Elements, FusedVariable, Node, Nodes
 from hydpy.core.exceptiontools import AttributeNotReady, attrready, getattr_, hasattr_
@@ -112,9 +112,6 @@ from hydpy.exe.servertools import await_server, start_server
 from hydpy.exe.xmltools import XMLInterface, run_simulation, xml_validate
 
 __version__ = "7.0dev0"
-
-pub.options = optiontools.Options()
-pub.indexer = indextools.Indexer()
 
 pub.scriptfunctions["await_server"] = await_server
 pub.scriptfunctions["exec_commands"] = exec_commands

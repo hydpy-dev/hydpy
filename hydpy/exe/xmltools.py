@@ -572,6 +572,7 @@ correctly refer to one of the available XML schema files \
         >>> pub.options.parameterstep = "1h"
         >>> pub.options.printprogress = True
         >>> pub.options.reprdigits = -1
+        >>> pub.options.simulationmode = "forecast"
         >>> pub.options.utcoffset = -60
         >>> pub.options.threads = 4
         >>> pub.options.timestampleft = False
@@ -585,6 +586,7 @@ correctly refer to one of the available XML schema files \
             parameterstep -> Period("1d")
             printprogress -> FALSE
             reprdigits -> 6
+            simulationmode -> 'historical'
             simulationstep -> Period()
             threads -> 0
             timestampleft -> TRUE

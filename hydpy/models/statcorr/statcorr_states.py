@@ -84,7 +84,7 @@ class ForecastStep(sequencetools.StateSequence):
     forecast run (``0.0`` on the first forecast step), reset to ``0.0``
     whenever |Options.simulationmode| equals `historical` [-].
 
-    |Calc_CorrectedQ_V1| uses |ForecastStep| to linearly blend the
+    |Calc_CorrectedValue_V1| uses |ForecastStep| to linearly blend the
     applied residual from the single most recent (pointwise) value towards
     the mean-value-based residual determined via |AveragingWindow|
     over |TransitionSteps| forecast steps."""

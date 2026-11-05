@@ -280,7 +280,7 @@ __________________
     During the `historical` run, the second submodel takes over on days three and
     four, where its restricted absolute shift prevents reproducing the observations
     (the relative shift does not apply, as the current observation is available,
-    see |Calc_CorrectedQ_V1|).  During the `forecast` run, the responsible submodel
+    see |Calc_CorrectedValue_V1|).  During the `forecast` run, the responsible submodel
     does not change (see |EvaluatedValue|).  Hence, the first submodel, which was
     responsible at the end of the `historical` run, keeps applying the residual of
     ``0.5`` unrestricted, even when the forecasted discharge exceeds ``5.0``:

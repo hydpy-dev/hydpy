@@ -23,14 +23,14 @@ if it is positive and lower than this anchor value, the residual is applied
 relative to the anchor value (capped at |MaxRelShift|), which keeps the correction
 from overshooting or turning negative while the simulated values recede;
 otherwise, the residual is added unchanged (capped at |MaxAbsShift|).  See
-|Calc_CorrectedQ_V1| for the exact formulas.
+|Calc_CorrectedValue_V1| for the exact formulas.
 
 Setting |AveragingWindow| to a value greater than zero switches from
 that pointwise residual to a mean-value-based one (mean observed minus mean
 simulated values over the given number of log entries immediately
 preceding the current forecast run), blended in linearly over
 |TransitionSteps| forecast steps to avoid a jump right where the
-forecast begins.  See |Calc_AveragedResidual_V1| and |Calc_CorrectedQ_V1| for
+forecast begins.  See |Calc_AveragedResidual_V1| and |Calc_CorrectedValue_V1| for
 details.
 
 Each |statcorr_arima010| instance is responsible for a specific value range
@@ -146,7 +146,7 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
         statcorr_model.Calc_RelSumDelta_V1,
         statcorr_model.Calc_LowVariability_V1,
         statcorr_model.Calc_AveragedResidual_V1,
-        statcorr_model.Calc_CorrectedQ_V1,
+        statcorr_model.Calc_CorrectedValue_V1,
         statcorr_model.Update_ForecastStep_V1,
     )
     OUTLET_METHODS = ()

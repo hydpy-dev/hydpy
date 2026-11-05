@@ -573,7 +573,7 @@ class ReductionSteps(parametertools.Parameter):
 class MaxAbsShift(parametertools.Parameter):
     """The maximum absolute shift applied when the current simulated value is not
     positive or not below |ResidualAnchor| (the simulated value at the time the
-    residual was determined, see |Calc_CorrectedQ_V1|) [unit of the corrected
+    residual was determined, see |Calc_CorrectedValue_V1|) [unit of the corrected
     variable].
 
     This includes the `historical` mode whenever the current observation is
@@ -587,7 +587,7 @@ class MaxAbsShift(parametertools.Parameter):
 class MaxRelShift(parametertools.Parameter):
     """The maximum relative shift applied when the current simulated value is
     positive and below |ResidualAnchor| (the simulated value at the time the residual
-    was determined, see |Calc_CorrectedQ_V1|) [-].
+    was determined, see |Calc_CorrectedValue_V1|) [-].
 
     |MaxRelShift| is a fraction, not a percentage.  For example, a value of
     ``0.1`` restricts the multiplicative correction to ±10 %."""

@@ -1226,7 +1226,7 @@ class Calc_AveragedResidual_V1(modeltools.Method):
                 sta.averagedresidual = (sum_obs - sum_sim) / nmb
 
 
-class Calc_CorrectedQ_V1(modeltools.Method):
+class Calc_CorrectedValue_V1(modeltools.Method):
     r"""Calculate the corrected value by shifting the current simulated value based
     on the (damped) residual.
 
@@ -1236,11 +1236,11 @@ class Calc_CorrectedQ_V1(modeltools.Method):
     (:math:`sim_k`, the simulated value at the time the residual was determined),
     with :math:`f_{red}` denoting |ReductionFactor|:
 
-    * If :math:`0 < sim_0 < sim_k`, |Calc_CorrectedQ_V1| shifts :math:`sim_0`
+    * If :math:`0 < sim_0 < sim_k`, |Calc_CorrectedValue_V1| shifts :math:`sim_0`
       *multiplicatively*, expressing the damped residual as a fraction of
       :math:`sim_k` and capping that fraction at |MaxRelShift|:
 
-        :math:`CorrectedQ = sim_0 \cdot \left(1 + \mathrm{clip}\left(r \cdot f_{red}
+        :math:`CorrectedValue = sim_0 \cdot \left(1 + \mathrm{clip}\left(r \cdot f_{red}
         / sim_k,\ \pm MaxRelShift\right) \right)`
 
       Applying the residual as a fraction rather than a constant offset keeps the
@@ -1250,7 +1250,7 @@ class Calc_CorrectedQ_V1(modeltools.Method):
     * Otherwise (:math:`sim_0 \geq sim_k` or :math:`sim_0 \leq 0`), it shifts
       :math:`sim_0` *additively*, capping the damped residual at |MaxAbsShift|:
 
-        :math:`CorrectedQ = sim_0 + \mathrm{clip}\left(r \cdot f_{red},\
+        :math:`CorrectedValue = sim_0 + \mathrm{clip}\left(r \cdot f_{red},\
         \pm MaxAbsShift\right)`
 
       This includes the `historical` mode whenever the current observation is
@@ -1262,7 +1262,7 @@ class Calc_CorrectedQ_V1(modeltools.Method):
     |AveragedResidual| (see |Calc_AveragedResidual_V1|).  Since it generally does
     not equal the pointwise residual at the forecast's start, switching to it
     abruptly would cause a jump in the corrected value right where the forecast
-    begins.  To avoid this, |Calc_CorrectedQ_V1| starts every forecast run with the
+    begins.  To avoid this, |Calc_CorrectedValue_V1| starts every forecast run with the
     pointwise residual (so the corrected value picks up smoothly where the last
     measurement left off) and then linearly blends it towards the mean-value-based
     residual over |TransitionSteps| forecast steps (counted by |ForecastStep|),
@@ -1291,32 +1291,32 @@ class Calc_CorrectedQ_V1(modeltools.Method):
         >>> states.residual(1.0)
         >>> states.residualanchor(5.0)
         >>> logs.loggedsimulatedvalue = 6.0
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(6.0)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(6.0)
 
         The current simulated value exceeds |ResidualAnchor|, so the residual
         applies additively:
 
         >>> fluxes.isactive = 1.0
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(7.0)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(7.0)
 
         |ReductionFactor| dampens the residual:
 
         >>> states.reductionfactor(0.5)
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(6.5)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(6.5)
 
         |MaxAbsShift| caps the additive shift:
 
         >>> states.reductionfactor(1.0)
         >>> control.maxabsshift(0.2)
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(6.2)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(6.2)
 
         For a *receding* simulation (the current simulated value is below
         |ResidualAnchor|), the residual applies multiplicatively:
@@ -1325,17 +1325,17 @@ class Calc_CorrectedQ_V1(modeltools.Method):
         >>> states.residual(2.0)
         >>> states.residualanchor(10.0)
         >>> logs.loggedsimulatedvalue = 2.0
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(2.4)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(2.4)
 
         Limiting |MaxRelShift| to ``0.1`` caps that fraction at 10 % before it is
         converted back into an absolute shift:
 
         >>> control.maxrelshift(0.1)
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(2.2)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(2.2)
 
         If the current simulated value equals |ResidualAnchor| (as in `historical`
         mode whenever the current observation is available), the residual applies
@@ -1343,21 +1343,21 @@ class Calc_CorrectedQ_V1(modeltools.Method):
 
         >>> control.maxrelshift(0.0)
         >>> logs.loggedsimulatedvalue = 10.0
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(12.0)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(12.0)
 
         The same holds for a non-positive current simulated value:
 
         >>> logs.loggedsimulatedvalue = 0.0
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(2.0)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(2.0)
         >>> control.maxrelshift(10.0)
 
         Now, we demonstrate the transition from the pointwise residual (``1.0``)
         to the mean-value-based residual (``2.5``) over two forecast steps.  On the
-        first forecast step, |Calc_CorrectedQ_V1| applies the pointwise residual
+        first forecast step, |Calc_CorrectedValue_V1| applies the pointwise residual
         unabated:
 
         >>> control.averagingwindow(2)
@@ -1367,36 +1367,36 @@ class Calc_CorrectedQ_V1(modeltools.Method):
         >>> states.residualanchor(8.0)
         >>> states.averagedresidual(2.5)
         >>> logs.loggedsimulatedvalue = 10.0
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(11.0)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(11.0)
 
         Halfway through the transition, the applied residual is the average of both
         (``1.75``):
 
         >>> states.forecaststep(1.0)
         >>> logs.loggedsimulatedvalue = 11.0
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(12.75)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(12.75)
 
         Once the transition period has elapsed, the full mean-value-based residual
         applies:
 
         >>> states.forecaststep(2.0)
         >>> logs.loggedsimulatedvalue = 12.0
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(14.5)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(14.5)
 
         Setting |TransitionSteps| to zero applies the mean-value-based residual
         immediately:
 
         >>> control.transitionsteps(0)
         >>> states.forecaststep(0.0)
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(14.5)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(14.5)
 
         Under stationary conditions according to |VariabilityCheck| (see
         |Calc_LowVariability_V1|), the mean-value-based residual applies even if
@@ -1404,17 +1404,17 @@ class Calc_CorrectedQ_V1(modeltools.Method):
 
         >>> control.averagingwindow(0)
         >>> states.lowvariability(1.0)
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(14.5)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(14.5)
 
-        In `historical` mode, |Calc_CorrectedQ_V1| always relies on the pointwise
+        In `historical` mode, |Calc_CorrectedValue_V1| always relies on the pointwise
         residual, so that the corrected value reproduces the current observation:
 
         >>> fluxes.forecastmode = 0.0
-        >>> model.calc_correctedq_v1()
-        >>> fluxes.correctedq
-        correctedq(13.0)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(13.0)
     """
 
     CONTROLPARAMETERS = (
@@ -1434,7 +1434,7 @@ class Calc_CorrectedQ_V1(modeltools.Method):
         statcorr_states.Residual,
         statcorr_states.ResidualAnchor,
     )
-    RESULTSEQUENCES = (statcorr_fluxes.CorrectedQ,)
+    RESULTSEQUENCES = (statcorr_fluxes.CorrectedValue,)
 
     @staticmethod
     def __call__(model: modeltools.Model, /) -> None:
@@ -1444,7 +1444,7 @@ class Calc_CorrectedQ_V1(modeltools.Method):
         sta = model.sequences.states.fastaccess
         sim: float = log.loggedsimulatedvalue[0]
         if flu.isactive == 0.0:
-            flu.correctedq = sim
+            flu.correctedvalue = sim
         else:
             residual: float = sta.residual
             if (flu.forecastmode == 1.0) and (
@@ -1456,12 +1456,12 @@ class Calc_CorrectedQ_V1(modeltools.Method):
                 residual = residual + weight * (sta.averagedresidual - residual)
             residual = residual * sta.reductionfactor
             if 0.0 < sim < sta.residualanchor:
-                flu.correctedq = sim + sim * min(
+                flu.correctedvalue = sim + sim * min(
                     con.maxrelshift,
                     max(-con.maxrelshift, residual / sta.residualanchor),
                 )
             else:
-                flu.correctedq = sim + min(
+                flu.correctedvalue = sim + min(
                     con.maxabsshift, max(-con.maxabsshift, residual)
                 )
 
@@ -1521,7 +1521,7 @@ class Determine_OutputCorrection_V1(modeltools.SetAutoMethod):
     * |Calc_RelSumDelta_V1|, |Calc_LowVariability_V1|, and
       |Calc_AveragedResidual_V1| determine the mean-value-based residual for
       forecast runs.
-    * |Calc_CorrectedQ_V1| applies the resulting residual to the current simulated
+    * |Calc_CorrectedValue_V1| applies the resulting residual to the current simulated
       value.
     * |Update_ForecastStep_V1| counts the forecast steps.
 
@@ -1566,8 +1566,8 @@ class Determine_OutputCorrection_V1(modeltools.SetAutoMethod):
         forecastmode(0.0)
         >>> fluxes.isactive
         isactive(1.0)
-        >>> fluxes.correctedq
-        correctedq(6.0)
+        >>> fluxes.correctedvalue
+        correctedvalue(6.0)
 
         In `forecast` mode, the residual of the last `historical` step persists:
 
@@ -1576,8 +1576,8 @@ class Determine_OutputCorrection_V1(modeltools.SetAutoMethod):
         >>> model.determine_outputcorrection_v1(True)
         >>> fluxes.forecastmode
         forecastmode(1.0)
-        >>> fluxes.correctedq
-        correctedq(8.0)
+        >>> fluxes.correctedvalue
+        correctedvalue(8.0)
         >>> states.forecaststep
         forecaststep(1.0)
     """
@@ -1592,7 +1592,7 @@ class Determine_OutputCorrection_V1(modeltools.SetAutoMethod):
         Calc_RelSumDelta_V1,
         Calc_LowVariability_V1,
         Calc_AveragedResidual_V1,
-        Calc_CorrectedQ_V1,
+        Calc_CorrectedValue_V1,
         Update_ForecastStep_V1,
     )
     CONTROLPARAMETERS = (
@@ -1633,7 +1633,7 @@ class Determine_OutputCorrection_V1(modeltools.SetAutoMethod):
     RESULTSEQUENCES = (
         statcorr_fluxes.ForecastMode,
         statcorr_fluxes.IsActive,
-        statcorr_fluxes.CorrectedQ,
+        statcorr_fluxes.CorrectedValue,
     )
 
 
@@ -1666,18 +1666,18 @@ class Get_CorrectedOutput_V1(modeltools.Method):
 
         >>> from hydpy.models.statcorr_arima010 import *
         >>> parameterstep()
-        >>> fluxes.correctedq = 2.5
+        >>> fluxes.correctedvalue = 2.5
         >>> from hydpy import round_
         >>> round_(model.get_correctedoutput_v1())
         2.5
     """
 
-    REQUIREDSEQUENCES = (statcorr_fluxes.CorrectedQ,)
+    REQUIREDSEQUENCES = (statcorr_fluxes.CorrectedValue,)
 
     @staticmethod
     def __call__(model: modeltools.Model, /) -> float:
         flu = model.sequences.fluxes.fastaccess
-        return flu.correctedq
+        return flu.correctedvalue
 
 
 class Sub_OutputCorrModel(modeltools.AdHocModel):

@@ -35,7 +35,6 @@ small or when Python offers other strategies to decrease computation times.
    :hidden:
 
    annutils
-   configutils
    interfaceutils
    interputils
    modelutils
@@ -44,4 +43,5 @@ small or when Python offers other strategies to decrease computation times.
    quadutils
    rootutils
    sequenceutils
+   settingutils
    smoothutils

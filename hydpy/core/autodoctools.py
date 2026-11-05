@@ -56,6 +56,7 @@ if TYPE_CHECKING:
     from hydpy.cythons import pointerutils
     from hydpy.cythons import quadutils
     from hydpy.cythons import rootutils
+    from hydpy.cythons import settingutils
     from hydpy.cythons import smoothutils
 else:
     from hydpy.cythons.autogen import annutils
@@ -64,6 +65,7 @@ else:
     from hydpy.cythons.autogen import pointerutils
     from hydpy.cythons.autogen import quadutils
     from hydpy.cythons.autogen import rootutils
+    from hydpy.cythons.autogen import settingutils
     from hydpy.cythons.autogen import smoothutils
 
 
@@ -1409,6 +1411,7 @@ def prepare_mainsubstituter() -> Substituter:
         pointerutils,
         quadutils,
         rootutils,
+        settingutils,
         smoothutils,
     ):
         substituter.add_module(cymodule, cython=True)

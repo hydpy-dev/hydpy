@@ -14,7 +14,9 @@ from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
-    from hydpy.cythons import configutils
+    from hydpy.cythons import settingutils
+else:
+    from hydpy.cythons.autogen import settingutils
 
 
 class _PubProperty(propertytools.DefaultProperty[T_contra, T_co]):
@@ -211,7 +213,7 @@ requires one, two, or three `Timegrid` objects or two dates objects (of type `Da
     """
 
     options: optiontools.Options
-    config: configutils.Config
+    runsettings: settingutils.RunSettings
     scriptfunctions: dict[str, Callable[..., int | None]]
 
     projectname = _ProjectnameProperty()
@@ -230,6 +232,7 @@ requires one, two, or three `Timegrid` objects or two dates objects (of type `Da
     def __init__(self, name: str, doc: str | None = None) -> None:
         super().__init__(name=name, doc=doc)
         self.options = optiontools.Options()
+        self.runsettings = settingutils.RunSettings()
         self.scriptfunctions = {}
 
     @property

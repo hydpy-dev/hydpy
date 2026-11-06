@@ -5,7 +5,7 @@ To execute all sessions, install `Nox`, open a command-line prompt, navigate to 
 directory containing this nox file and write "nox".  To run specific sessions, write,
 for example:
 
-nox -s doctest -s pylint
+nox -s doctest pylint
 
 See the docstrings of the individual sessions for potential specific configuration
 options.

@@ -7,9 +7,15 @@ import typing_extensions
 
 import hydpy
 from hydpy.core import exceptiontools
+from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
+
+if TYPE_CHECKING:
+    from hydpy.cythons import settingutils
+else:
+    from hydpy.cythons.autogen import settingutils
 
 TypeOption = TypeVar(
     "TypeOption",
@@ -20,7 +26,7 @@ TypeOption = TypeVar(
     SeriesFileType,
     SeriesAggregationType,
     SeriesConventionType,
-    SimulationMode,
+    SimulationModeType,
 )
 TypeOptionContextBase = TypeVar("TypeOptionContextBase", bound="OptionContextBase[Any]")
 TypeOptionPropertyBase = TypeVar(
@@ -708,7 +714,16 @@ Please choose one of the following modes: `model-specific` and `HydPy`.
     _CONTEXT = OptionContextStr[SeriesConventionType]
 
 
-def _check_simulationmode(value: SimulationMode) -> SimulationMode:
+_SIMULATIONMODE2CONSTANT: dict[SimulationModeType, int] = {
+    "historical": settingutils.HISTORICAL,
+    "forecast": settingutils.FORECAST,
+}
+_CONSTANT2SIMULATIONMODE: dict[int, SimulationModeType] = {
+    constant: mode for mode, constant in _SIMULATIONMODE2CONSTANT.items()
+}
+
+
+def _check_simulationmode(value: SimulationModeType) -> SimulationModeType:
     try:
         if value == "historical":
             return "historical"
@@ -716,62 +731,102 @@ def _check_simulationmode(value: SimulationMode) -> SimulationMode:
             return "forecast"
         assert_never(value)
     except AssertionError:
+        modes = objecttools.enumeration(_SIMULATIONMODE2CONSTANT, backticks=True)
         raise ValueError(
-            f"The given simulation mode `{value}` is not implemented.  Please "
-            f"choose one of the following simulation modes: historical, forecast."
+            f"The given simulation mode `{value}` is not implemented.  Please choose "
+            f"one of the following modes: {modes}."
         ) from None
     assert False
 
 
 class OptionPropertySimulationMode(
-    OptionPropertyBase[SimulationMode, OptionContextStr[SimulationMode]]
+    OptionPropertyBase[SimulationModeType, OptionContextStr[SimulationModeType]]
 ):
-    """Descriptor for defining options of type |SimulationMode|.
+    """Descriptor for defining options of type |SimulationModeType|.
 
-    *HydPy* currently supports two simulation modes: `historical` and `forecast`.
-    Options based on |OptionPropertySimulationMode| automatically check if the given
-    string is a supported simulation mode and raise errors if not:
+    In contrast to other options, the current simulation mode must be available during
+    simulation runs.  Hence, |OptionPropertySimulationMode| does not store the mode
+    itself but writes its integer representation directly to the global |RunSettings|
+    object of module |pub|, where model methods can read it at Cython speed.  This
+    design implies that there can be only one simulation mode per process.
 
-    >>> from hydpy.core.optiontools import OptionPropertySimulationMode
-    >>> class T:
-    ...     v = OptionPropertySimulationMode("historical", "x")
-    >>> T.v.__doc__
-    'x'
+    Assignments, the `with` statement, and the delete statement all affect the
+    |RunSettings| object:
 
-    >>> t = T()
-    >>> assert t.v == "historical"
-    >>> t.v = "abc"
+    >>> from hydpy import pub
+    >>> from hydpy.cythons.settingutils import FORECAST, HISTORICAL
+    >>> assert pub.options.simulationmode == "historical"
+    >>> assert pub.runsettings.simulationmode == HISTORICAL
+
+    >>> pub.options.simulationmode = "forecast"
+    >>> assert pub.options.simulationmode == "forecast"
+    >>> assert pub.runsettings.simulationmode == FORECAST
+
+    >>> del pub.options.simulationmode
+    >>> assert pub.options.simulationmode == "historical"
+    >>> assert pub.runsettings.simulationmode == HISTORICAL
+
+    >>> with pub.options.simulationmode("forecast"):
+    ...     assert pub.runsettings.simulationmode == FORECAST
+    ...     with pub.options.simulationmode():
+    ...         assert pub.runsettings.simulationmode == FORECAST
+    ...     with pub.options.simulationmode(None):
+    ...         assert pub.runsettings.simulationmode == FORECAST
+    ...     with pub.options.simulationmode("historical"):
+    ...         assert pub.runsettings.simulationmode == HISTORICAL
+    ...     assert pub.runsettings.simulationmode == FORECAST
+    >>> assert pub.runsettings.simulationmode == HISTORICAL
+
+    >>> with pub.options.simulationmode("forecast"):
+    ...     raise RuntimeError
     Traceback (most recent call last):
     ...
-    ValueError: The given simulation mode `abc` is not implemented.  Please choose \
-one of the following simulation modes: historical, forecast.
-    >>> assert t.v == "historical"
-    >>> t.v = "forecast"
-    >>> assert t.v == "forecast"
-    >>> t.v = "historical"
-    >>> assert t.v == "historical"
+    RuntimeError
+    >>> assert pub.runsettings.simulationmode == HISTORICAL
 
-    >>> with t.v("abc"):
+    Unsupported modes result in errors and leave the current mode unchanged:
+
+    >>> pub.options.simulationmode = "calibration"
+    Traceback (most recent call last):
+    ...
+    ValueError: The given simulation mode `calibration` is not implemented.  Please \
+choose one of the following modes: `historical` and `forecast`.
+    >>> with pub.options.simulationmode("calibration"):
     ...     pass
     Traceback (most recent call last):
     ...
-    ValueError: The given simulation mode `abc` is not implemented.  Please choose \
-one of the following simulation modes: historical, forecast.
-    >>> assert t.v == "historical"
-    >>> with t.v("forecast"):
-    ...     assert t.v == "forecast"
-    ...     with t.v("historical"):
-    ...         assert t.v == "historical"
-    ...         with t.v():
-    ...             assert t.v == "historical"
-    ...         with t.v(None):
-    ...             assert t.v == "historical"
-    ...     assert t.v == "forecast"
-    >>> assert t.v == "historical"
+    ValueError: The given simulation mode `calibration` is not implemented.  Please \
+choose one of the following modes: `historical` and `forecast`.
+    >>> pub.options.simulationmode = ["forecast"]
+    Traceback (most recent call last):
+    ...
+    ValueError: The given simulation mode `['forecast']` is not implemented.  Please \
+choose one of the following modes: `historical` and `forecast`.
+    >>> assert pub.options.simulationmode == "historical"
+    >>> assert pub.runsettings.simulationmode == HISTORICAL
     """
 
     _CONVERTER = (_check_simulationmode,)
-    _CONTEXT = OptionContextStr[SimulationMode]
+    _CONTEXT = OptionContextStr[SimulationModeType]
+
+    def __set__(self, obj: Hashable, value: SimulationModeType) -> None:
+        self._write_simulationmode(value)
+
+    def __delete__(self, obj: Hashable) -> None:
+        self._write_simulationmode(self._default)
+
+    def _get_value(self, obj: Hashable) -> SimulationModeType:
+        return _CONSTANT2SIMULATIONMODE[hydpy.pub.runsettings.simulationmode]
+
+    def _set_value(
+        self, obj: Hashable, value: SimulationModeType | None = None
+    ) -> None:
+        if value is not None:
+            self._write_simulationmode(value)
+
+    def _write_simulationmode(self, value: SimulationModeType) -> None:
+        constant = _SIMULATIONMODE2CONSTANT[self._CONVERTER[0](value)]
+        hydpy.pub.runsettings.__hydpy__set_simulationmode__(constant)
 
 
 class Options:
@@ -908,28 +963,20 @@ class Options:
     )
     simulationmode = OptionPropertySimulationMode(
         "historical",
-        """The current simulation mode.
+        """The mode of the current simulation run, which is either "historical" or
+        "forecast".
 
-        The supported values are "historical" (default) and "forecast".  In
-        "historical" mode, the simulation typically relies on observed data, whereas
-        "forecast" mode might involve different initialisation or meteorological
-        forcing.
+        This option is available during simulation runs.  Model methods can read it via 
+        `model.runsettings.simulationmode` and compare it with the integer constants 
+        |modelutils.HISTORICAL| and |modelutils.FORECAST|.  Changing it between two 
+        simulation runs does not require updating any parameters.
+
+        Defaults to "historical":
 
         >>> from hydpy import pub
-        >>> pub.options.simulationmode
-        'historical'
-
-        You can switch the mode by assigning one of the valid string identifiers:
-
-        >>> pub.options.simulationmode = "forecast"
-        >>> pub.options.simulationmode
-        'forecast'
-
-        Resetting the option restores the default "historical" mode:
-
+        >>> assert pub.options.simulationmode == "historical"
         >>> del pub.options.simulationmode
-        >>> pub.options.simulationmode
-        'historical'
+        >>> assert pub.options.simulationmode == "historical"
         """,
     )
     simulationstep = _OptionPropertySimulationstep(

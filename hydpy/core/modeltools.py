@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from hydpy.core import selectiontools
     from hydpy.cythons import interfaceutils
     from hydpy.cythons import pointerutils
+    from hydpy.cythons import settingutils
 else:
     from hydpy.cythons.autogen import pointerutils
 
@@ -1102,12 +1103,22 @@ class Model:
     4.0
     >>> fluxes.pc.average_values(model.masks.land)
     3.0
+
+    Attribute |Model.runsettings| gives models access to settings that must be
+    available during simulation runs (see |Options.simulationmode|).  All models share
+    the global |RunSettings| object of module |pub|:
+
+    >>> from hydpy import pub
+    >>> assert model.runsettings is pub.runsettings
+    >>> if pub.options.usecython:
+    ...     assert model.cymodel.runsettings is pub.runsettings
     """
 
     cymodel: CyModelProtocol | None
     parameters: parametertools.Parameters[Model]
     sequences: sequencetools.Sequences[Model]
     masks: masktools.Masks
+    runsettings: settingutils.RunSettings
     idx_sim = Idx_Sim()
     threading = Threading()
 
@@ -1144,6 +1155,7 @@ class Model:
 
     def __init__(self) -> None:
         self.cymodel = None
+        self.runsettings = hydpy.pub.runsettings
         self.__hydpy_element__ = None
         self._init_methods()
 

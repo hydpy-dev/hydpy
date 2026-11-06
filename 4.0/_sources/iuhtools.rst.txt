@@ -1,0 +1,25 @@
+.. |IUH.update| replace:: :func:`~hydpy.auxs.iuhtools.IUH.update`
+.. |IUH| replace:: :class:`~hydpy.auxs.iuhtools.IUH`
+.. |LinearStorageCascade.c| replace:: :const:`~hydpy.auxs.iuhtools.LinearStorageCascade.c`
+.. |LinearStorageCascade.k| replace:: :const:`~hydpy.auxs.iuhtools.LinearStorageCascade.k`
+.. |LinearStorageCascade.n| replace:: :const:`~hydpy.auxs.iuhtools.LinearStorageCascade.n`
+.. |PrimaryParameterIUH| replace:: :class:`~hydpy.auxs.iuhtools.PrimaryParameterIUH`
+.. |SecondaryParameterIUH| replace:: :class:`~hydpy.auxs.iuhtools.SecondaryParameterIUH`
+.. |TranslationDiffusionEquation.a| replace:: :const:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation.a`
+.. |TranslationDiffusionEquation.b| replace:: :const:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation.b`
+.. |TranslationDiffusionEquation.d| replace:: :const:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation.d`
+.. |TranslationDiffusionEquation.u| replace:: :const:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation.u`
+.. |TranslationDiffusionEquation.x| replace:: :const:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation.x`
+.. |TranslationDiffusionEquation| replace:: :class:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation`
+.. |armatools| replace:: :mod:`~hydpy.auxs.armatools`
+.. |float| replace:: :class:`float`
+
+.. _iuhtools:
+
+iuhtools
+========
+
+.. automodule:: hydpy.auxs.iuhtools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

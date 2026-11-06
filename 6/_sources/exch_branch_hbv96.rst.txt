@@ -1,0 +1,31 @@
+.. |Branched| replace:: :class:`~hydpy.models.exch.exch_outlets.Branched`
+.. |Delta| replace:: :class:`~hydpy.models.exch.exch_control.Delta`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |LinkSequence| replace:: :class:`~hydpy.core.sequencetools.LinkSequence`
+.. |Minimum| replace:: :class:`~hydpy.models.exch.exch_control.Minimum`
+.. |Model.convert_2_exch_branch_rules| replace:: :func:`~hydpy.models.exch_branch_hbv96.Model.convert_2_exch_branch_rules`
+.. |NodeSequence| replace:: :class:`~hydpy.core.sequencetools.NodeSequence`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |OriginalInput| replace:: :class:`~hydpy.models.exch.exch_fluxes.OriginalInput`
+.. |Outputs| replace:: :class:`~hydpy.models.exch.exch_fluxes.Outputs`
+.. |PPoly| replace:: :class:`~hydpy.auxs.ppolytools.PPoly`
+.. |Rules| replace:: :class:`~hydpy.models.exch.exch_control.Rules`
+.. |Total| replace:: :class:`~hydpy.models.exch.exch_inlets.Total`
+.. |XPoints| replace:: :class:`~hydpy.models.exch.exch_control.XPoints`
+.. |YPoints| replace:: :class:`~hydpy.models.exch.exch_control.YPoints`
+.. |exch_branch_hbv96.DOCNAME.complete| replace:: HydPy-Exch-Branch-HBV96 (branch model adopted from IHMS-HBV96)
+.. |exch_branch_hbv96| replace:: :mod:`~hydpy.models.exch_branch_hbv96`
+.. |exch_branch_rules| replace:: :mod:`~hydpy.models.exch_branch_rules`
+.. |parameterstep| replace:: :func:`~hydpy.core.importtools.parameterstep`
+.. |exch_branch_hbv96.Model.convert_2_exch_branch_rules| replace:: :func:`~hydpy.models.exch_branch_hbv96.Model.convert_2_exch_branch_rules`
+.. |numpy.inf| replace:: :const:`~numpy.inf`
+
+.. _exch_branch_hbv96:
+
+exch_branch_hbv96
+=================
+
+.. automodule:: hydpy.models.exch_branch_hbv96
+    :members:
+    :show-inheritance:
+    :exclude-members: type_repr, Sentinel, AsyncContextManager, SupportsInt, ClassVar, SupportsFloat, override, TypeGuard, Match, Collection, Container, MutableMapping, assert_type, List, Doc, dataclass_transform, Coroutine, MutableSequence, ParamSpec, disjoint_base, Unpack, SUBMODELS, TYPE_CHECKING, MappingView, sentinel, ValuesView, RUN_METHODS, Text, InputSequences, Annotated, Awaitable, CLASSES, Generic, KeysView, OrderedDict, Writer, NoReturn, fastaccess_old, subpars, SupportsIndex, LiteralString, INLET_METHODS, Optional, Sequence, AsyncGenerator, INTERFACE_METHODS, CONTROLPARAMETERS, FIXEDPARAMETERS, Type, fastaccess, cast, Counter, AsyncIterable, SupportsRound, TypeAliasType, FrozenSet, NewType, Callable, ChainMap, OBSERVER_METHODS, subseqs, get_protocol_members, Pattern, REQUIREDSEQUENCES, Deque, runtime, NotRequired, Set, Iterable, final, SupportsBytes, TypeAlias, evaluate_forward_ref, RESULTSEQUENCES, get_origin, ReadOnly, ParamSpecArgs, Union, is_protocol, get_args, SupportsAbs, OUTLET_METHODS, SOLVERSEQUENCES, Generator, SUBMETHODS, subvars, NoExtraItems, get_original_bases, DefaultDict, TextIO, Never, ForwardRef, assert_never, AsyncIterator, get_annotations, get_type_hints, no_type_check_decorator, LogSequences, Self, SenderSequences, NamedTuple, Iterator, runtime_checkable, clear_overloads, TypeIs, Final, Mapping, TypeForm, AideSequences, CapsuleType, Protocol, fastaccess_new, pars, Tuple, Hashable, ReceiverSequences, NoDefault, Sized, StateSequences, ADD_METHODS, Literal, ItemsView, AnyStr, SOLVERPARAMETERS, SupportsComplex, is_typeddict, FULL_ODE_METHODS, SUBMODELINTERFACES, Dict, ParamSpecKwargs, POST_ODE_METHODS, overload, BinaryIO, TypeVar, MutableSet, PART_ODE_METHODS, ByteString, seqs, reveal_type, Buffer, ContextManager, SENDER_METHODS, TypeVarTuple, Required, deprecated, FactorSequences, UPDATEDSEQUENCES, Reader, Any, Reversible, IO, AbstractSet, Format, RECEIVER_METHODS, no_type_check, TypedDict, ObserverSequences, get_overloads, DERIVEDPARAMETERS, Concatenate, IntVar

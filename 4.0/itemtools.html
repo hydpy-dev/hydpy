@@ -1,0 +1,855 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>itemtools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="masktools" href="masktools.html" />
+    <link rel="prev" title="indextools" href="indextools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="masktools.html" title="masktools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="indextools.html" title="indextools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">itemtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="itemtools">
+<span id="id1"></span><h1>itemtools<a class="headerlink" href="#itemtools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.itemtools"></span><p>This module implements so-called exchange items, simplifying the
+modification of the values of <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> and <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence_" title="hydpy.core.sequencetools.Sequence_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence_</span></code></a> objects.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.itemtools" title="hydpy.core.itemtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">itemtools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.itemtools.ExchangeSpecification" title="hydpy.core.itemtools.ExchangeSpecification"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExchangeSpecification</span></code></a> Specification of a specific <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> or <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence_" title="hydpy.core.sequencetools.Sequence_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence_</span></code></a> type.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.itemtools.ExchangeItem" title="hydpy.core.itemtools.ExchangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExchangeItem</span></code></a> Base class for exchanging values with multiple <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> or <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence_" title="hydpy.core.sequencetools.Sequence_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence_</span></code></a> objects of a certain type.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.itemtools.ChangeItem" title="hydpy.core.itemtools.ChangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChangeItem</span></code></a> Base class for changing the values of multiple <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> or <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence_" title="hydpy.core.sequencetools.Sequence_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence_</span></code></a> objects of a specific type.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.itemtools.SetItem" title="hydpy.core.itemtools.SetItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetItem</span></code></a> Item for assigning <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem.value" title="hydpy.core.itemtools.ChangeItem.value"><code class="xref py py-const docutils literal notranslate"><span class="pre">value</span></code></a> to multiple <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> or <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence_" title="hydpy.core.sequencetools.Sequence_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence_</span></code></a> objects of a specific type.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.itemtools.MathItem" title="hydpy.core.itemtools.MathItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">MathItem</span></code></a> Base class for performing some mathematical operations on the given values before assigning them to the handled target variables.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.itemtools.AddItem" title="hydpy.core.itemtools.AddItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">AddItem</span></code></a> <a class="reference internal" href="#hydpy.core.itemtools.MathItem" title="hydpy.core.itemtools.MathItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">MathItem</span></code></a> subclass performing additions.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.itemtools.GetItem" title="hydpy.core.itemtools.GetItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">GetItem</span></code></a> Base class for querying the values of multiple <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> or <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence_" title="hydpy.core.sequencetools.Sequence_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence_</span></code></a> objects of a specific type.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt id="hydpy.core.itemtools.ExchangeSpecification">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.itemtools.</span></code><code class="sig-name descname"><span class="pre">ExchangeSpecification</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/itemtools.html#ExchangeSpecification"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.ExchangeSpecification" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Specification of a specific <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> or <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence_" title="hydpy.core.sequencetools.Sequence_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence_</span></code></a> type.</p>
+<p><a class="reference internal" href="#hydpy.core.itemtools.ExchangeSpecification" title="hydpy.core.itemtools.ExchangeSpecification"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExchangeSpecification</span></code></a> is a helper class for <a class="reference internal" href="#hydpy.core.itemtools.ExchangeItem" title="hydpy.core.itemtools.ExchangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExchangeItem</span></code></a> and its
+subclasses. Its constructor interprets two strings (without any checks
+on plausibility) and makes their information available as attributes.
+The following tests list the expected cases:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.itemtools</span> <span class="kn">import</span> <span class="n">ExchangeSpecification</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ExchangeSpecification</span><span class="p">(</span><span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;fluxes.qt&quot;</span><span class="p">)</span>
+<span class="go">ExchangeSpecification(&quot;hland_v1&quot;, &quot;fluxes.qt&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ExchangeSpecification</span><span class="p">(</span><span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;fluxes.qt.series&quot;</span><span class="p">)</span>
+<span class="go">ExchangeSpecification(&quot;hland_v1&quot;, &quot;fluxes.qt.series&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ExchangeSpecification</span><span class="p">(</span><span class="s2">&quot;node&quot;</span><span class="p">,</span> <span class="s2">&quot;sim&quot;</span><span class="p">)</span>
+<span class="go">ExchangeSpecification(&quot;node&quot;, &quot;sim&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ExchangeSpecification</span><span class="p">(</span><span class="s2">&quot;node&quot;</span><span class="p">,</span> <span class="s2">&quot;sim.series&quot;</span><span class="p">)</span>
+<span class="go">ExchangeSpecification(&quot;node&quot;, &quot;sim.series&quot;)</span>
+</pre></div>
+</div>
+<p>The following attributes are accessible:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">ExchangeSpecification</span><span class="p">(</span><span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;fluxes.qt&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span>
+<span class="go">ExchangeSpecification(&quot;hland_v1&quot;, &quot;fluxes.qt&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">master</span>
+<span class="go">&#39;hland_v1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">subgroup</span>
+<span class="go">&#39;fluxes&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">variable</span>
+<span class="go">&#39;qt&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">series</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.ExchangeSpecification.entries">
+<code class="sig-name descname"><span class="pre">entries</span></code><em class="property"><span class="pre">:</span> <span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.core.itemtools.ExchangeSpecification.entries" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.ExchangeSpecification.master">
+<code class="sig-name descname"><span class="pre">master</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.ExchangeSpecification.master" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.ExchangeSpecification.series">
+<code class="sig-name descname"><span class="pre">series</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.ExchangeSpecification.series" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.ExchangeSpecification.subgroup">
+<code class="sig-name descname"><span class="pre">subgroup</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.core.itemtools.ExchangeSpecification.subgroup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.itemtools.ExchangeSpecification.specstring">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">specstring</span></code><a class="headerlink" href="#hydpy.core.itemtools.ExchangeSpecification.specstring" title="Permalink to this definition">¶</a></dt>
+<dd><p>The string corresponding to the current values of <cite>subgroup</cite>,
+<cite>state</cite>, and <cite>variable</cite>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.itemtools</span> <span class="kn">import</span> <span class="n">ExchangeSpecification</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">ExchangeSpecification</span><span class="p">(</span><span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;fluxes.qt&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">specstring</span>
+<span class="go">&#39;fluxes.qt&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">specstring</span>
+<span class="go">&#39;fluxes.qt.series&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">subgroup</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">specstring</span>
+<span class="go">&#39;qt.series&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.itemtools.ExchangeItem">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.itemtools.</span></code><code class="sig-name descname"><span class="pre">ExchangeItem</span></code><a class="reference internal" href="_modules/hydpy/core/itemtools.html#ExchangeItem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.ExchangeItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for exchanging values with multiple <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> or
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence_" title="hydpy.core.sequencetools.Sequence_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence_</span></code></a> objects of a certain type.</p>
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.ExchangeItem.master">
+<code class="sig-name descname"><span class="pre">master</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.ExchangeItem.master" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.ExchangeItem.targetspecs">
+<code class="sig-name descname"><span class="pre">targetspecs</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="#hydpy.core.itemtools.ExchangeSpecification" title="hydpy.core.itemtools.ExchangeSpecification"><span class="pre">hydpy.core.itemtools.ExchangeSpecification</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.ExchangeItem.targetspecs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.ExchangeItem.device2target">
+<code class="sig-name descname"><span class="pre">device2target</span></code><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><span class="pre">hydpy.core.devicetools.Node</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><span class="pre">hydpy.core.devicetools.Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">hydpy.core.variabletools.Variable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.core.itemtools.ExchangeItem.device2target" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.ExchangeItem.ndim">
+<code class="sig-name descname"><span class="pre">ndim</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.ExchangeItem.ndim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.itemtools.ExchangeItem.collect_variables">
+<code class="sig-name descname"><span class="pre">collect_variables</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selections</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><span class="pre">hydpy.core.selectiontools.Selections</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/itemtools.html#ExchangeItem.collect_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.ExchangeItem.collect_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply method <a class="reference internal" href="#hydpy.core.itemtools.ExchangeItem.insert_variables" title="hydpy.core.itemtools.ExchangeItem.insert_variables"><code class="xref py py-func docutils literal notranslate"><span class="pre">insert_variables()</span></code></a> to collect the
+relevant target variables handled by the devices of the given
+<a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selections</span></code></a> object.</p>
+<p>We prepare the <cite>LahnH</cite> example project to be able to use its
+<a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selections</span></code></a> object:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>We change the type of a specific application model to the type
+of its base model for reasons explained later:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.hland</span> <span class="kn">import</span> <span class="n">Model</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">land_lahn_3</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">Model</span>
+</pre></div>
+</div>
+<p>We prepare a <a class="reference internal" href="#hydpy.core.itemtools.SetItem" title="hydpy.core.itemtools.SetItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetItem</span></code></a> as an example, handling all <a class="reference internal" href="hland.html#hydpy.models.hland.hland_states.Ic" title="hydpy.models.hland.hland_states.Ic"><code class="xref py py-class docutils literal notranslate"><span class="pre">Ic</span></code></a>
+sequences corresponding to any application models derived from <a class="reference internal" href="hland.html#module-hydpy.models.hland" title="hydpy.models.hland"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">SetItem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;ic&quot;</span><span class="p">,</span> <span class="s2">&quot;hland&quot;</span><span class="p">,</span> <span class="s2">&quot;states.ic&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">targetspecs</span>
+<span class="go">ExchangeSpecification(&quot;hland&quot;, &quot;states.ic&quot;)</span>
+</pre></div>
+</div>
+<p>Applying method <a class="reference internal" href="#hydpy.core.itemtools.ExchangeItem.collect_variables" title="hydpy.core.itemtools.ExchangeItem.collect_variables"><code class="xref py py-func docutils literal notranslate"><span class="pre">collect_variables()</span></code></a> connects the <a class="reference internal" href="#hydpy.core.itemtools.SetItem" title="hydpy.core.itemtools.SetItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetItem</span></code></a>
+object with all four relevant <a class="reference internal" href="hland.html#hydpy.models.hland.hland_states.Ic" title="hydpy.models.hland.hland_states.Ic"><code class="xref py py-class docutils literal notranslate"><span class="pre">Ic</span></code></a> objects:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">land_dill</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sequence</span> <span class="o">=</span> <span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">ic</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">device2target</span><span class="p">[</span><span class="n">land_dill</span><span class="p">]</span> <span class="ow">is</span> <span class="n">sequence</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">device2target</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="go">land_dill</span>
+<span class="go">land_lahn_1</span>
+<span class="go">land_lahn_2</span>
+<span class="go">land_lahn_3</span>
+</pre></div>
+</div>
+<p>Asking for <a class="reference internal" href="hland.html#hydpy.models.hland.hland_states.Ic" title="hydpy.models.hland.hland_states.Ic"><code class="xref py py-class docutils literal notranslate"><span class="pre">Ic</span></code></a> objects corresponding to application
+model <a class="reference internal" href="hland_v1.html#module-hydpy.models.hland_v1" title="hydpy.models.hland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_v1</span></code></a> only, results in skipping the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> <cite>land_lahn_3</cite>
+(handling the <a class="reference internal" href="hland.html#module-hydpy.models.hland" title="hydpy.models.hland"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland</span></code></a> base model due to the hack above):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;ic&quot;</span><span class="p">,</span> <span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;states.ic&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">device2target</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="go">land_dill</span>
+<span class="go">land_lahn_1</span>
+<span class="go">land_lahn_2</span>
+</pre></div>
+</div>
+<p>Selecting a series of a variable instead of the variable itself
+only affects the <cite>targetspec</cite> attribute:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;inputs.t.series&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">targetspecs</span>
+<span class="go">ExchangeSpecification(&quot;hland_v1&quot;, &quot;inputs.t.series&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sequence</span> <span class="o">=</span> <span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">t</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">device2target</span><span class="p">[</span><span class="n">land_dill</span><span class="p">]</span> <span class="ow">is</span> <span class="n">sequence</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>To pass an ill-defined subgroup name results in the following error:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">SetItem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;ic&quot;</span><span class="p">,</span> <span class="s2">&quot;hland&quot;</span><span class="p">,</span> <span class="s2">&quot;wrong_group.wrong_variable&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">Model `hland_v1` of element `land_dill` does neither handle a parameter of sequence subgroup named `wrong_group.</span>
+</pre></div>
+</div>
+<p>It is both possible to address sequences of <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> objects, as well
+as their time series, by arguments “node” and “nodes”:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;sim&quot;</span><span class="p">,</span> <span class="s2">&quot;node&quot;</span><span class="p">,</span> <span class="s2">&quot;sim&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dill</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">dill</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">targetspecs</span>
+<span class="go">ExchangeSpecification(&quot;node&quot;, &quot;sim&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">device2target</span><span class="p">[</span><span class="n">dill</span><span class="p">]</span> <span class="ow">is</span> <span class="n">dill</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">device2target</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+<span class="gp">... </span> <span class="nb">print</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+<span class="go">dill</span>
+<span class="go">lahn_1</span>
+<span class="go">lahn_2</span>
+<span class="go">lahn_3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;sim&quot;</span><span class="p">,</span> <span class="s2">&quot;nodes&quot;</span><span class="p">,</span> <span class="s2">&quot;sim.series&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">targetspecs</span>
+<span class="go">ExchangeSpecification(&quot;nodes&quot;, &quot;sim.series&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">device2target</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+<span class="gp">... </span> <span class="nb">print</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+<span class="go">dill</span>
+<span class="go">lahn_1</span>
+<span class="go">lahn_2</span>
+<span class="go">lahn_3</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.itemtools.ExchangeItem.insert_variables">
+<code class="sig-name descname"><span class="pre">insert_variables</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device2variable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><span class="pre">hydpy.core.devicetools.Node</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><span class="pre">hydpy.core.devicetools.Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">hydpy.core.variabletools.Variable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exchangespec</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#hydpy.core.itemtools.ExchangeSpecification" title="hydpy.core.itemtools.ExchangeSpecification"><span class="pre">hydpy.core.itemtools.ExchangeSpecification</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">selections</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><span class="pre">hydpy.core.selectiontools.Selections</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/itemtools.html#ExchangeItem.insert_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.ExchangeItem.insert_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the relevant target or base variables (as defined by
+the given <a class="reference internal" href="#hydpy.core.itemtools.ExchangeSpecification" title="hydpy.core.itemtools.ExchangeSpecification"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExchangeSpecification</span></code></a> object) handled by the given
+<a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selections</span></code></a> object and insert them into the given <cite>device2variable</cite>
+dictionary.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.itemtools.ChangeItem">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.itemtools.</span></code><code class="sig-name descname"><span class="pre">ChangeItem</span></code><a class="reference internal" href="_modules/hydpy/core/itemtools.html#ChangeItem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.ChangeItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.itemtools.ExchangeItem" title="hydpy.core.itemtools.ExchangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.itemtools.ExchangeItem</span></code></a></p>
+<p>Base class for changing the values of multiple <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> or
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence_" title="hydpy.core.sequencetools.Sequence_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence_</span></code></a> objects of a specific type.</p>
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.ChangeItem.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.ChangeItem.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.ChangeItem.ndim">
+<code class="sig-name descname"><span class="pre">ndim</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.ChangeItem.ndim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.ChangeItem.device2target">
+<code class="sig-name descname"><span class="pre">device2target</span></code><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><span class="pre">hydpy.core.devicetools.Node</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><span class="pre">hydpy.core.devicetools.Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">hydpy.core.variabletools.Variable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.core.itemtools.ChangeItem.device2target" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.itemtools.ChangeItem.shape">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">shape</span></code><a class="headerlink" href="#hydpy.core.itemtools.ChangeItem.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>The shape of the target variables.</p>
+<p>Trying to access property <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem.shape" title="hydpy.core.itemtools.ChangeItem.shape"><code class="xref py py-const docutils literal notranslate"><span class="pre">shape</span></code></a> before calling method
+<a class="reference internal" href="#hydpy.core.itemtools.ChangeItem.collect_variables" title="hydpy.core.itemtools.ChangeItem.collect_variables"><code class="xref py py-func docutils literal notranslate"><span class="pre">collect_variables()</span></code></a> results in the following error:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">SetItem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;master&quot;</span><span class="p">,</span> <span class="s2">&quot;target&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The shape of SetItem `name` has not been determined so far.</span>
+</pre></div>
+</div>
+<p>See method <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem.collect_variables" title="hydpy.core.itemtools.ChangeItem.collect_variables"><code class="xref py py-func docutils literal notranslate"><span class="pre">collect_variables()</span></code></a> for further information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.itemtools.ChangeItem.value">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">value</span></code><a class="headerlink" href="#hydpy.core.itemtools.ChangeItem.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The value(s) that can be used to change the values of target
+variables through applying method <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem.update_variables" title="hydpy.core.itemtools.ChangeItem.update_variables"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_variables()</span></code></a>
+of class <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem" title="hydpy.core.itemtools.ChangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChangeItem</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">SetItem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;ic&quot;</span><span class="p">,</span> <span class="s2">&quot;hland&quot;</span><span class="p">,</span> <span class="s2">&quot;states.ic&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">value</span>
+<span class="go">array(1.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">When trying to convert the value(s) `(1, 2)` assigned to SetItem `ic` to a numpy array of shape `()` and type `float`, the following error occurred: could not broadcast input array from shape (2,) into shape ()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.itemtools.ChangeItem.update_variables">
+<code class="sig-name descname"><span class="pre">update_variables</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/itemtools.html#ChangeItem.update_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.ChangeItem.update_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subclasses must define a mathematical operation for updating
+the values of target variables.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.itemtools</span> <span class="kn">import</span> <span class="n">ChangeItem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ChangeItem</span><span class="p">()</span><span class="o">.</span><span class="n">update_variables</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">NotImplementedError</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.itemtools.ChangeItem.collect_variables">
+<code class="sig-name descname"><span class="pre">collect_variables</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selections</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><span class="pre">hydpy.core.selectiontools.Selections</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/itemtools.html#ChangeItem.collect_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.ChangeItem.collect_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply method <a class="reference internal" href="#hydpy.core.itemtools.ExchangeItem.collect_variables" title="hydpy.core.itemtools.ExchangeItem.collect_variables"><code class="xref py py-func docutils literal notranslate"><span class="pre">collect_variables()</span></code></a> of the base class
+<a class="reference internal" href="#hydpy.core.itemtools.ExchangeItem" title="hydpy.core.itemtools.ExchangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExchangeItem</span></code></a> and determine the <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem.shape" title="hydpy.core.itemtools.ChangeItem.shape"><code class="xref py py-const docutils literal notranslate"><span class="pre">shape</span></code></a> of the current
+<a class="reference internal" href="#hydpy.core.itemtools.ChangeItem" title="hydpy.core.itemtools.ChangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChangeItem</span></code></a> object afterwards, depending on its dimensionality
+and eventually on the shape of its target variables.</p>
+<p>For the following examples, we prepare the <cite>LahnH</cite> example project:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>0-dimensional change-items do not have a variable shape, which is
+indicated by an empty tuple:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">SetItem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;ic&quot;</span><span class="p">,</span> <span class="s2">&quot;hland&quot;</span><span class="p">,</span> <span class="s2">&quot;states.ic&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">()</span>
+</pre></div>
+</div>
+<p>1-dimensional change-items take the shape of their target variables,
+which must be equal for all instances:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;ic&quot;</span><span class="p">,</span> <span class="s2">&quot;hland&quot;</span><span class="p">,</span> <span class="s2">&quot;states.ic&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">SetItem `ic` cannot handle target variables of different shapes.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">catchment</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">element</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">nmbzones</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;ic&quot;</span><span class="p">,</span> <span class="s2">&quot;hland&quot;</span><span class="p">,</span> <span class="s2">&quot;states.ic&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(3,)</span>
+</pre></div>
+</div>
+<p>Passing a <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selections</span></code></a> object not containing any relevant target
+variables results in the following error:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;ic&quot;</span><span class="p">,</span> <span class="s2">&quot;hland&quot;</span><span class="p">,</span> <span class="s2">&quot;states.ic&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Selections</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">Selections</span><span class="p">())</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">Cannot determine the shape of the actual `SetItem` object, as the given `Selections` object does not handle any relevant target variables.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.itemtools.ChangeItem.update_variable">
+<code class="sig-name descname"><span class="pre">update_variable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">hydpy.core.variabletools.Variable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/itemtools.html#ChangeItem.update_variable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.ChangeItem.update_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign the given value(s) to the given target or base variable.</p>
+<p>If the assignment fails, <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem.update_variable" title="hydpy.core.itemtools.ChangeItem.update_variable"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_variable()</span></code></a> raises an
+error like the following:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;control.alpha&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">update_variables</span><span class="p">()</span>    
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">When trying to update a target variable of SetItem `alpha` with the value(s) `None`, the following error occurred: While trying to set the value(s) of variable `alpha` of element `...`, the following error occurred: The given value `None` cannot be converted to type `float`.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.itemtools.SetItem">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.itemtools.</span></code><code class="sig-name descname"><span class="pre">SetItem</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/itemtools.html#SetItem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.SetItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem" title="hydpy.core.itemtools.ChangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.itemtools.ChangeItem</span></code></a></p>
+<p>Item for assigning <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem.value" title="hydpy.core.itemtools.ChangeItem.value"><code class="xref py py-const docutils literal notranslate"><span class="pre">value</span></code></a> to multiple <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> or
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence_" title="hydpy.core.sequencetools.Sequence_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence_</span></code></a> objects of a specific type.</p>
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.SetItem.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.SetItem.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.SetItem.targetspecs">
+<code class="sig-name descname"><span class="pre">targetspecs</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="#hydpy.core.itemtools.ExchangeSpecification" title="hydpy.core.itemtools.ExchangeSpecification"><span class="pre">hydpy.core.itemtools.ExchangeSpecification</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.SetItem.targetspecs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.SetItem.ndim">
+<code class="sig-name descname"><span class="pre">ndim</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.SetItem.ndim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.SetItem.device2target">
+<code class="sig-name descname"><span class="pre">device2target</span></code><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><span class="pre">hydpy.core.devicetools.Node</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><span class="pre">hydpy.core.devicetools.Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">hydpy.core.variabletools.Variable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.core.itemtools.SetItem.device2target" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.itemtools.SetItem.update_variables">
+<code class="sig-name descname"><span class="pre">update_variables</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/itemtools.html#SetItem.update_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.SetItem.update_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign the current objects <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem.value" title="hydpy.core.itemtools.ChangeItem.value"><code class="xref py py-const docutils literal notranslate"><span class="pre">value</span></code></a> to the values
+of the target variables.</p>
+<p>We use the <cite>LahnH</cite> project in the following:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>In the first example, a 0-dimensional <a class="reference internal" href="#hydpy.core.itemtools.SetItem" title="hydpy.core.itemtools.SetItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetItem</span></code></a> changes the value
+of the 0-dimensional parameter <a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.Alpha" title="hydpy.models.hland.hland_control.Alpha"><code class="xref py py-class docutils literal notranslate"><span class="pre">Alpha</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.itemtools</span> <span class="kn">import</span> <span class="n">SetItem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;control.alpha&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span>
+<span class="go">SetItem(&quot;alpha&quot;, &quot;hland_v1&quot;, &quot;control.alpha&quot;, 0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">land_dill</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">alpha</span>
+<span class="go">alpha(1.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">value</span>
+<span class="go">array(2.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">alpha</span>
+<span class="go">alpha(1.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">update_variables</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">alpha</span>
+<span class="go">alpha(2.0)</span>
+</pre></div>
+</div>
+<p>In the second example, a 0-dimensional <a class="reference internal" href="#hydpy.core.itemtools.SetItem" title="hydpy.core.itemtools.SetItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetItem</span></code></a> changes the values
+of the 1-dimensional parameter <a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.FC" title="hydpy.models.hland.hland_control.FC"><code class="xref py py-class docutils literal notranslate"><span class="pre">FC</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;fc&quot;</span><span class="p">,</span> <span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;control.fc&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">200.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fc</span>
+<span class="go">fc(278.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">update_variables</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fc</span>
+<span class="go">fc(200.0)</span>
+</pre></div>
+</div>
+<p>In the third example, a 1-dimensional <a class="reference internal" href="#hydpy.core.itemtools.SetItem" title="hydpy.core.itemtools.SetItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetItem</span></code></a> changes the values
+of the 1-dimensional sequence <a class="reference internal" href="hland.html#hydpy.models.hland.hland_states.Ic" title="hydpy.models.hland.hland_states.Ic"><code class="xref py py-class docutils literal notranslate"><span class="pre">Ic</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">catchment</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">element</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">nmbzones</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">element</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">icmax</span><span class="p">(</span><span class="mf">4.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">SetItem</span><span class="p">(</span><span class="s2">&quot;ic&quot;</span><span class="p">,</span> <span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;states.ic&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">ic</span>
+<span class="go">ic(nan, nan, nan, nan, nan)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">update_variables</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">ic</span>
+<span class="go">ic(2.0, 2.0, 2.0, 2.0, 2.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">update_variables</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">ic</span>
+<span class="go">ic(1.0, 2.0, 3.0, 4.0, 4.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.SetItem.master">
+<code class="sig-name descname"><span class="pre">master</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.SetItem.master" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.itemtools.MathItem">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.itemtools.</span></code><code class="sig-name descname"><span class="pre">MathItem</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/itemtools.html#MathItem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.MathItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem" title="hydpy.core.itemtools.ChangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.itemtools.ChangeItem</span></code></a></p>
+<p>Base class for performing some mathematical operations on the given
+values before assigning them to the handled target variables.</p>
+<p>Subclasses of <a class="reference internal" href="#hydpy.core.itemtools.MathItem" title="hydpy.core.itemtools.MathItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">MathItem</span></code></a> like <a class="reference internal" href="#hydpy.core.itemtools.AddItem" title="hydpy.core.itemtools.AddItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">AddItem</span></code></a> handle not only target
+variables but also base variables:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">AddItem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">AddItem</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;sfcf&quot;</span><span class="p">,</span> <span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;control.sfcf&quot;</span><span class="p">,</span> <span class="s2">&quot;control.rfcf&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span>
+<span class="go">AddItem(&quot;sfcf&quot;, &quot;hland_v1&quot;, &quot;control.sfcf&quot;, &quot;control.rfcf&quot;, 0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">targetspecs</span>
+<span class="go">ExchangeSpecification(&quot;hland_v1&quot;, &quot;control.sfcf&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">basespecs</span>
+<span class="go">ExchangeSpecification(&quot;hland_v1&quot;, &quot;control.rfcf&quot;)</span>
+</pre></div>
+</div>
+<p>Generally, a <a class="reference internal" href="#hydpy.core.itemtools.MathItem" title="hydpy.core.itemtools.MathItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">MathItem</span></code></a> calculates the target variable of a specific
+<a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Device" title="hydpy.core.devicetools.Device"><code class="xref py py-class docutils literal notranslate"><span class="pre">Device</span></code></a> object by using its current <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem.value" title="hydpy.core.itemtools.ChangeItem.value"><code class="xref py py-const docutils literal notranslate"><span class="pre">value</span></code></a> and the value(s)
+of the base variable of the same <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Device" title="hydpy.core.devicetools.Device"><code class="xref py py-class docutils literal notranslate"><span class="pre">Device</span></code></a>.</p>
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.MathItem.basespecs">
+<code class="sig-name descname"><span class="pre">basespecs</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="#hydpy.core.itemtools.ExchangeSpecification" title="hydpy.core.itemtools.ExchangeSpecification"><span class="pre">hydpy.core.itemtools.ExchangeSpecification</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.MathItem.basespecs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.MathItem.device2base">
+<code class="sig-name descname"><span class="pre">device2base</span></code><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><span class="pre">hydpy.core.devicetools.Node</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><span class="pre">hydpy.core.devicetools.Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">hydpy.core.variabletools.Variable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.core.itemtools.MathItem.device2base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.itemtools.MathItem.collect_variables">
+<code class="sig-name descname"><span class="pre">collect_variables</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selections</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><span class="pre">hydpy.core.selectiontools.Selections</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/itemtools.html#MathItem.collect_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.MathItem.collect_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply method <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem.collect_variables" title="hydpy.core.itemtools.ChangeItem.collect_variables"><code class="xref py py-func docutils literal notranslate"><span class="pre">collect_variables()</span></code></a> of the base class
+<a class="reference internal" href="#hydpy.core.itemtools.ChangeItem" title="hydpy.core.itemtools.ChangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChangeItem</span></code></a> and also apply method <a class="reference internal" href="#hydpy.core.itemtools.ExchangeItem.insert_variables" title="hydpy.core.itemtools.ExchangeItem.insert_variables"><code class="xref py py-func docutils literal notranslate"><span class="pre">insert_variables()</span></code></a>
+of class <a class="reference internal" href="#hydpy.core.itemtools.ExchangeItem" title="hydpy.core.itemtools.ExchangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExchangeItem</span></code></a> to collect the relevant base variables
+handled by the devices of the given <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selections</span></code></a> object.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">AddItem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">AddItem</span><span class="p">(</span><span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;control.sfcf&quot;</span><span class="p">,</span> <span class="s2">&quot;control.rfcf&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">land_dill</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">control</span> <span class="o">=</span> <span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">device2target</span><span class="p">[</span><span class="n">land_dill</span><span class="p">]</span> <span class="ow">is</span> <span class="n">control</span><span class="o">.</span><span class="n">sfcf</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">device2base</span><span class="p">[</span><span class="n">land_dill</span><span class="p">]</span> <span class="ow">is</span> <span class="n">control</span><span class="o">.</span><span class="n">rfcf</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">device</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">device2base</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<span class="go">land_dill</span>
+<span class="go">land_lahn_1</span>
+<span class="go">land_lahn_2</span>
+<span class="go">land_lahn_3</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.itemtools.AddItem">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.itemtools.</span></code><code class="sig-name descname"><span class="pre">AddItem</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ndim</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/itemtools.html#AddItem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.AddItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.itemtools.MathItem" title="hydpy.core.itemtools.MathItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.itemtools.MathItem</span></code></a></p>
+<p><a class="reference internal" href="#hydpy.core.itemtools.MathItem" title="hydpy.core.itemtools.MathItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">MathItem</span></code></a> subclass performing additions.</p>
+<dl class="py method">
+<dt id="hydpy.core.itemtools.AddItem.update_variables">
+<code class="sig-name descname"><span class="pre">update_variables</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/itemtools.html#AddItem.update_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.AddItem.update_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add the general <a class="reference internal" href="#hydpy.core.itemtools.ChangeItem.value" title="hydpy.core.itemtools.ChangeItem.value"><code class="xref py py-const docutils literal notranslate"><span class="pre">value</span></code></a> with the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Device" title="hydpy.core.devicetools.Device"><code class="xref py py-class docutils literal notranslate"><span class="pre">Device</span></code></a> specific base
+variable and assign the result to the respective target variable.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.hland_v1</span> <span class="kn">import</span> <span class="n">FIELD</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">catchment</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">control</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">nmbzones</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">zonetype</span><span class="p">(</span><span class="n">FIELD</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">rfcf</span><span class="p">(</span><span class="mf">1.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.itemtools</span> <span class="kn">import</span> <span class="n">AddItem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">AddItem</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;sfcf&quot;</span><span class="p">,</span> <span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;control.sfcf&quot;</span><span class="p">,</span> <span class="s2">&quot;control.rfcf&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">land_dill</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">sfcf</span>
+<span class="go">sfcf(?)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">update_variables</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">sfcf</span>
+<span class="go">sfcf(1.0, 1.1, 1.2)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">rfcf</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">rfcf</span> <span class="o">=</span> <span class="mf">1.1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">update_variables</span><span class="p">()</span>    
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">When trying to add the value(s) `[-0.1  0.   0.1]` of AddItem `sfcf` and the value(s) `[ 1.1  1.1]` of variable `rfcf` of element `land_dill`, the following error occurred: operands could not be broadcast together with shapes (2,) (3,)...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.AddItem.basespecs">
+<code class="sig-name descname"><span class="pre">basespecs</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="#hydpy.core.itemtools.ExchangeSpecification" title="hydpy.core.itemtools.ExchangeSpecification"><span class="pre">hydpy.core.itemtools.ExchangeSpecification</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.AddItem.basespecs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.AddItem.device2base">
+<code class="sig-name descname"><span class="pre">device2base</span></code><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><span class="pre">hydpy.core.devicetools.Node</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><span class="pre">hydpy.core.devicetools.Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">hydpy.core.variabletools.Variable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.core.itemtools.AddItem.device2base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.AddItem.name">
+<code class="sig-name descname"><span class="pre">name</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.AddItem.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.AddItem.ndim">
+<code class="sig-name descname"><span class="pre">ndim</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.AddItem.ndim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.AddItem.device2target">
+<code class="sig-name descname"><span class="pre">device2target</span></code><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><span class="pre">hydpy.core.devicetools.Node</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><span class="pre">hydpy.core.devicetools.Element</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">hydpy.core.variabletools.Variable</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.core.itemtools.AddItem.device2target" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.AddItem.master">
+<code class="sig-name descname"><span class="pre">master</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.AddItem.master" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.itemtools.AddItem.targetspecs">
+<code class="sig-name descname"><span class="pre">targetspecs</span></code><em class="property"><span class="pre">:</span> <a class="reference internal" href="#hydpy.core.itemtools.ExchangeSpecification" title="hydpy.core.itemtools.ExchangeSpecification"><span class="pre">hydpy.core.itemtools.ExchangeSpecification</span></a></em><a class="headerlink" href="#hydpy.core.itemtools.AddItem.targetspecs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.itemtools.GetItem">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.itemtools.</span></code><code class="sig-name descname"><span class="pre">GetItem</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/itemtools.html#GetItem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.GetItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.itemtools.ExchangeItem" title="hydpy.core.itemtools.ExchangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.itemtools.ExchangeItem</span></code></a></p>
+<p>Base class for querying the values of multiple <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> or
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence_" title="hydpy.core.sequencetools.Sequence_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence_</span></code></a> objects of a specific type.</p>
+<dl class="py method">
+<dt id="hydpy.core.itemtools.GetItem.collect_variables">
+<code class="sig-name descname"><span class="pre">collect_variables</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selections</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><span class="pre">hydpy.core.selectiontools.Selections</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/itemtools.html#GetItem.collect_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.GetItem.collect_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply method <a class="reference internal" href="#hydpy.core.itemtools.ExchangeItem.collect_variables" title="hydpy.core.itemtools.ExchangeItem.collect_variables"><code class="xref py py-func docutils literal notranslate"><span class="pre">collect_variables()</span></code></a> of the base class
+<a class="reference internal" href="#hydpy.core.itemtools.ExchangeItem" title="hydpy.core.itemtools.ExchangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExchangeItem</span></code></a> and determine the <cite>ndim</cite> attribute of the current
+<a class="reference internal" href="#hydpy.core.itemtools.ChangeItem" title="hydpy.core.itemtools.ChangeItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChangeItem</span></code></a> object afterwards.</p>
+<p>The value of <cite>ndim</cite> depends on whether the values of the target
+variable or its time series are of interest:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.itemtools</span> <span class="kn">import</span> <span class="n">SetItem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;states.lz&quot;</span><span class="p">,</span> <span class="s2">&quot;states.lz.series&quot;</span><span class="p">,</span>
+<span class="gp">... </span>               <span class="s2">&quot;states.sm&quot;</span><span class="p">,</span> <span class="s2">&quot;states.sm.series&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">item</span> <span class="o">=</span> <span class="n">GetItem</span><span class="p">(</span><span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+<span class="go">GetItem(&quot;hland_v1&quot;, &quot;states.lz&quot;) 0</span>
+<span class="go">GetItem(&quot;hland_v1&quot;, &quot;states.lz.series&quot;) 1</span>
+<span class="go">GetItem(&quot;hland_v1&quot;, &quot;states.sm&quot;) 1</span>
+<span class="go">GetItem(&quot;hland_v1&quot;, &quot;states.sm.series&quot;) 2</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.itemtools.GetItem.yield_name2value">
+<code class="sig-name descname"><span class="pre">yield_name2value</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx1</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx2</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/hydpy/core/itemtools.html#GetItem.yield_name2value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.itemtools.GetItem.yield_name2value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sequentially return name-value-pairs describing the current state
+of the target variables.</p>
+<p>The names are automatically generated and contain both the name of
+the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Device" title="hydpy.core.devicetools.Device"><code class="xref py py-class docutils literal notranslate"><span class="pre">Device</span></code></a> of the respective <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> object and the target
+description:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.itemtools</span> <span class="kn">import</span> <span class="n">SetItem</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">GetItem</span><span class="p">(</span><span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;states.lz&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">lz</span> <span class="o">=</span> <span class="mf">100.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">yield_name2value</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+<span class="go">land_dill_states_lz 100.0</span>
+<span class="go">land_lahn_1_states_lz 8.18711</span>
+<span class="go">land_lahn_2_states_lz 10.14007</span>
+<span class="go">land_lahn_3_states_lz 7.52648</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">GetItem</span><span class="p">(</span><span class="s2">&quot;hland_v1&quot;</span><span class="p">,</span> <span class="s2">&quot;states.sm&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">land_dill</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">sm</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">yield_name2value</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>    
+<span class="go">land_dill_states_sm [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0]</span>
+<span class="go">land_lahn_1_states_sm [99.27505, ..., 142.84148]</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<p>When querying time series, one can restrict the span of interest
+by passing index values:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">item</span> <span class="o">=</span> <span class="n">GetItem</span><span class="p">(</span><span class="s2">&quot;nodes&quot;</span><span class="p">,</span> <span class="s2">&quot;sim.series&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">item</span><span class="o">.</span><span class="n">collect_variables</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">dill</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">yield_name2value</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>    
+<span class="go">dill_sim_series [1.0, 2.0, 3.0, 4.0]</span>
+<span class="go">lahn_1_sim_series [nan, ...</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">yield_name2value</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>    
+<span class="go">dill_sim_series [3.0]</span>
+<span class="go">lahn_1_sim_series [nan]</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="indextools.html"
+                        title="previous chapter">indextools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="masktools.html"
+                        title="next chapter">masktools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/itemtools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="masktools.html" title="masktools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="indextools.html" title="indextools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">itemtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

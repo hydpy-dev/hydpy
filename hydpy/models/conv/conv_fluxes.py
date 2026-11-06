@@ -48,6 +48,32 @@ class OutputResiduals(conv_variables.MixinOutputs, sequencetools.FluxSequence):
     NDIM: Final[Literal[1]] = 1
 
 
+class CurrentInputAverages(conv_variables.MixinInputs, sequencetools.FluxSequence):
+    """The long-term averages of the input nodes for the current month [?]."""
+
+    NDIM: Final[Literal[1]] = 1
+
+
+class CurrentOutputAverages(conv_variables.MixinOutputs, sequencetools.FluxSequence):
+    """The long-term averages of the output nodes for the current month [?]."""
+
+    NDIM: Final[Literal[1]] = 1
+
+
+class InputRatios(conv_variables.MixinInputs, sequencetools.FluxSequence):
+    """The ratios between the current values supplied by the input nodes and their
+    long-term averages for the current month [-]."""
+
+    NDIM: Final[Literal[1]] = 1
+
+
+class OutputRatios(conv_variables.MixinOutputs, sequencetools.FluxSequence):
+    """The ratios between the final results and the long-term averages for the current
+    month, interpolated for the output nodes [-]."""
+
+    NDIM: Final[Literal[1]] = 1
+
+
 class Outputs(conv_variables.MixinOutputs, sequencetools.FluxSequence):
     """The final interpolation results estimated for the output nodes [?]."""
 

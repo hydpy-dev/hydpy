@@ -8,6 +8,10 @@ from hydpy.core.typingtools import *
 from hydpy.models.conv import conv_control
 
 
+class MOY(parametertools.MOYParameter):
+    """References the "global" month of the year index array [-]."""
+
+
 class NmbInputs(parametertools.NmbParameter):
     """The number of inlet nodes [-]"""
 

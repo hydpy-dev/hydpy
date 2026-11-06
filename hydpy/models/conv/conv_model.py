@@ -337,6 +337,144 @@ class Calc_OutputPredictions_V1(modeltools.Method):
             )
 
 
+class Calc_CurrentInputAverages_V1(modeltools.Method):
+    r"""Take the long-term averages of the input nodes for the current month.
+
+    Basic equation:
+       :math:`CurrentInputAverages = InputAverages_{month}`
+
+    Example:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
+        >>> from hydpy.models.conv import *
+        >>> parameterstep()
+        >>> derived.nmbinputs(2)
+        >>> inputaverages(5.0)
+        >>> inputaverages.values[0, :2] = 2.0, 1.0
+        >>> derived.moy.update()
+        >>> model.idx_sim = pub.timegrids.init["2000-01-31"]
+        >>> model.calc_currentinputaverages_v1()
+        >>> fluxes.currentinputaverages
+        currentinputaverages(2.0, 5.0)
+        >>> model.idx_sim = pub.timegrids.init["2000-02-01"]
+        >>> model.calc_currentinputaverages_v1()
+        >>> fluxes.currentinputaverages
+        currentinputaverages(1.0, 5.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (conv_control.InputAverages,)
+    DERIVEDPARAMETERS = (conv_derived.MOY, conv_derived.NmbInputs)
+    RESULTSEQUENCES = (conv_fluxes.CurrentInputAverages,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        idx_month = der.moy[model.idx_sim]
+        for idx in range(der.nmbinputs):
+            flu.currentinputaverages[idx] = con.inputaverages[idx, idx_month]
+
+
+class Calc_CurrentOutputAverages_V1(modeltools.Method):
+    r"""Take the long-term averages of the output nodes for the current month.
+
+    Basic equation:
+       :math:`CurrentOutputAverages = OutputAverages_{month}`
+
+    Example:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-30", "2000-02-03", "1d"
+        >>> from hydpy.models.conv import *
+        >>> parameterstep()
+        >>> derived.nmboutputs(2)
+        >>> outputaverages(5.0)
+        >>> outputaverages.values[0, :2] = 2.0, 1.0
+        >>> derived.moy.update()
+        >>> model.idx_sim = pub.timegrids.init["2000-01-31"]
+        >>> model.calc_currentoutputaverages_v1()
+        >>> fluxes.currentoutputaverages
+        currentoutputaverages(2.0, 5.0)
+        >>> model.idx_sim = pub.timegrids.init["2000-02-01"]
+        >>> model.calc_currentoutputaverages_v1()
+        >>> fluxes.currentoutputaverages
+        currentoutputaverages(1.0, 5.0)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+    """
+
+    CONTROLPARAMETERS = (conv_control.OutputAverages,)
+    DERIVEDPARAMETERS = (conv_derived.MOY, conv_derived.NmbOutputs)
+    RESULTSEQUENCES = (conv_fluxes.CurrentOutputAverages,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        idx_month = der.moy[model.idx_sim]
+        for idx in range(der.nmboutputs):
+            flu.currentoutputaverages[idx] = con.outputaverages[idx, idx_month]
+
+
+class Calc_InputRatios_V1(modeltools.Method):
+    r"""Calculate the ratios between the values of the input nodes and their long-term
+    averages for the current month.
+
+    Basic equation:
+       :math:`InputRatios = \frac{Inputs}{CurrentInputAverages}`
+
+    Examples:
+
+        >>> from hydpy.models.conv import *
+        >>> parameterstep()
+        >>> derived.nmbinputs(3)
+        >>> fluxes.inputs = 3.0, 0.0, nan
+        >>> fluxes.currentinputaverages = 2.0
+        >>> model.calc_inputratios_v1()
+        >>> fluxes.inputratios
+        inputratios(1.5, 0.0, nan)
+
+        The ratios are undefined for averages of zero.  Method |Calc_InputRatios_V1|
+        sets them to |numpy.nan|, which excludes the respective input nodes from the
+        subsequent interpolation:
+
+        >>> fluxes.currentinputaverages = 0.0
+        >>> model.calc_inputratios_v1()
+        >>> fluxes.inputratios
+        inputratios(nan, nan, nan)
+
+        The same holds for missing averages:
+
+        >>> fluxes.currentinputaverages = nan
+        >>> model.calc_inputratios_v1()
+        >>> fluxes.inputratios
+        inputratios(nan, nan, nan)
+    """
+
+    DERIVEDPARAMETERS = (conv_derived.NmbInputs,)
+    REQUIREDSEQUENCES = (conv_fluxes.Inputs, conv_fluxes.CurrentInputAverages)
+    RESULTSEQUENCES = (conv_fluxes.InputRatios,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for idx in range(der.nmbinputs):
+            if flu.currentinputaverages[idx] > 0.0:
+                flu.inputratios[idx] = flu.inputs[idx] / flu.currentinputaverages[idx]
+            else:
+                flu.inputratios[idx] = modelutils.nan
+
+
 class Calc_InputResiduals_V1(modeltools.Method):
     r"""Determine the residuals at the input nodes.
 
@@ -420,8 +558,8 @@ class Calc_Outputs_V2(modeltools.Method):
 
     Examples:
 
-        With complete input data, method |Calc_Outputs_V2| performs the
-        most simple inverse distance weighted approach:
+        With complete input data, method |Calc_Outputs_V2| performs the most simple
+        inverse distance weighted approach:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -443,18 +581,17 @@ class Calc_Outputs_V2(modeltools.Method):
         >>> fluxes.outputs
         outputs(2.0, 4.684331, 2.272907)
 
-        With incomplete data, it subsequently skips all missing values.
-        Parameter |MaxNmbInputs| defines the maximum number of considered
-        locations:
+        With incomplete data, it subsequently skips all missing values.  Parameter
+        |MaxNmbInputs| defines the maximum number of considered locations:
 
         >>> fluxes.inputs = nan, 5.0, nan, 6.0
         >>> model.calc_outputs_v2()
         >>> fluxes.outputs
         outputs(5.001059, 5.000104, 5.00053)
 
-        With just one considered location, method |Calc_Outputs_V2|
-        calculates the same results as the nearest-neighbour approach
-        implemented by method |Calc_Outputs_V1|:
+        With just one considered location, method |Calc_Outputs_V2| calculates the same
+        results as the nearest-neighbour approach implemented by method
+        |Calc_Outputs_V1|:
 
         >>> maxnmbinputs.value = 1
         >>> derived.proximityorder.shape = 3, 1
@@ -532,12 +669,58 @@ class Calc_OutputResiduals_V1(modeltools.Method):
         model.interpolate_inversedistance_v1(flu.inputresiduals, flu.outputresiduals)
 
 
+class Calc_OutputRatios_V1(modeltools.Method):
+    r"""Perform a simple inverse distance weighted interpolation based on the ratios
+    previously determined for the input nodes.
+
+    Example:
+
+        See the documentation on method |Calc_Outputs_V2| for further information, from
+        which we take the following (first) example:
+
+        >>> from hydpy.models.conv import *
+        >>> parameterstep()
+
+        >>> maxnmbinputs.value = 4
+        >>> derived.nmboutputs(3)
+        >>> derived.proximityorder.shape = 3, 4
+        >>> derived.proximityorder([[0, 2, 1, 3],
+        ...                         [1, 0, 2, 3],
+        ...                         [0, 2, 1, 3]])
+        >>> derived.weights.shape = 3, 4
+        >>> derived.weights([[inf, inf, 0.05, 0.000053],
+        ...                  [0.5, 0.029412, 0.029412, 0.000052],
+        ...                  [0.5, 0.5, 0.1, 0.000053]])
+
+        >>> fluxes.inputratios.shape = 4
+        >>> fluxes.inputratios = 1.0, 5.0, 3.0, 6.0
+        >>> model.calc_outputratios_v1()
+        >>> fluxes.outputratios
+        outputratios(2.0, 4.684331, 2.272907)
+    """
+
+    SUBMETHODS = (Interpolate_InverseDistance_V1,)
+    CONTROLPARAMETERS = (conv_control.MaxNmbInputs,)
+    DERIVEDPARAMETERS = (
+        conv_derived.NmbOutputs,
+        conv_derived.ProximityOrder,
+        conv_derived.Weights,
+    )
+    REQUIREDSEQUENCES = (conv_fluxes.InputRatios,)
+    RESULTSEQUENCES = (conv_fluxes.OutputRatios,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        model.interpolate_inversedistance_v1(flu.inputratios, flu.outputratios)
+
+
 class Calc_Outputs_V3(modeltools.Method):
     r"""Calculate the values of the output nodes by combining the initial predictions
     with the interpolated residuals.
 
     Basic equation:
-       :math:`Outputs = OutputPredictions - OutputResiduals`
+       :math:`Outputs = OutputPredictions + OutputResiduals`
 
     Examples:
 
@@ -562,6 +745,37 @@ class Calc_Outputs_V3(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for idx in range(der.nmboutputs):
             flu.outputs[idx] = flu.outputpredictions[idx] + flu.outputresiduals[idx]
+
+
+class Calc_Outputs_V4(modeltools.Method):
+    r"""Calculate the values of the output nodes by multiplying their long-term averages
+    for the current month with the interpolated ratios.
+
+    Basic equation:
+       :math:`Outputs = CurrentOutputAverages \cdot OutputRatios`
+
+    Example:
+
+        >>> from hydpy.models.conv import *
+        >>> parameterstep()
+        >>> derived.nmboutputs(4)
+        >>> fluxes.currentoutputaverages = 2.0, 3.0, 0.0, 4.0
+        >>> fluxes.outputratios = 1.5, 0.0, 2.0, nan
+        >>> model.calc_outputs_v4()
+        >>> fluxes.outputs
+        outputs(3.0, 0.0, 0.0, nan)
+    """
+
+    DERIVEDPARAMETERS = (conv_derived.NmbOutputs,)
+    REQUIREDSEQUENCES = (conv_fluxes.CurrentOutputAverages, conv_fluxes.OutputRatios)
+    RESULTSEQUENCES = (conv_fluxes.Outputs,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for idx in range(der.nmboutputs):
+            flu.outputs[idx] = flu.currentoutputaverages[idx] * flu.outputratios[idx]
 
 
 class Pass_Outputs_V1(modeltools.Method):
@@ -605,11 +819,16 @@ class Model(modeltools.AdHocModel):
         Calc_ActualConstant_ActualFactor_V1,
         Calc_InputPredictions_V1,
         Calc_OutputPredictions_V1,
+        Calc_CurrentInputAverages_V1,
+        Calc_CurrentOutputAverages_V1,
+        Calc_InputRatios_V1,
         Calc_InputResiduals_V1,
         Calc_Outputs_V1,
         Calc_Outputs_V2,
         Calc_OutputResiduals_V1,
+        Calc_OutputRatios_V1,
         Calc_Outputs_V3,
+        Calc_Outputs_V4,
     )
     ADD_METHODS = (Return_Mean_V1, Interpolate_InverseDistance_V1)
     OUTLET_METHODS = (Pass_Outputs_V1,)

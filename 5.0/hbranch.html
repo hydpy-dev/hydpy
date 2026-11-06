@@ -1,0 +1,1292 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>hbranch &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>window.MathJax = {"chtml": {"displayAlign": "left"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="hland_v1" href="hland_v1.html" />
+    <link rel="prev" title="hland" href="hland.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="hland_v1.html" title="hland_v1"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="hland.html" title="hland"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-H.html" accesskey="U">HydPy-H (HBV)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hbranch</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework Tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modelcollection.html">Model Collection</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="HydPy-A.html">HydPy-A (RIMO/RIDO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-C.html">HydPy-C (Conv)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-D.html">HydPy-D (DAM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="hland.html">hland (HydPy-H-Land)</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">hbranch (HydPy-H-Branch)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#method-features">Method Features</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Model.nodenames"><code class="docutils literal notranslate"><span class="pre">Model.nodenames</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Model.connect"><code class="docutils literal notranslate"><span class="pre">Model.connect()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Pick_OriginalInput_V1"><code class="docutils literal notranslate"><span class="pre">Pick_OriginalInput_V1</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1"><code class="docutils literal notranslate"><span class="pre">Calc_AdjustedInput_V1</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1"><code class="docutils literal notranslate"><span class="pre">Calc_Outputs_V1</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Pass_Outputs_V1"><code class="docutils literal notranslate"><span class="pre">Pass_Outputs_V1</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#parameter-features">Parameter Features</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#control-parameters">Control parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Delta"><code class="docutils literal notranslate"><span class="pre">Delta</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Delta.TYPE"><code class="docutils literal notranslate"><span class="pre">Delta.TYPE</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Delta.TIME"><code class="docutils literal notranslate"><span class="pre">Delta.TIME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Delta.SPAN"><code class="docutils literal notranslate"><span class="pre">Delta.SPAN</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Delta.INIT"><code class="docutils literal notranslate"><span class="pre">Delta.INIT</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Delta.name"><code class="docutils literal notranslate"><span class="pre">Delta.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Delta.unit"><code class="docutils literal notranslate"><span class="pre">Delta.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Minimum"><code class="docutils literal notranslate"><span class="pre">Minimum</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Minimum.NDIM"><code class="docutils literal notranslate"><span class="pre">Minimum.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Minimum.TYPE"><code class="docutils literal notranslate"><span class="pre">Minimum.TYPE</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Minimum.TIME"><code class="docutils literal notranslate"><span class="pre">Minimum.TIME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Minimum.SPAN"><code class="docutils literal notranslate"><span class="pre">Minimum.SPAN</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Minimum.INIT"><code class="docutils literal notranslate"><span class="pre">Minimum.INIT</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Minimum.name"><code class="docutils literal notranslate"><span class="pre">Minimum.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Minimum.unit"><code class="docutils literal notranslate"><span class="pre">Minimum.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.XPoints"><code class="docutils literal notranslate"><span class="pre">XPoints</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.XPoints.NDIM"><code class="docutils literal notranslate"><span class="pre">XPoints.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.XPoints.TYPE"><code class="docutils literal notranslate"><span class="pre">XPoints.TYPE</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.XPoints.TIME"><code class="docutils literal notranslate"><span class="pre">XPoints.TIME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.XPoints.SPAN"><code class="docutils literal notranslate"><span class="pre">XPoints.SPAN</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.XPoints.name"><code class="docutils literal notranslate"><span class="pre">XPoints.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.XPoints.unit"><code class="docutils literal notranslate"><span class="pre">XPoints.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.YPoints"><code class="docutils literal notranslate"><span class="pre">YPoints</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.YPoints.NDIM"><code class="docutils literal notranslate"><span class="pre">YPoints.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.YPoints.TYPE"><code class="docutils literal notranslate"><span class="pre">YPoints.TYPE</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.YPoints.TIME"><code class="docutils literal notranslate"><span class="pre">YPoints.TIME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.YPoints.SPAN"><code class="docutils literal notranslate"><span class="pre">YPoints.SPAN</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.YPoints.name"><code class="docutils literal notranslate"><span class="pre">YPoints.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.YPoints.unit"><code class="docutils literal notranslate"><span class="pre">YPoints.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#derived-parameters">Derived parameters</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.MOY"><code class="docutils literal notranslate"><span class="pre">MOY</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.MOY.name"><code class="docutils literal notranslate"><span class="pre">MOY.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.MOY.unit"><code class="docutils literal notranslate"><span class="pre">MOY.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches"><code class="docutils literal notranslate"><span class="pre">NmbBranches</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.NDIM"><code class="docutils literal notranslate"><span class="pre">NmbBranches.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.TYPE"><code class="docutils literal notranslate"><span class="pre">NmbBranches.TYPE</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.TIME"><code class="docutils literal notranslate"><span class="pre">NmbBranches.TIME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.SPAN"><code class="docutils literal notranslate"><span class="pre">NmbBranches.SPAN</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.update"><code class="docutils literal notranslate"><span class="pre">NmbBranches.update()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.name"><code class="docutils literal notranslate"><span class="pre">NmbBranches.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.unit"><code class="docutils literal notranslate"><span class="pre">NmbBranches.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints"><code class="docutils literal notranslate"><span class="pre">NmbPoints</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.NDIM"><code class="docutils literal notranslate"><span class="pre">NmbPoints.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.TYPE"><code class="docutils literal notranslate"><span class="pre">NmbPoints.TYPE</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.TIME"><code class="docutils literal notranslate"><span class="pre">NmbPoints.TIME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.SPAN"><code class="docutils literal notranslate"><span class="pre">NmbPoints.SPAN</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.update"><code class="docutils literal notranslate"><span class="pre">NmbPoints.update()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.name"><code class="docutils literal notranslate"><span class="pre">NmbPoints.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.unit"><code class="docutils literal notranslate"><span class="pre">NmbPoints.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#sequence-features">Sequence Features</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#flux-sequences">Flux sequences</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput"><code class="docutils literal notranslate"><span class="pre">OriginalInput</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput.NDIM"><code class="docutils literal notranslate"><span class="pre">OriginalInput.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput.NUMERIC"><code class="docutils literal notranslate"><span class="pre">OriginalInput.NUMERIC</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput.name"><code class="docutils literal notranslate"><span class="pre">OriginalInput.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput.unit"><code class="docutils literal notranslate"><span class="pre">OriginalInput.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput"><code class="docutils literal notranslate"><span class="pre">AdjustedInput</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput.NDIM"><code class="docutils literal notranslate"><span class="pre">AdjustedInput.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput.NUMERIC"><code class="docutils literal notranslate"><span class="pre">AdjustedInput.NUMERIC</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput.name"><code class="docutils literal notranslate"><span class="pre">AdjustedInput.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput.unit"><code class="docutils literal notranslate"><span class="pre">AdjustedInput.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs"><code class="docutils literal notranslate"><span class="pre">Outputs</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs.NDIM"><code class="docutils literal notranslate"><span class="pre">Outputs.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs.NUMERIC"><code class="docutils literal notranslate"><span class="pre">Outputs.NUMERIC</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs.name"><code class="docutils literal notranslate"><span class="pre">Outputs.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs.unit"><code class="docutils literal notranslate"><span class="pre">Outputs.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#inlet-sequences">Inlet sequences</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_inlets.Total"><code class="docutils literal notranslate"><span class="pre">Total</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_inlets.Total.NDIM"><code class="docutils literal notranslate"><span class="pre">Total.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_inlets.Total.NUMERIC"><code class="docutils literal notranslate"><span class="pre">Total.NUMERIC</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_inlets.Total.name"><code class="docutils literal notranslate"><span class="pre">Total.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_inlets.Total.unit"><code class="docutils literal notranslate"><span class="pre">Total.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#outlet-sequences">Outlet sequences</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_outlets.Branched"><code class="docutils literal notranslate"><span class="pre">Branched</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_outlets.Branched.NDIM"><code class="docutils literal notranslate"><span class="pre">Branched.NDIM</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_outlets.Branched.NUMERIC"><code class="docutils literal notranslate"><span class="pre">Branched.NUMERIC</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_outlets.Branched.name"><code class="docutils literal notranslate"><span class="pre">Branched.name</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.hbranch.hbranch_outlets.Branched.unit"><code class="docutils literal notranslate"><span class="pre">Branched.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.models.hbranch.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.models.hbranch.DerivedParameters"><code class="docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.models.hbranch.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.models.hbranch.InletSequences"><code class="docutils literal notranslate"><span class="pre">InletSequences</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.models.hbranch.OutletSequences"><code class="docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hland_v1.html">hland_v1 (HBV96)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hland_v2.html">hland_v2 (HBV96-SC)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hland_v3.html">hland_v3 (HBV96-SC/PREVAH)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hland_v4.html">hland_v4 (HBV96-SC/COSERO)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hbranch_v1.html">hbranch_v1 (HBV96)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-T.html">HydPy-T (TESTING)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="hland.html"
+                          title="previous chapter">hland</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="hland_v1.html"
+                          title="next chapter">hland_v1</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/hbranch.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../5.0/hbranch.html">5.0</a></li>
+<li><a href="../4.0/hbranch.html">4.0</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="hbranch">
+<span id="id1"></span><h1>hbranch<a class="headerlink" href="#hbranch" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.hbranch">The HydPy-H-Branch defines methods for branching single inflow values
+into multiple outflow values.</p>
+<section id="method-features">
+<h2>Method Features<a class="headerlink" href="#method-features" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_model.Model">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_model.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_model.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_model.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.AdHocModel" title="hydpy.core.modeltools.AdHocModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdHocModel</span></code></a></p>
+<p>The HydPy-H-Branch model.</p>
+<dl class="simple">
+<dt>The following “inlet update methods” are called in the given sequence at the beginning of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Pick_OriginalInput_V1" title="hydpy.models.hbranch.hbranch_model.Pick_OriginalInput_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_OriginalInput_V1</span></code></a> Update <a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput" title="hydpy.models.hbranch.hbranch_fluxes.OriginalInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">OriginalInput</span></code></a> based on <a class="reference internal" href="#hydpy.models.hbranch.hbranch_inlets.Total" title="hydpy.models.hbranch.hbranch_inlets.Total"><code class="xref py py-class docutils literal notranslate"><span class="pre">Total</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt>The following “run methods” are called in the given sequence during each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1" title="hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AdjustedInput_V1</span></code></a> Adjust the original input data.</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1" title="hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Outputs_V1</span></code></a> Perform the actual interpolation or extrapolation.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence at the end of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Pass_Outputs_V1" title="hydpy.models.hbranch.hbranch_model.Pass_Outputs_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Outputs_V1</span></code></a> Update <a class="reference internal" href="#hydpy.models.hbranch.hbranch_outlets.Branched" title="hydpy.models.hbranch.hbranch_outlets.Branched"><code class="xref py py-class docutils literal notranslate"><span class="pre">Branched</span></code></a> based on <a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs" title="hydpy.models.hbranch.hbranch_fluxes.Outputs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Outputs</span></code></a>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_model.Model.nodenames">
+<span class="sig-name descname"><span class="pre">nodenames</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.11)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_model.Model.nodenames" title="Link to this definition">¶</a></dt>
+<dd><p>Names of the output nodes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_model.Model.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_model.html#Model.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_model.Model.connect" title="Link to this definition">¶</a></dt>
+<dd><p>Connect the <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a> instances handled by the actual model to the
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.NodeSequence" title="hydpy.core.sequencetools.NodeSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeSequence</span></code></a> instances handled by one inlet node and multiple oulet nodes.</p>
+<p>The HydPy-H-Branch model passes multiple output values to different outlet
+nodes.  This requires additional information regarding the <cite>direction</cite> of each
+output value.  Therefore, node names are used as keywords.  Assume the
+discharge values of both nodes <cite>inflow1</cite> and <cite>inflow2</cite>  shall be  branched to
+nodes <cite>outflow1</cite> and <cite>outflow2</cite> via element <cite>branch</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">branch</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;branch&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                 <span class="n">inlets</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;inflow1&quot;</span><span class="p">,</span> <span class="s2">&quot;inflow2&quot;</span><span class="p">],</span>
+<span class="gp">... </span>                 <span class="n">outlets</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;outflow1&quot;</span><span class="p">,</span> <span class="s2">&quot;outflow2&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Then parameter <a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.YPoints" title="hydpy.models.hbranch.hbranch_control.YPoints"><code class="xref py py-class docutils literal notranslate"><span class="pre">YPoints</span></code></a> relates different supporting points via its keyword
+arguments to the respective nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2000-01-02&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.hbranch</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">delta</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xpoints</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ypoints</span><span class="p">(</span><span class="n">outflow1</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">outflow2</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameters</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>After connecting the model with its element the total discharge value of nodes
+<cite>inflow1</cite> and <cite>inflow2</cite> can be properly divided:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">branch</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">branch</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">inflow1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">branch</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">inflow2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="mf">5.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">branch</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">outflow1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="go">sim(2.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">branch</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">outflow2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="go">sim(4.0)</span>
+</pre></div>
+</div>
+<p>In case of missing (or misspelled) outlet nodes, the following error is raised:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">branch</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">mutable</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">branch</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">outflow1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameters</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">Model `hbranch` of element `branch` tried to connect to an outlet node named `outflow1`, which is not an available outlet node of element `branch`.</span>
+</pre></div>
+</div>
+<p>A missing reference to the corresponding element results in the following error
+message:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">element</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">Model  hbranch does not know the element it shall connect with so far.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.hbranch.hbranch_model">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_model.Pick_OriginalInput_V1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_model.</span></span><span class="sig-name descname"><span class="pre">Pick_OriginalInput_V1</span></span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_model.html#Pick_OriginalInput_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_model.Pick_OriginalInput_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Update <a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput" title="hydpy.models.hbranch.hbranch_fluxes.OriginalInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">OriginalInput</span></code></a> based on <a class="reference internal" href="#hydpy.models.hbranch.hbranch_inlets.Total" title="hydpy.models.hbranch.hbranch_inlets.Total"><code class="xref py py-class docutils literal notranslate"><span class="pre">Total</span></code></a>.</p>
+<dl class="simple">
+<dt>Requires the inlet sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_inlets.Total" title="hydpy.models.hbranch.hbranch_inlets.Total"><code class="xref py py-class docutils literal notranslate"><span class="pre">Total</span></code></a></p>
+</dd>
+<dt>Calculates the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput" title="hydpy.models.hbranch.hbranch_fluxes.OriginalInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">OriginalInput</span></code></a></p>
+</dd>
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(OriginalInput = \sum Total\)</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_model.</span></span><span class="sig-name descname"><span class="pre">Calc_AdjustedInput_V1</span></span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_model.html#Calc_AdjustedInput_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Adjust the original input data.</p>
+<dl class="simple">
+<dt>Requires the control parameters:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Delta" title="hydpy.models.hbranch.hbranch_control.Delta"><code class="xref py py-class docutils literal notranslate"><span class="pre">Delta</span></code></a>
+<a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Minimum" title="hydpy.models.hbranch.hbranch_control.Minimum"><code class="xref py py-class docutils literal notranslate"><span class="pre">Minimum</span></code></a></p>
+</dd>
+<dt>Requires the derived parameter:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.MOY" title="hydpy.models.hbranch.hbranch_derived.MOY"><code class="xref py py-class docutils literal notranslate"><span class="pre">MOY</span></code></a></p>
+</dd>
+<dt>Requires the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput" title="hydpy.models.hbranch.hbranch_fluxes.OriginalInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">OriginalInput</span></code></a></p>
+</dd>
+<dt>Calculates the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput" title="hydpy.models.hbranch.hbranch_fluxes.AdjustedInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdjustedInput</span></code></a></p>
+</dd>
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(AdjustedInput = max(OriginalInput + Delta, Minimum)\)</span></p>
+</dd>
+</dl>
+<p>Examples:</p>
+<blockquote>
+<div><p>The degree of the input adjustment may vary monthly.  Hence, we need to define
+a concrete initialisation period for the following examples:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-03-30&quot;</span><span class="p">,</span> <span class="s2">&quot;2000-04-03&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.hbranch</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">moy</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Negative <a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Delta" title="hydpy.models.hbranch.hbranch_control.Delta"><code class="xref py py-class docutils literal notranslate"><span class="pre">Delta</span></code></a> values correspond to decreasing input:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">delta</span><span class="o">.</span><span class="n">mar</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">minimum</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">idx_sim</span> <span class="o">=</span> <span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="p">[</span><span class="s2">&quot;2000-03-31&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">originalinput</span> <span class="o">=</span> <span class="mf">1.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_adjustedinput_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">adjustedinput</span>
+<span class="go">adjustedinput(0.5)</span>
+</pre></div>
+</div>
+<p>The adjusted input values are never smaller than the threshold value defined
+by parameter <a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Minimum" title="hydpy.models.hbranch.hbranch_control.Minimum"><code class="xref py py-class docutils literal notranslate"><span class="pre">Minimum</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">minimum</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_adjustedinput_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">adjustedinput</span>
+<span class="go">adjustedinput(1.0)</span>
+</pre></div>
+</div>
+<p>Positive <a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Delta" title="hydpy.models.hbranch.hbranch_control.Delta"><code class="xref py py-class docutils literal notranslate"><span class="pre">Delta</span></code></a> values correspond to increasing input:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">idx_sim</span> <span class="o">=</span> <span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="p">[</span><span class="s2">&quot;2000-04-01&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">delta</span><span class="o">.</span><span class="n">apr</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">originalinput</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_adjustedinput_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">adjustedinput</span>
+<span class="go">adjustedinput(1.5)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_model.</span></span><span class="sig-name descname"><span class="pre">Calc_Outputs_V1</span></span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_model.html#Calc_Outputs_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Perform the actual interpolation or extrapolation.</p>
+<dl class="simple">
+<dt>Requires the control parameters:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.XPoints" title="hydpy.models.hbranch.hbranch_control.XPoints"><code class="xref py py-class docutils literal notranslate"><span class="pre">XPoints</span></code></a>
+<a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.YPoints" title="hydpy.models.hbranch.hbranch_control.YPoints"><code class="xref py py-class docutils literal notranslate"><span class="pre">YPoints</span></code></a></p>
+</dd>
+<dt>Requires the derived parameters:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints" title="hydpy.models.hbranch.hbranch_derived.NmbPoints"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbPoints</span></code></a>
+<a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches" title="hydpy.models.hbranch.hbranch_derived.NmbBranches"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbBranches</span></code></a></p>
+</dd>
+<dt>Requires the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput" title="hydpy.models.hbranch.hbranch_fluxes.AdjustedInput"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdjustedInput</span></code></a></p>
+</dd>
+<dt>Calculates the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs" title="hydpy.models.hbranch.hbranch_fluxes.Outputs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Outputs</span></code></a></p>
+</dd>
+</dl>
+<p>Examples:</p>
+<blockquote>
+<div><p>As a simple example, assume a weir directing all discharge into <cite>branch1</cite> until
+reaching the capacity limit of 2 m³/s.  <a class="reference internal" href="hbranch_v1.html#module-hydpy.models.hbranch_v1" title="hydpy.models.hbranch_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hbranch_v1</span></code></a> redirects the discharge
+exceeding this threshold to <cite>branch2</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.hbranch</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xpoints</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ypoints</span><span class="p">(</span><span class="n">branch1</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="n">branch2</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">nmbbranches</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">nmbpoints</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Low discharge example (linear interpolation between the first two supporting
+point pairs):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">adjustedinput</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_outputs_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outputs</span>
+<span class="go">outputs(branch1=1.0,</span>
+<span class="go">        branch2=0.0)</span>
+</pre></div>
+</div>
+<p>Medium discharge example (linear interpolation between the second two
+supporting point pairs):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">adjustedinput</span> <span class="o">=</span> <span class="mf">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_outputs_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">outputs</span><span class="p">)</span>
+<span class="go">outputs(branch1=2.0,</span>
+<span class="go">        branch2=1.0)</span>
+</pre></div>
+</div>
+<p>High discharge example (linear extrapolation beyond the second two supporting
+point pairs):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">adjustedinput</span> <span class="o">=</span> <span class="mf">5.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_outputs_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outputs</span>
+<span class="go">outputs(branch1=2.0,</span>
+<span class="go">        branch2=3.0)</span>
+</pre></div>
+</div>
+<p>Non-monotonous relationships and balance violations are allowed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xpoints</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ypoints</span><span class="p">(</span><span class="n">branch1</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="n">branch2</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">nmbbranches</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">nmbpoints</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">adjustedinput</span> <span class="o">=</span> <span class="mf">7.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">calc_outputs_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outputs</span>
+<span class="go">outputs(branch1=0.0,</span>
+<span class="go">        branch2=5.0)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_model.Pass_Outputs_V1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_model.</span></span><span class="sig-name descname"><span class="pre">Pass_Outputs_V1</span></span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_model.html#Pass_Outputs_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_model.Pass_Outputs_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Update <a class="reference internal" href="#hydpy.models.hbranch.hbranch_outlets.Branched" title="hydpy.models.hbranch.hbranch_outlets.Branched"><code class="xref py py-class docutils literal notranslate"><span class="pre">Branched</span></code></a> based on <a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs" title="hydpy.models.hbranch.hbranch_fluxes.Outputs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Outputs</span></code></a>.</p>
+<dl class="simple">
+<dt>Requires the derived parameter:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches" title="hydpy.models.hbranch.hbranch_derived.NmbBranches"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbBranches</span></code></a></p>
+</dd>
+<dt>Requires the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs" title="hydpy.models.hbranch.hbranch_fluxes.Outputs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Outputs</span></code></a></p>
+</dd>
+<dt>Calculates the outlet sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_outlets.Branched" title="hydpy.models.hbranch.hbranch_outlets.Branched"><code class="xref py py-class docutils literal notranslate"><span class="pre">Branched</span></code></a></p>
+</dd>
+<dt>Basic equation:</dt><dd><p><span class="math notranslate nohighlight">\(Branched_i = Outputs_i\)</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="parameter-features">
+<h2>Parameter Features<a class="headerlink" href="#parameter-features" title="Link to this heading">¶</a></h2>
+<section id="control-parameters">
+<h3>Control parameters<a class="headerlink" href="#control-parameters" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model hbranch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Delta" title="hydpy.models.hbranch.hbranch_control.Delta"><code class="xref py py-func docutils literal notranslate"><span class="pre">Delta()</span></code></a> Monthly varying difference for increasing or decreasing the input [e.g. m³/s].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Minimum" title="hydpy.models.hbranch.hbranch_control.Minimum"><code class="xref py py-func docutils literal notranslate"><span class="pre">Minimum()</span></code></a> The allowed minimum value of the adjusted input [e.g. m³/s].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.XPoints" title="hydpy.models.hbranch.hbranch_control.XPoints"><code class="xref py py-func docutils literal notranslate"><span class="pre">XPoints()</span></code></a> Supporting points for the independent input variable [e.g. m³/s].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.YPoints" title="hydpy.models.hbranch.hbranch_control.YPoints"><code class="xref py py-func docutils literal notranslate"><span class="pre">YPoints()</span></code></a> Supporting points for the dependent output variables [e.g. m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.hbranch.hbranch_control">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Delta">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_control.</span></span><span class="sig-name descname"><span class="pre">Delta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_control.html#Delta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Delta" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.MonthParameter" title="hydpy.core.parametertools.MonthParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">MonthParameter</span></code></a></p>
+<p>Monthly varying difference for increasing or decreasing the input [e.g. m³/s].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1" title="hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AdjustedInput_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Delta.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Delta.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Delta.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Delta.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Delta.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(None,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Delta.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Delta.INIT">
+<span class="sig-name descname"><span class="pre">INIT</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Delta.INIT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Delta.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'delta'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Delta.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Delta.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'e.g.</span> <span class="pre">m³/s'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Delta.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Minimum">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_control.</span></span><span class="sig-name descname"><span class="pre">Minimum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_control.html#Minimum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Minimum" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>The allowed minimum value of the adjusted input [e.g. m³/s].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1" title="hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AdjustedInput_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Minimum.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Minimum.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Minimum.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Minimum.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Minimum.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Minimum.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Minimum.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(None,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Minimum.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Minimum.INIT">
+<span class="sig-name descname"><span class="pre">INIT</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Minimum.INIT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Minimum.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'minimum'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Minimum.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.Minimum.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'e.g.</span> <span class="pre">m³/s'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.Minimum.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.XPoints">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_control.</span></span><span class="sig-name descname"><span class="pre">XPoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_control.html#XPoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.XPoints" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Supporting points for the independent input variable [e.g. m³/s].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1" title="hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Outputs_V1</span></code></a></p>
+</dd>
+</dl>
+<p>There must be at least two supporting points, and they must be strictly monotonous.
+If not, <a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.XPoints" title="hydpy.models.hbranch.hbranch_control.XPoints"><code class="xref py py-class docutils literal notranslate"><span class="pre">XPoints</span></code></a> raises the following errors:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.hbranch</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xpoints</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xpoints</span>
+<span class="go">xpoints(1.0, 2.0)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xpoints</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">Branching via linear interpolation requires at least two supporting points, but parameter `xpoints` of element `?` received 1 value(s).</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xpoints</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The values of parameter `xpoints` of element `?` must be arranged strictly monotonous, which is not the case for the given values `1.0, 2.0, 2.0, and 3.0`.</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.XPoints.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.XPoints.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.XPoints.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.XPoints.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.XPoints.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.XPoints.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.XPoints.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(None,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.XPoints.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.XPoints.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'xpoints'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.XPoints.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.XPoints.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'e.g.</span> <span class="pre">m³/s'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.XPoints.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.YPoints">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_control.</span></span><span class="sig-name descname"><span class="pre">YPoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_control.html#YPoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.YPoints" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Supporting points for the dependent output variables [e.g. m³/s].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1" title="hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Outputs_V1</span></code></a></p>
+</dd>
+</dl>
+<p>Preparing parameter <a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.YPoints" title="hydpy.models.hbranch.hbranch_control.YPoints"><code class="xref py py-class docutils literal notranslate"><span class="pre">YPoints</span></code></a> requires consistency with parameter <a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.XPoints" title="hydpy.models.hbranch.hbranch_control.XPoints"><code class="xref py py-class docutils literal notranslate"><span class="pre">XPoints</span></code></a> and the
+currently available <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> objects.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.hbranch</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ypoints</span>
+<span class="go">ypoints(?)</span>
+</pre></div>
+</div>
+<p>You need to prepare the parameter <a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.XPoints" title="hydpy.models.hbranch.hbranch_control.XPoints"><code class="xref py py-class docutils literal notranslate"><span class="pre">XPoints</span></code></a> first:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ypoints</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The shape of parameter `ypoints` of element `?` depends on the shape of parameter `xpoints`, which has not been defined so far.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xpoints</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You need to supply the names of the output <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> objects as keyword arguments:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ypoints</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">For parameter `ypoints` of element `?` no branches are defined.  Do this via keyword arguments as explained in the documentation.</span>
+</pre></div>
+</div>
+<p>The number of x and y supporting points must agree for all branches:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ypoints</span><span class="p">(</span><span class="n">branch1</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="n">branch2</span><span class="o">=</span><span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">])</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">Each branch requires the same number of supporting points as given for parameter `xpoints`, which is 3, but for branch `branch1` of parameter `ypoints` of element `?` 2 values are given.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xpoints</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When working in on actual project (indicated by a predefined project name), each
+branch name must correspond to a <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> name:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span><span class="p">,</span> <span class="n">Nodes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">projectname</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;branch1&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ypoints</span><span class="p">(</span><span class="n">branch1</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="n">branch2</span><span class="o">=</span><span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">])</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">Parameter `ypoints` of element `?` is supposed to branch to node `branch2`, but such a node is not available.</span>
+</pre></div>
+</div>
+<p>We use the following general exception message for some unexpected errors:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;branch1&quot;</span><span class="p">,</span> <span class="s2">&quot;branch2&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ypoints</span><span class="p">(</span><span class="n">branch1</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="n">branch2</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to set the values for branch `branch2` of parameter `ypoints` of element `?`, the following error occurred: could not convert string to float: &#39;xy&#39;</span>
+</pre></div>
+</div>
+<p>Changing the number of branches during runtime might result in erroneous
+connections to the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> objects:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ypoints</span><span class="p">(</span><span class="n">branch1</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="n">branch2</span><span class="o">=</span><span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ypoints</span>
+<span class="go">ypoints(branch1=[1.0, 2.0],</span>
+<span class="go">        branch2=[2.0, 4.0])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ypoints</span><span class="p">(</span><span class="n">branch1</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">])</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The number of branches of the hbranch model should not be changed during run time.  If you really need to do this, first initialize a new `branched` sequence and connect it to the respective outlet nodes properly.</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.YPoints.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.YPoints.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.YPoints.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.YPoints.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.YPoints.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.YPoints.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.YPoints.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(None,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.YPoints.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.YPoints.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ypoints'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.YPoints.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_control.YPoints.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'e.g.</span> <span class="pre">m³/s'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_control.YPoints.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="derived-parameters">
+<h3>Derived parameters<a class="headerlink" href="#derived-parameters" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Derived parameters of model hbranch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.MOY" title="hydpy.models.hbranch.hbranch_derived.MOY"><code class="xref py py-func docutils literal notranslate"><span class="pre">MOY()</span></code></a> References the “global” month of the year index array [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches" title="hydpy.models.hbranch.hbranch_derived.NmbBranches"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbBranches()</span></code></a> The number of branches [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints" title="hydpy.models.hbranch.hbranch_derived.NmbPoints"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbPoints()</span></code></a> The number of supporting points for linear interpolation [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.hbranch.hbranch_derived">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.MOY">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_derived.</span></span><span class="sig-name descname"><span class="pre">MOY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_derived.html#MOY"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.MOY" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.MOYParameter" title="hydpy.core.parametertools.MOYParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">MOYParameter</span></code></a></p>
+<p>References the “global” month of the year index array [-].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1" title="hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AdjustedInput_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.MOY.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'moy'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.MOY.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.MOY.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'-'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.MOY.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbBranches">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_derived.</span></span><span class="sig-name descname"><span class="pre">NmbBranches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_derived.html#NmbBranches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>The number of branches [-].</p>
+<dl class="simple">
+<dt>Required by the methods:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1" title="hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Outputs_V1</span></code></a>
+<a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Pass_Outputs_V1" title="hydpy.models.hbranch.hbranch_model.Pass_Outputs_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Outputs_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbBranches.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbBranches.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbBranches.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbBranches.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(1,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbBranches.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_derived.html#NmbBranches.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.update" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the number of branches.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbBranches.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'nmbbranches'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbBranches.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'-'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbPoints">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_derived.</span></span><span class="sig-name descname"><span class="pre">NmbPoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_derived.html#NmbPoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>The number of supporting points for linear interpolation [-].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1" title="hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Outputs_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbPoints.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbPoints.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbPoints.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbPoints.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(2,</span> <span class="pre">None)</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbPoints.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_derived.html#NmbPoints.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.update" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the number of points.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbPoints.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'nmbpoints'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_derived.NmbPoints.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'-'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="sequence-features">
+<h2>Sequence Features<a class="headerlink" href="#sequence-features" title="Link to this heading">¶</a></h2>
+<section id="flux-sequences">
+<h3>Flux sequences<a class="headerlink" href="#flux-sequences" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model hbranch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput" title="hydpy.models.hbranch.hbranch_fluxes.OriginalInput"><code class="xref py py-func docutils literal notranslate"><span class="pre">OriginalInput()</span></code></a> Unadjusted total input [e.g. m³/s].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput" title="hydpy.models.hbranch.hbranch_fluxes.AdjustedInput"><code class="xref py py-func docutils literal notranslate"><span class="pre">AdjustedInput()</span></code></a> Adjusted total input [e.g. m³/s].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs" title="hydpy.models.hbranch.hbranch_fluxes.Outputs"><code class="xref py py-func docutils literal notranslate"><span class="pre">Outputs()</span></code></a> Branched outputs [e.g. m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.hbranch.hbranch_fluxes">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.OriginalInput">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_fluxes.</span></span><span class="sig-name descname"><span class="pre">OriginalInput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><span class="pre">ModelSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><span class="pre">ModelSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><span class="pre">FastAccess</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_fluxes.html#OriginalInput"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequence" title="hydpy.core.sequencetools.FluxSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code></a></p>
+<p>Unadjusted total input [e.g. m³/s].</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Pick_OriginalInput_V1" title="hydpy.models.hbranch.hbranch_model.Pick_OriginalInput_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_OriginalInput_V1</span></code></a></p>
+</dd>
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1" title="hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AdjustedInput_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.OriginalInput.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.OriginalInput.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.OriginalInput.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'originalinput'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.OriginalInput.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'e.g.</span> <span class="pre">m³/s'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.AdjustedInput">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_fluxes.</span></span><span class="sig-name descname"><span class="pre">AdjustedInput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><span class="pre">ModelSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><span class="pre">ModelSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><span class="pre">FastAccess</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_fluxes.html#AdjustedInput"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequence" title="hydpy.core.sequencetools.FluxSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code></a></p>
+<p>Adjusted total input [e.g. m³/s].</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1" title="hydpy.models.hbranch.hbranch_model.Calc_AdjustedInput_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AdjustedInput_V1</span></code></a></p>
+</dd>
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1" title="hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Outputs_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.AdjustedInput.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.AdjustedInput.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.AdjustedInput.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'adjustedinput'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.AdjustedInput.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'e.g.</span> <span class="pre">m³/s'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.Outputs">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_fluxes.</span></span><span class="sig-name descname"><span class="pre">Outputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><span class="pre">ModelSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><span class="pre">ModelSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><span class="pre">FastAccess</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_fluxes.html#Outputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequence" title="hydpy.core.sequencetools.FluxSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code></a></p>
+<p>Branched outputs [e.g. m³/s].</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1" title="hydpy.models.hbranch.hbranch_model.Calc_Outputs_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Outputs_V1</span></code></a></p>
+</dd>
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Pass_Outputs_V1" title="hydpy.models.hbranch.hbranch_model.Pass_Outputs_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Outputs_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.Outputs.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.Outputs.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.Outputs.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'outputs'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_fluxes.Outputs.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'e.g.</span> <span class="pre">m³/s'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="inlet-sequences">
+<h3>Inlet sequences<a class="headerlink" href="#inlet-sequences" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.</span></span><span class="sig-name descname"><span class="pre">InletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InletSequences" title="hydpy.core.sequencetools.InletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequences</span></code></a></p>
+<p>Inlet sequences of model hbranch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_inlets.Total" title="hydpy.models.hbranch.hbranch_inlets.Total"><code class="xref py py-func docutils literal notranslate"><span class="pre">Total()</span></code></a> Total input [e.g. m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.hbranch.hbranch_inlets">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_inlets.Total">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_inlets.</span></span><span class="sig-name descname"><span class="pre">Total</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><span class="pre">ModelSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><span class="pre">ModelSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><span class="pre">FastAccess</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_inlets.html#Total"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_inlets.Total" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InletSequence" title="hydpy.core.sequencetools.InletSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequence</span></code></a></p>
+<p>Total input [e.g. m³/s].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Pick_OriginalInput_V1" title="hydpy.models.hbranch.hbranch_model.Pick_OriginalInput_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_OriginalInput_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_inlets.Total.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_inlets.Total.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_inlets.Total.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_inlets.Total.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_inlets.Total.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'total'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_inlets.Total.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_inlets.Total.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'e.g.</span> <span class="pre">m³/s'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_inlets.Total.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="outlet-sequences">
+<h3>Outlet sequences<a class="headerlink" href="#outlet-sequences" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.</span></span><span class="sig-name descname"><span class="pre">OutletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></p>
+<p>Outlet sequences of model hbranch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_outlets.Branched" title="hydpy.models.hbranch.hbranch_outlets.Branched"><code class="xref py py-func docutils literal notranslate"><span class="pre">Branched()</span></code></a> Branched outputs [e.g. m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.hbranch.hbranch_outlets">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_outlets.Branched">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.hbranch_outlets.</span></span><span class="sig-name descname"><span class="pre">Branched</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><span class="pre">ModelSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><span class="pre">ModelSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><span class="pre">FastAccess</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/hbranch/hbranch_outlets.html#Branched"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.hbranch.hbranch_outlets.Branched" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequence" title="hydpy.core.sequencetools.OutletSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequence</span></code></a></p>
+<p>Branched outputs [e.g. m³/s].</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_model.Pass_Outputs_V1" title="hydpy.models.hbranch.hbranch_model.Pass_Outputs_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Outputs_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_outlets.Branched.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_outlets.Branched.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_outlets.Branched.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_outlets.Branched.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_outlets.Branched.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'branched'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_outlets.Branched.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lower case letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.hbranch_outlets.Branched.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'e.g.</span> <span class="pre">m³/s'</span></em><a class="headerlink" href="#hydpy.models.hbranch.hbranch_outlets.Branched.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.ControlParameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.hbranch.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model hbranch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Delta" title="hydpy.models.hbranch.hbranch_control.Delta"><code class="xref py py-func docutils literal notranslate"><span class="pre">Delta()</span></code></a> Monthly varying difference for increasing or decreasing the input [e.g. m³/s].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.Minimum" title="hydpy.models.hbranch.hbranch_control.Minimum"><code class="xref py py-func docutils literal notranslate"><span class="pre">Minimum()</span></code></a> The allowed minimum value of the adjusted input [e.g. m³/s].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.XPoints" title="hydpy.models.hbranch.hbranch_control.XPoints"><code class="xref py py-func docutils literal notranslate"><span class="pre">XPoints()</span></code></a> Supporting points for the independent input variable [e.g. m³/s].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_control.YPoints" title="hydpy.models.hbranch.hbranch_control.YPoints"><code class="xref py py-func docutils literal notranslate"><span class="pre">YPoints()</span></code></a> Supporting points for the dependent output variables [e.g. m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.DerivedParameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.hbranch.DerivedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Derived parameters of model hbranch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.MOY" title="hydpy.models.hbranch.hbranch_derived.MOY"><code class="xref py py-func docutils literal notranslate"><span class="pre">MOY()</span></code></a> References the “global” month of the year index array [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbBranches" title="hydpy.models.hbranch.hbranch_derived.NmbBranches"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbBranches()</span></code></a> The number of branches [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_derived.NmbPoints" title="hydpy.models.hbranch.hbranch_derived.NmbPoints"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbPoints()</span></code></a> The number of supporting points for linear interpolation [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.FluxSequences">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.hbranch.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model hbranch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.OriginalInput" title="hydpy.models.hbranch.hbranch_fluxes.OriginalInput"><code class="xref py py-func docutils literal notranslate"><span class="pre">OriginalInput()</span></code></a> Unadjusted total input [e.g. m³/s].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.AdjustedInput" title="hydpy.models.hbranch.hbranch_fluxes.AdjustedInput"><code class="xref py py-func docutils literal notranslate"><span class="pre">AdjustedInput()</span></code></a> Adjusted total input [e.g. m³/s].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_fluxes.Outputs" title="hydpy.models.hbranch.hbranch_fluxes.Outputs"><code class="xref py py-func docutils literal notranslate"><span class="pre">Outputs()</span></code></a> Branched outputs [e.g. m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.InletSequences">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.</span></span><span class="sig-name descname"><span class="pre">InletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.hbranch.InletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InletSequences" title="hydpy.core.sequencetools.InletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequences</span></code></a></p>
+<p>Inlet sequences of model hbranch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_inlets.Total" title="hydpy.models.hbranch.hbranch_inlets.Total"><code class="xref py py-func docutils literal notranslate"><span class="pre">Total()</span></code></a> Total input [e.g. m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.hbranch.OutletSequences">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.models.hbranch.</span></span><span class="sig-name descname"><span class="pre">OutletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Type" title="(in Python v3.11)"><span class="pre">Type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.hbranch.OutletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></p>
+<p>Outlet sequences of model hbranch.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.hbranch.hbranch_outlets.Branched" title="hydpy.models.hbranch.hbranch_outlets.Branched"><code class="xref py py-func docutils literal notranslate"><span class="pre">Branched()</span></code></a> Branched outputs [e.g. m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="hland_v1.html" title="hland_v1"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="hland.html" title="hland"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="HydPy-H.html" >HydPy-H (HBV)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hbranch</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

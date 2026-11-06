@@ -1,0 +1,42 @@
+.. |Calc_Coefficient1_Coefficient2_Coefficient3_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Coefficient1_Coefficient2_Coefficient3_V1`
+.. |Calc_CorrectingFactor_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_CorrectingFactor_V1`
+.. |Calc_CourantNumber_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_CourantNumber_V1`
+.. |Calc_Discharge_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Discharge_V1`
+.. |Calc_Discharge_V2| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Discharge_V2`
+.. |Calc_ReferenceDischarge_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReferenceDischarge_V1`
+.. |Calc_ReferenceWaterLevel_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReferenceWaterLevel_V1`
+.. |Calc_ReynoldsNumber_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReynoldsNumber_V1`
+.. |Calc_SurfaceWidth_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_SurfaceWidth_V1`
+.. |Calc_WettedArea_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_WettedArea_V1`
+.. |Calc_WettedPerimeter_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_WettedPerimeter_V1`
+.. |Coefficients| replace:: :class:`~hydpy.models.musk.musk_control.Coefficients`
+.. |Discharge.refweights| replace:: :const:`~hydpy.models.musk.musk_states.Discharge.refweights`
+.. |Discharge| replace:: :class:`~hydpy.models.musk.musk_states.Discharge`
+.. |Idx_Run| replace:: :class:`~hydpy.core.modeltools.Idx_Run`
+.. |NmbRuns| replace:: :class:`~hydpy.models.musk.musk_solver.NmbRuns`
+.. |NmbSegments| replace:: :class:`~hydpy.models.musk.musk_control.NmbSegments`
+.. |Pegasus| replace:: :class:`~hydpy.auxs.roottools.Pegasus`
+.. |PerimeterIncrease| replace:: :class:`~hydpy.models.musk.musk_derived.PerimeterIncrease`
+.. |Return_Celerity_V1| replace:: :class:`~hydpy.models.musk.musk_model.Return_Celerity_V1`
+.. |Return_Discharge_V1| replace:: :class:`~hydpy.models.musk.musk_model.Return_Discharge_V1`
+.. |Return_ReferenceDischargeError_V1| replace:: :class:`~hydpy.models.musk.musk_model.Return_ReferenceDischargeError_V1`
+.. |Return_SurfaceWidth_V1| replace:: :class:`~hydpy.models.musk.musk_model.Return_SurfaceWidth_V1`
+.. |Return_WettedArea_V1| replace:: :class:`~hydpy.models.musk.musk_model.Return_WettedArea_V1`
+.. |Return_WettedPerimeter_V1| replace:: :class:`~hydpy.models.musk.musk_model.Return_WettedPerimeter_V1`
+.. |RunModel.RUN_METHODS| replace:: :attr:`~hydpy.core.modeltools.RunModel.RUN_METHODS`
+.. |SideSlope| replace:: :class:`~hydpy.models.musk.musk_control.SideSlope`
+.. |ToleranceDischarge.modify_init| replace:: :func:`~hydpy.models.musk.musk_solver.ToleranceDischarge.modify_init`
+.. |ToleranceDischarge| replace:: :class:`~hydpy.models.musk.musk_solver.ToleranceDischarge`
+.. |ToleranceWaterLevel| replace:: :class:`~hydpy.models.musk.musk_solver.ToleranceWaterLevel`
+.. |Variable.average_values| replace:: :func:`~hydpy.core.variabletools.Variable.average_values`
+.. |musk| replace:: :mod:`~hydpy.models.musk`
+
+.. _musk:
+
+musk
+====
+
+.. automodule:: hydpy.models.musk
+    :members:
+    :show-inheritance:
+    :exclude-members: Self, Reversible, Generic, Sized, Awaitable, IntVar, clear_overloads, TypeAlias, Sequence, Hashable, SenderSequences, SUBMETHODS, SupportsAbs, AnyStr, assert_never, InputSequences, reveal_type, CLASSES, REQUIREDSEQUENCES, ItemsView, Union, SupportsFloat, get_overloads, get_origin, OUTLET_METHODS, NoReturn, no_type_check, Type, Final, PART_ODE_METHODS, RECEIVER_METHODS, Tuple, AbstractSet, ByteString, MappingView, subpars, MutableSequence, MutableSet, SupportsRound, CONTROLPARAMETERS, INLET_METHODS, get_protocol_members, SOLVERSEQUENCES, FrozenSet, no_type_check_decorator, fastaccess_old, Mapping, FIXEDPARAMETERS, seqs, KeysView, SUBMODELS, Protocol, SupportsComplex, SENDER_METHODS, ContextManager, deprecated, SupportsBytes, get_original_bases, Iterator, is_protocol, TypeGuard, DefaultDict, LiteralString, Required, TextIO, TYPE_CHECKING, AsyncContextManager, fastaccess_new, FULL_ODE_METHODS, SOLVERPARAMETERS, BinaryIO, fastaccess, runtime, IO, Text, TypeVarTuple, ValuesView, AsyncIterable, Generator, Optional, assert_type, Literal, dataclass_transform, subvars, pars, get_args, ParamSpec, Annotated, cast, final, subseqs, ClassVar, Any, Unpack, Coroutine, is_typeddict, Counter, UPDATEDSEQUENCES, Callable, Dict, NamedTuple, overload, OrderedDict, Set, ADD_METHODS, AideSequences, Collection, Pattern, List, get_type_hints, Concatenate, ParamSpecKwargs, DERIVEDPARAMETERS, AsyncGenerator, override, Container, RUN_METHODS, NotRequired, NewType, RESULTSEQUENCES, SupportsInt, Buffer, Iterable, TypeVar, SupportsIndex, MutableMapping, ChainMap, ForwardRef, TypeAliasType, AsyncIterator, Never, ParamSpecArgs, Match, LogSequences, Deque, TypedDict, ReceiverSequences, runtime_checkable

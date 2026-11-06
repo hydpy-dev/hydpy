@@ -1,0 +1,33 @@
+.. |AllowedRelease| replace:: :class:`~hydpy.models.dam.dam_control.AllowedRelease`
+.. |AllowedWaterLevelDrop| replace:: :class:`~hydpy.models.dam.dam_control.AllowedWaterLevelDrop`
+.. |Calc_ActualRelease_V3| replace:: :class:`~hydpy.models.dam.dam_model.Calc_ActualRelease_V3`
+.. |DischargeTolerance| replace:: :class:`~hydpy.models.dam.dam_control.DischargeTolerance`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |NearDischargeMinimumThreshold| replace:: :class:`~hydpy.models.dam.dam_control.NearDischargeMinimumThreshold`
+.. |TargetRangeAbsolute| replace:: :class:`~hydpy.models.dam.dam_control.TargetRangeAbsolute`
+.. |TargetRangeRelative| replace:: :class:`~hydpy.models.dam.dam_control.TargetRangeRelative`
+.. |TargetVolume| replace:: :class:`~hydpy.models.dam.dam_control.TargetVolume`
+.. |VolumeTolerance| replace:: :class:`~hydpy.models.dam.dam_control.VolumeTolerance`
+.. |WaterLevel2FloodDischarge| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevel2FloodDischarge`
+.. |WaterVolumeMinimumThreshold| replace:: :class:`~hydpy.models.dam.dam_control.WaterVolumeMinimumThreshold`
+.. |dam_v006| replace:: :mod:`~hydpy.models.dam_v006`
+.. |dam_v007| replace:: :mod:`~hydpy.models.dam_v007`
+.. |dam_v008| replace:: :mod:`~hydpy.models.dam_v008`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |smooth_max1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_max1`
+.. |smooth_min1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_min1`
+.. |anntools.SeasonalANN| replace:: :class:`~hydpy.auxs.anntools.SeasonalANN`
+.. |dam_outlets.Q| replace:: :class:`~hydpy.models.dam.dam_outlets.Q`
+
+.. _dam_v008:
+
+dam_v008
+========
+
+.. automodule:: hydpy.models.dam_v008
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, ReceiverSequences, InputSequences, LogSequences, SenderSequences

@@ -1,0 +1,14 @@
+.. |dummy.DOCNAME.complete| replace:: HydPy-Dummy (base model)
+.. |dummy_control.NmbZones| replace:: :class:`~hydpy.models.dummy.dummy_control.NmbZones`
+.. |dummy_inputs.SoilWater| replace:: :class:`~hydpy.models.dummy.dummy_inputs.SoilWater`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+
+.. _dummy:
+
+dummy
+=====
+
+.. automodule:: hydpy.models.dummy
+    :members:
+    :show-inheritance:
+    :exclude-members: ADD_METHODS, AbstractSet, AideSequences, Annotated, Any, AnyStr, AsyncContextManager, AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, BinaryIO, Buffer, ByteString, CLASSES, CONTROLPARAMETERS, Callable, CapsuleType, ChainMap, ClassVar, Collection, Concatenate, Container, ContextManager, ControlParameters, Coroutine, Counter, DERIVEDPARAMETERS, DefaultDict, Deque, Dict, Doc, FIXEDPARAMETERS, FULL_ODE_METHODS, FactorSequences, Final, FluxSequences, Format, ForwardRef, FrozenSet, Generator, Generic, Hashable, INLET_METHODS, INTERFACE_METHODS, IO, InletSequences, InputSequences, IntVar, ItemsView, Iterable, Iterator, KeysView, List, Literal, LiteralString, LogSequences, Mapping, MappingView, Match, Model, MutableMapping, MutableSequence, MutableSet, NamedTuple, Never, NewType, NoDefault, NoExtraItems, NoReturn, NotRequired, OBSERVER_METHODS, OUTLET_METHODS, ObserverSequences, Optional, OrderedDict, OutletSequences, PART_ODE_METHODS, POST_ODE_METHODS, ParamSpec, ParamSpecArgs, ParamSpecKwargs, Pattern, Protocol, RECEIVER_METHODS, REQUIREDSEQUENCES, RESULTSEQUENCES, RUN_METHODS, ReadOnly, Reader, ReceiverSequences, Required, Reversible, SENDER_METHODS, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELINTERFACES, SUBMODELS, Self, SenderSequences, Sentinel, Sequence, Set, Sized, StateSequences, SupportsAbs, SupportsBytes, SupportsComplex, SupportsFloat, SupportsIndex, SupportsInt, SupportsRound, TYPE_CHECKING, Text, TextIO, Tuple, Type, TypeAlias, TypeAliasType, TypeForm, TypeGuard, TypeIs, TypeVar, TypeVarTuple, TypedDict, UPDATEDSEQUENCES, Union, Unpack, ValuesView, Writer, assert_never, assert_type, cast, clear_overloads, dataclass_transform, deprecated, disjoint_base, evaluate_forward_ref, fastaccess, fastaccess_new, fastaccess_old, final, get_annotations, get_args, get_origin, get_original_bases, get_overloads, get_protocol_members, get_type_hints, is_protocol, is_typeddict, no_type_check, no_type_check_decorator, overload, override, pars, reveal_type, runtime, runtime_checkable, sentinel, seqs, subpars, subseqs, subvars, type_repr

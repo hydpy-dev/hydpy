@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.dam_v006 &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam_v006</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.dam_v006</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=line-too-long, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;Controlled lake version of HydPy-Dam.</span>
+
+<span class="sd">.. _`LARSIM`: http://www.larsim.de/en/the-model/</span>
+
+<span class="sd">Conceptionally, |dam_v006| is similar to the &quot;controlled lake&quot; model of `LARSIM`_</span>
+<span class="sd">(selectable via the &quot;SEEG&quot; option) in its way to simulate flood retention processes.</span>
+<span class="sd">However, in contrast to the &quot;SEEG&quot; option, it allows to directly include precipitation,</span>
+<span class="sd">evaporation, and a (positive or negative) water exchange into the lake&#39;s water balance.</span>
+
+<span class="sd">One can regard |dam_v006| as controlled in two ways.  First, it allows for seasonal</span>
+<span class="sd">modifications of the rating curve via parameter |WaterLevel2FloodDischarge|; second, it</span>
+<span class="sd">allows restricting the speed of the water level decrease during periods with little</span>
+<span class="sd">inflow via parameter |AllowedWaterLevelDrop|.</span>
+
+<span class="sd">|dam_v006| requires externally calculated values of potential evaporation, given via</span>
+<span class="sd">the input sequence |Evaporation|.  If these reflect, for example, grass reference</span>
+<span class="sd">evaporation, they usually show a too-high short-term variability.  Therefore, the</span>
+<span class="sd">parameter |WeightEvaporation| provides a simple means to damp and delay the given</span>
+<span class="sd">potential evaporation values by a simple time weighting approach.</span>
+
+<span class="sd">The optional water exchange term enables bidirectional coupling of |dam_v006| instances</span>
+<span class="sd">and other model objects.  Please see the documentation on the exchange model</span>
+<span class="sd">|exch_v001|, where we demonstrate how to represent a system of two lakes connected by</span>
+<span class="sd">a short ditch.</span>
+
+<span class="sd">Like all models of the HydPy-D family, |dam_v006| solves its underlying continuous</span>
+<span class="sd">ordinary differential equations with an error-adaptive numerical integration method.</span>
+<span class="sd">Hence, simulation speed, robustness, and accuracy depend on the configuration of the</span>
+<span class="sd">parameters of the model equations and the underlying solver.  We discuss these topics</span>
+<span class="sd">in more detail in the documentation on the application model |dam_v001|.  Before the</span>
+<span class="sd">first usage of any HydPy-Dam model, you should at least read how to set proper smoothing</span>
+<span class="sd">parameter values and how to configure |InterpAlgorithm| objects for interpolating the</span>
+<span class="sd">relationships between stage and volume (|WaterVolume2WaterLevel|) and between discharge</span>
+<span class="sd">and stage (|WaterLevel2FloodDischarge|).</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">We are going to perform all example calculations over 20 days:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import Element, Node, pub</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;01.01.2000&quot;, &quot;21.01.2000&quot;, &quot;1d&quot;</span>
+
+<span class="sd">Now, we prepare a |dam_v006| model instance in the usual manner:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models.dam_v006 import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+
+<span class="sd">Next, we embed this model instance into an |Element|, being connected to one inlet</span>
+<span class="sd">|Node| (`inflow`) and one outlet |Node| (`outflow`):</span>
+
+<span class="sd">&gt;&gt;&gt; inflow = Node(&quot;inflow&quot;, variable=&quot;Q&quot;)</span>
+<span class="sd">&gt;&gt;&gt; outflow = Node(&quot;outflow&quot;, variable=&quot;Q&quot;)</span>
+<span class="sd">&gt;&gt;&gt; exchange = Node(&quot;exchange&quot;, variable=&quot;E&quot;)</span>
+<span class="sd">&gt;&gt;&gt; lake = Element(&quot;lake&quot;, inlets=(inflow, exchange), outlets=outflow)</span>
+<span class="sd">&gt;&gt;&gt; lake.model = model</span>
+
+<span class="sd">To execute the following examples conveniently, we prepare a test function object and</span>
+<span class="sd">change some of its default output settings:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import IntegrationTest</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(lake)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = &quot;%d.%m.&quot;</span>
+<span class="sd">&gt;&gt;&gt; test.plotting_options.axis1 = fluxes.inflow, fluxes.outflow</span>
+<span class="sd">&gt;&gt;&gt; test.plotting_options.axis2 = states.watervolume</span>
+
+<span class="sd">|WaterVolume| is the only state sequence of |dam_v006|.  The purpose of the only log</span>
+<span class="sd">sequence |LoggedAdjustedEvaporation| is to allow for the mentioned time-weighting of</span>
+<span class="sd">the external potential evaporation values.  We set the initial values of both sequences</span>
+<span class="sd">to zero for each of the following examples:</span>
+
+<span class="sd">&gt;&gt;&gt; test.inits = [(states.watervolume, 0.0),</span>
+<span class="sd">...               (logs.loggedadjustedevaporation, 0.0)]</span>
+
+<span class="sd">To use method |Model.check_waterbalance| for proving that |dam_v006| keeps the water</span>
+<span class="sd">balance in each example run requires storing the defined (initial) conditions before</span>
+<span class="sd">performing the first simulation run:</span>
+
+<span class="sd">&gt;&gt;&gt; test.reset_inits()</span>
+<span class="sd">&gt;&gt;&gt; conditions = sequences.conditions</span>
+
+<span class="sd">|dam_v006| assumes the relationship between |WaterLevel| and |WaterVolume| to be</span>
+<span class="sd">constant over time.  For simplicity, we define a linear relationship by using |PPoly|:</span>
+
+<span class="sd">&gt;&gt;&gt; watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))</span>
+<span class="sd">&gt;&gt;&gt; figure = watervolume2waterlevel.plot(0.0, 1.0)</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import save_autofig</span>
+<span class="sd">&gt;&gt;&gt; save_autofig(&quot;dam_v006_watervolume2waterlevel.png&quot;, figure=figure)</span>
+
+<span class="sd">.. image:: dam_v006_watervolume2waterlevel.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">|dam_v006| uses parameter |WaterLevel2FloodDischarge| (which extends parameter</span>
+<span class="sd">|SeasonalInterpolator|) to allow for annual changes in the relationship between</span>
+<span class="sd">|FloodDischarge| and |WaterLevel|.  Please read the documentation on class</span>
+<span class="sd">|SeasonalInterpolator| on how to model seasonal patterns.  Here, we keep things as</span>
+<span class="sd">simple as possible and define a single linear relationship that applies for the whole</span>
+<span class="sd">year:</span>
+
+<span class="sd">&gt;&gt;&gt; waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 10.0]))</span>
+<span class="sd">&gt;&gt;&gt; figure = waterlevel2flooddischarge.plot(0.0, 1.0)</span>
+<span class="sd">&gt;&gt;&gt; figure = save_autofig(&quot;dam_v006_waterlevel2flooddischarge.png&quot;, figure=figure)</span>
+
+<span class="sd">.. image:: dam_v006_waterlevel2flooddischarge.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">The following group of parameters deal with lake precipitation and evaporation.  Note</span>
+<span class="sd">that, despite |dam_v006|&#39;s ability to calculate the water-level dependent surface area</span>
+<span class="sd">(see aide sequence |dam_aides.SurfaceArea|), it always assumes a fixed surface area</span>
+<span class="sd">(defined by control parameter |dam_control.SurfaceArea|) for converting precipitation</span>
+<span class="sd">and evaporation heights into volumes.  Here, we set this fixed surface area to 1.44 km²:</span>
+
+<span class="sd">&gt;&gt;&gt; surfacearea(1.44)</span>
+
+<span class="sd">We set the correction factors for precipitation and evaporation both to 1.2:</span>
+
+<span class="sd">&gt;&gt;&gt; correctionprecipitation(1.2)</span>
+<span class="sd">&gt;&gt;&gt; correctionevaporation(1.2)</span>
+
+<span class="sd">Given the daily simulation time step, we configure moderate damping and delay of the</span>
+<span class="sd">external evaporation values (0.8 is relatively close to 1.0, which would avoid any</span>
+<span class="sd">delay and damping, while 0.0 would result in a complete loss of variability):</span>
+
+<span class="sd">&gt;&gt;&gt; weightevaporation(0.8)</span>
+
+<span class="sd">|dam_v006| uses the parameter |ThresholdEvaporation| for defining the water level</span>
+<span class="sd">around which actual evaporation switches from zero to potential evaporation.  As usual</span>
+<span class="sd">but not mandatory, we set this threshold to 0 m:</span>
+
+<span class="sd">&gt;&gt;&gt; thresholdevaporation(0.0)</span>
+
+<span class="sd">Additionally, we set the values of the related smoothing parameters |DischargeTolerance|</span>
+<span class="sd">and |ToleranceEvaporation| to 0.1 m³/s and 1 mm (these are values we can recommend</span>
+<span class="sd">for many cases -- see the documentation on application model |dam_v001| on how to</span>
+<span class="sd">fine-tune such smoothing parameters to your needs):</span>
+
+<span class="sd">&gt;&gt;&gt; dischargetolerance(0.1)</span>
+<span class="sd">&gt;&gt;&gt; toleranceevaporation(0.001)</span>
+
+<span class="sd">Finally, we define a precipitation series including only a heavy one-day rainfall event</span>
+<span class="sd">and a corresponding inflowing flood wave, starting and ending with zero discharge:</span>
+
+<span class="sd">&gt;&gt;&gt; inputs.precipitation.series = [</span>
+<span class="sd">...     0.0, 50.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,</span>
+<span class="sd">...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]</span>
+<span class="sd">&gt;&gt;&gt; lake.inlets.inflow.sequences.sim.series = [</span>
+<span class="sd">...     0.0, 0.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,</span>
+<span class="sd">...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]</span>
+
+<span class="sd">.. _dam_v006_base_scenario:</span>
+
+<span class="sd">base scenario</span>
+<span class="sd">_____________</span>
+
+<span class="sd">For our first example, we set the allowed water level drop to |numpy.inf| and the</span>
+<span class="sd">external potential evaporation as well as the exchange values to zero to ensure they do</span>
+<span class="sd">not affect the calculated lake outflow:</span>
+
+<span class="sd">&gt;&gt;&gt; allowedwaterleveldrop(inf)</span>
+<span class="sd">&gt;&gt;&gt; inputs.evaporation.series = 0.0</span>
+<span class="sd">&gt;&gt;&gt; exchange.sequences.sim.series = 0.0</span>
+
+<span class="sd">The only purpose of parameter |CatchmentArea| is to determine reasonable default values</span>
+<span class="sd">for the parameter |AbsErrorMax| automatically, controlling the accuracy of the numerical</span>
+<span class="sd">integration process:</span>
+
+<span class="sd">&gt;&gt;&gt; catchmentarea(86.4)</span>
+<span class="sd">&gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">&gt;&gt;&gt; round_(solver.abserrormax.INIT)</span>
+<span class="sd">0.01</span>
+<span class="sd">&gt;&gt;&gt; parameters.update()</span>
+<span class="sd">&gt;&gt;&gt; solver.abserrormax</span>
+<span class="sd">abserrormax(0.01)</span>
+
+<span class="sd">The following test results show the expected storage retention pattern.  The sums of</span>
+<span class="sd">inflow and outflow are nearly identical, and the maximum of the outflow graph intersects</span>
+<span class="sd">with the falling limb of the inflow graph:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v006_base_scenario&quot;)</span>
+<span class="sd">    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |           0.0 |         0.0 |        0.0 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |            0.0 |      0.0 |         0.0 |      0.0 |    0.0 |      0.0 |</span>
+<span class="sd">    | 02.01. |          50.0 |         0.0 |   0.057904 |                   1.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.329814 | 0.329814 |    0.057904 |      0.0 |    0.0 | 0.329814 |</span>
+<span class="sd">    | 03.01. |           0.0 |         0.0 |   0.371486 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       2.370574 | 2.370574 |    0.371486 |      0.0 |    6.0 | 2.370574 |</span>
+<span class="sd">    | 04.01. |           0.0 |         0.0 |   0.850751 |                   0.0 |                 0.0 |               0.0 |   12.0 |      0.0 |       6.452959 | 6.452959 |    0.850751 |      0.0 |   12.0 | 6.452959 |</span>
+<span class="sd">    | 05.01. |           0.0 |         0.0 |   0.937172 |                   0.0 |                 0.0 |               0.0 |   10.0 |      0.0 |       8.999753 | 8.999753 |    0.937172 |      0.0 |   10.0 | 8.999753 |</span>
+<span class="sd">    | 06.01. |           0.0 |         0.0 |   0.742131 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       8.257426 | 8.257426 |    0.742131 |      0.0 |    6.0 | 8.257426 |</span>
+<span class="sd">    | 07.01. |           0.0 |         0.0 |   0.486374 |                   0.0 |                 0.0 |               0.0 |    3.0 |      0.0 |        5.96014 |  5.96014 |    0.486374 |      0.0 |    3.0 |  5.96014 |</span>
+<span class="sd">    | 08.01. |           0.0 |         0.0 |   0.320717 |                   0.0 |                 0.0 |               0.0 |    2.0 |      0.0 |       3.917326 | 3.917326 |    0.320717 |      0.0 |    2.0 | 3.917326 |</span>
+<span class="sd">    | 09.01. |           0.0 |         0.0 |   0.193041 |                   0.0 |                 0.0 |               0.0 |    1.0 |      0.0 |       2.477741 | 2.477741 |    0.193041 |      0.0 |    1.0 | 2.477741 |</span>
+<span class="sd">    | 10.01. |           0.0 |         0.0 |   0.081262 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       1.293731 | 1.293731 |    0.081262 |      0.0 |    0.0 | 1.293731 |</span>
+<span class="sd">    | 11.01. |           0.0 |         0.0 |   0.034208 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.544608 | 0.544608 |    0.034208 |      0.0 |    0.0 | 0.544608 |</span>
+<span class="sd">    | 12.01. |           0.0 |         0.0 |   0.014537 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.227669 | 0.227669 |    0.014537 |      0.0 |    0.0 | 0.227669 |</span>
+<span class="sd">    | 13.01. |           0.0 |         0.0 |   0.006178 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.096753 | 0.096753 |    0.006178 |      0.0 |    0.0 | 0.096753 |</span>
+<span class="sd">    | 14.01. |           0.0 |         0.0 |   0.002482 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.042778 | 0.042778 |    0.002482 |      0.0 |    0.0 | 0.042778 |</span>
+<span class="sd">    | 15.01. |           0.0 |         0.0 |   0.000997 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.017186 | 0.017186 |    0.000997 |      0.0 |    0.0 | 0.017186 |</span>
+<span class="sd">    | 16.01. |           0.0 |         0.0 |   0.000508 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.005664 | 0.005664 |    0.000508 |      0.0 |    0.0 | 0.005664 |</span>
+<span class="sd">    | 17.01. |           0.0 |         0.0 |   0.000259 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.002884 | 0.002884 |    0.000259 |      0.0 |    0.0 | 0.002884 |</span>
+<span class="sd">    | 18.01. |           0.0 |         0.0 |   0.000132 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.001469 | 0.001469 |    0.000132 |      0.0 |    0.0 | 0.001469 |</span>
+<span class="sd">    | 19.01. |           0.0 |         0.0 |   0.000067 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.000748 | 0.000748 |    0.000067 |      0.0 |    0.0 | 0.000748 |</span>
+<span class="sd">    | 20.01. |           0.0 |         0.0 |   0.000034 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.000381 | 0.000381 |    0.000034 |      0.0 |    0.0 | 0.000381 |</span>
+
+<span class="sd">|dam_v006| achieves this sufficiently high accuracy with 174 calls to</span>
+<span class="sd">its underlying system of differential equations, which averages to less</span>
+<span class="sd">than nine calls per day:</span>
+
+<span class="sd">&gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">174</span>
+
+<span class="sd">There is no indication of an error in the water balance:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">&gt;&gt;&gt; round_(model.check_waterbalance(conditions))</span>
+<span class="sd">0.0</span>
+
+<span class="sd">.. _dam_v006_low_accuracy:</span>
+
+<span class="sd">low accuracy</span>
+<span class="sd">____________</span>
+
+<span class="sd">By increasing the numerical tolerance, e.g. setting |AbsErrorMax| to 0.1 m³/s, we gain</span>
+<span class="sd">some additional speedups without relevant deteriorations of the results (|dam_v006|</span>
+<span class="sd">usually achieves higher accuracies than indicated by the actual tolerance value):</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">    &gt;&gt;&gt; solver.abserrormax(0.1)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v006_low_accuracy&quot;)</span>
+<span class="sd">    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |           0.0 |         0.0 |        0.0 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |            0.0 |      0.0 |         0.0 |      0.0 |    0.0 |      0.0 |</span>
+<span class="sd">    | 02.01. |          50.0 |         0.0 |   0.057503 |                   1.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.334458 | 0.334458 |    0.057503 |      0.0 |    0.0 | 0.334458 |</span>
+<span class="sd">    | 03.01. |           0.0 |         0.0 |   0.371631 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |        2.36426 |  2.36426 |    0.371631 |      0.0 |    6.0 |  2.36426 |</span>
+<span class="sd">    | 04.01. |           0.0 |         0.0 |    0.85129 |                   0.0 |                 0.0 |               0.0 |   12.0 |      0.0 |       6.448386 | 6.448386 |     0.85129 |      0.0 |   12.0 | 6.448386 |</span>
+<span class="sd">    | 05.01. |           0.0 |         0.0 |   0.936803 |                   0.0 |                 0.0 |               0.0 |   10.0 |      0.0 |       9.010274 | 9.010274 |    0.936803 |      0.0 |   10.0 | 9.010274 |</span>
+<span class="sd">    | 06.01. |           0.0 |         0.0 |   0.743132 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       8.241563 | 8.241563 |    0.743132 |      0.0 |    6.0 | 8.241563 |</span>
+<span class="sd">    | 07.01. |           0.0 |         0.0 |    0.48654 |                   0.0 |                 0.0 |               0.0 |    3.0 |      0.0 |       5.969805 | 5.969805 |     0.48654 |      0.0 |    3.0 | 5.969805 |</span>
+<span class="sd">    | 08.01. |           0.0 |         0.0 |   0.321772 |                   0.0 |                 0.0 |               0.0 |    2.0 |      0.0 |       3.907047 | 3.907047 |    0.321772 |      0.0 |    2.0 | 3.907047 |</span>
+<span class="sd">    | 09.01. |           0.0 |         0.0 |   0.194247 |                   0.0 |                 0.0 |               0.0 |    1.0 |      0.0 |       2.475983 | 2.475983 |    0.194247 |      0.0 |    1.0 | 2.475983 |</span>
+<span class="sd">    | 10.01. |           0.0 |         0.0 |   0.082549 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       1.292793 | 1.292793 |    0.082549 |      0.0 |    0.0 | 1.292793 |</span>
+<span class="sd">    | 11.01. |           0.0 |         0.0 |   0.035081 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |         0.5494 |   0.5494 |    0.035081 |      0.0 |    0.0 |   0.5494 |</span>
+<span class="sd">    | 12.01. |           0.0 |         0.0 |   0.014094 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.242907 | 0.242907 |    0.014094 |      0.0 |    0.0 | 0.242907 |</span>
+<span class="sd">    | 13.01. |           0.0 |         0.0 |   0.007177 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.080053 | 0.080053 |    0.007177 |      0.0 |    0.0 | 0.080053 |</span>
+<span class="sd">    | 14.01. |           0.0 |         0.0 |   0.003655 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.040767 | 0.040767 |    0.003655 |      0.0 |    0.0 | 0.040767 |</span>
+<span class="sd">    | 15.01. |           0.0 |         0.0 |   0.001861 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.020761 | 0.020761 |    0.001861 |      0.0 |    0.0 | 0.020761 |</span>
+<span class="sd">    | 16.01. |           0.0 |         0.0 |   0.000948 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.010572 | 0.010572 |    0.000948 |      0.0 |    0.0 | 0.010572 |</span>
+<span class="sd">    | 17.01. |           0.0 |         0.0 |   0.000483 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.005384 | 0.005384 |    0.000483 |      0.0 |    0.0 | 0.005384 |</span>
+<span class="sd">    | 18.01. |           0.0 |         0.0 |   0.000246 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.002742 | 0.002742 |    0.000246 |      0.0 |    0.0 | 0.002742 |</span>
+<span class="sd">    | 19.01. |           0.0 |         0.0 |   0.000125 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.001396 | 0.001396 |    0.000125 |      0.0 |    0.0 | 0.001396 |</span>
+<span class="sd">    | 20.01. |           0.0 |         0.0 |   0.000064 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.000711 | 0.000711 |    0.000064 |      0.0 |    0.0 | 0.000711 |</span>
+
+<span class="sd">&gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">104</span>
+
+<span class="sd">There is no indication of an error in the water balance:</span>
+
+<span class="sd">&gt;&gt;&gt; round_(model.check_waterbalance(conditions))</span>
+<span class="sd">0.0</span>
+
+<span class="sd">.. _dam_v006_water_level_drop:</span>
+
+<span class="sd">water level drop</span>
+<span class="sd">________________</span>
+
+<span class="sd">When setting |AllowedWaterLevelDrop| to 0.1 m/d, the resulting outflow hydrograph shows</span>
+<span class="sd">a plateau in its falling limb.  This plateau is in the period where little inflow</span>
+<span class="sd">occurs, but the potential outflow (|FloodDischarge|) is still high due to large amounts</span>
+<span class="sd">of stored water.  In agreement with the linear relationship between the water volume</span>
+<span class="sd">and the water level, there is a constant decrease in the water volume when the allowed</span>
+<span class="sd">water level drop limits the outflow:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; allowedwaterleveldrop(0.1)</span>
+<span class="sd">    &gt;&gt;&gt; solver.abserrormax(0.01)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v006_water_level_drop&quot;)</span>
+<span class="sd">    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |           0.0 |         0.0 |        0.0 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |            0.0 |      0.0 |         0.0 |      0.0 |    0.0 |      0.0 |</span>
+<span class="sd">    | 02.01. |          50.0 |         0.0 |   0.057904 |                   1.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.329814 | 0.329814 |    0.057904 |      0.0 |    0.0 | 0.329814 |</span>
+<span class="sd">    | 03.01. |           0.0 |         0.0 |   0.371486 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |       2.370574 | 2.370574 |    0.371486 |      0.0 |    6.0 | 2.370574 |</span>
+<span class="sd">    | 04.01. |           0.0 |         0.0 |   0.850751 |                   0.0 |                 0.0 |               0.0 |   12.0 |      0.0 |       6.452959 | 6.452959 |    0.850751 |      0.0 |   12.0 | 6.452959 |</span>
+<span class="sd">    | 05.01. |           0.0 |         0.0 |   0.937172 |                   0.0 |                 0.0 |               0.0 |   10.0 |      0.0 |       8.999753 | 8.999753 |    0.937172 |      0.0 |   10.0 | 8.999753 |</span>
+<span class="sd">    | 06.01. |           0.0 |         0.0 |   0.837314 |                   0.0 |                 0.0 |               0.0 |    6.0 |      0.0 |        8.87243 | 7.155768 |    0.837314 |      0.0 |    6.0 | 7.155768 |</span>
+<span class="sd">    | 07.01. |           0.0 |         0.0 |   0.737455 |                   0.0 |                 0.0 |               0.0 |    3.0 |      0.0 |       7.873846 | 4.155768 |    0.737455 |      0.0 |    3.0 | 4.155768 |</span>
+<span class="sd">    | 08.01. |           0.0 |         0.0 |   0.637597 |                   0.0 |                 0.0 |               0.0 |    2.0 |      0.0 |       6.875262 | 3.155768 |    0.637597 |      0.0 |    2.0 | 3.155768 |</span>
+<span class="sd">    | 09.01. |           0.0 |         0.0 |   0.537739 |                   0.0 |                 0.0 |               0.0 |    1.0 |      0.0 |       5.876679 | 2.155768 |    0.537739 |      0.0 |    1.0 | 2.155768 |</span>
+<span class="sd">    | 10.01. |           0.0 |         0.0 |    0.43788 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       4.878095 | 1.155768 |     0.43788 |      0.0 |    0.0 | 1.155768 |</span>
+<span class="sd">    | 11.01. |           0.0 |         0.0 |   0.338022 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       3.879512 | 1.155768 |    0.338022 |      0.0 |    0.0 | 1.155768 |</span>
+<span class="sd">    | 12.01. |           0.0 |         0.0 |   0.238164 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       2.880928 | 1.155768 |    0.238164 |      0.0 |    0.0 | 1.155768 |</span>
+<span class="sd">    | 13.01. |           0.0 |         0.0 |   0.138316 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       1.882449 | 1.155647 |    0.138316 |      0.0 |    0.0 | 1.155647 |</span>
+<span class="sd">    | 14.01. |           0.0 |         0.0 |   0.059782 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.940746 | 0.908959 |    0.059782 |      0.0 |    0.0 | 0.908959 |</span>
+<span class="sd">    | 15.01. |           0.0 |         0.0 |   0.025166 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.400649 | 0.400648 |    0.025166 |      0.0 |    0.0 | 0.400648 |</span>
+<span class="sd">    | 16.01. |           0.0 |         0.0 |   0.010695 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.167488 | 0.167488 |    0.010695 |      0.0 |    0.0 | 0.167488 |</span>
+<span class="sd">    | 17.01. |           0.0 |         0.0 |   0.004545 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.071178 | 0.071178 |    0.004545 |      0.0 |    0.0 | 0.071178 |</span>
+<span class="sd">    | 18.01. |           0.0 |         0.0 |   0.001826 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |        0.03147 |  0.03147 |    0.001826 |      0.0 |    0.0 |  0.03147 |</span>
+<span class="sd">    | 19.01. |           0.0 |         0.0 |    0.00093 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.010371 | 0.010371 |     0.00093 |      0.0 |    0.0 | 0.010371 |</span>
+<span class="sd">    | 20.01. |           0.0 |         0.0 |   0.000474 |                   0.0 |                 0.0 |               0.0 |    0.0 |      0.0 |       0.005282 | 0.005282 |    0.000474 |      0.0 |    0.0 | 0.005282 |</span>
+
+<span class="sd">There is no indication of an error in the water balance:</span>
+
+<span class="sd">&gt;&gt;&gt; round_(model.check_waterbalance(conditions))</span>
+<span class="sd">0.0</span>
+
+<span class="sd">.. _dam_v006_evaporation:</span>
+
+<span class="sd">evaporation</span>
+<span class="sd">___________</span>
+
+<span class="sd">In this example, we set the (unadjusted) potential evaporation to 1 mm/d for the first</span>
+<span class="sd">ten days and 5 mm/d for the last ten days.  The adjusted evaporation follows the given</span>
+<span class="sd">potential evaporation with a short delay.  When the water volume reaches zero, actual</span>
+<span class="sd">evaporation is nearly but, due to the defined smoothing, not completely zero.  Hence,</span>
+<span class="sd">slightly negative water volumes result (which do not cause negative outflow):</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; inputs.evaporation.series = 10 * [1.0] + 10 * [5.0]</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v006_evaporation&quot;)</span>
+<span class="sd">    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |           0.0 |         1.0 |  -0.000373 |                   0.0 |               0.016 |          0.004321 |    0.0 |      0.0 |      -0.003456 |      0.0 |   -0.000373 |      0.0 |    0.0 |      0.0 |</span>
+<span class="sd">    | 02.01. |          50.0 |         1.0 |   0.056654 |                   1.0 |              0.0192 |          0.018386 |    0.0 |      0.0 |       0.321392 | 0.321579 |    0.056654 |      0.0 |    0.0 | 0.321579 |</span>
+<span class="sd">    | 03.01. |           0.0 |         1.0 |   0.369812 |                   0.0 |             0.01984 |           0.01984 |    6.0 |      0.0 |       2.355646 | 2.355646 |    0.369812 |      0.0 |    6.0 | 2.355646 |</span>
+<span class="sd">    | 04.01. |           0.0 |         1.0 |    0.84889 |                   0.0 |            0.019968 |          0.019968 |   12.0 |      0.0 |       6.435147 | 6.435147 |     0.84889 |      0.0 |   12.0 | 6.435147 |</span>
+<span class="sd">    | 05.01. |           0.0 |         1.0 |   0.935231 |                   0.0 |            0.019994 |          0.019994 |   10.0 |      0.0 |       8.980686 | 8.980686 |    0.935231 |      0.0 |   10.0 | 8.980686 |</span>
+<span class="sd">    | 06.01. |           0.0 |         1.0 |   0.835373 |                   0.0 |            0.019999 |          0.019999 |    6.0 |      0.0 |       8.853018 | 7.135769 |    0.835373 |      0.0 |    6.0 | 7.135769 |</span>
+<span class="sd">    | 07.01. |           0.0 |         1.0 |   0.735514 |                   0.0 |                0.02 |              0.02 |    3.0 |      0.0 |       7.854435 | 4.135768 |    0.735514 |      0.0 |    3.0 | 4.135768 |</span>
+<span class="sd">    | 08.01. |           0.0 |         1.0 |   0.635656 |                   0.0 |                0.02 |              0.02 |    2.0 |      0.0 |       6.855851 | 3.135768 |    0.635656 |      0.0 |    2.0 | 3.135768 |</span>
+<span class="sd">    | 09.01. |           0.0 |         1.0 |   0.535798 |                   0.0 |                0.02 |              0.02 |    1.0 |      0.0 |       5.857267 | 2.135768 |    0.535798 |      0.0 |    1.0 | 2.135768 |</span>
+<span class="sd">    | 10.01. |           0.0 |         1.0 |   0.435939 |                   0.0 |                0.02 |              0.02 |    0.0 |      0.0 |       4.858684 | 1.135768 |    0.435939 |      0.0 |    0.0 | 1.135768 |</span>
+<span class="sd">    | 11.01. |           0.0 |         5.0 |   0.336081 |                   0.0 |               0.084 |             0.084 |    0.0 |      0.0 |         3.8601 | 1.071768 |    0.336081 |      0.0 |    0.0 | 1.071768 |</span>
+<span class="sd">    | 12.01. |           0.0 |         5.0 |   0.236222 |                   0.0 |              0.0968 |            0.0968 |    0.0 |      0.0 |       2.861517 | 1.058968 |    0.236222 |      0.0 |    0.0 | 1.058968 |</span>
+<span class="sd">    | 13.01. |           0.0 |         5.0 |   0.136367 |                   0.0 |             0.09936 |           0.09936 |    0.0 |      0.0 |       1.862958 | 1.056379 |    0.136367 |      0.0 |    0.0 | 1.056379 |</span>
+<span class="sd">    | 14.01. |           0.0 |         5.0 |    0.05408 |                   0.0 |            0.099872 |          0.099872 |    0.0 |      0.0 |       0.906509 | 0.852516 |     0.05408 |      0.0 |    0.0 | 0.852516 |</span>
+<span class="sd">    | 15.01. |           0.0 |         5.0 |   0.016936 |                   0.0 |            0.099974 |          0.099974 |    0.0 |      0.0 |       0.329933 | 0.329932 |    0.016936 |      0.0 |    0.0 | 0.329932 |</span>
+<span class="sd">    | 16.01. |           0.0 |         5.0 |   0.001323 |                   0.0 |            0.099995 |          0.099992 |    0.0 |      0.0 |       0.080723 | 0.080723 |    0.001323 |      0.0 |    0.0 | 0.080723 |</span>
+<span class="sd">    | 17.01. |           0.0 |         5.0 |  -0.000756 |                   0.0 |            0.099999 |          0.022768 |    0.0 |      0.0 |      -0.004582 | 0.001295 |   -0.000756 |      0.0 |    0.0 | 0.001295 |</span>
+<span class="sd">    | 18.01. |           0.0 |         5.0 |  -0.000926 |                   0.0 |                 0.1 |          0.001966 |    0.0 |      0.0 |       -0.00886 |      0.0 |   -0.000926 |      0.0 |    0.0 |      0.0 |</span>
+<span class="sd">    | 19.01. |           0.0 |         5.0 |  -0.001022 |                   0.0 |                 0.1 |          0.001102 |    0.0 |      0.0 |      -0.009866 |      0.0 |   -0.001022 |      0.0 |    0.0 |      0.0 |</span>
+<span class="sd">    | 20.01. |           0.0 |         5.0 |  -0.001088 |                   0.0 |                 0.1 |          0.000771 |    0.0 |      0.0 |      -0.010607 |      0.0 |   -0.001088 |      0.0 |    0.0 |      0.0 |</span>
+
+<span class="sd">There is no indication of an error in the water balance:</span>
+
+<span class="sd">&gt;&gt;&gt; round_(model.check_waterbalance(conditions))</span>
+<span class="sd">0.0</span>
+
+<span class="sd">.. _dam_v006_exchange:</span>
+
+<span class="sd">exchange</span>
+<span class="sd">________</span>
+
+<span class="sd">The water exchange functionality of |dam_v006| is optional insofar that one does not</span>
+<span class="sd">need to connect the inlet sequence |E| to any nodes.  If there is a connection to one</span>
+<span class="sd">or multiple nodes, they can add and subtract water, indicated by positive or negative</span>
+<span class="sd">values.  This mechanism allows establishing bidirectional water exchange between</span>
+<span class="sd">different |dam_v006| (see the documentation |exch_v001| for further information).</span>
+
+<span class="sd">|dam_v006| handles the water exchange strictly as input, meaning it always includes it</span>
+<span class="sd">into its water balance without any modification.  Hence, other models calculating the</span>
+<span class="sd">water exchange must ensure that it does not bring |dam_v006| into an unrealistic state.</span>
+<span class="sd">For demonstration, we set the water exchange to 0.5 m³/s in the first half of the</span>
+<span class="sd">simulation period and -0.5 m³/s in the second half, which causes highly negative water</span>
+<span class="sd">volumes at the end of the simulation period:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; exchange.sequences.sim.series = 10 * [0.5] + 10 * [-0.5]</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v006_exchange&quot;)</span>
+<span class="sd">    |   date | precipitation | evaporation | waterlevel | adjustedprecipitation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |           0.0 |         1.0 |   0.028037 |                   0.0 |               0.016 |            0.0156 |    0.0 |      0.5 |       0.159893 | 0.159893 |    0.028037 |      0.5 |    0.0 | 0.159893 |</span>
+<span class="sd">    | 02.01. |          50.0 |         1.0 |   0.097547 |                   1.0 |              0.0192 |            0.0192 |    0.0 |      0.5 |       0.676291 | 0.676291 |    0.097547 |      0.5 |    0.0 | 0.676291 |</span>
+<span class="sd">    | 03.01. |           0.0 |         1.0 |   0.415973 |                   0.0 |             0.01984 |           0.01984 |    6.0 |      0.5 |       2.794675 | 2.794675 |    0.415973 |      0.5 |    6.0 | 2.794675 |</span>
+<span class="sd">    | 04.01. |           0.0 |         1.0 |   0.897272 |                   0.0 |            0.019968 |          0.019968 |   12.0 |      0.5 |       6.909446 | 6.909446 |    0.897272 |      0.5 |   12.0 | 6.909446 |</span>
+<span class="sd">    | 05.01. |           0.0 |         1.0 |    0.98455 |                   0.0 |            0.019994 |          0.019994 |   10.0 |      0.5 |       9.469841 | 9.469841 |     0.98455 |      0.5 |   10.0 | 9.469841 |</span>
+<span class="sd">    | 06.01. |           0.0 |         1.0 |   0.884691 |                   0.0 |            0.019999 |          0.019999 |    6.0 |      0.5 |       9.346206 | 7.635769 |    0.884691 |      0.5 |    6.0 | 7.635769 |</span>
+<span class="sd">    | 07.01. |           0.0 |         1.0 |   0.784833 |                   0.0 |                0.02 |              0.02 |    3.0 |      0.5 |       8.347623 | 4.635768 |    0.784833 |      0.5 |    3.0 | 4.635768 |</span>
+<span class="sd">    | 08.01. |           0.0 |         1.0 |   0.684975 |                   0.0 |                0.02 |              0.02 |    2.0 |      0.5 |       7.349039 | 3.635768 |    0.684975 |      0.5 |    2.0 | 3.635768 |</span>
+<span class="sd">    | 09.01. |           0.0 |         1.0 |   0.585116 |                   0.0 |                0.02 |              0.02 |    1.0 |      0.5 |       6.350455 | 2.635768 |    0.585116 |      0.5 |    1.0 | 2.635768 |</span>
+<span class="sd">    | 10.01. |           0.0 |         1.0 |   0.485258 |                   0.0 |                0.02 |              0.02 |    0.0 |      0.5 |       5.351872 | 1.635768 |    0.485258 |      0.5 |    0.0 | 1.635768 |</span>
+<span class="sd">    | 11.01. |           0.0 |         5.0 |     0.3854 |                   0.0 |               0.084 |             0.084 |    0.0 |     -0.5 |       4.353288 | 0.571768 |      0.3854 |     -0.5 |    0.0 | 0.571768 |</span>
+<span class="sd">    | 12.01. |           0.0 |         5.0 |   0.285541 |                   0.0 |              0.0968 |            0.0968 |    0.0 |     -0.5 |       3.354705 | 0.558968 |    0.285541 |     -0.5 |    0.0 | 0.558968 |</span>
+<span class="sd">    | 13.01. |           0.0 |         5.0 |   0.185683 |                   0.0 |             0.09936 |           0.09936 |    0.0 |     -0.5 |       2.356121 | 0.556408 |    0.185683 |     -0.5 |    0.0 | 0.556408 |</span>
+<span class="sd">    | 14.01. |           0.0 |         5.0 |   0.085827 |                   0.0 |            0.099872 |          0.099872 |    0.0 |     -0.5 |       1.357564 | 0.555865 |    0.085827 |     -0.5 |    0.0 | 0.555865 |</span>
+<span class="sd">    | 15.01. |           0.0 |         5.0 |   0.003815 |                   0.0 |            0.099974 |          0.099974 |    0.0 |     -0.5 |       0.401743 | 0.349246 |    0.003815 |     -0.5 |    0.0 | 0.349246 |</span>
+<span class="sd">    | 16.01. |           0.0 |         5.0 |  -0.039982 |                   0.0 |            0.099995 |             0.005 |    0.0 |     -0.5 |        -0.1878 | 0.001907 |   -0.039982 |     -0.5 |    0.0 | 0.001907 |</span>
+<span class="sd">    | 17.01. |           0.0 |         5.0 |  -0.083182 |                   0.0 |            0.099999 |               0.0 |    0.0 |     -0.5 |      -0.615821 |      0.0 |   -0.083182 |     -0.5 |    0.0 |      0.0 |</span>
+<span class="sd">    | 18.01. |           0.0 |         5.0 |  -0.126382 |                   0.0 |                 0.1 |               0.0 |    0.0 |     -0.5 |      -1.047821 |      0.0 |   -0.126382 |     -0.5 |    0.0 |      0.0 |</span>
+<span class="sd">    | 19.01. |           0.0 |         5.0 |  -0.169582 |                   0.0 |                 0.1 |               0.0 |    0.0 |     -0.5 |      -1.479821 |      0.0 |   -0.169582 |     -0.5 |    0.0 |      0.0 |</span>
+<span class="sd">    | 20.01. |           0.0 |         5.0 |  -0.212782 |                   0.0 |                 0.1 |               0.0 |    0.0 |     -0.5 |      -1.911821 |      0.0 |   -0.212782 |     -0.5 |    0.0 |      0.0 |</span>
+
+<span class="sd">&gt;&gt;&gt; round_(model.check_waterbalance(conditions))</span>
+<span class="sd">0.0</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.auxs.anntools</span> <span class="kn">import</span> <span class="n">ANN</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">from</span> <span class="nn">hydpy.auxs.ppolytools</span> <span class="kn">import</span> <span class="n">Poly</span><span class="p">,</span> <span class="n">PPoly</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy.exe.modelimports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core.typingtools</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from dam</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.dam</span> <span class="kn">import</span> <span class="n">dam_model</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.dam</span> <span class="kn">import</span> <span class="n">dam_solver</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../dam_v006.html#hydpy.models.dam_v006.Model">[docs]</a>
+<span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">ELSModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Version 6 of HydPy-Dam.&quot;&quot;&quot;</span>
+
+    <span class="n">SOLVERPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">AbsErrorMax</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelErrorMax</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelDTMin</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelDTMax</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">SOLVERSEQUENCES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_AdjustedEvaporation_V1</span><span class="p">,)</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Fix_Min1_V1</span><span class="p">,)</span>
+    <span class="n">PART_ODE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_AdjustedPrecipitation_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pic_Inflow_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pic_Exchange_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_WaterLevel_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_ActualEvaporation_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_SurfaceArea_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_FloodDischarge_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_AllowedDischarge_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_Outflow_V2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">FULL_ODE_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Update_WaterVolume_V4</span><span class="p">,)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_WaterLevel_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pass_Outflow_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span>
+
+<div class="viewcode-block" id="Model.check_waterbalance">
+<a class="viewcode-back" href="../../../dam_v006.html#hydpy.models.dam_v006.Model.check_waterbalance">[docs]</a>
+    <span class="k">def</span> <span class="nf">check_waterbalance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">initial_conditions</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ArrayFloat</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Determine the water balance error of the previous simulation run in million</span>
+<span class="sd">        m³.</span>
+
+<span class="sd">        Method |Model.check_waterbalance| calculates the balance error as follows:</span>
+
+<span class="sd">        :math:`Seconds \cdot 10^{-6} \cdot \sum_{t=t0}^{t1}</span>
+<span class="sd">        \big( AdjustedPrecipitation_t - ActualEvaporation_t +</span>
+<span class="sd">        Inflow_t - Outflow_t + Exchange_t \big)</span>
+<span class="sd">        + \big( WaterVolume_{t0}^k - WaterVolume_{t1}^k \big)`</span>
+
+<span class="sd">        The returned error should always be in scale with numerical precision so</span>
+<span class="sd">        that it does not affect the simulation results in any relevant manner.</span>
+
+<span class="sd">        Pick the required initial conditions before starting the simulation run via</span>
+<span class="sd">        property |Sequences.conditions|.  See the integration tests of the application</span>
+<span class="sd">        model |dam_v006| for some examples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="n">initial_conditions</span><span class="p">[</span><span class="s2">&quot;states&quot;</span><span class="p">]</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">stepsize</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="nb">sum</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">adjustedprecipitation</span><span class="o">.</span><span class="n">series</span><span class="p">)</span>
+            <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">actualevaporation</span><span class="o">.</span><span class="n">series</span><span class="p">)</span>
+            <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">inflow</span><span class="o">.</span><span class="n">series</span><span class="p">)</span>
+            <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span><span class="o">.</span><span class="n">series</span><span class="p">)</span>
+            <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">exchange</span><span class="o">.</span><span class="n">series</span><span class="p">)</span>
+        <span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">last</span><span class="o">.</span><span class="n">watervolume</span> <span class="o">-</span> <span class="n">first</span><span class="p">[</span><span class="s2">&quot;watervolume&quot;</span><span class="p">])</span></div>
+</div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam_v006</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

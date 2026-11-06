@@ -1,0 +1,32 @@
+.. |False| replace:: :const:`False`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |KeepWaterBalance| replace:: :class:`~hydpy.models.exch.exch_control.KeepWaterBalance`
+.. |MaxVol| replace:: :class:`~hydpy.models.exch.exch_control.MaxVol`
+.. |MinVol| replace:: :class:`~hydpy.models.exch.exch_control.MinVol`
+.. |QTol| replace:: :class:`~hydpy.models.exch.exch_control.QTol`
+.. |True| replace:: :const:`True`
+.. |VolTol| replace:: :class:`~hydpy.models.exch.exch_control.VolTol`
+.. |VolTransferRules| replace:: :class:`~hydpy.models.exch.exch_control.VolTransferRules`
+.. |dam_llake| replace:: :mod:`~hydpy.models.dam_llake`
+.. |dam_lreservoir| replace:: :mod:`~hydpy.models.dam_lreservoir`
+.. |dam_v001| replace:: :mod:`~hydpy.models.dam_v001`
+.. |exch_water_transfer_io.DOCNAME.complete| replace:: HydPy-Exch-Water-Transfer-IO (submodel for transferring water based on external requests or volume-dependent rules)
+.. |exch_water_transfer_io| replace:: :mod:`~hydpy.models.exch_water_transfer_io`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |smooth_max1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_max1`
+.. |smooth_min1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_min1`
+.. |exch_inputs.RequestedTransfer| replace:: :class:`~hydpy.models.exch.exch_inputs.RequestedTransfer`
+.. |numpy.inf| replace:: :const:`~numpy.inf`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+
+.. _exch_water_transfer_io:
+
+exch_water_transfer_io
+======================
+
+.. automodule:: hydpy.models.exch_water_transfer_io
+    :members:
+    :show-inheritance:
+    :exclude-members: type_repr, Sentinel, AsyncContextManager, SupportsInt, ClassVar, SupportsFloat, override, TypeGuard, Match, Collection, Container, MutableMapping, assert_type, List, Doc, dataclass_transform, Coroutine, MutableSequence, ParamSpec, disjoint_base, Unpack, SUBMODELS, TYPE_CHECKING, MappingView, FluxSequences, sentinel, ValuesView, RUN_METHODS, Text, Annotated, Awaitable, CLASSES, Generic, KeysView, OrderedDict, Writer, NoReturn, fastaccess_old, subpars, SupportsIndex, LiteralString, INLET_METHODS, Optional, Sequence, AsyncGenerator, INTERFACE_METHODS, CONTROLPARAMETERS, FIXEDPARAMETERS, Type, fastaccess, cast, Counter, AsyncIterable, SupportsRound, TypeAliasType, FrozenSet, NewType, Callable, ChainMap, OBSERVER_METHODS, subseqs, get_protocol_members, Pattern, REQUIREDSEQUENCES, Deque, runtime, NotRequired, Set, Iterable, final, SupportsBytes, TypeAlias, evaluate_forward_ref, RESULTSEQUENCES, get_origin, ReadOnly, ParamSpecArgs, Union, is_protocol, get_args, SupportsAbs, OUTLET_METHODS, SOLVERSEQUENCES, Generator, SUBMETHODS, subvars, NoExtraItems, get_original_bases, DefaultDict, TextIO, Never, ForwardRef, assert_never, AsyncIterator, get_annotations, get_type_hints, no_type_check_decorator, LogSequences, Self, SenderSequences, NamedTuple, InletSequences, Iterator, runtime_checkable, clear_overloads, TypeIs, Final, Mapping, TypeForm, CapsuleType, Protocol, fastaccess_new, pars, Tuple, Hashable, ReceiverSequences, NoDefault, Sized, StateSequences, ADD_METHODS, Literal, ItemsView, AnyStr, SOLVERPARAMETERS, SupportsComplex, is_typeddict, FULL_ODE_METHODS, SUBMODELINTERFACES, Dict, ParamSpecKwargs, POST_ODE_METHODS, overload, BinaryIO, TypeVar, MutableSet, PART_ODE_METHODS, ByteString, seqs, reveal_type, Buffer, ContextManager, SENDER_METHODS, TypeVarTuple, Required, deprecated, FactorSequences, UPDATEDSEQUENCES, Reader, Any, Reversible, IO, AbstractSet, Format, RECEIVER_METHODS, no_type_check, TypedDict, ObserverSequences, get_overloads, DERIVEDPARAMETERS, Concatenate, IntVar

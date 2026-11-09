@@ -2385,7 +2385,7 @@ not a submask of `Soil([ True,  True, False])`.
 
     def __array__(  # pylint: disable=redefined-outer-name
         self, dtype: numpy.dtype[Any] | None = None, copy: bool | None = None
-    ) -> NDArray[Any]:
+    ) -> ArrayHook:
         """Convert the variable's value(s) into a |numpy.ndarray|."""
         return numpy.array(self.value, dtype=dtype, copy=copy)
 

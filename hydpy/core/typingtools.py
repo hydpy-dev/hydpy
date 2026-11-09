@@ -333,6 +333,7 @@ CallHook: TypeAlias = Union[
     TensorInputInt,
     TensorInputBool,
 ]
+ArrayHook: TypeAlias = NDArray[Any]
 
 
 class SharableConfiguration(TypedDict):
@@ -443,6 +444,7 @@ __all__ = [
     "Any",
     "ArrayFloat",
     "ArrayFloatFlex",
+    "ArrayHook",
     "assert_never",
     "Callable",
     "CallHook",

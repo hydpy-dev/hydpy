@@ -29,8 +29,10 @@ from mypy.messages import format_type
 from mypy.nodes import (
     ARG_NAMED,
     ARG_NAMED_OPT,
+    ARG_OPT,
     ARG_POS,
     ARG_STAR2,
+    Argument,
     CallExpr,
     Decorator,
     Expression,
@@ -42,17 +44,21 @@ from mypy.nodes import (
     TempNode,
     TypeAlias,
     TypeInfo,
+    Var,
 )
 from mypy.options import Options
 from mypy.plugin import (
     AttributeContext,
     CheckerPluginInterface,
+    ClassDefContext,
     FunctionContext,
     Plugin,
     MethodContext,
     MethodSigContext,
     ReportConfigContext,
 )
+from mypy.plugins.common import add_method_to_class
+from mypy.semanal_shared import has_placeholder
 from mypy.subtypes import is_same_type, is_subtype
 from mypy.typeops import bind_self, make_simplified_union
 from mypy.types import (
@@ -70,6 +76,8 @@ from mypy.types import (
     TypeAliasType,
     TypeOfAny,
     TypeVarType,
+    UnboundType,
+    UninhabitedType,
     UnionType,
 )
 
@@ -2282,6 +2290,95 @@ def contains_hook(context: MethodContext) -> Type:
     return context.default_return_type
 
 
+def _has_arrayhook_member(info: TypeInfo) -> bool:
+    """Tell whether method `__array__` of the given class is annotated with `ArrayHook`
+    where it is defined, which is the class itself or one of its base classes (or if
+    the plugin added it to a base class already).
+
+    Like `_has_generalhook_member`, `_has_arrayhook_member` returns `False` if a class
+    overrides `__array__` with a more specific annotation, so that the plugin respects
+    it.
+
+    Mypy analyses method signatures only after applying base class hooks (see
+    `array_hook`).  Hence, `_has_arrayhook_member` usually has to identify `ArrayHook`
+    by the name used in the (still unanalysed) annotation.
+    """
+    if (definer := info.get_containing_type_info("__array__")) is None:
+        return False
+    sym = definer.names["__array__"]
+    if sym.plugin_generated:
+        return True
+    node = sym.node
+    if isinstance(node, Decorator):
+        node = node.func
+    if not isinstance(node, FuncDef) or not isinstance(node.type, CallableType):
+        return False
+    ret_type = node.type.ret_type
+    if isinstance(ret_type, UnboundType):
+        return ret_type.name.rpartition(".")[2] == "ArrayHook"
+    return _is_alias(ret_type, "ArrayHook")
+
+
+def array_hook(context: ClassDefContext) -> None:
+    """
+    `VariableX.__array__() -> ArrayHook`
+    -->
+    `VariableX.__array__() -> ndarray[tuple[()], dtype[float64]]`  (0-dim., float)
+    `VariableY.__array__() -> VectorInt`  (1-dimensional, int)
+    ...
+
+    In contrast to the other hooks, this one adds a method with a precise signature to
+    each variable class with known dimensionality and value type during semantic
+    analysis.  Otherwise, Mypy would rely on the general signature defined by
+    `Variable` when checking if a variable fulfils numpy's array protocol (e.g. when
+    passing it to `numpy.sum`).  Subclasses of these variable classes inherit the
+    precise signature.
+    """
+    api, cls = context.api, context.cls
+    if ((ndim_type := VAR_INFO.get(cls.info.fullname)) is None) or (
+        not _has_arrayhook_member(cls.info)
+    ):
+        return
+    ndim, type_ = ndim_type
+    prefix = {0: "Vector", 1: "Vector", 2: "Matrix", 3: "Tensor"}.get(ndim)
+    alias = api.lookup_fully_qualified_or_none(
+        f"hydpy.core.typingtools.{prefix}{type_.__name__.capitalize()}"
+    )
+    dtype_inst = api.named_type_or_none("numpy.dtype", [AnyType(TypeOfAny.explicit)])
+    if (
+        (prefix is None)
+        or (alias is None)
+        or not isinstance(alias_node := alias.node, TypeAlias)
+        or has_placeholder(alias_node.target)
+        or (dtype_inst is None)
+    ):
+        if (prefix is not None) and not api.final_iteration:
+            api.defer()
+        return
+    return_type = alias_node.target
+    if ndim == 0:
+        vector = get_proper_type(return_type)
+        assert isinstance(vector, Instance)
+        empty_tuple = TupleType(
+            [], fallback=api.named_type("builtins.tuple", [UninhabitedType()])
+        )
+        return_type = vector.copy_modified(args=[empty_tuple, vector.args[1]])
+    dtype_type = UnionType([dtype_inst, NoneType()])
+    copy_type = UnionType([api.named_type("builtins.bool"), NoneType()])
+    method = add_method_to_class(
+        api=api,
+        cls=cls,
+        name="__array__",
+        args=[
+            Argument(Var("dtype", dtype_type), dtype_type, None, ARG_OPT),
+            Argument(Var("copy", copy_type), copy_type, None, ARG_OPT),
+        ],
+        return_type=return_type,
+    )
+    if isinstance(method, FuncDef):
+        method.is_trivial_body = True
+
+
 def iterable_function_hook(
     context: FunctionContext, fullname: str, first_only: bool
 ) -> Type:
@@ -2732,6 +2829,13 @@ class MypyPlugin(Plugin):
             return partial(iterable_function_hook, fullname=fullname, first_only=True)
         if fullname in ALL_ITERABLE_FUNCTIONS:
             return partial(iterable_function_hook, fullname=fullname, first_only=False)
+        return None
+
+    def get_base_class_hook(
+        self, fullname: str
+    ) -> Callable[[ClassDefContext], None] | None:
+        if fullname.startswith("hydpy."):
+            return array_hook
         return None
 
     def get_method_signature_hook(

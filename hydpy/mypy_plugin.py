@@ -688,7 +688,9 @@ def trim_hook(context: MethodSigContext) -> FunctionLike:
     """
     VariableX.trim(TrimHook, TrimHook) -> bool
     -->
-    VariableX.trim(float | None, float | None) -> bool
+    VariableX.trim(ScalarInputFloat | None, ScalarInputFloat | None) -> bool
+    VariableY.trim(VectorInputCompleteInt | None, VectorInputCompleteInt | None) -> bool
+    ...
     """
     default = context.default_signature
     if (default.arg_names != ["lower", "upper"]) or not all(
@@ -711,8 +713,8 @@ def call_hook(context: MethodSigContext) -> FunctionLike:
     """
     `VariableX.__call__(*values: CallHook, ...) -> None`
     -->
-    `VariableX.__call__(*values: float, ...) -> None`
-    `VariableY.__call__(*values: int | VectorInputInt, ...) -> None`
+    `VariableX.__call__(*values: ScalarInputFloat, ...) -> None`
+    `VariableY.__call__(*values: ScalarInputInt | VectorInputInt, ...) -> None`
     ...
 
     `ZipParameterX.__call__(*, default: float = ..., **constants: float) -> None`
@@ -1541,6 +1543,9 @@ def _get_vectorlike(
         return None
     match ndim:
         case 0:
+            if input_:
+                suffix = type_.__name__.capitalize()
+                return _get_alias_target(api, f"ScalarInput{suffix}")
             if (
                 ((module := api.modules.get("builtins")) is not None)
                 and ((scalar_sym := module.names.get(type_.__name__)) is not None)

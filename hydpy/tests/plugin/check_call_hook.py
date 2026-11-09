@@ -35,6 +35,9 @@ if __name__ == "__main__":
     parameter([1.0])
     parameter(numpy.ones(2, dtype=numpy.int64))
     parameter(numpy.ones(2, dtype=numpy.bool_))
+    parameter(numpy.int64(1))
+    parameter(numpy.bool_(True), numpy.float32(2.0))
+    parameter(numpy.str_("x"))  # type: ignore[arg-type]
     parameter([[1.0]])
     parameter([[[1.0]]])
     parameter([[[[1.0]]]])  # type: ignore[arg-type]
@@ -52,6 +55,8 @@ if __name__ == "__main__":
     area: hland_control.Area
     area(1.0)
     area(1)
+    area(numpy.float64(1.0))
+    area(numpy.int64(1))
     area([1.0])  # type: ignore[call-overload]
     area(numpy.ones((), dtype=numpy.float64))  # type: ignore[call-overload]
     area(auxfile="file")
@@ -63,6 +68,8 @@ if __name__ == "__main__":
     nmbzones(1)
     nmbzones(True)
     nmbzones(1.0)  # type: ignore[call-overload]
+    nmbzones(numpy.int64(1))
+    nmbzones(numpy.float64(1.0))  # type: ignore[call-overload]
 
     # NDIM = 0, TYPE = int, TIME = True
     recstep: hland_control.RecStep
@@ -76,6 +83,8 @@ if __name__ == "__main__":
     resparea: hland_control.RespArea
     resparea(True)
     resparea(1)  # type: ignore[call-overload]
+    resparea(numpy.bool_(True))
+    resparea(numpy.int64(1))  # type: ignore[call-overload]
 
     # NDIM = 1, TYPE = float
     zonearea: hland_control.ZoneArea
@@ -84,12 +93,17 @@ if __name__ == "__main__":
     zonearea([1.0, 2.0])
     zonearea(numpy.ones(2, dtype=numpy.float64))
     zonearea([[1.0]])  # type: ignore[list-item]
+    zonearea(zonearea[0], numpy.float32(2.0))
+    zonearea([numpy.float64(1.0), 2.0])
 
     # NDIM = 1, TYPE = int
     zonetype: hland_control.ZoneType
     zonetype(1, 2)
     zonetype([1, 2])
     zonetype([1.0])  # type: ignore[list-item]
+    zonetype(zonetype[0], numpy.int32(2))
+    zonetype([numpy.int64(1), 2])
+    zonetype(numpy.float64(1.0))  # type: ignore[call-overload]
 
     # NDIM = 2, TYPE = float
     distances: conv_derived.Distances

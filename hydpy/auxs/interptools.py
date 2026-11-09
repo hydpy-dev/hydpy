@@ -111,6 +111,15 @@ class InterpAlgorithm(_Labeled):
         7.0  1.999982   0.000074
         8.0  2.0        0.000001
 
+        Integers and |numpy| scalars are also acceptable input values:
+
+        >>> from numpy import float32, int64
+        >>> ann.print_table([3, int64(4), float32(5.0)])
+        x    y          dy/dx
+        3    -0.946041  0.211952
+        4    0.5        3.0
+        5.0  1.946041   0.211952
+
         A multivariate example (three input and two output values result in six partial
         derivatives):
 
@@ -162,10 +171,10 @@ dy1/dx3   dy2/dx3
         table[0, ni:nt] = yns
         table[0, nt:] = [f"d{yn}/d{xn}" for xn, yn in itertools.product(xns, yns)]
 
-        xs_: float | VectorInputFloat
+        xs_: ScalarInputFloat | VectorInputFloat
         for ri, xs_ in enumerate(xs):
             ri += 1
-            if isinstance(xs_, float):
+            if not isinstance(xs_, Sequence | numpy.ndarray):
                 xs_ = (xs_,)
             for xi, x in enumerate(xs_):
                 table[ri, xi] = r(x)

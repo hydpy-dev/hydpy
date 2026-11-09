@@ -111,10 +111,7 @@ Example workflow
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import statcorrinterfaces
-from hydpy.models.statcorr import statcorr_derived
 from hydpy.models.statcorr import statcorr_model
-
-ADDITIONAL_DERIVEDPARAMETERS = (statcorr_derived.NmbLogEntries,)
 
 
 class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrModel_V1):

@@ -4,12 +4,10 @@ correction of simulated discharge based on observed discharge values.
 """
 
 from hydpy.exe.modelimports import *
-from hydpy.models.statcorr import statcorr_control
+from hydpy.models.statcorr.statcorr_control import NmbSubmodels as _NmbSubmodels
 
-ADDITIONAL_CONTROLPARAMETERS = (
-    statcorr_control.NmbSubmodels,
-    statcorr_control.Propagate,
-)
+ADDITIONAL_CONTROLPARAMETERS = (_NmbSubmodels,)
+del _NmbSubmodels
 
 from hydpy.models.statcorr.statcorr_model import (  # pylint: disable=wrong-import-position
     Model,

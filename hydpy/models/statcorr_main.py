@@ -300,20 +300,16 @@ __________________
     | 10/01 |       nan |    3.0 |        3.5 |   3.0 |    3.5 |
 """
 
-from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import statcorrinterfaces
 from hydpy.models.statcorr import statcorr_control
 from hydpy.models.statcorr import statcorr_model
 
-ADDITIONAL_CONTROLPARAMETERS = (
-    statcorr_control.NmbSubmodels,
-    statcorr_control.Propagate,
-)
+ADDITIONAL_CONTROLPARAMETERS = (statcorr_control.NmbSubmodels,)
 
 
-class Model(modeltools.AdHocModel):
+class Model(statcorr_model.Main_OutputCorrModel_V1):
     """|statcorr_main.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
@@ -336,24 +332,6 @@ class Model(modeltools.AdHocModel):
     outputcorrmodels = modeltools.SubmodelsProperty(
         statcorrinterfaces.OutputCorrModel_V1
     )
-
-    @importtools.prepare_submodel(  # type: ignore[call-overload, untyped-decorator]
-        "outputcorrmodels", statcorrinterfaces.OutputCorrModel_V1, dimensionality=1
-    )
-    def add_outputcorrmodel_v1(
-        self,
-        outputcorrmodel: statcorrinterfaces.OutputCorrModel_V1,
-        /,
-        *,
-        position: int,
-        refresh: bool,
-    ) -> None:
-        """Initialise the given submodel that follows the |OutputCorrModel_V1|
-        interface.
-
-        The submodel determines the length of its log from its own parameters (see
-        |NmbLogEntries|), so the main model does not need to pass any information.
-        """
 
 
 tester = Tester()

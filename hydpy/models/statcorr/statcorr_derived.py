@@ -14,7 +14,7 @@ class NmbLogEntries(parametertools.NmbParameter):
     |NmbLogEntries| resets all state sequences to their initial values whenever its
     value changes, as the latter depend on the logged data:
 
-    >>> from hydpy.models.statcorr_arima010 import *
+    >>> from hydpy.models.statcorr import *
     >>> parameterstep()
     >>> derived.nmblogentries(2)
     >>> states.residual(2.0)
@@ -49,7 +49,7 @@ class NmbLogEntries(parametertools.NmbParameter):
         As long as not all relevant control parameters are defined,
         |NmbLogEntries.update| leaves the current value untouched:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> evaluationwindow(3)
         >>> stationaritycheck(active=True, window=4, ratiominmax=0.5)
@@ -160,7 +160,7 @@ class StationarityWindow(parametertools.Parameter):
         As long as |StationarityCheck| is not configured,
         |StationarityWindow.update| leaves the current value untouched:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> derived.stationaritywindow.update()
         >>> derived.stationaritywindow
@@ -196,7 +196,7 @@ class RatioMinMax(parametertools.Parameter):
         As long as |StationarityCheck| is not configured, |RatioMinMax.update| leaves
         the current value untouched:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> derived.ratiominmax.update()
         >>> derived.ratiominmax
@@ -233,7 +233,7 @@ class MaxRelSumDelta(parametertools.Parameter):
         As long as |VariabilityCheck| is not configured, |MaxRelSumDelta.update|
         leaves the current value untouched:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> derived.maxrelsumdelta.update()
         >>> derived.maxrelsumdelta
@@ -270,7 +270,7 @@ class StationaryAveragingWindow(parametertools.Parameter):
         As long as |VariabilityCheck| is not configured,
         |StationaryAveragingWindow.update| leaves the current value untouched:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> derived.stationaryaveragingwindow.update()
         >>> derived.stationaryaveragingwindow

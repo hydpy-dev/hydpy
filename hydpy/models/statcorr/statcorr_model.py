@@ -101,7 +101,7 @@ class Calc_OutputCorr_V1(modeltools.Method):
 
         Without any attached submodel, the corrected discharge equals the inflow:
 
-        >>> from hydpy.models.statcorr import *
+        >>> from hydpy.models.statcorr_main import *
         >>> parameterstep()
         >>> fluxes.inflow = 2.0
         >>> inputs.discharge = 3.0
@@ -320,61 +320,6 @@ class Pass_CorrectedQ_V1(modeltools.Method):
         out.q = flu.correctedq if con.propagate else flu.inflow
 
 
-class Model(modeltools.AdHocModel):
-    """|statcorr.DOCNAME.complete|."""
-
-    DOCNAME = modeltools.DocName(short="StatCorr")
-    __HYDPY_ROOTMODEL__ = None
-
-    INLET_METHODS = (Pick_Inflow_V1,)
-    OBSERVER_METHODS = ()
-    RECEIVER_METHODS = ()
-    RUN_METHODS = (Calc_OutputCorr_V1,)
-    INTERFACE_METHODS = ()
-    ADD_METHODS = (Calc_OutputCorr_OutputCorrModel_V1,)
-    OUTLET_METHODS = (Pass_CorrectedQ_V1,)
-    SENDER_METHODS = ()
-    SUBMODELINTERFACES = (statcorrinterfaces.OutputCorrModel_V1,)
-    SUBMODELS = ()
-
-    outputcorrmodels = modeltools.SubmodelsProperty(
-        statcorrinterfaces.OutputCorrModel_V1
-    )
-
-    @importtools.prepare_submodel(  # type: ignore[call-overload, untyped-decorator]
-        "outputcorrmodels", statcorrinterfaces.OutputCorrModel_V1, dimensionality=1
-    )
-    def add_outputcorrmodel_v1(
-        self,
-        outputcorrmodel: statcorrinterfaces.OutputCorrModel_V1,
-        /,
-        *,
-        position: int,
-        refresh: bool,
-    ) -> None:
-        """Initialise the given submodel that follows the |OutputCorrModel_V1|
-        interface.
-
-        The main model does not need to pass any information to the submodel.  In
-        particular, the submodel determines the length of its log from its own
-        parameters (see |NmbLogEntries|):
-
-        >>> from hydpy.models.statcorr import *
-        >>> parameterstep()
-        >>> nmbsubmodels(1)
-        >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0):
-        ...     evaluationwindow(2)
-        ...     stationaritycheck(active=True, window=4, ratiominmax=0.5)
-        ...     variabilitycheck(active=False)
-        ...     maxnanskip(2)
-        ...     averagingwindow(0)
-        >>> model.outputcorrmodels[0].parameters.derived.nmblogentries
-        nmblogentries(4)
-        >>> model.outputcorrmodels[0].sequences.logs.loggedsimulatedvalue
-        loggedsimulatedvalue(nan, nan, nan, nan)
-        """
-
-
 class Set_SimulatedValue_V1(modeltools.Method):
     """Append the given simulated value to the internal log of simulated values
     by shifting the previously buffered values one position to the right
@@ -382,7 +327,7 @@ class Set_SimulatedValue_V1(modeltools.Method):
 
     Example:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> derived.nmblogentries(3)
         >>> logs.loggedsimulatedvalue = 4.0, 3.0, 2.0
@@ -412,7 +357,7 @@ class Set_ObservedValue_V1(modeltools.Method):
 
     Example:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> derived.nmblogentries(3)
         >>> logs.loggedobservedvalue = 4.0, 3.0, 2.0
@@ -452,7 +397,7 @@ class Calc_EvaluatedValue_V1(modeltools.Method):
         (index ``0`` upwards) and never on the oldest ones sitting near the end of a
         larger log (which can well still be |numpy.nan|):
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> from numpy import nan
         >>> control.evaluationwindow(3)
@@ -508,7 +453,7 @@ class Calc_IsActive_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> from numpy import inf
         >>> control.active(True)
@@ -626,7 +571,7 @@ class Calc_Residual_ResidualAnchor_V1(modeltools.Method):
 
         If the most recent observation is available, it determines the residual:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> from numpy import nan
         >>> control.maxnanskip(2)
@@ -721,7 +666,7 @@ class Calc_Stationary_V1(modeltools.Method):
 
         The ratio ``4.0 / 5.0 = 0.8`` is not below |RatioMinMax|:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> from numpy import nan
         >>> control.stationaritycheck(active=True, window=3, ratiominmax=0.5)
@@ -822,7 +767,7 @@ class Calc_ReductionFactor_V1(modeltools.Method):
         Sustained instationary conditions reduce |ReductionFactor| to zero within
         the two steps given by |ReductionSteps|:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> control.reductionsteps(2)
         >>> derived.stationaritywindow(3)
@@ -899,7 +844,7 @@ class Calc_RelSumDelta_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> control.evaluationwindow(3)
         >>> derived.stationaryaveragingwindow(3)
@@ -979,7 +924,7 @@ class Calc_LowVariability_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> from numpy import nan
         >>> derived.stationaryaveragingwindow(3)
@@ -1081,7 +1026,7 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         On the first forecast step, the average is taken from log positions ``1``
         and ``2`` (mean observed ``4.0``, mean simulated ``3.0``):
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> from numpy import nan
         >>> control.averagingwindow(2)
@@ -1240,7 +1185,7 @@ class Calc_CorrectedValue_V1(modeltools.Method):
 
         If the submodel is not responsible, no correction applies:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> control.maxabsshift(100.0)
         >>> control.maxrelshift(10.0)
@@ -1444,7 +1389,7 @@ class Update_ForecastStep_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> states.forecaststep(0.0)
         >>> from hydpy import pub
@@ -1505,7 +1450,7 @@ class Determine_OutputCorrection_V1(modeltools.AutoMethod):
         In `historical` mode, the correction reproduces the most recent
         observation:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> from numpy import inf, nan
         >>> derived.nmblogentries(3)
@@ -1603,7 +1548,7 @@ class Is_Active_V1(modeltools.Method):
 
     Example:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> fluxes.isactive = 1.0
         >>> assert model.is_active_v1()
@@ -1624,7 +1569,7 @@ class Get_CorrectedOutput_V1(modeltools.Method):
 
     Example:
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> fluxes.correctedvalue = 2.5
         >>> from hydpy import round_
@@ -1638,6 +1583,86 @@ class Get_CorrectedOutput_V1(modeltools.Method):
     def __call__(model: modeltools.Model, /) -> float:
         flu = model.sequences.fluxes.fastaccess
         return flu.correctedvalue
+
+
+class Model(modeltools.AdHocModel):
+    """|statcorr.DOCNAME.complete|."""
+
+    DOCNAME = modeltools.DocName(short="StatCorr")
+    __HYDPY_ROOTMODEL__ = None
+
+    INLET_METHODS = (Pick_Inflow_V1,)
+    OBSERVER_METHODS = ()
+    RECEIVER_METHODS = ()
+    RUN_METHODS = (Calc_OutputCorr_V1,)
+    INTERFACE_METHODS = (
+        Set_SimulatedValue_V1,
+        Set_ObservedValue_V1,
+        Determine_OutputCorrection_V1,
+        Is_Active_V1,
+        Get_CorrectedOutput_V1,
+    )
+    ADD_METHODS = (
+        Calc_OutputCorr_OutputCorrModel_V1,
+        Calc_EvaluatedValue_V1,
+        Calc_IsActive_V1,
+        Calc_Residual_ResidualAnchor_V1,
+        Calc_Stationary_V1,
+        Calc_ReductionFactor_V1,
+        Calc_RelSumDelta_V1,
+        Calc_LowVariability_V1,
+        Calc_AveragedResidual_V1,
+        Calc_CorrectedValue_V1,
+        Update_ForecastStep_V1,
+    )
+    OUTLET_METHODS = (Pass_CorrectedQ_V1,)
+    SENDER_METHODS = ()
+    SUBMODELINTERFACES = (statcorrinterfaces.OutputCorrModel_V1,)
+    SUBMODELS = ()
+
+    outputcorrmodels = modeltools.SubmodelsProperty(
+        statcorrinterfaces.OutputCorrModel_V1
+    )
+
+
+class Main_OutputCorrModel_V1(modeltools.AdHocModel):
+    """Base class for |statcorr.DOCNAME.long| models that use submodels that comply
+    with the |OutputCorrModel_V1| interface."""
+
+    outputcorrmodels: modeltools.SubmodelsProperty
+
+    @importtools.prepare_submodel(  # type: ignore[call-overload, untyped-decorator]
+        "outputcorrmodels", statcorrinterfaces.OutputCorrModel_V1, dimensionality=1
+    )
+    def add_outputcorrmodel_v1(
+        self,
+        outputcorrmodel: statcorrinterfaces.OutputCorrModel_V1,
+        /,
+        *,
+        position: int,
+        refresh: bool,
+    ) -> None:
+        """Initialise the given submodel that follows the |OutputCorrModel_V1|
+        interface.
+
+        The main model does not need to pass any information to the submodel.  In
+        particular, the submodel determines the length of its log from its own
+        parameters (see |NmbLogEntries|):
+
+        >>> from hydpy.models.statcorr_main import *
+        >>> parameterstep()
+        >>> nmbsubmodels(1)
+        >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0):
+        ...     evaluationwindow(2)
+        ...     stationaritycheck(active=True, window=4, ratiominmax=0.5)
+        ...     variabilitycheck(active=False)
+        ...     maxnanskip(2)
+        ...     averagingwindow(0)
+        >>> model.outputcorrmodels[0].parameters.derived.nmblogentries
+        nmblogentries(4)
+        >>> model.outputcorrmodels[0].sequences.logs.loggedsimulatedvalue
+        loggedsimulatedvalue(nan, nan, nan, nan)
+        """
 
 
 class Sub_OutputCorrModel(modeltools.AdHocModel):

@@ -12,7 +12,7 @@ class MixinLogEntries(variabletools.Variable, abc.ABC):
 
     We take the log sequence |LoggedObservedValue| as an example:
 
-    >>> from hydpy.models.statcorr_arima010 import *
+    >>> from hydpy.models.statcorr import *
     >>> parameterstep()
     >>> derived.nmblogentries(3)
     >>> logs.loggedobservedvalue

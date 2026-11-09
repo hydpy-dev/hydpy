@@ -69,7 +69,7 @@ class CorrectionMode(parametertools.Parameter):
     `option`.  Internally, |CorrectionMode| stores them as the integer values 1, 2,
     and 3:
 
-    >>> from hydpy.models.statcorr_arima010 import *
+    >>> from hydpy.models.statcorr import *
     >>> parameterstep()
     >>> correctionmode
     correctionmode(?)
@@ -133,7 +133,7 @@ class LowerLimit(parametertools.Parameter):
     def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim upper values in accordance with :math:`LowerLimit \leq UpperLimit`.
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> upperlimit.value = 2.0
         >>> lowerlimit(1.0)
@@ -161,7 +161,7 @@ class UpperLimit(parametertools.Parameter):
     def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim lower values in accordance with :math:`LowerLimit \leq UpperLimit`.
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> lowerlimit.value = 2.0
         >>> upperlimit(3.0)
@@ -187,7 +187,7 @@ class StationarityCheck(parametertools.SpecialParameter):
     values within this period (`ratiominmax`), below which |Calc_Stationary_V1|
     considers the conditions instationary:
 
-    >>> from hydpy.models.statcorr_arima010 import *
+    >>> from hydpy.models.statcorr import *
     >>> parameterstep()
     >>> stationaritycheck
     stationaritycheck(?)
@@ -332,7 +332,7 @@ lie between zero and one, but `1.5` is given.
         """Flag indicating whether the stationarity check has already been
         configured.
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> stationaritycheck.configured
         False
@@ -377,7 +377,7 @@ class VariabilityCheck(parametertools.SpecialParameter):
     period (`averagingwindow`, in log entries) for determining the mean-value-based
     residual under stationary conditions (see |Calc_AveragedResidual_V1|):
 
-    >>> from hydpy.models.statcorr_arima010 import *
+    >>> from hydpy.models.statcorr import *
     >>> parameterstep()
     >>> variabilitycheck
     variabilitycheck(?)
@@ -527,7 +527,7 @@ must be a positive integer, but `0` is given.
         """Flag indicating whether the variability check has already been
         configured.
 
-        >>> from hydpy.models.statcorr_arima010 import *
+        >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> variabilitycheck.configured
         False

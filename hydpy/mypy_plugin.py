@@ -34,6 +34,7 @@ from mypy.nodes import (
     ARG_STAR2,
     Argument,
     CallExpr,
+    ClassDef,
     Decorator,
     Expression,
     FuncDef,
@@ -56,6 +57,7 @@ from mypy.plugin import (
     MethodContext,
     MethodSigContext,
     ReportConfigContext,
+    SemanticAnalyzerPluginInterface,
 )
 from mypy.plugins.common import add_method_to_class
 from mypy.semanal_shared import has_placeholder
@@ -2244,33 +2246,39 @@ def _get_item_type(
     return _get_vectorlike(context=context, ndim=ndim - 1, type_=type_, input_=False)
 
 
+def _get_inherited_ndim_and_type(info: TypeInfo) -> tuple[int, type] | None:
+    """Return the dimensionality and value type of the given variable class or, if
+    unknown, of its nearest base class with known dimensionality and value type.
+
+    Subclasses of concrete variable classes inherit the methods added by
+    `variable_class_hook` and thus also need the related checks.
+    """
+    for base in info.mro:
+        if (ndim_type := VAR_INFO.get(base.fullname)) is not None:
+            return ndim_type
+    return None
+
+
 def iter_hook(context: MethodContext) -> Type:
     """
     `VariableX.__iter__() -> Iterator[Any]`
     -->
     `VariableX.__iter__() -> error`  (if `VariableX` is 0-dimensional)
-    `VariableY.__iter__() -> Iterator[numpy.float64]`  (if `VariableY` is 1-dimensional)
-    `VariableZ.__iter__() -> Iterator[VectorFloat]`  (if `VariableZ` is 2-dimensional)
-    ...
+
+    `iter_signature_hook` adds precise `__iter__` methods to all multidimensional
+    variable classes, so that this hook only needs to handle 0-dimensional ones.
     """
-    default = context.default_return_type
     if (
-        not isinstance(api := context.api, TypeChecker)
-        or not isinstance(var_inst := context.type, Instance)
-        or ((ndim_type := _get_ndim_and_type(context)) is None)
+        isinstance(var_inst := context.type, Instance)
+        and ((ndim_type := _get_inherited_ndim_and_type(var_inst.type)) is not None)
+        and (ndim_type[0] == 0)
     ):
-        return default
-    ndim, type_ = ndim_type
-    if ndim == 0:
-        api.fail(
+        context.api.fail(
             f'Variable "{var_inst.type.name}" is 0-dimensional and thus not iterable',
             context.context,
             code=ATTR_DEFINED,
         )
-        return default
-    if (item := _get_item_type(context=context, ndim=ndim, type_=type_)) is None:
-        return default
-    return api.named_generic_type("typing.Iterator", [item])
+    return context.default_return_type
 
 
 def contains_hook(context: MethodContext) -> Type:
@@ -2324,6 +2332,52 @@ def _has_arrayhook_member(info: TypeInfo) -> bool:
     return _is_alias(ret_type, "ArrayHook")
 
 
+def _get_semanal_alias_target(
+    api: SemanticAnalyzerPluginInterface, name: str
+) -> Type | None:
+    """Return the target of the type alias with the given name defined in module
+    |typingtools| during semantic analysis.
+
+    If the alias is not ready yet, `_get_semanal_alias_target` defers the analysis of
+    the current target (as long as possible) and returns |None|.
+    """
+    alias = api.lookup_fully_qualified_or_none(f"hydpy.core.typingtools.{name}")
+    if (
+        (alias is not None)
+        and isinstance(alias_node := alias.node, TypeAlias)
+        and not has_placeholder(alias_node.target)
+    ):
+        return alias_node.target
+    if not api.final_iteration:
+        api.defer()
+    return None
+
+
+def _add_precise_method(
+    api: SemanticAnalyzerPluginInterface,
+    cls: ClassDef,
+    name: str,
+    args: list[Argument],
+    return_type: Type,
+) -> None:
+    """Add a method with the given signature to the given class unless it already has
+    an identical plugin-generated one."""
+    sym = cls.info.names.get(name)
+    if (
+        (sym is not None)
+        and sym.plugin_generated
+        and isinstance(node := sym.node, FuncDef)
+        and isinstance(node.type, CallableType)
+        and is_same_type(node.type.ret_type, return_type)
+    ):
+        return
+    method = add_method_to_class(
+        api=api, cls=cls, name=name, args=args, return_type=return_type
+    )
+    if isinstance(method, FuncDef):
+        method.is_trivial_body = True
+
+
 def array_hook(context: ClassDefContext) -> None:
     """
     `VariableX.__array__() -> ArrayHook`
@@ -2345,32 +2399,28 @@ def array_hook(context: ClassDefContext) -> None:
     ):
         return
     ndim, type_ = ndim_type
-    prefix = {0: "Vector", 1: "Vector", 2: "Matrix", 3: "Tensor"}.get(ndim)
-    alias = api.lookup_fully_qualified_or_none(
-        f"hydpy.core.typingtools.{prefix}{type_.__name__.capitalize()}"
-    )
-    dtype_inst = api.named_type_or_none("numpy.dtype", [AnyType(TypeOfAny.explicit)])
     if (
-        (prefix is None)
-        or (alias is None)
-        or not isinstance(alias_node := alias.node, TypeAlias)
-        or has_placeholder(alias_node.target)
-        or (dtype_inst is None)
-    ):
-        if (prefix is not None) and not api.final_iteration:
+        prefix := {0: "Vector", 1: "Vector", 2: "Matrix", 3: "Tensor"}.get(ndim)
+    ) is None:
+        return
+    name = f"{prefix}{type_.__name__.capitalize()}"
+    if (return_type := _get_semanal_alias_target(api, name)) is None:
+        return
+    dtype_inst = api.named_type_or_none("numpy.dtype", [AnyType(TypeOfAny.explicit)])
+    if dtype_inst is None:
+        if not api.final_iteration:
             api.defer()
         return
-    return_type = alias_node.target
     if ndim == 0:
-        vector = get_proper_type(return_type)
-        assert isinstance(vector, Instance)
+        if not isinstance(vector := get_proper_type(return_type), Instance):
+            return
         empty_tuple = TupleType(
             [], fallback=api.named_type("builtins.tuple", [UninhabitedType()])
         )
         return_type = vector.copy_modified(args=[empty_tuple, vector.args[1]])
     dtype_type = UnionType([dtype_inst, NoneType()])
     copy_type = UnionType([api.named_type("builtins.bool"), NoneType()])
-    method = add_method_to_class(
+    _add_precise_method(
         api=api,
         cls=cls,
         name="__array__",
@@ -2380,8 +2430,84 @@ def array_hook(context: ClassDefContext) -> None:
         ],
         return_type=return_type,
     )
-    if isinstance(method, FuncDef):
-        method.is_trivial_body = True
+
+
+def _has_iterhook_member(info: TypeInfo) -> bool:
+    """Tell whether method `__iter__` of the given class is the general one annotated
+    with `Iterator[GeneralHook]` or one added by `iter_signature_hook` where it is
+    defined (the class itself or one of its base classes).
+
+    Like `_has_arrayhook_member`, `_has_iterhook_member` returns `False` if a class
+    overrides `__iter__` with a more specific annotation and must identify `GeneralHook`
+    by name as long as Mypy has not analysed the annotation.
+    """
+    if (definer := info.get_containing_type_info("__iter__")) is None:
+        return False
+    sym = definer.names["__iter__"]
+    if sym.plugin_generated:
+        return True
+    node = sym.node
+    if isinstance(node, Decorator):
+        node = node.func
+    if not isinstance(node, FuncDef) or not isinstance(node.type, CallableType):
+        return False
+    ret_type = node.type.ret_type
+    if isinstance(ret_type, UnboundType):
+        return any(
+            isinstance(arg, UnboundType)
+            and (arg.name.rpartition(".")[2] == "GeneralHook")
+            for arg in ret_type.args
+        )
+    return _refers_to_generalhook(node.type)
+
+
+def iter_signature_hook(context: ClassDefContext) -> None:
+    """
+    `VariableX.__iter__() -> Iterator[GeneralHook]`
+    -->
+    `VariableX.__iter__() -> Iterator[GeneralHook]`  (if `VariableX` is 0-dimensional)
+    `VariableY.__iter__() -> Iterator[numpy.float64]`  (if `VariableY` is 1-dimensional)
+    `VariableZ.__iter__() -> Iterator[VectorFloat]`  (if `VariableZ` is 2-dimensional)
+    ...
+
+    Like `array_hook`, this hook adds a method with a precise signature to each
+    multidimensional variable class with known value type during semantic analysis.
+    Otherwise, Mypy would rely on the general signature defined by `Variable` when
+    checking if a variable is an `Iterable[...]` of the expected type (e.g. in
+    `x: list[str] = list(variable)`), which the other hooks cannot prevent.  For
+    0-dimensional variables, `iter_hook` and `iterable_function_hook` report errors.
+    """
+    api, cls = context.api, context.cls
+    if ((ndim_type := VAR_INFO.get(cls.info.fullname)) is None) or (
+        not _has_iterhook_member(cls.info)
+    ):
+        return
+    ndim, type_ = ndim_type
+    if (prefix := {1: "Vector", 2: "Vector", 3: "Matrix"}.get(ndim)) is None:
+        return
+    name = f"{prefix}{type_.__name__.capitalize()}"
+    if (item := _get_semanal_alias_target(api, name)) is None:
+        return
+    if ndim == 1:
+        if not (
+            isinstance(vector := get_proper_type(item), Instance)
+            and isinstance(dtype := get_proper_type(vector.args[1]), Instance)
+        ):
+            return
+        item = dtype.args[0]
+    if (iterator := api.named_type_or_none("typing.Iterator", [item])) is None:
+        if not api.final_iteration:
+            api.defer()
+        return
+    _add_precise_method(
+        api=api, cls=cls, name="__iter__", args=[], return_type=iterator
+    )
+
+
+def variable_class_hook(context: ClassDefContext) -> None:
+    """Add methods with precise signatures to variable classes."""
+    array_hook(context)
+    iter_signature_hook(context)
 
 
 def iterable_function_hook(
@@ -2391,9 +2517,15 @@ def iterable_function_hook(
     `list(VariableX) -> list[Any]`
     -->
     `list(VariableX) -> error`  (if `VariableX` is 0-dimensional)
-    `list(VariableY) -> list[numpy.float64]`  (if `VariableY` is 1-dimensional)
+    `sum(VariableY) -> numpy.float64`  (if `VariableY` is 1-dimensional)
     `sum(VariableZ) -> VectorFloat`  (if `VariableZ` is 2-dimensional)
+    `sum(VariableB) -> numpy.int64`  (if `VariableB` is 1-dimensional and boolean)
     ...
+
+    For multidimensional variables, Mypy derives the result types of functions like
+    `list` and `min` from the precise `__iter__` methods added by
+    `iter_signature_hook`.  Only `sum` needs refinement, as Mypy's stubs would add
+    `Literal[0]` (the start value) to the result type.
     """
     default = context.default_return_type
     nmb_positional = sum(
@@ -2407,7 +2539,7 @@ def iterable_function_hook(
             if (
                 isinstance(var_inst := get_proper_type(arg_type), Instance)
                 and ((ndim_type := VAR_INFO.get(var_inst.type.fullname)) is not None)
-                and _has_generalhook_member(var_inst.type, "__iter__")
+                and _has_iterhook_member(var_inst.type)
             ):
                 infos.append((var_inst.type.name, *ndim_type))
     for name, ndim, _ in infos:
@@ -2417,30 +2549,17 @@ def iterable_function_hook(
                 context.context,
                 code=ARG_TYPE,
             )
-    if (len(infos) != 1) or (nmb_positional != 1) or ((ndim := infos[0][1]) == 0):
-        return default
-    type_ = infos[0][2]
-    funcname = fullname.rpartition(".")[2]
-    if funcname == "sum":
-        # `sum` starts with `0`, so summing booleans results in integers:
-        type_ = int if issubclass(type_, bool) else type_
-        item = _get_item_type(context=context, ndim=ndim, type_=type_)
-        return default if item is None else item
-    if funcname in ("min", "max"):
-        # comparing arrays is ambiguous, so we refine only 1-dimensional cases:
-        if ndim > 1:
-            return default
-        item = _get_item_type(context=context, ndim=ndim, type_=type_)
-        return default if item is None else item
-    item = _get_item_type(context=context, ndim=ndim, type_=type_)
     if (
-        (item is not None)
-        and isinstance(proper := get_proper_type(default), Instance)
-        and (len(proper.args) == 1)
-        and isinstance(get_proper_type(proper.args[0]), AnyType)
+        (fullname != "builtins.sum")
+        or (len(infos) != 1)
+        or (nmb_positional != 1)
+        or ((ndim := infos[0][1]) == 0)
     ):
-        return proper.copy_modified(args=[item])
-    return default
+        return default
+    # `sum` starts with `0`, so summing booleans results in integers:
+    type_ = int if issubclass(infos[0][2], bool) else infos[0][2]
+    item = _get_item_type(context=context, ndim=ndim, type_=type_)
+    return default if item is None else item
 
 
 def sized_function_hook(context: FunctionContext, fullname: str) -> Type:
@@ -2840,7 +2959,7 @@ class MypyPlugin(Plugin):
         self, fullname: str
     ) -> Callable[[ClassDefContext], None] | None:
         if fullname.startswith("hydpy."):
-            return array_hook
+            return variable_class_hook
         return None
 
     def get_method_signature_hook(

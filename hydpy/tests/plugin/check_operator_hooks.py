@@ -5,7 +5,7 @@ if __name__ == "__main__":
 
     import math
     import operator
-    from collections.abc import Iterator
+    from collections.abc import Iterable, Iterator
     from typing import Any, assert_type, Self
 
     import numpy
@@ -241,6 +241,45 @@ if __name__ == "__main__":
     _ = min(area)  # type: ignore[arg-type]
     _ = zip(zonearea, area)  # type: ignore[arg-type]
     _ = map(abs, area)  # type: ignore[arg-type]
+
+    # variables as iterables of the expected type (precise `__iter__` signatures)
+    class SubZoneArea(hland_control.ZoneArea):
+        """Inherits the precise signature of `ZoneArea.__iter__`."""
+
+    class StrZones(parametertools.Parameter):
+        """Defines `__iter__` itself."""
+
+        NDIM = 1
+        TYPE = float
+
+        def __iter__(self) -> Iterator[str]:
+            yield ""
+
+    def take_strings(values: Iterable[str]) -> None:  # pylint: disable=unused-argument
+        """Expects an iterable of strings."""
+
+    subzonearea: SubZoneArea
+    strzones: StrZones
+    floats: Iterable[numpy.float64] = zonearea
+    rows: Iterable[typingtools.VectorFloat] = sred
+    int64s: list[numpy.int64] = list(zonetype)
+    subfloats: list[numpy.float64] = list(subzonearea)
+    strings: list[str] = list(strzones)
+    anything: list[str] = list(parameter)  # unknown dimensionality: no check
+    ints: list[int] = list(zonetype)  # type: ignore[arg-type]
+    floats_str: list[str] = list(zonearea)  # type: ignore[arg-type]
+    subfloats_str: list[str] = list(subzonearea)  # type: ignore[arg-type]
+    tuple_str: tuple[str, ...] = tuple(zonetype)  # type: ignore[arg-type]
+    sorted_str: list[str] = sorted(zonearea)  # type: ignore[arg-type]
+    iterable_str: Iterable[str] = zonearea  # type: ignore[assignment]
+    rows_float: Iterable[numpy.float64] = sred  # type: ignore[assignment]
+    take_strings(zonetype)  # type: ignore[arg-type]
+    take_strings(strzones)
+    zonetype.values = list(zonetype)
+    zonetype.values = list(zonearea)  # type: ignore[arg-type]
+    water.values = list(zonetype)  # type: ignore[arg-type]
+    sred.values = list(sred)
+    sred.values = list(zonearea)  # type: ignore[arg-type]
 
     # item assignment
     area[0] = 1.0

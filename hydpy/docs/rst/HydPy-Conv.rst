@@ -7,9 +7,10 @@ HydPy-Conv models are no real hydrological models.  Instead, they serve as conve
 that allow connecting different kinds of models providing output and requiring input
 that does not fit immediately.  The most typical use case is interpolating data, which
 is implemented by the application model |conv_nn| using the nearest-neighbour, by
-application model |conv_idw| using the inverse distance weighted approach, and by
+application model |conv_idw| using the inverse distance weighted approach, by
 application model |conv_idw_ed| combining inverse distance weighting with linear
-regression.
+regression, and by application model |conv_idw_cm| combining inverse distance weighting
+with multiplicative adjustments based on long-term averages.
 
 Available models:
 
@@ -20,3 +21,4 @@ Available models:
    conv_nn
    conv_idw
    conv_idw_ed
+   conv_idw_cm

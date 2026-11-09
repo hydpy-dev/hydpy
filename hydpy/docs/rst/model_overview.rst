@@ -191,10 +191,12 @@ all individual subbasins or to interpolate station data to subbasin geometries "
 fly" during simulation runs.  HydPy supplies different types of `interpolation models`
 for the latter case.
 
-:ref:`HydPy-Conv` implements three interpolation methods: nearest-neighbour
-(|conv_nn|), inverse distance weighting (|conv_idw|), and a combination of inverse
-distance weighting and linear regression, somewhat similar to External Drift Kriging
-(|conv_idw_ed|).
+:ref:`HydPy-Conv` implements four interpolation methods: nearest-neighbour
+(|conv_nn|), inverse distance weighting (|conv_idw|), a combination of inverse distance
+weighting and linear regression, somewhat similar to External Drift Kriging
+(|conv_idw_ed|), and a combination of inverse distance weighting and multiplicative
+adjustments based on long-term averages, suitable for intermittent variables like
+precipitation (|conv_idw_cm|).
 
 .. _submodels:
 

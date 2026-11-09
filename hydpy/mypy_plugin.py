@@ -346,6 +346,9 @@ FIRST_ITERABLE_FUNCTIONS: Final = (
 # functions iterating over their first argument only if it is the only positional one:
 SINGLE_ITERABLE_FUNCTIONS: Final = ("builtins.min", "builtins.max", "builtins.iter")
 
+# functions comparing the items of their (first) argument if not given a key function:
+COMPARING_FUNCTIONS: Final = ("builtins.min", "builtins.max", "builtins.sorted")
+
 # functions iterating over all their arguments (or all but a leading function):
 ALL_ITERABLE_FUNCTIONS: Final = ("builtins.zip", "builtins.map", "builtins.filter")
 
@@ -2517,6 +2520,7 @@ def iterable_function_hook(
     `list(VariableX) -> list[Any]`
     -->
     `list(VariableX) -> error`  (if `VariableX` is 0-dimensional)
+    `min(VariableZ) -> error`  (if `VariableZ` is 2-dimensional and no key is given)
     `sum(VariableY) -> numpy.float64`  (if `VariableY` is 1-dimensional)
     `sum(VariableZ) -> VectorFloat`  (if `VariableZ` is 2-dimensional)
     `sum(VariableB) -> numpy.int64`  (if `VariableB` is 1-dimensional and boolean)
@@ -2524,8 +2528,8 @@ def iterable_function_hook(
 
     For multidimensional variables, Mypy derives the result types of functions like
     `list` and `min` from the precise `__iter__` methods added by
-    `iter_signature_hook`.  Only `sum` needs refinement, as Mypy's stubs would add
-    `Literal[0]` (the start value) to the result type.
+    `iter_signature_hook`.  Only `sum` without a given start value needs refinement, as
+    Mypy's stubs would add `Literal[0]` (the default start value) to the result type.
     """
     default = context.default_return_type
     nmb_positional = sum(
@@ -2538,10 +2542,23 @@ def iterable_function_hook(
         for arg_type in arg_types:
             if (
                 isinstance(var_inst := get_proper_type(arg_type), Instance)
-                and ((ndim_type := VAR_INFO.get(var_inst.type.fullname)) is not None)
+                and (
+                    (ndim_type := _get_inherited_ndim_and_type(var_inst.type))
+                    is not None
+                )
                 and _has_iterhook_member(var_inst.type)
             ):
                 infos.append((var_inst.type.name, *ndim_type))
+    keywords = {
+        name: get_proper_type(type_)
+        for names, types in zip(context.arg_names, context.arg_types)
+        for name, type_ in zip(names, types)
+        if name is not None
+    }
+    # `key=None` means comparing the items themselves:
+    compares = (fullname in COMPARING_FUNCTIONS) and isinstance(
+        keywords.get("key", NoneType()), NoneType
+    )
     for name, ndim, _ in infos:
         if not ndim:
             context.api.fail(
@@ -2549,14 +2566,23 @@ def iterable_function_hook(
                 context.context,
                 code=ARG_TYPE,
             )
+        elif compares and (ndim > 1):
+            context.api.fail(
+                f'Variable "{name}" is {ndim}-dimensional and thus its items (arrays) '
+                f"are not comparable",
+                context.context,
+                code=ARG_TYPE,
+            )
     if (
         (fullname != "builtins.sum")
         or (len(infos) != 1)
         or (nmb_positional != 1)
+        or ("start" in keywords)
         or ((ndim := infos[0][1]) == 0)
     ):
         return default
-    # `sum` starts with `0`, so summing booleans results in integers:
+    # Without a given start value, `sum` starts with `0`, so summing booleans results
+    # in integers:
     type_ = int if issubclass(infos[0][2], bool) else infos[0][2]
     item = _get_item_type(context=context, ndim=ndim, type_=type_)
     return default if item is None else item

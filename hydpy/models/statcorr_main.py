@@ -109,12 +109,10 @@ ___________________
     ...     first, last = pub.timegrids.sim.firstdate, pub.timegrids.sim.lastdate
     ...     pub.timegrids.sim.lastdate = split
     ...     with pub.options.simulationmode("historical"):
-    ...         model.update_parameters()
     ...         test.hydpy.simulate()
     ...     conditions = model.conditions
     ...     pub.timegrids.sim.dates = split, last
     ...     with pub.options.simulationmode("forecast"):
-    ...         model.update_parameters()
     ...         model.conditions = conditions
     ...         test.hydpy.simulate()
     ...     pub.timegrids.sim.dates = first, last

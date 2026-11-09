@@ -42,16 +42,13 @@ class OutputCorrModel_V1(modeltools.SubmodelInterface):
         submodel, which appends it to its internal log of observed values."""
 
     @modeltools.abstractmodelmethod
-    def determine_outputcorrection(self, isforecastmode: bool) -> None:
+    def determine_outputcorrection(self) -> None:
         """Calculate the corrected output value from the internal logs of
         simulated and observed values.
 
-        The main model passes its current |Options.simulationmode| via
-        `isforecastmode` (|True| for `forecast`, |False| for `historical`)
-        instead of leaving the submodel to inspect the global option itself.
-        Hence, the main model is the only place that evaluates
-        |Options.simulationmode|, and submodels do not need their own derived
-        parameter that must be kept in sync with it."""
+        Submodels that behave differently in `historical` and `forecast` mode
+        read the current |Options.simulationmode| at runtime via
+        |Model.runsettings|."""
 
     @modeltools.abstractmodelmethod
     def is_active(self) -> bool:

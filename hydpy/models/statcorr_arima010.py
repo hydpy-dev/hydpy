@@ -101,7 +101,7 @@ Example workflow
     current value, and |OutputCorrModel_V1.get_correctedoutput| returns the
     buffered value:
 
-    >>> model.determine_outputcorrection(False)
+    >>> model.determine_outputcorrection()
     >>> assert model.is_active()
     >>> from hydpy import round_
     >>> round_(model.get_correctedoutput())
@@ -137,7 +137,6 @@ class Model(statcorr_model.Sub_OutputCorrModel, statcorrinterfaces.OutputCorrMod
         statcorr_model.Get_CorrectedOutput_V1,
     )
     ADD_METHODS = (
-        statcorr_model.Set_ForecastMode_V1,
         statcorr_model.Calc_EvaluatedValue_V1,
         statcorr_model.Calc_IsActive_V1,
         statcorr_model.Calc_Residual_ResidualAnchor_V1,

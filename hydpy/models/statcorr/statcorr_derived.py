@@ -1,37 +1,9 @@
 # pylint: disable=missing-module-docstring
 
-import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.statcorr import statcorr_control
-
-
-class IsForecastMode(parametertools.Parameter):
-    """Flag telling whether |Options.simulationmode| currently is `forecast` [-]."""
-
-    NDIM: Final[Literal[0]] = 0
-    TYPE: Final = bool
-
-    def update(self) -> None:
-        """Take the current value of |Options.simulationmode| from module |pub|.
-
-        >>> from hydpy.models.statcorr import *
-        >>> parameterstep()
-        >>> from hydpy import pub
-        >>> pub.options.simulationmode = "historical"
-        >>> derived.isforecastmode.update()
-        >>> derived.isforecastmode
-        isforecastmode(False)
-
-        >>> pub.options.simulationmode = "forecast"
-        >>> derived.isforecastmode.update()
-        >>> derived.isforecastmode
-        isforecastmode(True)
-
-        >>> del pub.options.simulationmode
-        """
-        self(hydpy.pub.options.simulationmode == "forecast")
 
 
 class NmbLogEntries(parametertools.NmbParameter):

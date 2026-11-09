@@ -231,9 +231,18 @@ if __name__ == "__main__":
     assert_type(sum(zonearea), numpy.float64)
     assert_type(sum(water), numpy.int64)
     assert_type(sum(sred), typingtools.VectorFloat)
+    assert_type(sum(water, start=0.5), numpy.bool_ | float)
+    assert_type(sum(zonearea, 1.0), float)
     assert_type(min(zonearea), numpy.float64)
     assert_type(max(zonetype), numpy.int64)
     _ = max(area, 1.0)  # no iteration
+    _ = min(sred)  # type: ignore[arg-type]
+    _ = max(sred)  # type: ignore[arg-type]
+    _ = sorted(sred)  # type: ignore[arg-type]
+    _ = sorted(sred, key=None)  # type: ignore[arg-type]
+    assert_type(min(sred, key=sum), typingtools.VectorFloat)
+    assert_type(sorted(sred, key=sum), list[typingtools.VectorFloat])
+    assert_type(sorted(zonearea, reverse=True), list[numpy.float64])
     assert_type(list(parameter), list[Any])
     assert_type(list(zonearea), list[numpy.float64])
     _ = list(area)  # type: ignore[arg-type]
@@ -255,11 +264,24 @@ if __name__ == "__main__":
         def __iter__(self) -> Iterator[str]:
             yield ""
 
+    class SubArea(hland_control.Area):
+        """Inherits the dimensionality and value type of `Area`."""
+
+    class SubSRed(hland_control.SRed):
+        """Inherits the dimensionality and value type of `SRed`."""
+
     def take_strings(values: Iterable[str]) -> None:  # pylint: disable=unused-argument
         """Expects an iterable of strings."""
 
     subzonearea: SubZoneArea
     strzones: StrZones
+    subarea: SubArea
+    subsred: SubSRed
+    for _ in subarea:  # type: ignore[attr-defined]
+        pass
+    _ = list(subarea)  # type: ignore[arg-type]
+    _ = min(subsred)  # type: ignore[arg-type]
+    assert_type(sum(subsred), typingtools.VectorFloat)
     floats: Iterable[numpy.float64] = zonearea
     rows: Iterable[typingtools.VectorFloat] = sred
     int64s: list[numpy.int64] = list(zonetype)

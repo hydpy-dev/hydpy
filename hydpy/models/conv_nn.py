@@ -42,11 +42,6 @@ being in the middle of inlet nodes `in1` and `in2` exactly:
 ...     out3=(1.0, 2.0),
 ...     out4=(1.0, 1.0))
 
-In the first example, we perform a strict nearest-neighbour interpolation, where we
-always take only one input location into account, even in case of missing data:
-
->>> maxnmbinputs(1)
-
 |conv_nn| does not implement any state or log sequences and thus has no memory at all,
 making finalising the test setup quite easy.  We only need to define time series for
 both inlet nodes.  Note that we set some |numpy| |numpy.nan| values to demonstrate how
@@ -60,28 +55,48 @@ both inlet nodes.  Note that we set some |numpy| |numpy.nan| values to demonstra
 ...     in1.sequences.sim.series = 1.0, 2.0, nan
 ...     in2.sequences.sim.series = 4.0, nan, nan
 
+.. _conv_nn_nearest_neighbour:
+
+nearest neighbour
+_________________
+
+In the first example, we perform a strict nearest-neighbour interpolation, where we
+always take only one input location into account, even in case of missing data:
+
+>>> maxnmbinputs(1)
+
 The calculated results provide no surprises.  However, outlet node `out4` receives the
 output of node `in1` instead of the equidistant node `in2`, which is due to their
 definition order when preparing parameter |InputCoordinates| above:
 
->>> test()
-|       date |      inputs |                outputs | in1 | in2 | out1 | out2 | out3 | out4 |
----------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0     4.0 | 1.0  4.0  1.0      1.0 | 1.0 | 4.0 |  1.0 |  4.0 |  1.0 |  1.0 |
-| 2000-01-02 | 2.0     nan | 2.0  nan  2.0      2.0 | 2.0 | nan |  2.0 |  nan |  2.0 |  2.0 |
-| 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  nan |  nan |  nan |  nan |
+.. integration-test::
+
+    >>> test()
+    |       date |      inputs |                outputs | in1 | in2 | out1 | out2 | out3 | out4 |
+    ---------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0     4.0 | 1.0  4.0  1.0      1.0 | 1.0 | 4.0 |  1.0 |  4.0 |  1.0 |  1.0 |
+    | 2000-01-02 | 2.0     nan | 2.0  nan  2.0      2.0 | 2.0 | nan |  2.0 |  nan |  2.0 |  2.0 |
+    | 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  nan |  nan |  nan |  nan |
+
+.. _conv_nn_second_nearest_neighbour:
+
+second nearest neighbour
+________________________
 
 For the last timestep, where no input values are available at all, there is nothing we
 can do.  However, by using the second nearest location as an alternative, we at least
 achieve complete output for the second timestep:
 
 >>> maxnmbinputs(2)
->>> test()
-|       date |      inputs |                outputs | in1 | in2 | out1 | out2 | out3 | out4 |
----------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0     4.0 | 1.0  4.0  1.0      1.0 | 1.0 | 4.0 |  1.0 |  4.0 |  1.0 |  1.0 |
-| 2000-01-02 | 2.0     nan | 2.0  2.0  2.0      2.0 | 2.0 | nan |  2.0 |  2.0 |  2.0 |  2.0 |
-| 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  nan |  nan |  nan |  nan |
+
+.. integration-test::
+
+    >>> test()
+    |       date |      inputs |                outputs | in1 | in2 | out1 | out2 | out3 | out4 |
+    ---------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0     4.0 | 1.0  4.0  1.0      1.0 | 1.0 | 4.0 |  1.0 |  4.0 |  1.0 |  1.0 |
+    | 2000-01-02 | 2.0     nan | 2.0  2.0  2.0      2.0 | 2.0 | nan |  2.0 |  2.0 |  2.0 |  2.0 |
+    | 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  nan |  nan |  nan |  nan |
 """
 
 from hydpy.core import modeltools

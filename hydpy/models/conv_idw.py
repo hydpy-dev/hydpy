@@ -47,14 +47,9 @@ We set the power parameter |Power| to the standard value of two:
 
 >>> power(2.0)
 
-In the first example, we perform a complete inverse distance weighted interpolation,
-where we take all input location into account, as long as they provide input data:
-
->>> maxnmbinputs(3)
-
 |conv_idw| does not implement any state or log sequences and thus has no memory at all,
 making finalising the test setup quite easy.  We only need to define time series for
-both inlet nodes.  Note that we set some |numpy| |numpy.nan| values to demonstrate how
+all inlet nodes.  Note that we set some |numpy| |numpy.nan| values to demonstrate how
 |conv_idw| deals with missing values:
 
 >>> element.model = model
@@ -66,17 +61,34 @@ both inlet nodes.  Note that we set some |numpy| |numpy.nan| values to demonstra
 ...     in2.sequences.sim.series = 3.0, 2.0, nan
 ...     in3.sequences.sim.series = 4.0, nan, nan
 
-If available, outlet node `in1` receives its value from inlet node `in1` due to the
+.. _conv_idw_all_inputs:
+
+all inputs
+__________
+
+In the first example, we perform a complete inverse distance weighted interpolation,
+where we take all input locations into account, as long as they provide input data:
+
+>>> maxnmbinputs(3)
+
+If available, outlet node `out1` receives its value from inlet node `in1` due to the
 same location.  At the second time step, all outlet nodes receive the same data as only
 inlet node `in2` provides any data.  When no inlet node provides data, the outlet nodes
 receive |numpy.nan| values:
 
->>> test()
-|       date |           inputs |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 | out4 |
----------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0  3.0     4.0 | 1.0  3.0  1.75      2.4 | 1.0 | 3.0 | 4.0 |  1.0 |  3.0 | 1.75 |  2.4 |
-| 2000-01-02 | nan  2.0     nan | 2.0  2.0   2.0      2.0 | nan | 2.0 | nan |  2.0 |  2.0 |  2.0 |  2.0 |
-| 2000-01-03 | nan  nan     nan | nan  nan   nan      nan | nan | nan | nan |  nan |  nan |  nan |  nan |
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 | out4 |
+    ---------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0  3.0     4.0 | 1.0  3.0  1.75      2.4 | 1.0 | 3.0 | 4.0 |  1.0 |  3.0 | 1.75 |  2.4 |
+    | 2000-01-02 | nan  2.0     nan | 2.0  2.0   2.0      2.0 | nan | 2.0 | nan |  2.0 |  2.0 |  2.0 |  2.0 |
+    | 2000-01-03 | nan  nan     nan | nan  nan   nan      nan | nan | nan | nan |  nan |  nan |  nan |  nan |
+
+.. _conv_idw_restricted_inputs:
+
+restricted inputs
+_________________
 
 We can restrict the number of considered inlet nodes via parameter |MaxNmbInputs|,
 which can increase computation speed.  However, do not set to low values. Otherwise,
@@ -84,12 +96,15 @@ you might deteriorate accuracy severely or run into the risk of unhandled |numpy
 values:
 
 >>> maxnmbinputs(2)
->>> test()
-|       date |           inputs |                          outputs | in1 | in2 | in3 | out1 |     out2 |     out3 | out4 |
---------------------------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0  3.0     4.0 | 1.0  3.105263  1.545455      2.0 | 1.0 | 3.0 | 4.0 |  1.0 | 3.105263 | 1.545455 |  2.0 |
-| 2000-01-02 | nan  2.0     nan | nan       2.0       nan      2.0 | nan | 2.0 | nan |  nan |      2.0 |      nan |  2.0 |
-| 2000-01-03 | nan  nan     nan | nan       nan       nan      nan | nan | nan | nan |  nan |      nan |      nan |  nan |
+
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs |                          outputs | in1 | in2 | in3 | out1 |     out2 |     out3 | out4 |
+    --------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0  3.0     4.0 | 1.0  3.105263  1.545455      2.0 | 1.0 | 3.0 | 4.0 |  1.0 | 3.105263 | 1.545455 |  2.0 |
+    | 2000-01-02 | nan  2.0     nan | nan       2.0       nan      2.0 | nan | 2.0 | nan |  nan |      2.0 |      nan |  2.0 |
+    | 2000-01-03 | nan  nan     nan | nan       nan       nan      nan | nan | nan | nan |  nan |      nan |      nan |  nan |
 """
 
 from hydpy.core import modeltools

@@ -51,7 +51,7 @@ if __name__ == "__main__":
     assert_type(area + area, float)
     assert_type(area + zonearea, typingtools.VectorFloat)
     assert_type(area + vector, typingtools.VectorFloat)
-    assert_type(vector + area, typingtools.VectorFloat)
+    assert_type(vector + area, typingtools.NDArrayFloat)  # numpy's stubs decide
     assert_type(nmbzones + 1, int)
     assert_type(nmbzones + 1.0, float)
     assert_type(nmbzones / 2, float)

@@ -715,6 +715,21 @@ has been defined so far.
     >>> divmod(13.0, var)
     (2.0, 3.0)
 
+    Combining 0-dimensional variables with |numpy.ndarray| objects results in numerical
+    arrays:
+
+    >>> var.value = 2.0
+    >>> array = numpy.array([1.0, 3.0])
+    >>> var + array
+    array([3., 5.])
+    >>> array * var
+    array([2., 6.])
+    >>> numpy.exp(array - var)
+    array([0.36787944, 2.71828183])
+    >>> array += var
+    >>> array
+    array([3., 5.])
+
     Additionally, we support the following unary operations:
 
     >>> var.values = -5.0
@@ -2367,6 +2382,12 @@ not a submask of `Soil([ True,  True, False])`.
 
     def __round__(self, ndigits: int = 0) -> GeneralHook:
         return numpy.round(self.value, ndigits)
+
+    def __array__(  # pylint: disable=redefined-outer-name
+        self, dtype: numpy.dtype[Any] | None = None, copy: bool | None = None
+    ) -> NDArray[Any]:
+        """Convert the variable's value(s) into a |numpy.ndarray|."""
+        return numpy.array(self.value, dtype=dtype, copy=copy)
 
     def __hash__(self) -> int:
         return id(self)

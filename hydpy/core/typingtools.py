@@ -242,6 +242,40 @@ class FastAccessMatrix(Protocol[T_inv]):
     def __len__(self) -> int: ...
 
 
+class FastAccessTensor(Protocol[T_inv]):
+    """A 3-dimensional array handled by a `fastaccess` object or a Cython extension
+    class.
+
+    Indexing with a tuple of three integers returns a scalar of the array's value type,
+    and indexing with a single integer returns a |FastAccessMatrix|.
+    """
+
+    @overload
+    def __getitem__(self, index: tuple[int, int, int], /) -> T_inv: ...
+
+    @overload
+    def __getitem__(self, index: int, /) -> FastAccessMatrix[T_inv]: ...
+
+    def __getitem__(
+        self, index: tuple[int, int, int] | int, /
+    ) -> T_inv | FastAccessMatrix[T_inv]: ...
+
+    @overload
+    def __setitem__(self, index: tuple[int, int, int], value: T_inv, /) -> None: ...
+
+    @overload
+    def __setitem__(self, index: int, value: FastAccessMatrix[T_inv], /) -> None: ...
+
+    def __setitem__(
+        self,
+        index: tuple[int, int, int] | int,
+        value: T_inv | FastAccessMatrix[T_inv],
+        /,
+    ) -> None: ...
+
+    def __len__(self) -> int: ...
+
+
 class ConditionsGroup(Protocol[TM_co, TG_co]):
     """The values of all condition sequences of a specific group (e.g. `states`) of a
     specific model instance, accessible via the sequences' names.
@@ -472,6 +506,7 @@ __all__ = [
     "Collection3",
     "DeployMode",
     "FastAccessMatrix",
+    "FastAccessTensor",
     "FastAccessVector",
     "Final",
     "Float",

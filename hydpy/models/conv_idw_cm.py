@@ -57,26 +57,49 @@ first define identical test settings (see the documentation on application model
 ...     in2.sequences.sim.series = 3.0, 2.0, nan
 ...     in3.sequences.sim.series = 4.0, nan, nan
 
+.. _conv_idw_cm_equal_averages:
+
+equal averages
+______________
+
 If all input and output nodes have the same long-term average, all adjustments cancel
-out, and |conv_idw_cm| reproduces the results of the test examples documented for
-application model |conv_idw| precisely:
+out, and |conv_idw_cm| reproduces the results of the :ref:`conv_idw_all_inputs` example
+of application model |conv_idw| precisely:
 
 >>> inputaverages(in1=800.0, in2=800.0, in3=800.0)
 >>> outputaverages(out1=800.0, out2=800.0, out3=800.0, out4=800.0)
->>> test()
-|       date |           inputs |               currentinputaverages |                      currentoutputaverages |                   inputratios |                             outputratios |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 | out4 |
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0  3.0     4.0 | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 | 0.00125  0.00375        0.005 | 0.00125  0.00375  0.002188         0.003 | 1.0  3.0  1.75      2.4 | 1.0 | 3.0 | 4.0 |  1.0 |  3.0 | 1.75 |  2.4 |
-| 2000-01-02 | nan  2.0     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan   0.0025          nan |  0.0025   0.0025    0.0025        0.0025 | 2.0  2.0   2.0      2.0 | nan | 2.0 | nan |  2.0 |  2.0 |  2.0 |  2.0 |
-| 2000-01-03 | nan  nan     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan      nan          nan |     nan      nan       nan           nan | nan  nan   nan      nan | nan | nan | nan |  nan |  nan |  nan |  nan |
+
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs |               currentinputaverages |                      currentoutputaverages |                   inputratios |                             outputratios |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 | out4 |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0  3.0     4.0 | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 | 0.00125  0.00375        0.005 | 0.00125  0.00375  0.002188         0.003 | 1.0  3.0  1.75      2.4 | 1.0 | 3.0 | 4.0 |  1.0 |  3.0 | 1.75 |  2.4 |
+    | 2000-01-02 | nan  2.0     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan   0.0025          nan |  0.0025   0.0025    0.0025        0.0025 | 2.0  2.0   2.0      2.0 | nan | 2.0 | nan |  2.0 |  2.0 |  2.0 |  2.0 |
+    | 2000-01-03 | nan  nan     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan      nan          nan |     nan      nan       nan           nan | nan  nan   nan      nan | nan | nan | nan |  nan |  nan |  nan |  nan |
+
+.. _conv_idw_cm_restricted_inputs:
+
+restricted inputs
+_________________
+
+The same holds for the :ref:`conv_idw_restricted_inputs` example:
 
 >>> maxnmbinputs(2)
->>> test()
-|       date |           inputs |               currentinputaverages |                      currentoutputaverages |                   inputratios |                              outputratios |                          outputs | in1 | in2 | in3 | out1 |     out2 |     out3 | out4 |
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0  3.0     4.0 | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 | 0.00125  0.00375        0.005 | 0.00125  0.003882  0.001932        0.0025 | 1.0  3.105263  1.545455      2.0 | 1.0 | 3.0 | 4.0 |  1.0 | 3.105263 | 1.545455 |  2.0 |
-| 2000-01-02 | nan  2.0     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan   0.0025          nan |     nan    0.0025       nan        0.0025 | nan       2.0       nan      2.0 | nan | 2.0 | nan |  nan |      2.0 |      nan |  2.0 |
-| 2000-01-03 | nan  nan     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan      nan          nan |     nan       nan       nan           nan | nan       nan       nan      nan | nan | nan | nan |  nan |      nan |      nan |  nan |
+
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs |               currentinputaverages |                      currentoutputaverages |                   inputratios |                              outputratios |                          outputs | in1 | in2 | in3 | out1 |     out2 |     out3 | out4 |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0  3.0     4.0 | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 | 0.00125  0.00375        0.005 | 0.00125  0.003882  0.001932        0.0025 | 1.0  3.105263  1.545455      2.0 | 1.0 | 3.0 | 4.0 |  1.0 | 3.105263 | 1.545455 |  2.0 |
+    | 2000-01-02 | nan  2.0     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan   0.0025          nan |     nan    0.0025       nan        0.0025 | nan       2.0       nan      2.0 | nan | 2.0 | nan |  nan |      2.0 |      nan |  2.0 |
+    | 2000-01-03 | nan  nan     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan      nan          nan |     nan       nan       nan           nan | nan       nan       nan      nan | nan | nan | nan |  nan |      nan |      nan |  nan |
+
+.. _conv_idw_cm_different_averages:
+
+different averages
+__________________
 
 Now we define different averages.  Output node `out1` lies at the same location as input
 node `in1` and has the same average.  Hence, it receives the original value of `in1`, if
@@ -85,63 +108,105 @@ available.  The other output nodes' values reflect their averages:
 >>> maxnmbinputs(3)
 >>> inputaverages(in1=800.0, in2=1000.0, in3=600.0)
 >>> outputaverages(out1=800.0, out2=900.0, out3=700.0, out4=650.0)
->>> test()
-|       date |           inputs |                currentinputaverages |                      currentoutputaverages |                 inputratios |                              outputratios |                          outputs | in1 | in2 | in3 | out1 |    out2 |     out3 |     out4 |
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0  3.0     4.0 | 800.0  1000.0                 600.0 | 800.0  900.0  700.0                  650.0 | 0.00125  0.003     0.006667 | 0.00125  0.003279  0.002342      0.003033 | 1.0  2.95125  1.639714  1.971667 | 1.0 | 3.0 | 4.0 |  1.0 | 2.95125 | 1.639714 | 1.971667 |
-| 2000-01-02 | nan  2.0     nan | 800.0  1000.0                 600.0 | 800.0  900.0  700.0                  650.0 |     nan  0.002          nan |   0.002     0.002     0.002         0.002 | 1.6      1.8       1.4       1.3 | nan | 2.0 | nan |  1.6 |     1.8 |      1.4 |      1.3 |
-| 2000-01-03 | nan  nan     nan | 800.0  1000.0                 600.0 | 800.0  900.0  700.0                  650.0 |     nan    nan          nan |     nan       nan       nan           nan | nan      nan       nan       nan | nan | nan | nan |  nan |     nan |      nan |      nan |
 
-A different average for `out1` scales the value of `in1` accordingly:
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs |                currentinputaverages |                      currentoutputaverages |                 inputratios |                              outputratios |                          outputs | in1 | in2 | in3 | out1 |    out2 |     out3 |     out4 |
+    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0  3.0     4.0 | 800.0  1000.0                 600.0 | 800.0  900.0  700.0                  650.0 | 0.00125  0.003     0.006667 | 0.00125  0.003279  0.002342      0.003033 | 1.0  2.95125  1.639714  1.971667 | 1.0 | 3.0 | 4.0 |  1.0 | 2.95125 | 1.639714 | 1.971667 |
+    | 2000-01-02 | nan  2.0     nan | 800.0  1000.0                 600.0 | 800.0  900.0  700.0                  650.0 |     nan  0.002          nan |   0.002     0.002     0.002         0.002 | 1.6      1.8       1.4       1.3 | nan | 2.0 | nan |  1.6 |     1.8 |      1.4 |      1.3 |
+    | 2000-01-03 | nan  nan     nan | 800.0  1000.0                 600.0 | 800.0  900.0  700.0                  650.0 |     nan    nan          nan |     nan       nan       nan           nan | nan      nan       nan       nan | nan | nan | nan |  nan |     nan |      nan |      nan |
+
+.. _conv_idw_cm_shared_location:
+
+shared location
+_______________
+
+If an input and an output node share the same location, their averages can still differ.
+We show this for inlet node `in1` and outlet node `out1`:
 
 >>> outputaverages(out1=1200.0, out2=900.0, out3=700.0, out4=650.0)
->>> test()
-|       date |           inputs |                currentinputaverages |                       currentoutputaverages |                 inputratios |                              outputratios |                          outputs | in1 | in2 | in3 | out1 |    out2 |     out3 |     out4 |
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0  3.0     4.0 | 800.0  1000.0                 600.0 | 1200.0  900.0  700.0                  650.0 | 0.00125  0.003     0.006667 | 0.00125  0.003279  0.002342      0.003033 | 1.5  2.95125  1.639714  1.971667 | 1.0 | 3.0 | 4.0 |  1.5 | 2.95125 | 1.639714 | 1.971667 |
-| 2000-01-02 | nan  2.0     nan | 800.0  1000.0                 600.0 | 1200.0  900.0  700.0                  650.0 |     nan  0.002          nan |   0.002     0.002     0.002         0.002 | 2.4      1.8       1.4       1.3 | nan | 2.0 | nan |  2.4 |     1.8 |      1.4 |      1.3 |
-| 2000-01-03 | nan  nan     nan | 800.0  1000.0                 600.0 | 1200.0  900.0  700.0                  650.0 |     nan    nan          nan |     nan       nan       nan           nan | nan      nan       nan       nan | nan | nan | nan |  nan |     nan |      nan |      nan |
+
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs |                currentinputaverages |                       currentoutputaverages |                 inputratios |                              outputratios |                          outputs | in1 | in2 | in3 | out1 |    out2 |     out3 |     out4 |
+    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0  3.0     4.0 | 800.0  1000.0                 600.0 | 1200.0  900.0  700.0                  650.0 | 0.00125  0.003     0.006667 | 0.00125  0.003279  0.002342      0.003033 | 1.5  2.95125  1.639714  1.971667 | 1.0 | 3.0 | 4.0 |  1.5 | 2.95125 | 1.639714 | 1.971667 |
+    | 2000-01-02 | nan  2.0     nan | 800.0  1000.0                 600.0 | 1200.0  900.0  700.0                  650.0 |     nan  0.002          nan |   0.002     0.002     0.002         0.002 | 2.4      1.8       1.4       1.3 | nan | 2.0 | nan |  2.4 |     1.8 |      1.4 |      1.3 |
+    | 2000-01-03 | nan  nan     nan | 800.0  1000.0                 600.0 | 1200.0  900.0  700.0                  650.0 |     nan    nan          nan |     nan       nan       nan           nan | nan      nan       nan       nan | nan | nan | nan |  nan |     nan |      nan |      nan |
+
+.. _conv_idw_cm_other_units:
+
+other units
+___________
 
 Only the relationships between the input and output averages matter.  Hence, using
 other units (here, daily instead of annual values) changes the ratios but not the final
-results:
+results of the :ref:`conv_idw_cm_shared_location` example:
 
 >>> inputaverages(in1=800.0 / 366.0, in2=1000.0 / 366.0, in3=600.0 / 366.0)
 >>> outputaverages(out1=1200.0 / 366.0,
 ...                out2=900.0 / 366.0,
 ...                out3=700.0 / 366.0,
 ...                out4=650.0 / 366.0)
->>> test()
-|       date |           inputs |                    currentinputaverages |                               currentoutputaverages |                inputratios |                             outputratios |                          outputs | in1 | in2 | in3 | out1 |    out2 |     out3 |     out4 |
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0  3.0     4.0 | 2.185792  2.73224              1.639344 | 3.278689  2.459016  1.912568               1.775956 | 0.4575  1.098         2.44 | 0.4575  1.200175  0.857336        1.1102 | 1.5  2.95125  1.639714  1.971667 | 1.0 | 3.0 | 4.0 |  1.5 | 2.95125 | 1.639714 | 1.971667 |
-| 2000-01-02 | nan  2.0     nan | 2.185792  2.73224              1.639344 | 3.278689  2.459016  1.912568               1.775956 |    nan  0.732          nan |  0.732     0.732     0.732         0.732 | 2.4      1.8       1.4       1.3 | nan | 2.0 | nan |  2.4 |     1.8 |      1.4 |      1.3 |
-| 2000-01-03 | nan  nan     nan | 2.185792  2.73224              1.639344 | 3.278689  2.459016  1.912568               1.775956 |    nan    nan          nan |    nan       nan       nan           nan | nan      nan       nan       nan | nan | nan | nan |  nan |     nan |      nan |      nan |
+
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs |                    currentinputaverages |                               currentoutputaverages |                inputratios |                             outputratios |                          outputs | in1 | in2 | in3 | out1 |    out2 |     out3 |     out4 |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0  3.0     4.0 | 2.185792  2.73224              1.639344 | 3.278689  2.459016  1.912568               1.775956 | 0.4575  1.098         2.44 | 0.4575  1.200175  0.857336        1.1102 | 1.5  2.95125  1.639714  1.971667 | 1.0 | 3.0 | 4.0 |  1.5 | 2.95125 | 1.639714 | 1.971667 |
+    | 2000-01-02 | nan  2.0     nan | 2.185792  2.73224              1.639344 | 3.278689  2.459016  1.912568               1.775956 |    nan  0.732          nan |  0.732     0.732     0.732         0.732 | 2.4      1.8       1.4       1.3 | nan | 2.0 | nan |  2.4 |     1.8 |      1.4 |      1.3 |
+    | 2000-01-03 | nan  nan     nan | 2.185792  2.73224              1.639344 | 3.278689  2.459016  1.912568               1.775956 |    nan    nan          nan |    nan       nan       nan           nan | nan      nan       nan       nan | nan | nan | nan |  nan |     nan |      nan |      nan |
+
+.. _conv_idw_cm_zero_averages:
+
+zero averages
+_____________
 
 Stations with zero averages do not contribute to the interpolation (see station `in2`).
 Target points with zero averages receive zero values (see node `out2`):
 
 >>> inputaverages(in1=800.0, in2=0.0, in3=600.0)
 >>> outputaverages(out1=800.0, out2=0.0, out3=700.0, out4=650.0)
->>> test()
-|       date |           inputs |             currentinputaverages |                    currentoutputaverages |               inputratios |                              outputratios |                      outputs | in1 | in2 | in3 | out1 | out2 |     out3 |     out4 |
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0  3.0     4.0 | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 | 0.00125  nan     0.006667 | 0.00125  0.004861  0.002235      0.003056 | 1.0  0.0  1.564394  1.986111 | 1.0 | 3.0 | 4.0 |  1.0 |  0.0 | 1.564394 | 1.986111 |
-| 2000-01-02 | nan  2.0     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan       nan       nan           nan | nan  nan       nan       nan | nan | 2.0 | nan |  nan |  nan |      nan |      nan |
-| 2000-01-03 | nan  nan     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan       nan       nan           nan | nan  nan       nan       nan | nan | nan | nan |  nan |  nan |      nan |      nan |
+
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs |             currentinputaverages |                    currentoutputaverages |               inputratios |                              outputratios |                      outputs | in1 | in2 | in3 | out1 | out2 |     out3 |     out4 |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0  3.0     4.0 | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 | 0.00125  nan     0.006667 | 0.00125  0.004861  0.002235      0.003056 | 1.0  0.0  1.564394  1.986111 | 1.0 | 3.0 | 4.0 |  1.0 |  0.0 | 1.564394 | 1.986111 |
+    | 2000-01-02 | nan  2.0     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan       nan       nan           nan | nan  nan       nan       nan | nan | 2.0 | nan |  nan |  nan |      nan |      nan |
+    | 2000-01-03 | nan  nan     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan       nan       nan           nan | nan  nan       nan       nan | nan | nan | nan |  nan |  nan |      nan |      nan |
+
+.. _conv_idw_cm_nearest_station:
+
+nearest station
+_______________
 
 Stations with zero averages still count as one of the |MaxNmbInputs| nearest stations
-and are not replaced by more distant ones.  If we only consider the nearest station,
-`out2` receives |numpy.nan| values, despite its zero average, because station `in2` is
-its nearest station:
+and are not replaced by more distant ones, just like stations with missing input values
+(see the :ref:`conv_idw_restricted_inputs` example of |conv_idw|).  If we only consider
+the nearest station, `out2` receives |numpy.nan| values, despite its zero average,
+because station `in2` is its nearest station:
 
 >>> maxnmbinputs(1)
->>> test()
-|       date |           inputs |             currentinputaverages |                    currentoutputaverages |               inputratios |                        outputratios |                  outputs | in1 | in2 | in3 | out1 | out2 |  out3 |   out4 |
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0  3.0     4.0 | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 | 0.00125  nan     0.006667 | 0.00125  nan  0.00125       0.00125 | 1.0  nan  0.875   0.8125 | 1.0 | 3.0 | 4.0 |  1.0 |  nan | 0.875 | 0.8125 |
-| 2000-01-02 | nan  2.0     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan  nan      nan           nan | nan  nan    nan      nan | nan | 2.0 | nan |  nan |  nan |   nan |    nan |
-| 2000-01-03 | nan  nan     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan  nan      nan           nan | nan  nan    nan      nan | nan | nan | nan |  nan |  nan |   nan |    nan |
+
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs |             currentinputaverages |                    currentoutputaverages |               inputratios |                        outputratios |                  outputs | in1 | in2 | in3 | out1 | out2 |  out3 |   out4 |
+    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0  3.0     4.0 | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 | 0.00125  nan     0.006667 | 0.00125  nan  0.00125       0.00125 | 1.0  nan  0.875   0.8125 | 1.0 | 3.0 | 4.0 |  1.0 |  nan | 0.875 | 0.8125 |
+    | 2000-01-02 | nan  2.0     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan  nan      nan           nan | nan  nan    nan      nan | nan | 2.0 | nan |  nan |  nan |   nan |    nan |
+    | 2000-01-03 | nan  nan     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan  nan      nan           nan | nan  nan    nan      nan | nan | nan | nan |  nan |  nan |   nan |    nan |
+
+.. _conv_idw_cm_monthly_averages:
+
+monthly averages
+________________
 
 Finally, we demonstrate the application of monthly averages.  We shift the simulation
 period to the January-February transition and define averages for two nodes that differ
@@ -164,12 +229,15 @@ even though the input values stay the same:
 >>> in1.sequences.sim.series = 2.0, 2.0, 2.0
 >>> in2.sequences.sim.series = 3.0, 3.0, 3.0
 >>> in3.sequences.sim.series = 4.0, 4.0, 4.0
->>> test()
-|       date |           inputs |              currentinputaverages |                    currentoutputaverages |              inputratios |                     outputratios |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 |  out4 |
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| 2000-01-30 | 2.0  3.0     4.0 | 80.0  100.0                  60.0 | 80.0  90.0   70.0                   65.0 | 0.025  0.03     0.066667 | 0.025  0.03  0.025         0.025 | 2.0  2.7  1.75    1.625 | 2.0 | 3.0 | 4.0 |  2.0 |  2.7 | 1.75 | 1.625 |
-| 2000-01-31 | 2.0  3.0     4.0 | 80.0  100.0                  60.0 | 80.0  90.0   70.0                   65.0 | 0.025  0.03     0.066667 | 0.025  0.03  0.025         0.025 | 2.0  2.7  1.75    1.625 | 2.0 | 3.0 | 4.0 |  2.0 |  2.7 | 1.75 | 1.625 |
-| 2000-02-01 | 2.0  3.0     4.0 | 40.0  100.0                  60.0 | 80.0  90.0  140.0                   65.0 |  0.05  0.03     0.066667 |  0.05  0.03   0.05          0.05 | 4.0  2.7   7.0     3.25 | 2.0 | 3.0 | 4.0 |  4.0 |  2.7 |  7.0 |  3.25 |
+
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs |              currentinputaverages |                    currentoutputaverages |              inputratios |                     outputratios |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 |  out4 |
+    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-30 | 2.0  3.0     4.0 | 80.0  100.0                  60.0 | 80.0  90.0   70.0                   65.0 | 0.025  0.03     0.066667 | 0.025  0.03  0.025         0.025 | 2.0  2.7  1.75    1.625 | 2.0 | 3.0 | 4.0 |  2.0 |  2.7 | 1.75 | 1.625 |
+    | 2000-01-31 | 2.0  3.0     4.0 | 80.0  100.0                  60.0 | 80.0  90.0   70.0                   65.0 | 0.025  0.03     0.066667 | 0.025  0.03  0.025         0.025 | 2.0  2.7  1.75    1.625 | 2.0 | 3.0 | 4.0 |  2.0 |  2.7 | 1.75 | 1.625 |
+    | 2000-02-01 | 2.0  3.0     4.0 | 40.0  100.0                  60.0 | 80.0  90.0  140.0                   65.0 |  0.05  0.03     0.066667 |  0.05  0.03   0.05          0.05 | 4.0  2.7   7.0     3.25 | 2.0 | 3.0 | 4.0 |  4.0 |  2.7 |  7.0 |  3.25 |
 """
 
 from hydpy.core import modeltools

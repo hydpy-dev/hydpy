@@ -1623,31 +1623,35 @@ def update_integrationtests(
     ...     with open("temp.txt") as resultfile:
     ...         print(resultfile.read())  # doctest: +ELLIPSIS
     Number of replacements: 2
+    ...
+    .. integration-test::
     <BLANKLINE>
-    ... test()
-    |       date |      inputs |                outputs | in1 | in2 | out1 | out2 \
-| out3 | out4 |
-    ------------------------------------------------------------------------------\
----------------
-    | 2000-01-01 | nan     nan | nan  nan  nan      nan | 1.0 | 4.0 |  nan |  nan \
-|  nan |  nan |
-    | 2000-01-02 | nan     nan | nan  nan  nan      nan | 2.0 | nan |  nan |  nan \
-|  nan |  nan |
-    | 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  nan |  nan \
-|  nan |  nan |
+        ... test()
+        |       date |      inputs |                outputs | in1 | in2 | out1 | out2 |\
+ out3 | out4 |
+        -------------------------------------------------------------------------------\
+--------------
+        | 2000-01-01 | nan     nan | nan  nan  nan      nan | 1.0 | 4.0 |  nan |  nan |\
+  nan |  nan |
+        | 2000-01-02 | nan     nan | nan  nan  nan      nan | 2.0 | nan |  nan |  nan |\
+  nan |  nan |
+        | 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  nan |  nan |\
+  nan |  nan |
+    ...
+    .. integration-test::
     <BLANKLINE>
-    ... test()
-    |       date |      inputs |                outputs | in1 | in2 | out1 | out2 \
-| out3 | out4 |
-    ------------------------------------------------------------------------------\
----------------
-    | 2000-01-01 | nan     nan | nan  nan  nan      nan | 1.0 | 4.0 |  nan |  nan \
-|  nan |  nan |
-    | 2000-01-02 | nan     nan | nan  nan  nan      nan | 2.0 | nan |  nan |  nan \
-|  nan |  nan |
-    | 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  nan |  nan \
-|  nan |  nan |
-    <BLANKLINE>
+        ... test()
+        |       date |      inputs |                outputs | in1 | in2 | out1 | out2 |\
+ out3 | out4 |
+        -------------------------------------------------------------------------------\
+--------------
+        | 2000-01-01 | nan     nan | nan  nan  nan      nan | 1.0 | 4.0 |  nan |  nan |\
+  nan |  nan |
+        | 2000-01-02 | nan     nan | nan  nan  nan      nan | 2.0 | nan |  nan |  nan |\
+  nan |  nan |
+        | 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  nan |  nan |\
+  nan |  nan |
+    ...
     """
     module = importtools.load_modelmodule(applicationmodel)
     # We cannot use `module.__doc__`, which `autodoc_applicationmodel` might extend:

@@ -33,7 +33,6 @@ We start the following explanations with repeating the examples documented for
 application model |conv_idw|.  Hence, we first define identical test settings (please
 see the documentation on application model |conv_idw| for more information):
 
-
 >>> from hydpy import Element, Node, pub
 >>> pub.timegrids = "2000-01-01", "2000-01-04", "1d"
 
@@ -75,6 +74,11 @@ define the values of the independent variable for all input and output nodes:
 ...               out3=2.0,
 ...               out4=3.0)
 
+.. _conv_idw_ed_no_drift:
+
+no drift
+________
+
 In our example calculations, we use three input nodes.  However, we first set the
 number of data-points that must be available to estimate the linear model to four,
 which of course is impossible.  Hence, |conv_idw_ed| will always use the default
@@ -85,23 +89,40 @@ functionality so that |conv_idw_ed| works exactly like |conv_idw|:
 >>> defaultconstant(0.0)
 >>> defaultfactor(0.0)
 
-Under the given configuration, |conv_idw_ed| reproduces the results of the test
-examples documented for application model |conv_idw| precisely:
+Under the given configuration, |conv_idw_ed| reproduces the results of the
+:ref:`conv_idw_all_inputs` example of application model |conv_idw| precisely:
 
->>> test()
-|       date |           inputs | actualconstant | actualfactor |           inputpredictions |                outputpredictions |           inputresiduals |                 outputresiduals |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 | out4 |
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0  3.0     4.0 |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | 1.0  3.0             4.0 | 1.0  3.0  1.75              2.4 | 1.0  3.0  1.75      2.4 | 1.0 | 3.0 | 4.0 |  1.0 |  3.0 | 1.75 |  2.4 |
-| 2000-01-02 | nan  2.0     nan |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | nan  2.0             nan | 2.0  2.0   2.0              2.0 | 2.0  2.0   2.0      2.0 | nan | 2.0 | nan |  2.0 |  2.0 |  2.0 |  2.0 |
-| 2000-01-03 | nan  nan     nan |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | nan  nan             nan | nan  nan   nan              nan | nan  nan   nan      nan | nan | nan | nan |  nan |  nan |  nan |  nan |
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs | actualconstant | actualfactor |           inputpredictions |                outputpredictions |           inputresiduals |                 outputresiduals |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 | out4 |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0  3.0     4.0 |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | 1.0  3.0             4.0 | 1.0  3.0  1.75              2.4 | 1.0  3.0  1.75      2.4 | 1.0 | 3.0 | 4.0 |  1.0 |  3.0 | 1.75 |  2.4 |
+    | 2000-01-02 | nan  2.0     nan |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | nan  2.0             nan | 2.0  2.0   2.0              2.0 | 2.0  2.0   2.0      2.0 | nan | 2.0 | nan |  2.0 |  2.0 |  2.0 |  2.0 |
+    | 2000-01-03 | nan  nan     nan |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | nan  nan             nan | nan  nan   nan              nan | nan  nan   nan      nan | nan | nan | nan |  nan |  nan |  nan |  nan |
+
+.. _conv_idw_ed_restricted_inputs:
+
+restricted inputs
+_________________
+
+The same holds for the :ref:`conv_idw_restricted_inputs` example:
 
 >>> maxnmbinputs(2)
->>> test()
-|       date |           inputs | actualconstant | actualfactor |           inputpredictions |                outputpredictions |           inputresiduals |                          outputresiduals |                          outputs | in1 | in2 | in3 | out1 |     out2 |     out3 | out4 |
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0  3.0     4.0 |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | 1.0  3.0             4.0 | 1.0  3.105263  1.545455              2.0 | 1.0  3.105263  1.545455      2.0 | 1.0 | 3.0 | 4.0 |  1.0 | 3.105263 | 1.545455 |  2.0 |
-| 2000-01-02 | nan  2.0     nan |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | nan  2.0             nan | nan       2.0       nan              2.0 | nan       2.0       nan      2.0 | nan | 2.0 | nan |  nan |      2.0 |      nan |  2.0 |
-| 2000-01-03 | nan  nan     nan |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | nan  nan             nan | nan       nan       nan              nan | nan       nan       nan      nan | nan | nan | nan |  nan |      nan |      nan |  nan |
+
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs | actualconstant | actualfactor |           inputpredictions |                outputpredictions |           inputresiduals |                          outputresiduals |                          outputs | in1 | in2 | in3 | out1 |     out2 |     out3 | out4 |
+    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0  3.0     4.0 |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | 1.0  3.0             4.0 | 1.0  3.105263  1.545455              2.0 | 1.0  3.105263  1.545455      2.0 | 1.0 | 3.0 | 4.0 |  1.0 | 3.105263 | 1.545455 |  2.0 |
+    | 2000-01-02 | nan  2.0     nan |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | nan  2.0             nan | nan       2.0       nan              2.0 | nan       2.0       nan      2.0 | nan | 2.0 | nan |  nan |      2.0 |      nan |  2.0 |
+    | 2000-01-03 | nan  nan     nan |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | nan  nan             nan | nan       nan       nan              nan | nan       nan       nan      nan | nan | nan | nan |  nan |      nan |      nan |  nan |
+
+.. _conv_idw_ed_default_drift:
+
+default drift
+_____________
 
 Now we enable the "external drift" functionality by providing non-zero default values.
 Hence, |conv_idw_ed| employs the same linear model in all simulation time steps:
@@ -109,28 +130,44 @@ Hence, |conv_idw_ed| employs the same linear model in all simulation time steps:
 >>> maxnmbinputs(3)
 >>> defaultfactor(1.0)
 >>> defaultconstant(2.0)
->>> test()
-|       date |           inputs | actualconstant | actualfactor |           inputpredictions |                outputpredictions |             inputresiduals |                       outputresiduals |                    outputs | in1 | in2 | in3 | out1 | out2 |    out3 | out4 |
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0  3.0     4.0 |            2.0 |          1.0 | 2.0  4.0               6.0 | 2.0  3.0  4.0                5.0 | -1.0  -1.0            -2.0 | -1.0  -1.1  -1.15625             -1.2 | 1.0  1.9  2.84375      3.8 | 1.0 | 3.0 | 4.0 |  1.0 |  1.9 | 2.84375 |  3.8 |
-| 2000-01-02 | nan  2.0     nan |            2.0 |          1.0 | 2.0  4.0               6.0 | 2.0  3.0  4.0                5.0 |  nan  -2.0             nan | -2.0  -2.0      -2.0             -2.0 | 0.0  1.0      2.0      3.0 | nan | 2.0 | nan |  0.0 |  1.0 |     2.0 |  3.0 |
-| 2000-01-03 | nan  nan     nan |            2.0 |          1.0 | 2.0  4.0               6.0 | 2.0  3.0  4.0                5.0 |  nan   nan             nan |  nan   nan       nan              nan | nan  nan      nan      nan | nan | nan | nan |  nan |  nan |     nan |  nan |
 
-If we set the required number of data-points to three (two would also be fine),
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs | actualconstant | actualfactor |           inputpredictions |                outputpredictions |             inputresiduals |                       outputresiduals |                    outputs | in1 | in2 | in3 | out1 | out2 |    out3 | out4 |
+    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0  3.0     4.0 |            2.0 |          1.0 | 2.0  4.0               6.0 | 2.0  3.0  4.0                5.0 | -1.0  -1.0            -2.0 | -1.0  -1.1  -1.15625             -1.2 | 1.0  1.9  2.84375      3.8 | 1.0 | 3.0 | 4.0 |  1.0 |  1.9 | 2.84375 |  3.8 |
+    | 2000-01-02 | nan  2.0     nan |            2.0 |          1.0 | 2.0  4.0               6.0 | 2.0  3.0  4.0                5.0 |  nan  -2.0             nan | -2.0  -2.0      -2.0             -2.0 | 0.0  1.0      2.0      3.0 | nan | 2.0 | nan |  0.0 |  1.0 |     2.0 |  3.0 |
+    | 2000-01-03 | nan  nan     nan |            2.0 |          1.0 | 2.0  4.0               6.0 | 2.0  3.0  4.0                5.0 |  nan   nan             nan |  nan   nan       nan              nan | nan  nan      nan      nan | nan | nan | nan |  nan |  nan |     nan |  nan |
+
+.. _conv_idw_ed_estimated_drift:
+
+estimated drift
+_______________
+
+If we set the required number of data-points to two (three would also be fine),
 |conv_idw_ed| estimates the parameters of the linear model (|ActualFactor| and
 |ActualConstant|) in the first time step on its own, and falls back to the default
 values in the remaining time steps:
 
 >>> minnmbinputs(2)
->>> test()
-|       date |           inputs | actualconstant | actualfactor |                     inputpredictions |                               outputpredictions |                      inputresiduals |                                 outputresiduals |                       outputs | in1 | in2 | in3 | out1 |  out2 |     out3 | out4 |
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 1.0  3.0     4.0 |       1.166667 |         0.75 | 1.166667  2.666667          4.166667 | 1.166667  1.916667  2.666667           3.416667 | -0.166667  0.333333       -0.166667 | -0.166667  0.258333  -0.096354         0.033333 | 1.0  2.175  2.570312     3.45 | 1.0 | 3.0 | 4.0 |  1.0 | 2.175 | 2.570312 | 3.45 |
-| 2000-01-02 | nan  2.0     nan |            2.0 |          1.0 |      2.0       4.0               6.0 |      2.0       3.0       4.0                5.0 |       nan      -2.0             nan |      -2.0      -2.0       -2.0             -2.0 | 0.0    1.0       2.0      3.0 | nan | 2.0 | nan |  0.0 |   1.0 |      2.0 |  3.0 |
-| 2000-01-03 | nan  nan     nan |            2.0 |          1.0 |      2.0       4.0               6.0 |      2.0       3.0       4.0                5.0 |       nan       nan             nan |       nan       nan        nan              nan | nan    nan       nan      nan | nan | nan | nan |  nan |   nan |      nan |  nan |
+
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs | actualconstant | actualfactor |                     inputpredictions |                               outputpredictions |                      inputresiduals |                                 outputresiduals |                       outputs | in1 | in2 | in3 | out1 |  out2 |     out3 | out4 |
+    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 1.0  3.0     4.0 |       1.166667 |         0.75 | 1.166667  2.666667          4.166667 | 1.166667  1.916667  2.666667           3.416667 | -0.166667  0.333333       -0.166667 | -0.166667  0.258333  -0.096354         0.033333 | 1.0  2.175  2.570312     3.45 | 1.0 | 3.0 | 4.0 |  1.0 | 2.175 | 2.570312 | 3.45 |
+    | 2000-01-02 | nan  2.0     nan |            2.0 |          1.0 |      2.0       4.0               6.0 |      2.0       3.0       4.0                5.0 |       nan      -2.0             nan |      -2.0      -2.0       -2.0             -2.0 | 0.0    1.0       2.0      3.0 | nan | 2.0 | nan |  0.0 |   1.0 |      2.0 |  3.0 |
+    | 2000-01-03 | nan  nan     nan |            2.0 |          1.0 |      2.0       4.0               6.0 |      2.0       3.0       4.0                5.0 |       nan       nan             nan |       nan       nan        nan              nan | nan    nan       nan      nan | nan | nan | nan |  nan |   nan |      nan |  nan |
+
+.. _conv_idw_ed_edge_cases:
+
+edge cases
+__________
 
 The final example shows that everything works as expected for the edge cases of perfect
-and missing correlation. In the first time step, there is a perfect (negative)
+and missing correlation.  In the first time step, there is a perfect (negative)
 correlation at the input nodes.  Hence, all residuals (calculated for the input nodes
 and interpolated for the output nodes) are zero.  In the second time step, there is no
 correlation.  Hence, all values predicted by the linear model are the same.  The third
@@ -140,12 +177,15 @@ missing variability in the input values well:
 >>> in1.sequences.sim.series = 4.0, 0.0, 0.0
 >>> in2.sequences.sim.series = 3.0, 1.0, 0.0
 >>> in3.sequences.sim.series = 2.0, 0.0, 0.0
->>> test()
-|       date |           inputs | actualconstant | actualfactor |                     inputpredictions |                               outputpredictions |                      inputresiduals |                                 outputresiduals |                      outputs | in1 | in2 | in3 | out1 | out2 |     out3 | out4 |
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| 2000-01-01 | 4.0  3.0     2.0 |            4.0 |         -0.5 |      4.0       3.0               2.0 |      4.0       3.5       3.0                2.5 |       0.0       0.0             0.0 |       0.0       0.0        0.0              0.0 | 4.0   3.5       3.0      2.5 | 4.0 | 3.0 | 2.0 |  4.0 |  3.5 |      3.0 |  2.5 |
-| 2000-01-02 | 0.0  1.0     0.0 |       0.333333 |          0.0 | 0.333333  0.333333          0.333333 | 0.333333  0.333333  0.333333           0.333333 | -0.333333  0.666667       -0.333333 | -0.333333  0.516667  -0.192708         0.066667 | 0.0  0.85  0.140625      0.4 | 0.0 | 1.0 | 0.0 |  0.0 | 0.85 | 0.140625 |  0.4 |
-| 2000-01-03 | 0.0  0.0     0.0 |            0.0 |          0.0 |      0.0       0.0               0.0 |      0.0       0.0       0.0                0.0 |       0.0       0.0             0.0 |       0.0       0.0        0.0              0.0 | 0.0   0.0       0.0      0.0 | 0.0 | 0.0 | 0.0 |  0.0 |  0.0 |      0.0 |  0.0 |
+
+.. integration-test::
+
+    >>> test()
+    |       date |           inputs | actualconstant | actualfactor |                     inputpredictions |                               outputpredictions |                      inputresiduals |                                 outputresiduals |                      outputs | in1 | in2 | in3 | out1 | out2 |     out3 | out4 |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 2000-01-01 | 4.0  3.0     2.0 |            4.0 |         -0.5 |      4.0       3.0               2.0 |      4.0       3.5       3.0                2.5 |       0.0       0.0             0.0 |       0.0       0.0        0.0              0.0 | 4.0   3.5       3.0      2.5 | 4.0 | 3.0 | 2.0 |  4.0 |  3.5 |      3.0 |  2.5 |
+    | 2000-01-02 | 0.0  1.0     0.0 |       0.333333 |          0.0 | 0.333333  0.333333          0.333333 | 0.333333  0.333333  0.333333           0.333333 | -0.333333  0.666667       -0.333333 | -0.333333  0.516667  -0.192708         0.066667 | 0.0  0.85  0.140625      0.4 | 0.0 | 1.0 | 0.0 |  0.0 | 0.85 | 0.140625 |  0.4 |
+    | 2000-01-03 | 0.0  0.0     0.0 |            0.0 |          0.0 |      0.0       0.0               0.0 |      0.0       0.0       0.0                0.0 |       0.0       0.0             0.0 |       0.0       0.0        0.0              0.0 | 0.0   0.0       0.0      0.0 | 0.0 | 0.0 | 0.0 |  0.0 |  0.0 |      0.0 |  0.0 |
 """
 
 from hydpy.core import modeltools

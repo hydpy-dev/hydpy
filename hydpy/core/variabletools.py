@@ -11,6 +11,7 @@ import contextlib
 import copy
 import functools
 import math
+import operator
 import warnings
 
 import numpy
@@ -729,6 +730,35 @@ has been defined so far.
     >>> array += var
     >>> array
     array([3., 5.])
+
+    In all binary operations, variables behave like their values.  Hence, combining them
+    with |numpy| scalars results in |numpy| scalars, regardless of the order:
+
+    >>> var + numpy.float64(1.0)
+    np.float64(3.0)
+    >>> numpy.float64(1.0) + var
+    np.float64(3.0)
+    >>> var.value + numpy.float64(1.0)
+    np.float64(3.0)
+
+    >>> Var.TYPE = int
+    >>> var.value = 2
+    >>> var + numpy.int64(1)
+    np.int64(3)
+    >>> var / numpy.int64(4)
+    np.float64(0.5)
+    >>> var + 1.5
+    3.5
+    >>> Var.TYPE = float
+    >>> var.value = 2.0
+
+    Unsupported operands result in errors like the following:
+
+    >>> var + "wrong"
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to add variable `var` and `str` object `wrong`, the \
+following error occurred: unsupported operand type(s) for +: 'float' and 'str'
 
     Additionally, we support the following unary operations:
 
@@ -2127,13 +2157,18 @@ not a submask of `Soil([ True,  True, False])`.
             )
         return bool(value in self.value)
 
-    def _do_math(self, other: object, methodname: str, description: str) -> Any:
+    def _do_math(
+        self,
+        other: object,
+        function: Callable[[Any, Any], Any],
+        description: str,
+        reflected: bool = False,
+    ) -> Any:
         try:
             value = other.value if isinstance(other, Variable) else other
-            result = getattr(self.value, methodname)(value)
-            if (result is NotImplemented) and (not self.NDIM) and (self.TYPE is int):
-                result = getattr(float(self.value), methodname)(value)
-            return result
+            if reflected:
+                return function(value, self.value)
+            return function(self.value, value)
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to {description} variable "
@@ -2142,63 +2177,63 @@ not a submask of `Soil([ True,  True, False])`.
             )
 
     def __add__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__add__", "add")
+        return self._do_math(other, operator.add, "add")
 
     def __radd__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__radd__", "add")
+        return self._do_math(other, operator.add, "add", reflected=True)
 
     def __iadd__(self, other: GeneralHook) -> Self:
-        self.value = self._do_math(other, "__add__", "add")
+        self.value = self._do_math(other, operator.add, "add")
         return self
 
     def __sub__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__sub__", "subtract")
+        return self._do_math(other, operator.sub, "subtract")
 
     def __rsub__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__rsub__", "subtract")
+        return self._do_math(other, operator.sub, "subtract", reflected=True)
 
     def __isub__(self, other: GeneralHook) -> Self:
-        self.value = self._do_math(other, "__sub__", "subtract")
+        self.value = self._do_math(other, operator.sub, "subtract")
         return self
 
     def __mul__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__mul__", "multiply")
+        return self._do_math(other, operator.mul, "multiply")
 
     def __rmul__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__rmul__", "multiply")
+        return self._do_math(other, operator.mul, "multiply", reflected=True)
 
     def __imul__(self, other: GeneralHook) -> Self:
-        self.value = self._do_math(other, "__mul__", "multiply")
+        self.value = self._do_math(other, operator.mul, "multiply")
         return self
 
     def __truediv__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__truediv__", "divide")
+        return self._do_math(other, operator.truediv, "divide")
 
     def __rtruediv__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__rtruediv__", "divide")
+        return self._do_math(other, operator.truediv, "divide", reflected=True)
 
     def __itruediv__(self, other: GeneralHook) -> Self:
-        self.value = self._do_math(other, "__truediv__", "divide")
+        self.value = self._do_math(other, operator.truediv, "divide")
         return self
 
     def __floordiv__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__floordiv__", "floor divide")
+        return self._do_math(other, operator.floordiv, "floor divide")
 
     def __rfloordiv__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__rfloordiv__", "floor divide")
+        return self._do_math(other, operator.floordiv, "floor divide", reflected=True)
 
     def __ifloordiv__(self, other: GeneralHook) -> Self:
-        self.value = self._do_math(other, "__floordiv__", "floor divide")
+        self.value = self._do_math(other, operator.floordiv, "floor divide")
         return self
 
     def __mod__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__mod__", "mod divide")
+        return self._do_math(other, operator.mod, "mod divide")
 
     def __rmod__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__rmod__", "mod divide")
+        return self._do_math(other, operator.mod, "mod divide", reflected=True)
 
     def __imod__(self, other: GeneralHook) -> Self:
-        self.value = self._do_math(other, "__mod__", "mod divide")
+        self.value = self._do_math(other, operator.mod, "mod divide")
         return self
 
     def __divmod__(self, other: GeneralHook) -> GeneralHook:
@@ -2208,13 +2243,15 @@ not a submask of `Soil([ True,  True, False])`.
         return self.__rfloordiv__(other), self.__rmod__(other)
 
     def __pow__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__pow__", "exponentiate")
+        return self._do_math(other, operator.pow, "exponentiate")
 
     def __rpow__(self, other: GeneralHook) -> GeneralHook:
-        return self._do_math(other, "__rpow__", "exponentiate (reflectively)")
+        return self._do_math(
+            other, operator.pow, "exponentiate (reflectively)", reflected=True
+        )
 
     def __ipow__(self, other: GeneralHook) -> Self:
-        self.value = self._do_math(other, "__pow__", "exponentiate")
+        self.value = self._do_math(other, operator.pow, "exponentiate")
         return self
 
     def __pos__(self) -> GeneralHook:

@@ -13,6 +13,11 @@ if __name__ == "__main__":
     list_2d: list[list[float]]
     list_3d: list[list[list[float]]]
     list_4d: list[list[list[list[float]]]]
+    array_0d: numpy.ndarray[tuple[()], numpy.dtype[numpy.float64]]
+    array_1d: typingtools.VectorFloat
+    array_2d: typingtools.MatrixFloat
+    array_3d: typingtools.TensorFloat
+    array_4d: numpy.ndarray[tuple[int, int, int, int], numpy.dtype[numpy.float64]]
 
     # NDIM = 0, TYPE = float
     perc: hland_fluxes.Perc
@@ -21,9 +26,9 @@ if __name__ == "__main__":
     perc.series = 1
     perc.series = list_1d
     perc.series = list_2d  # type: ignore[assignment]
-    perc.series = numpy.ones((), dtype=numpy.float64)  # type: ignore[assignment]
-    perc.series = numpy.ones((1,), dtype=numpy.float64)
-    perc.series = numpy.ones((1, 1), dtype=numpy.float64)  # type: ignore[assignment]
+    perc.series = array_0d  # type: ignore[assignment]
+    perc.series = array_1d
+    perc.series = array_2d  # type: ignore[assignment]
     assert_type(perc.simseries, typingtools.VectorFloat)
     assert_type(perc.evalseries, typingtools.VectorFloat)
 
@@ -35,9 +40,9 @@ if __name__ == "__main__":
     pc.series = list_1d  # type: ignore[assignment]
     pc.series = list_2d
     pc.series = list_3d  # type: ignore[assignment]
-    pc.series = numpy.ones((1,), dtype=numpy.float64)  # type: ignore[assignment]
-    pc.series = numpy.ones((1, 1), dtype=numpy.float64)
-    pc.series = numpy.ones((1, 1, 1), dtype=numpy.float64)  # type: ignore[assignment]
+    pc.series = array_1d  # type: ignore[assignment]
+    pc.series = array_2d
+    pc.series = array_3d  # type: ignore[assignment]
     assert_type(pc.simseries, typingtools.MatrixFloat)
     assert_type(pc.evalseries, typingtools.MatrixFloat)
 
@@ -49,10 +54,8 @@ if __name__ == "__main__":
     melt.series = list_2d  # type: ignore[assignment]
     melt.series = list_3d
     melt.series = list_4d  # type: ignore[assignment]
-    melt.series = numpy.ones((1, 1), dtype=numpy.float64)  # type: ignore[assignment]
-    melt.series = numpy.ones((1, 1, 1), dtype=numpy.float64)
-    melt.series = numpy.ones(  # type: ignore[assignment]
-        (1, 1, 1, 1), dtype=numpy.float64
-    )
+    melt.series = array_2d  # type: ignore[assignment]
+    melt.series = array_3d
+    melt.series = array_4d  # type: ignore[assignment]
     assert_type(melt.simseries, typingtools.TensorFloat)
     assert_type(melt.evalseries, typingtools.TensorFloat)

@@ -96,6 +96,17 @@ NDArrayFloat: TypeAlias = NDArray[numpy.float64]
 NDArrayInt: TypeAlias = NDArray[numpy.int64]
 NDArrayBool: TypeAlias = NDArray[numpy.bool_]
 
+ScalarInputFloat: TypeAlias = Union[
+    float, numpy.floating[Any], numpy.integer[Any], numpy.bool_
+]
+ScalarInputInt: TypeAlias = Union[int, numpy.integer[Any], numpy.bool_]
+ScalarInputBool: TypeAlias = Union[bool, numpy.bool_]
+_DTypeInputFloat: TypeAlias = numpy.dtype[
+    numpy.floating[Any] | numpy.integer[Any] | numpy.bool_
+]
+_DTypeInputInt: TypeAlias = numpy.dtype[numpy.integer[Any] | numpy.bool_]
+_DTypeInputBool: TypeAlias = numpy.dtype[numpy.bool_]
+
 Vector: TypeAlias = NDVector[T_inv]
 VectorObject: TypeAlias = NDVector[numpy.dtype[numpy.generic]]
 VectorFloat: TypeAlias = NDVector[numpy.dtype[numpy.float64]]
@@ -103,13 +114,19 @@ VectorInt: TypeAlias = NDVector[numpy.dtype[numpy.int64]]
 VectorBool: TypeAlias = NDVector[numpy.dtype[numpy.bool_]]
 VectorInput: TypeAlias = Union[Sequence[T_inv], Vector[T_inv]]
 VectorInputObject: TypeAlias = Union[Sequence[object], VectorObject]
-VectorInputFloat: TypeAlias = Union[Sequence[float], VectorFloat]
-VectorInputInt: TypeAlias = Union[Sequence[int], VectorInt]
-VectorInputBool: TypeAlias = Union[Sequence[bool], VectorBool]
+VectorInputFloat: TypeAlias = Union[
+    Sequence[ScalarInputFloat], numpy.ndarray[tuple[int], _DTypeInputFloat]
+]
+VectorInputInt: TypeAlias = Union[
+    Sequence[ScalarInputInt], numpy.ndarray[tuple[int], _DTypeInputInt]
+]
+VectorInputBool: TypeAlias = Union[
+    Sequence[ScalarInputBool], numpy.ndarray[tuple[int], _DTypeInputBool]
+]
 VectorInputCompleteObject: TypeAlias = Union[object, VectorInputObject]
-VectorInputCompleteFloat: TypeAlias = Union[float, VectorInputFloat]
-VectorInputCompleteInt: TypeAlias = Union[int, VectorInputInt]
-VectorInputCompleteBool: TypeAlias = Union[bool, VectorInputBool]
+VectorInputCompleteFloat: TypeAlias = Union[ScalarInputFloat, VectorInputFloat]
+VectorInputCompleteInt: TypeAlias = Union[ScalarInputInt, VectorInputInt]
+VectorInputCompleteBool: TypeAlias = Union[ScalarInputBool, VectorInputBool]
 
 Matrix: TypeAlias = NDMatrix[T_inv]
 MatrixObject: TypeAlias = NDMatrix[numpy.dtype[numpy.generic]]
@@ -119,13 +136,19 @@ MatrixBool: TypeAlias = NDMatrix[numpy.dtype[numpy.bool_]]
 MatrixBytes: TypeAlias = NDMatrix[numpy.dtype[numpy.bytes_]]
 MatrixInput: TypeAlias = Union[Sequence[Sequence[T_inv]], Matrix[T_inv]]
 MatrixInputObject: TypeAlias = Union[Sequence[VectorInputObject], MatrixObject]
-MatrixInputFloat: TypeAlias = Union[Sequence[VectorInputFloat], MatrixFloat]
-MatrixInputInt: TypeAlias = Union[Sequence[VectorInputInt], MatrixInt]
-MatrixInputBool: TypeAlias = Union[Sequence[VectorInputBool], MatrixBool]
+MatrixInputFloat: TypeAlias = Union[
+    Sequence[VectorInputFloat], numpy.ndarray[tuple[int, int], _DTypeInputFloat]
+]
+MatrixInputInt: TypeAlias = Union[
+    Sequence[VectorInputInt], numpy.ndarray[tuple[int, int], _DTypeInputInt]
+]
+MatrixInputBool: TypeAlias = Union[
+    Sequence[VectorInputBool], numpy.ndarray[tuple[int, int], _DTypeInputBool]
+]
 MatrixInputCompleteObject: TypeAlias = Union[object, MatrixInputObject]
-MatrixInputCompleteFloat: TypeAlias = Union[float, MatrixInputFloat]
-MatrixInputCompleteInt: TypeAlias = Union[int, MatrixInputInt]
-MatrixInputCompleteBool: TypeAlias = Union[bool, MatrixInputBool]
+MatrixInputCompleteFloat: TypeAlias = Union[ScalarInputFloat, MatrixInputFloat]
+MatrixInputCompleteInt: TypeAlias = Union[ScalarInputInt, MatrixInputInt]
+MatrixInputCompleteBool: TypeAlias = Union[ScalarInputBool, MatrixInputBool]
 
 Tensor: TypeAlias = NDTensor[T_inv]
 TensorObject: TypeAlias = NDTensor[numpy.dtype[numpy.generic]]
@@ -134,16 +157,22 @@ TensorInt: TypeAlias = NDTensor[numpy.dtype[numpy.int64]]
 TensorBool: TypeAlias = NDTensor[numpy.dtype[numpy.bool_]]
 TensorInput: TypeAlias = Union[Sequence[Sequence[Sequence[T_inv]]], Tensor[T_inv]]
 TensorInputObject: TypeAlias = Union[Sequence[MatrixInputObject], TensorObject]
-TensorInputFloat: TypeAlias = Union[Sequence[MatrixInputFloat], TensorFloat]
-TensorInputInt: TypeAlias = Union[Sequence[MatrixInputInt], TensorInt]
-TensorInputBool: TypeAlias = Union[Sequence[MatrixInputBool], TensorBool]
+TensorInputFloat: TypeAlias = Union[
+    Sequence[MatrixInputFloat], numpy.ndarray[tuple[int, int, int], _DTypeInputFloat]
+]
+TensorInputInt: TypeAlias = Union[
+    Sequence[MatrixInputInt], numpy.ndarray[tuple[int, int, int], _DTypeInputInt]
+]
+TensorInputBool: TypeAlias = Union[
+    Sequence[MatrixInputBool], numpy.ndarray[tuple[int, int, int], _DTypeInputBool]
+]
 TensorInputCompleteObject: TypeAlias = Union[object, TensorInputObject]
-TensorInputCompleteFloat: TypeAlias = Union[float, TensorInputFloat]
-TensorInputCompleteInt: TypeAlias = Union[int, TensorInputInt]
-TensorInputCompleteBool: TypeAlias = Union[bool, TensorInputBool]
+TensorInputCompleteFloat: TypeAlias = Union[ScalarInputFloat, TensorInputFloat]
+TensorInputCompleteInt: TypeAlias = Union[ScalarInputInt, TensorInputInt]
+TensorInputCompleteBool: TypeAlias = Union[ScalarInputBool, TensorInputBool]
 
 NestedFloat: TypeAlias = Union[
-    float, NDArrayFloat, Mapping[str, "NestedFloat"], Sequence["NestedFloat"]
+    ScalarInputFloat, NDArrayFloat, Mapping[str, "NestedFloat"], Sequence["NestedFloat"]
 ]
 
 ArrayFloat = TypeVar("ArrayFloat", float, VectorFloat, MatrixFloat, TensorFloat)
@@ -308,31 +337,10 @@ TypeNUMERIC: TypeAlias = bool
 GeneralHook: TypeAlias = Any
 ShapeHookGet: TypeAlias = tuple[int, ...]
 ShapeHookSet: TypeAlias = int | tuple[int, ...]
-TrimHook: TypeAlias = Union[
-    float,
-    VectorInputFloat,
-    VectorInputInt,
-    VectorInputBool,
-    MatrixInputFloat,
-    MatrixInputInt,
-    MatrixInputBool,
-    TensorInputFloat,
-    TensorInputInt,
-    TensorInputBool,
-    None,
-]
 CallHook: TypeAlias = Union[
-    float,
-    VectorInputFloat,
-    VectorInputInt,
-    VectorInputBool,
-    MatrixInputFloat,
-    MatrixInputInt,
-    MatrixInputBool,
-    TensorInputFloat,
-    TensorInputInt,
-    TensorInputBool,
+    ScalarInputFloat, VectorInputFloat, MatrixInputFloat, TensorInputFloat
 ]
+TrimHook: TypeAlias = Union[CallHook, None]
 ArrayHook: TypeAlias = NDArray[Any]
 
 
@@ -513,6 +521,9 @@ __all__ = [
     "P_",
     "ParamSpec",
     "Protocol",
+    "ScalarInputBool",
+    "ScalarInputFloat",
+    "ScalarInputInt",
     "ShapeHookGet",
     "ShapeHookSet",
     "Self",

@@ -687,30 +687,30 @@ vectors `x` (2) and `y` (3) must be identical.
                     raise TypeError(_make_error_message(method))
                 name = _get_splinename(method)
                 spline = method
-            xs = numpy.asarray(xs, dtype=config.NP_FLOAT)
-            ys = numpy.asarray(ys, dtype=config.NP_FLOAT)
-            if len(xs) != len(ys):
+            xs_ = numpy.asarray(xs, dtype=config.NP_FLOAT)
+            ys_ = numpy.asarray(ys, dtype=config.NP_FLOAT)
+            if len(xs_) != len(ys_):
                 raise ValueError(
-                    f"The lengths of vectors `x` ({len(xs)}) and `y` ({len(ys)}) "
+                    f"The lengths of vectors `x` ({len(xs_)}) and `y` ({len(ys_)}) "
                     f"must be identical."
                 )
-            if len(xs) == 0:
+            if len(xs_) == 0:
                 raise ValueError("Vectors `x` and `y` must not be empty.")
-            if len(xs) == 1:
+            if len(xs_) == 1:
                 nmb_ps = 1
                 nmb_cs = numpy.full((nmb_ps,), 1, dtype=config.NP_INT)
-                x0s = xs.copy()
-                cs = ys.copy().reshape((1, 1))
-            elif (len(xs) == 2) or (spline is None):
-                nmb_ps = len(xs) - 1
+                x0s = xs_.copy()
+                cs = ys_.copy().reshape((1, 1))
+            elif (len(xs_) == 2) or (spline is None):
+                nmb_ps = len(xs_) - 1
                 nmb_cs = numpy.full((nmb_ps,), 2, dtype=config.NP_INT)
-                x0s = xs[:-1].copy()
+                x0s = xs_[:-1].copy()
                 cs = numpy.zeros((nmb_ps, numpy.max(nmb_cs)), dtype=config.NP_FLOAT)
-                cs[:, 0] = ys[:-1]
-                cs[:, 1] = numpy.diff(ys) / numpy.diff(xs)
+                cs[:, 0] = ys_[:-1]
+                cs[:, 1] = numpy.diff(ys_) / numpy.diff(xs_)
             else:
-                interpolator = spline(x=xs, y=ys)
-                x0s = xs[:-1].copy()
+                interpolator = spline(x=xs_, y=ys_)
+                x0s = xs_[:-1].copy()
                 cs = interpolator.c[::-1].T
                 nmb_ps = len(x0s)
                 nmb_cs = numpy.asarray(
@@ -722,7 +722,7 @@ vectors `x` (2) and `y` (3) must be identical.
                 self._original_data = None
             else:
                 self._original_data = _OriginalData(
-                    xs=xs.copy(), ys=ys.copy(), method=name
+                    xs=xs_.copy(), ys=ys_.copy(), method=name
                 )
         except BaseException:
             objecttools.augment_excmessage(

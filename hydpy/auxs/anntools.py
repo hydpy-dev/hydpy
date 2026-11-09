@@ -621,7 +621,7 @@ object `ann` has not been prepared so far.
         hydpy.core.exceptiontools.AttributeNotReady: Attribute `nmb_neurons` of \
 object `ann` has not been prepared so far.
         """
-        return tuple(int(n) for n in self._calgorithm.nmb_neurons)
+        return tuple(int(n) for n in numpy.asarray(self._calgorithm.nmb_neurons))
 
     def _set_nmb_neurons(self, value: tuple[int, ...]) -> None:
         self._calgorithm.nmb_neurons = numpy.array(value, dtype=config.NP_INT, ndmin=1)

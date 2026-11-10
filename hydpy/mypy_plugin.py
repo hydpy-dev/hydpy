@@ -32,6 +32,7 @@ from mypy.nodes import (
     ARG_NAMED_OPT,
     ARG_OPT,
     ARG_POS,
+    ARG_STAR,
     ARG_STAR2,
     Argument,
     CallExpr,
@@ -746,6 +747,45 @@ def _match_literal(
         return None, api.expr_checker.accept(expr)
 
 
+def _split_star_args(
+    context: MethodSigContext, signature: CallableType, candidates: Type
+) -> CallableType:
+    """Replace the arbitrary positional arguments of the given signature with one
+    positional argument per given value, typed with the candidate a container literal
+    fits (see `_match_literal`) or with all candidates otherwise."""
+    default = context.default_signature
+    if (
+        not isinstance(api := context.api, TypeChecker)
+        or (ARG_STAR not in default.arg_kinds)
+        or not _is_alias(
+            default.arg_types[default.arg_kinds.index(ARG_STAR)], "CallHook"
+        )
+        or (ARG_STAR not in signature.arg_kinds)
+        or not isinstance(call := context.context, CallExpr)
+        or (ARG_STAR in call.arg_kinds)
+    ):
+        return signature
+    values = context.args[default.arg_kinds.index(ARG_STAR)]
+    if not any(isinstance(v, LITERALS) for v in values):
+        return signature
+    types_: list[Type] = []
+    for value in values:
+        match = None
+        if isinstance(value, LITERALS):
+            match = _match_literal(api, value, candidates)[0]
+        types_.append(candidates if match is None else match)
+    idx = signature.arg_kinds.index(ARG_STAR)
+    return signature.copy_modified(
+        arg_types=signature.arg_types[:idx] + types_ + signature.arg_types[idx + 1 :],
+        arg_kinds=signature.arg_kinds[:idx]
+        + len(values) * [ARG_POS]
+        + signature.arg_kinds[idx + 1 :],
+        arg_names=signature.arg_names[:idx]
+        + len(values) * [None]
+        + signature.arg_names[idx + 1 :],
+    )
+
+
 def call_hook(context: MethodSigContext) -> FunctionLike:
     """
     `VariableX.__call__(*values: CallHook, ...) -> None`
@@ -786,7 +826,8 @@ def call_hook(context: MethodSigContext) -> FunctionLike:
         ]
     )
     default = _insert_zip_keywords(context, var_inst, types_[0], default)
-    return _insert_entry_or_row_keywords(context, var_inst, types_[0], default)
+    default = _insert_entry_or_row_keywords(context, var_inst, types_[0], default)
+    return _split_star_args(context, default, values_type)
 
 
 def _restrict_keywords(

@@ -113,6 +113,12 @@ if __name__ == "__main__":
     distances([[1.0, 2.0], [3.0, 4.0]])
     distances(numpy.ones((2, 2), dtype=numpy.float64))
     distances([[[1.0]]])  # type: ignore[arg-type]
+    distances([numpy.int64(1), 2.0])
+    distances([[numpy.int64(1), 2.0], [3.0, 4.0]])
+    distances(1.0, [numpy.int64(1), 2.0])
+    distances(*[[1.0, 2.0], [3.0, 4.0]])
+    distances(["a", "b"])  # type: ignore[arg-type]
+    distances([[1.0], ["a"]])  # type: ignore[arg-type]
 
     # NDIM = 2, TYPE = int
     sredorder: hland_derived.SRedOrder

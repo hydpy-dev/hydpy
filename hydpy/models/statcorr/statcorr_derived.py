@@ -36,18 +36,13 @@ class NmbLogEntries(parametertools.NmbParameter):
     )
 
     def update(self) -> None:
-        """Calculate the number of required log entries from the submodel's other
-        parameters and adjust the shape of all log sequences.
+        """Calculate the number of required log entries and adjust the shape of
+        all log sequences.
 
-        The log must cover the |EvaluationWindow|, the assessment period of the
-        stationarity check (see |StationarityCheck|), and the current entry plus the
-        |MaxNaNSkip| preceding ones.  The mean-value-based residual (see
-        |Calc_AveragedResidual_V1|) relies on the |AveragingWindow| (or the averaging
-        period of the variability check, see |VariabilityCheck|) entries preceding
-        the current one, which requires one additional entry.
+        The log must be as long as the largest value that uses it.
 
-        As long as not all relevant control parameters are defined,
-        |NmbLogEntries.update| leaves the current value untouched:
+        |NmbLogEntries.update| raises an error if any relevant control parameter is
+        still undefined:
 
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
@@ -56,13 +51,20 @@ class NmbLogEntries(parametertools.NmbParameter):
         >>> variabilitycheck(active=False)
         >>> maxnanskip(1)
         >>> derived.nmblogentries.update()
-        >>> derived.nmblogentries
-        nmblogentries(?)
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: For variable `averagingwindow`, \
+no value has been defined so far.
+
+        Here, the window of the stationarity check is the largest value:
 
         >>> averagingwindow(1)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(4)
+
+        Here, the averaging window of the variability check (plus one) is the
+        largest value:
 
         >>> stationaritycheck(active=False)
         >>> variabilitycheck(active=True, maxrelsumdelta=0.2, averagingwindow=5)
@@ -70,13 +72,25 @@ class NmbLogEntries(parametertools.NmbParameter):
         >>> derived.nmblogentries
         nmblogentries(6)
 
+        Here, |MaxNaNSkip| (plus one) is the largest value:
+
         >>> variabilitycheck(active=False)
         >>> maxnanskip(6)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(7)
 
+        Here, |EvaluationWindow| is the largest value:
+
         >>> maxnanskip(0)
+        >>> evaluationwindow(5)
+        >>> derived.nmblogentries.update()
+        >>> derived.nmblogentries
+        nmblogentries(5)
+
+        Here, |AveragingWindow| (plus one) is the largest value:
+
+        >>> evaluationwindow(3)
         >>> averagingwindow(3)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
@@ -88,8 +102,8 @@ class NmbLogEntries(parametertools.NmbParameter):
         data:
 
         >>> logs
-        loggedobservedvalue(nan, nan, nan, nan)
-        loggedsimulatedvalue(nan, nan, nan, nan)
+        loggedobservation(nan, nan, nan, nan)
+        loggedsimulation(nan, nan, nan, nan)
         >>> states
         reductionfactor(1.0)
         stationary(1.0)
@@ -104,28 +118,20 @@ class NmbLogEntries(parametertools.NmbParameter):
         To prevent losing information, it leaves the log and state sequences
         untouched as long as the number of log entries does not change:
 
-        >>> logs.loggedobservedvalue = 1.0
+        >>> logs.loggedobservation = 1.0
         >>> states.residual(2.0)
         >>> evaluationwindow(2)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(4)
-        >>> logs.loggedobservedvalue
-        loggedobservedvalue(1.0, 1.0, 1.0, 1.0)
+        >>> logs.loggedobservation
+        loggedobservation(1.0, 1.0, 1.0, 1.0)
         >>> states.residual
         residual(2.0)
         """
         control = self.subpars.pars.control
         stationaritycheck = control.stationaritycheck
         variabilitycheck = control.variabilitycheck
-        if not (
-            stationaritycheck.configured
-            and variabilitycheck.configured
-            and exceptiontools.attrready(control.evaluationwindow, "value")
-            and exceptiontools.attrready(control.maxnanskip, "value")
-            and exceptiontools.attrready(control.averagingwindow, "value")
-        ):
-            return
         nmb = max(
             control.evaluationwindow.value,
             stationaritycheck.window,
@@ -157,14 +163,8 @@ class StationarityWindow(parametertools.Parameter):
     def update(self) -> None:
         """Take the assessment period from parameter |StationarityCheck|.
 
-        As long as |StationarityCheck| is not configured,
-        |StationarityWindow.update| leaves the current value untouched:
-
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
-        >>> derived.stationaritywindow.update()
-        >>> derived.stationaritywindow
-        stationaritywindow(?)
 
         >>> stationaritycheck(active=True, window=4, ratiominmax=0.5)
         >>> derived.stationaritywindow.update()
@@ -177,8 +177,7 @@ class StationarityWindow(parametertools.Parameter):
         stationaritywindow(0)
         """
         stationaritycheck = self.subpars.pars.control.stationaritycheck
-        if stationaritycheck.configured:
-            self(stationaritycheck.window)
+        self(stationaritycheck.window)
 
 
 class RatioMinMax(parametertools.Parameter):
@@ -193,14 +192,8 @@ class RatioMinMax(parametertools.Parameter):
     def update(self) -> None:
         """Take the threshold ratio from parameter |StationarityCheck|.
 
-        As long as |StationarityCheck| is not configured, |RatioMinMax.update| leaves
-        the current value untouched:
-
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
-        >>> derived.ratiominmax.update()
-        >>> derived.ratiominmax
-        ratiominmax(?)
 
         >>> stationaritycheck(active=True, window=4, ratiominmax=0.5)
         >>> derived.ratiominmax.update()
@@ -213,8 +206,7 @@ class RatioMinMax(parametertools.Parameter):
         ratiominmax(0.0)
         """
         stationaritycheck = self.subpars.pars.control.stationaritycheck
-        if stationaritycheck.configured:
-            self(stationaritycheck.ratiominmax)
+        self(stationaritycheck.ratiominmax)
 
 
 class MaxRelSumDelta(parametertools.Parameter):
@@ -230,14 +222,8 @@ class MaxRelSumDelta(parametertools.Parameter):
     def update(self) -> None:
         """Take the threshold from parameter |VariabilityCheck|.
 
-        As long as |VariabilityCheck| is not configured, |MaxRelSumDelta.update|
-        leaves the current value untouched:
-
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
-        >>> derived.maxrelsumdelta.update()
-        >>> derived.maxrelsumdelta
-        maxrelsumdelta(?)
 
         >>> variabilitycheck(active=True, maxrelsumdelta=0.2, averagingwindow=24)
         >>> derived.maxrelsumdelta.update()
@@ -250,8 +236,7 @@ class MaxRelSumDelta(parametertools.Parameter):
         maxrelsumdelta(0.0)
         """
         variabilitycheck = self.subpars.pars.control.variabilitycheck
-        if variabilitycheck.configured:
-            self(variabilitycheck.maxrelsumdelta)
+        self(variabilitycheck.maxrelsumdelta)
 
 
 class StationaryAveragingWindow(parametertools.Parameter):
@@ -267,14 +252,8 @@ class StationaryAveragingWindow(parametertools.Parameter):
     def update(self) -> None:
         """Take the averaging period from parameter |VariabilityCheck|.
 
-        As long as |VariabilityCheck| is not configured,
-        |StationaryAveragingWindow.update| leaves the current value untouched:
-
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
-        >>> derived.stationaryaveragingwindow.update()
-        >>> derived.stationaryaveragingwindow
-        stationaryaveragingwindow(?)
 
         >>> variabilitycheck(active=True, maxrelsumdelta=0.2, averagingwindow=24)
         >>> derived.stationaryaveragingwindow.update()
@@ -287,5 +266,4 @@ class StationaryAveragingWindow(parametertools.Parameter):
         stationaryaveragingwindow(0)
         """
         variabilitycheck = self.subpars.pars.control.variabilitycheck
-        if variabilitycheck.configured:
-            self(variabilitycheck.averagingwindow)
+        self(variabilitycheck.averagingwindow)

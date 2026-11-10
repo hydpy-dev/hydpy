@@ -5,17 +5,13 @@ from hydpy.core.typingtools import *
 from hydpy.models.statcorr import statcorr_variables
 
 
-class LoggedObservedValue(
-    statcorr_variables.MixinLogEntries, sequencetools.LogSequence
-):
+class LoggedObservation(statcorr_variables.MixinLogEntries, sequencetools.LogSequence):
     """Logged observed values [unit of the corrected variable]."""
 
     NDIM: Final[Literal[1]] = 1
 
 
-class LoggedSimulatedValue(
-    statcorr_variables.MixinLogEntries, sequencetools.LogSequence
-):
+class LoggedSimulation(statcorr_variables.MixinLogEntries, sequencetools.LogSequence):
     """Logged simulated values [unit of the corrected variable]."""
 
     NDIM: Final[Literal[1]] = 1

@@ -1,17 +1,10 @@
 """
 The |statcorr.DOCNAME.long| base model provides features for the statistical
-correction of simulated discharge based on observed discharge values.
+correction of simulated variables based on observed values.
 """
 
 from hydpy.exe.modelimports import *
-from hydpy.models.statcorr.statcorr_control import NmbSubmodels as _NmbSubmodels
-
-ADDITIONAL_CONTROLPARAMETERS = (_NmbSubmodels,)
-del _NmbSubmodels
-
-from hydpy.models.statcorr.statcorr_model import (  # pylint: disable=wrong-import-position
-    Model,
-)
+from hydpy.models.statcorr.statcorr_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()

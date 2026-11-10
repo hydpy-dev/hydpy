@@ -73,10 +73,10 @@ Example workflow
     >>> derived.nmblogentries.update()
     >>> derived.nmblogentries
     nmblogentries(3)
-    >>> logs.loggedsimulatedvalue
-    loggedsimulatedvalue(nan, nan, nan)
-    >>> logs.loggedobservedvalue
-    loggedobservedvalue(nan, nan, nan)
+    >>> logs.loggedsimulation
+    loggedsimulation(nan, nan, nan)
+    >>> logs.loggedobservation
+    loggedobservation(nan, nan, nan)
 
     Successive calls of |OutputCorrModel_V1.set_simulatedvalue| and
     |OutputCorrModel_V1.set_observedvalue| shift the previously buffered
@@ -89,10 +89,10 @@ Example workflow
     >>> model.set_simulatedvalue(5.0)
     >>> from numpy import nan
     >>> model.set_observedvalue(nan)
-    >>> logs.loggedsimulatedvalue
-    loggedsimulatedvalue(5.0, 3.0, 2.0)
-    >>> logs.loggedobservedvalue
-    loggedobservedvalue(nan, 4.0, 3.0)
+    >>> logs.loggedsimulation
+    loggedsimulation(5.0, 3.0, 2.0)
+    >>> logs.loggedobservation
+    loggedobservation(nan, 4.0, 3.0)
 
     |OutputCorrModel_V1.determine_outputcorrection| computes the corrected
     value from the most recent residual (here taken from log position 1,

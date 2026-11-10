@@ -13,24 +13,24 @@ class OutputCorrModel_V1(modeltools.SubmodelInterface):
 
     @modeltools.abstractmodelmethod
     def set_simulatedvalue(self, simulatedvalue: float) -> None:
-        """Pass the current simulated value to the submodel."""
+        """Set the simulated value."""
 
     @modeltools.abstractmodelmethod
     def set_observedvalue(self, observedvalue: float) -> None:
-        """Pass the current observed value (or |numpy.nan| when unavailable) to the
-        submodel."""
+        """Set the observed value."""
 
     @modeltools.abstractmodelmethod
     def determine_outputcorrection(self) -> None:
-        """Calculate the corrected output value from the internal logs of
-        simulated and observed values."""
+        """Calculate the corrected output value."""
 
     @modeltools.abstractmodelmethod
     def is_active(self) -> bool:
-        """Tell whether the submodel was responsible for correcting the simulated
-        value during the most recent call of
-        |OutputCorrModel_V1.determine_outputcorrection|."""
+        """Tell whether |OutputCorrModel_V1.determine_outputcorrection|
+        succeeded.
+        """
 
     @modeltools.abstractmodelmethod
     def get_correctedoutput(self) -> float:
-        """Get the previously calculated corrected value."""
+        """Get the previously calculated corrected value (which can be
+        the originally simulated value, if the output correction is not active).
+        """

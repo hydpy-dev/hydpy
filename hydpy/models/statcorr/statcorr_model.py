@@ -14,11 +14,11 @@ from hydpy.models.statcorr import statcorr_states
 from hydpy.models.statcorr import statcorr_derived
 
 
-class Pick_Inflow_V1(modeltools.Method):
-    r"""Sum up the current inflow from all inlet nodes.
+class Pick_OriginalQ_V1(modeltools.Method):
+    r"""Sum up the original discharge from all inlet nodes.
 
     Basic equation:
-      :math:`Inflow = \sum Q`
+      :math:`OriginalQ = \sum Q`
 
     Example:
 
@@ -26,22 +26,22 @@ class Pick_Inflow_V1(modeltools.Method):
         >>> parameterstep()
         >>> inlets.q.shape = 2
         >>> inlets.q = 2.0, 4.0
-        >>> model.pick_inflow_v1()
-        >>> fluxes.inflow
-        inflow(6.0)
+        >>> model.pick_originalq_v1()
+        >>> fluxes.originalq
+        originalq(6.0)
     """
 
     REQUIREDSEQUENCES = (statcorr_inlets.Q,)
-    RESULTSEQUENCES = (statcorr_fluxes.Inflow,)
+    RESULTSEQUENCES = (statcorr_fluxes.OriginalQ,)
 
     @staticmethod
     def __call__(model: modeltools.Model, /) -> None:
         inl = model.sequences.inlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
 
-        flu.inflow = 0.0
+        flu.originalq = 0.0
         for idx in range(inl.len_q):
-            flu.inflow += inl.q[idx]
+            flu.originalq += inl.q[idx]
 
 
 class Calc_OutputCorr_OutputCorrModel_V1(modeltools.Method):
@@ -52,7 +52,7 @@ class Calc_OutputCorr_OutputCorrModel_V1(modeltools.Method):
     """
 
     SUBMODELINTERFACES = (statcorrinterfaces.OutputCorrModel_V1,)
-    REQUIREDSEQUENCES = (statcorr_fluxes.Inflow, statcorr_inputs.Discharge)
+    REQUIREDSEQUENCES = (statcorr_fluxes.OriginalQ, statcorr_inputs.Discharge)
     RESULTSEQUENCES = (statcorr_fluxes.CorrectedQ,)
 
     @staticmethod
@@ -61,7 +61,7 @@ class Calc_OutputCorr_OutputCorrModel_V1(modeltools.Method):
     ) -> None:
         flu = model.sequences.fluxes.fastaccess
         inp = model.sequences.inputs.fastaccess
-        submodel.set_simulatedvalue(flu.inflow)
+        submodel.set_simulatedvalue(flu.originalq)
         if model.runsettings.simulationmode == modelutils.FORECAST:
             submodel.set_observedvalue(modelutils.nan)
         else:
@@ -77,43 +77,44 @@ class Calc_OutputCorr_V1(modeltools.Method):
 
     This method orchestrates one or more submodels of identical interface type:
 
-    1. The current simulated discharge (|Inflow|) and observed discharge
-       (|Discharge|) are passed to each attached |OutputCorrModel_V1| submodel
-       via |OutputCorrModel_V1.set_simulatedvalue| and
-       |OutputCorrModel_V1.set_observedvalue|.  While |Options.simulationmode|
-       equals `forecast`, |Calc_OutputCorr_V1| passes |numpy.nan| instead of the
-       actual value of |Discharge|, regardless of whether an observation is
-       available.  This relies on the assumption that a previous `historical`
-       simulation run already logged all relevant past observations and
-       simulations (read in as conditions).
-    2. Each submodel computes its corrected discharge via
-       |OutputCorrModel_V1.determine_outputcorrection|.
-    3. Each submodel decides for itself, based on its own |Active| flag, its
-       |CorrectionMode|, and its |LowerLimit| and |UpperLimit| parameters,
-       whether it is responsible for the current discharge (see
-       |OutputCorrModel_V1.is_active|).  The corrected output of the *last*
-       responsible submodel is taken as |CorrectedQ|.  When no submodel is
-       attached or responsible, |CorrectedQ| equals |Inflow|.  Hence, attaching
-       several submodels configured for mutually exclusive discharge ranges lets
-       only the one responsible for the current discharge take effect.
+      1. The current simulated discharge (|OriginalQ|) and observed discharge
+         (|Discharge|) are passed to each attached |OutputCorrModel_V1| submodel
+         via |OutputCorrModel_V1.set_simulatedvalue| and
+         |OutputCorrModel_V1.set_observedvalue|.  While |Options.simulationmode|
+         equals `forecast`, |Calc_OutputCorr_V1| passes |numpy.nan| instead of the
+         actual value of |Discharge|, regardless of whether an observation is
+         available.  This relies on the assumption that a previous `historical`
+         simulation run already logged all relevant past observations and
+         simulations (read in as conditions).
+      2. Each submodel computes its corrected discharge via
+         |OutputCorrModel_V1.determine_outputcorrection|.
+      3. Each submodel decides for itself, based on its own |Active| flag, its
+         |CorrectionMode|, and its |LowerLimit| and |UpperLimit| parameters,
+         whether it is responsible for the current discharge (see
+         |OutputCorrModel_V1.is_active|).  The corrected output of the *last*
+         responsible submodel is taken as |CorrectedQ|.  When no submodel is
+         attached or responsible, |CorrectedQ| equals |OriginalQ|.  Hence, attaching
+         several submodels configured for mutually exclusive discharge ranges lets
+         only the one responsible for the current discharge take effect.
 
     Examples:
 
-        Without any attached submodel, the corrected discharge equals the inflow:
+        Without any attached submodel, the corrected discharge equals the original
+        discharge:
 
         >>> from hydpy.models.statcorr_main import *
         >>> parameterstep()
-        >>> fluxes.inflow = 2.0
+        >>> fluxes.originalq = 2.0
         >>> inputs.discharge = 3.0
         >>> model.calc_outputcorr_v1()
         >>> fluxes.correctedq
         correctedq(2.0)
 
         With a single attached |statcorr_arima010| submodel, the corrected
-        discharge is the inflow plus the most recent residual (here:
-        ``3.0 - 2.0 = 1.0``, applied to the new inflow ``2.5``).  By default, we
-        make the submodel responsible for all discharges and disable the
-        stationarity check so that it never suppresses the correction:
+        discharge is the original discharge plus the most recent residual (here:
+        ``3.0 - 2.0 = 1.0``, applied to the new original discharge ``2.5``).  By
+        default, we make the submodel responsible for all discharges and disable
+        the stationarity check so that it never suppresses the correction:
 
         >>> from numpy import inf
         >>> def configure(submodel, lowerlimit=0.0, upperlimit=inf):
@@ -140,7 +141,7 @@ class Calc_OutputCorr_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(3.0)
         >>> from numpy import nan
-        >>> fluxes.inflow = 2.5
+        >>> fluxes.originalq = 2.5
         >>> inputs.discharge = nan
         >>> model.calc_outputcorr_v1()
         >>> fluxes.correctedq
@@ -160,11 +161,11 @@ class Calc_OutputCorr_V1(modeltools.Method):
         ... ) as submodel:
         ...     configure(submodel, lowerlimit=3.0)
 
-        For an inflow of 2.5 m³/s, only the first submodel is responsible.
+        For an original discharge of 2.5 m³/s, only the first submodel is responsible.
         Hence, its corrected output wins, although the second submodel comes
-        later and returns the uncorrected inflow:
+        later and returns the original discharge:
 
-        >>> fluxes.inflow = 2.5
+        >>> fluxes.originalq = 2.5
         >>> inputs.discharge = 4.0
         >>> model.calc_outputcorr_v1()
         >>> fluxes.correctedq
@@ -174,9 +175,9 @@ class Calc_OutputCorr_V1(modeltools.Method):
         >>> model.outputcorrmodels[1].sequences.fluxes.isactive
         isactive(0.0)
 
-        For an inflow of 3.5 m³/s, the second submodel takes over:
+        For an original discharge of 3.5 m³/s, the second submodel takes over:
 
-        >>> fluxes.inflow = 3.5
+        >>> fluxes.originalq = 3.5
         >>> inputs.discharge = 3.0
         >>> model.calc_outputcorr_v1()
         >>> fluxes.correctedq
@@ -186,7 +187,7 @@ class Calc_OutputCorr_V1(modeltools.Method):
         >>> model.outputcorrmodels[1].sequences.fluxes.isactive
         isactive(1.0)
 
-        If no submodel is responsible, |CorrectedQ| equals |Inflow|:
+        If no submodel is responsible, |CorrectedQ| equals |OriginalQ|:
 
         >>> model.outputcorrmodels[1].parameters.control.active(False)
         >>> model.calc_outputcorr_v1()
@@ -212,12 +213,12 @@ class Calc_OutputCorr_V1(modeltools.Method):
 
         Two `historical` steps establish a residual of ``0.5``:
 
-        >>> fluxes.inflow = 1.0
+        >>> fluxes.originalq = 1.0
         >>> inputs.discharge = 1.5
         >>> model.calc_outputcorr_v1()
         >>> fluxes.correctedq
         correctedq(1.5)
-        >>> fluxes.inflow = 2.0
+        >>> fluxes.originalq = 2.0
         >>> inputs.discharge = 2.5
         >>> model.calc_outputcorr_v1()
         >>> fluxes.correctedq
@@ -229,13 +230,13 @@ class Calc_OutputCorr_V1(modeltools.Method):
 
         >>> from hydpy import pub
         >>> with pub.options.simulationmode("forecast"):
-        ...     fluxes.inflow = 3.0
+        ...     fluxes.originalq = 3.0
         ...     inputs.discharge = 999.0
         ...     model.calc_outputcorr_v1()
         >>> fluxes.correctedq
         correctedq(3.5)
         >>> with pub.options.simulationmode("forecast"):
-        ...     fluxes.inflow = 4.0
+        ...     fluxes.originalq = 4.0
         ...     inputs.discharge = 999.0
         ...     model.calc_outputcorr_v1()
         >>> fluxes.correctedq
@@ -248,13 +249,13 @@ class Calc_OutputCorr_V1(modeltools.Method):
         fade it out:
 
         >>> with pub.options.simulationmode("forecast"):
-        ...     fluxes.inflow = 5.0
+        ...     fluxes.originalq = 5.0
         ...     inputs.discharge = 999.0
         ...     model.calc_outputcorr_v1()
         >>> fluxes.correctedq
         correctedq(5.5)
         >>> with pub.options.simulationmode("forecast"):
-        ...     fluxes.inflow = 6.0
+        ...     fluxes.originalq = 6.0
         ...     inputs.discharge = 999.0
         ...     model.calc_outputcorr_v1()
         >>> fluxes.correctedq
@@ -263,14 +264,16 @@ class Calc_OutputCorr_V1(modeltools.Method):
 
     SUBMODELINTERFACES = (statcorrinterfaces.OutputCorrModel_V1,)
     SUBMETHODS = (Calc_OutputCorr_OutputCorrModel_V1,)
-    REQUIREDSEQUENCES = (statcorr_fluxes.Inflow, statcorr_inputs.Discharge)
+    CONTROLPARAMETERS = (statcorr_control.NmbSubmodels,)
+    REQUIREDSEQUENCES = (statcorr_fluxes.OriginalQ, statcorr_inputs.Discharge)
     RESULTSEQUENCES = (statcorr_fluxes.CorrectedQ,)
 
     @staticmethod
     def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
-        flu.correctedq = flu.inflow
-        for i in range(model.outputcorrmodels.number):
+        con = model.parameters.control.fastaccess
+        flu.correctedq = flu.originalq
+        for i in range(con.nmbsubmodels):
             if model.outputcorrmodels.typeids[i] == 1:
                 model.calc_outputcorr_outputcorrmodel_v1(
                     cast(
@@ -282,19 +285,19 @@ class Calc_OutputCorr_V1(modeltools.Method):
 
 class Pass_CorrectedQ_V1(modeltools.Method):
     """Pass the corrected discharge on to the outlet link sequence, unless
-    |Propagate| is |False|, in which case the uncorrected inflow is
+    |Propagate| is |False|, in which case the original discharge is
     passed on instead.  Either way, |CorrectedQ| remains available for local
     output at the current gauge.
 
     Basic equation:
         :math:`Q_{outlets} = CorrectedQ` (if |Propagate|) or
-        :math:`Q_{outlets} = Inflow` (otherwise)
+        :math:`Q_{outlets} = OriginalQ` (otherwise)
 
     Examples:
 
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
-        >>> fluxes.inflow = 1.0
+        >>> fluxes.originalq = 1.0
         >>> fluxes.correctedq = 2.0
 
         >>> propagate(True)
@@ -309,7 +312,7 @@ class Pass_CorrectedQ_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (statcorr_control.Propagate,)
-    REQUIREDSEQUENCES = (statcorr_fluxes.Inflow, statcorr_fluxes.CorrectedQ)
+    REQUIREDSEQUENCES = (statcorr_fluxes.OriginalQ, statcorr_fluxes.CorrectedQ)
     RESULTSEQUENCES = (statcorr_outlets.Q,)
 
     @staticmethod
@@ -317,7 +320,7 @@ class Pass_CorrectedQ_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q = flu.correctedq if con.propagate else flu.inflow
+        out.q = flu.correctedq if con.propagate else flu.originalq
 
 
 class Set_SimulatedValue_V1(modeltools.Method):
@@ -330,22 +333,22 @@ class Set_SimulatedValue_V1(modeltools.Method):
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> derived.nmblogentries(3)
-        >>> logs.loggedsimulatedvalue = 4.0, 3.0, 2.0
+        >>> logs.loggedsimulation = 4.0, 3.0, 2.0
         >>> model.set_simulatedvalue_v1(5.0)
-        >>> logs.loggedsimulatedvalue
-        loggedsimulatedvalue(5.0, 4.0, 3.0)
+        >>> logs.loggedsimulation
+        loggedsimulation(5.0, 4.0, 3.0)
     """
 
     DERIVEDPARAMETERS = (statcorr_derived.NmbLogEntries,)
-    UPDATEDSEQUENCES = (statcorr_logs.LoggedSimulatedValue,)
+    UPDATEDSEQUENCES = (statcorr_logs.LoggedSimulation,)
 
     @staticmethod
     def __call__(model: modeltools.Model, simulatedvalue: float, /) -> None:
         der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
-            log.loggedsimulatedvalue[idx] = log.loggedsimulatedvalue[idx - 1]
-        log.loggedsimulatedvalue[0] = simulatedvalue
+            log.loggedsimulation[idx] = log.loggedsimulation[idx - 1]
+        log.loggedsimulation[0] = simulatedvalue
 
 
 class Set_ObservedValue_V1(modeltools.Method):
@@ -360,32 +363,32 @@ class Set_ObservedValue_V1(modeltools.Method):
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> derived.nmblogentries(3)
-        >>> logs.loggedobservedvalue = 4.0, 3.0, 2.0
+        >>> logs.loggedobservation = 4.0, 3.0, 2.0
         >>> from numpy import nan
         >>> model.set_observedvalue_v1(nan)
-        >>> logs.loggedobservedvalue
-        loggedobservedvalue(nan, 4.0, 3.0)
+        >>> logs.loggedobservation
+        loggedobservation(nan, 4.0, 3.0)
     """
 
     DERIVEDPARAMETERS = (statcorr_derived.NmbLogEntries,)
-    UPDATEDSEQUENCES = (statcorr_logs.LoggedObservedValue,)
+    UPDATEDSEQUENCES = (statcorr_logs.LoggedObservation,)
 
     @staticmethod
     def __call__(model: modeltools.Model, observedvalue: float, /) -> None:
         der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(der.nmblogentries - 1, 0, -1):
-            log.loggedobservedvalue[idx] = log.loggedobservedvalue[idx - 1]
-        log.loggedobservedvalue[0] = observedvalue
+            log.loggedobservation[idx] = log.loggedobservation[idx - 1]
+        log.loggedobservation[0] = observedvalue
 
 
 class Calc_EvaluatedValue_V1(modeltools.Method):
     r"""Calculate the mean of the |EvaluationWindow| most recent
-    |LoggedSimulatedValue| values while |Options.simulationmode| is `historical`.
+    |LoggedSimulation| values while |Options.simulationmode| is `historical`.
 
     Basic equation:
       :math:`EvaluatedValue = \frac{1}{EvaluationWindow}
-      \sum_{i=0}^{EvaluationWindow-1} LoggedSimulatedValue_i`
+      \sum_{i=0}^{EvaluationWindow-1} LoggedSimulation_i`
 
     While |Options.simulationmode| is `forecast`, |Calc_EvaluatedValue_V1| keeps the
     value of the most recent `historical` assessment, so the responsible submodel
@@ -402,7 +405,7 @@ class Calc_EvaluatedValue_V1(modeltools.Method):
         >>> from numpy import nan
         >>> control.evaluationwindow(3)
         >>> derived.nmblogentries(5)
-        >>> logs.loggedsimulatedvalue = 1.0, 2.0, 6.0, nan, nan
+        >>> logs.loggedsimulation = 1.0, 2.0, 6.0, nan, nan
         >>> from hydpy import pub
         >>> pub.options.simulationmode = "historical"
         >>> model.calc_evaluatedvalue_v1()
@@ -412,7 +415,7 @@ class Calc_EvaluatedValue_V1(modeltools.Method):
         In `forecast` mode, |EvaluatedValue| stays frozen:
 
         >>> pub.options.simulationmode = "forecast"
-        >>> logs.loggedsimulatedvalue = 10.0, 10.0, 10.0, nan, nan
+        >>> logs.loggedsimulation = 10.0, 10.0, 10.0, nan, nan
         >>> model.calc_evaluatedvalue_v1()
         >>> states.evaluatedvalue
         evaluatedvalue(3.0)
@@ -420,7 +423,7 @@ class Calc_EvaluatedValue_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (statcorr_control.EvaluationWindow,)
-    REQUIREDSEQUENCES = (statcorr_logs.LoggedSimulatedValue,)
+    REQUIREDSEQUENCES = (statcorr_logs.LoggedSimulation,)
     UPDATEDSEQUENCES = (statcorr_states.EvaluatedValue,)
 
     @staticmethod
@@ -431,7 +434,7 @@ class Calc_EvaluatedValue_V1(modeltools.Method):
         if model.runsettings.simulationmode == modelutils.HISTORICAL:
             sum_simulated: float = 0.0
             for idx in range(con.evaluationwindow):
-                sum_simulated = sum_simulated + log.loggedsimulatedvalue[idx]
+                sum_simulated = sum_simulated + log.loggedsimulation[idx]
             sta.evaluatedvalue = sum_simulated / con.evaluationwindow
 
 
@@ -551,9 +554,9 @@ class Calc_Residual_ResidualAnchor_V1(modeltools.Method):
     `historical`.
 
     Basic equations:
-      :math:`Residual = LoggedObservedValue_k - LoggedSimulatedValue_k`
+      :math:`Residual = LoggedObservation_k - LoggedSimulation_k`
 
-      :math:`ResidualAnchor = LoggedSimulatedValue_k`
+      :math:`ResidualAnchor = LoggedSimulation_k`
 
     :math:`k` denotes the most recent log index for which the observed value is not
     |numpy.nan|.  The search skips at most |MaxNaNSkip| preceding log entries with
@@ -578,8 +581,8 @@ class Calc_Residual_ResidualAnchor_V1(modeltools.Method):
         >>> derived.nmblogentries(3)
         >>> from hydpy import pub
         >>> pub.options.simulationmode = "historical"
-        >>> logs.loggedsimulatedvalue = 5.0, 3.0, 2.0
-        >>> logs.loggedobservedvalue = 6.0, 4.0, 3.0
+        >>> logs.loggedsimulation = 5.0, 3.0, 2.0
+        >>> logs.loggedobservation = 6.0, 4.0, 3.0
         >>> model.calc_residual_residualanchor_v1()
         >>> states.residual, states.residualanchor
         (residual(1.0), residualanchor(5.0))
@@ -587,7 +590,7 @@ class Calc_Residual_ResidualAnchor_V1(modeltools.Method):
         If the two most recent observations are missing, the residual stems from
         the third log entry:
 
-        >>> logs.loggedobservedvalue = nan, nan, 3.0
+        >>> logs.loggedobservation = nan, nan, 3.0
         >>> model.calc_residual_residualanchor_v1()
         >>> states.residual, states.residualanchor
         (residual(1.0), residualanchor(2.0))
@@ -610,7 +613,7 @@ class Calc_Residual_ResidualAnchor_V1(modeltools.Method):
         In `forecast` mode, both values stay frozen:
 
         >>> pub.options.simulationmode = "forecast"
-        >>> logs.loggedobservedvalue = nan, nan, nan
+        >>> logs.loggedobservation = nan, nan, nan
         >>> model.calc_residual_residualanchor_v1()
         >>> states.residual, states.residualanchor
         (residual(1.0), residualanchor(2.0))
@@ -620,8 +623,8 @@ class Calc_Residual_ResidualAnchor_V1(modeltools.Method):
     CONTROLPARAMETERS = (statcorr_control.MaxNaNSkip,)
     DERIVEDPARAMETERS = (statcorr_derived.NmbLogEntries,)
     REQUIREDSEQUENCES = (
-        statcorr_logs.LoggedSimulatedValue,
-        statcorr_logs.LoggedObservedValue,
+        statcorr_logs.LoggedSimulation,
+        statcorr_logs.LoggedObservation,
     )
     UPDATEDSEQUENCES = (statcorr_states.Residual, statcorr_states.ResidualAnchor)
 
@@ -635,9 +638,9 @@ class Calc_Residual_ResidualAnchor_V1(modeltools.Method):
             sta.residual = 0.0
             sta.residualanchor = 0.0
             for idx in range(min(der.nmblogentries, con.maxnanskip + 1)):
-                if not modelutils.isnan(log.loggedobservedvalue[idx]):
-                    sta.residualanchor = log.loggedsimulatedvalue[idx]
-                    sta.residual = log.loggedobservedvalue[idx] - sta.residualanchor
+                if not modelutils.isnan(log.loggedobservation[idx]):
+                    sta.residualanchor = log.loggedsimulation[idx]
+                    sta.residual = log.loggedobservation[idx] - sta.residualanchor
                     break
 
 
@@ -647,7 +650,7 @@ class Calc_Stationary_V1(modeltools.Method):
     |Options.simulationmode| is `historical`.
 
     |Calc_Stationary_V1| takes the ratio of the minimum and the maximum
-    |LoggedObservedValue| value within the most recent |StationarityWindow| log
+    |LoggedObservation| value within the most recent |StationarityWindow| log
     entries.  Whenever this ratio falls below |RatioMinMax|, it considers the
     conditions instationary (|Stationary| is ``0.0``), otherwise stationary
     (|Stationary| is ``1.0``).  If a |numpy.nan| value within the
@@ -658,7 +661,7 @@ class Calc_Stationary_V1(modeltools.Method):
 
     While |Options.simulationmode| is `forecast`, |Calc_Stationary_V1| keeps the
     outcome of the most recent `historical` assessment.  Recomputing it would be
-    unreliable, as |LoggedObservedValue| keeps receiving |numpy.nan| values
+    unreliable, as |LoggedObservation| keeps receiving |numpy.nan| values
     throughout the forecast (see |Calc_OutputCorr_V1|), which would prevent any new
     assessment as soon as the first of them enters the |StationarityWindow|.
 
@@ -675,14 +678,14 @@ class Calc_Stationary_V1(modeltools.Method):
         >>> derived.nmblogentries(3)
         >>> from hydpy import pub
         >>> pub.options.simulationmode = "historical"
-        >>> logs.loggedobservedvalue = 4.0, 5.0, 5.0
+        >>> logs.loggedobservation = 4.0, 5.0, 5.0
         >>> model.calc_stationary_v1()
         >>> states.stationary
         stationary(1.0)
 
         The ratio ``0.5 / 5.0 = 0.1`` is:
 
-        >>> logs.loggedobservedvalue = 0.5, 5.0, 5.0
+        >>> logs.loggedobservation = 0.5, 5.0, 5.0
         >>> model.calc_stationary_v1()
         >>> states.stationary
         stationary(0.0)
@@ -690,7 +693,7 @@ class Calc_Stationary_V1(modeltools.Method):
         A single missing observation within the |StationarityWindow| prevents a new
         assessment:
 
-        >>> logs.loggedobservedvalue = 4.0, nan, 5.0
+        >>> logs.loggedobservation = 4.0, nan, 5.0
         >>> model.calc_stationary_v1()
         >>> states.stationary
         stationary(0.0)
@@ -698,7 +701,7 @@ class Calc_Stationary_V1(modeltools.Method):
         In `forecast` mode, |Stationary| stays frozen:
 
         >>> pub.options.simulationmode = "forecast"
-        >>> logs.loggedobservedvalue = 4.0, 5.0, 5.0
+        >>> logs.loggedobservation = 4.0, 5.0, 5.0
         >>> model.calc_stationary_v1()
         >>> states.stationary
         stationary(0.0)
@@ -718,7 +721,7 @@ class Calc_Stationary_V1(modeltools.Method):
         statcorr_derived.StationarityWindow,
         statcorr_derived.RatioMinMax,
     )
-    REQUIREDSEQUENCES = (statcorr_logs.LoggedObservedValue,)
+    REQUIREDSEQUENCES = (statcorr_logs.LoggedObservation,)
     UPDATEDSEQUENCES = (statcorr_states.Stationary,)
 
     @staticmethod
@@ -733,7 +736,7 @@ class Calc_Stationary_V1(modeltools.Method):
             qmin: float = modelutils.inf
             qmax: float = -modelutils.inf
             for idx in range(min(der.nmblogentries, der.stationaritywindow)):
-                value: float = log.loggedobservedvalue[idx]
+                value: float = log.loggedobservation[idx]
                 if modelutils.isnan(value):
                     has_nan = True
                     break
@@ -758,7 +761,7 @@ class Calc_ReductionFactor_V1(modeltools.Method):
     |StationarityCheck|), |ReductionFactor| is always ``1.0``.
 
     As |Stationary| does not change in `forecast` mode (see |Calc_Stationary_V1|),
-    |ReductionFactor| keeps ramping towards zero (or staying at ``0.0``) for the
+    |ReductionFactor| keeps decreasing towards zero (or stays at ``0.0``) for the
     entire forecast horizon once a `historical` run has flagged conditions as
     instationary.
 
@@ -836,7 +839,7 @@ class Calc_RelSumDelta_V1(modeltools.Method):
     Basic equation:
       :math:`RelSumDelta = \frac{1}{EvaluatedValue}
       \sum_{i=0}^{EvaluationWindow-2}
-      |LoggedSimulatedValue_i - LoggedSimulatedValue_{i+1}|`
+      |LoggedSimulation_i - LoggedSimulation_{i+1}|`
 
     For a non-positive |EvaluatedValue|, |RelSumDelta| is |numpy.nan|.  While
     |Options.simulationmode| is `forecast`, |Calc_RelSumDelta_V1| keeps the value of
@@ -851,7 +854,7 @@ class Calc_RelSumDelta_V1(modeltools.Method):
         >>> derived.nmblogentries(3)
         >>> from hydpy import pub
         >>> pub.options.simulationmode = "historical"
-        >>> logs.loggedsimulatedvalue = 9.0, 10.0, 11.0
+        >>> logs.loggedsimulation = 9.0, 10.0, 11.0
         >>> states.evaluatedvalue(10.0)
         >>> model.calc_relsumdelta_v1()
         >>> states.relsumdelta
@@ -880,10 +883,7 @@ class Calc_RelSumDelta_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (statcorr_control.EvaluationWindow,)
     DERIVEDPARAMETERS = (statcorr_derived.StationaryAveragingWindow,)
-    REQUIREDSEQUENCES = (
-        statcorr_logs.LoggedSimulatedValue,
-        statcorr_states.EvaluatedValue,
-    )
+    REQUIREDSEQUENCES = (statcorr_logs.LoggedSimulation, statcorr_states.EvaluatedValue)
     UPDATEDSEQUENCES = (statcorr_states.RelSumDelta,)
 
     @staticmethod
@@ -898,7 +898,7 @@ class Calc_RelSumDelta_V1(modeltools.Method):
             sumdelta: float = 0.0
             for idx in range(con.evaluationwindow - 1):
                 sumdelta = sumdelta + modelutils.fabs(
-                    log.loggedsimulatedvalue[idx] - log.loggedsimulatedvalue[idx + 1]
+                    log.loggedsimulation[idx] - log.loggedsimulation[idx + 1]
                 )
             if sta.evaluatedvalue > 0.0:
                 sta.relsumdelta = sumdelta / sta.evaluatedvalue
@@ -1008,8 +1008,8 @@ class Calc_AveragedResidual_V1(modeltools.Method):
     r"""Determine the mean-value-based residual once, at the first forecast step,
     and freeze it for the remainder of the current forecast horizon.
 
-    |Calc_AveragedResidual_V1| averages the |LoggedObservedValue| and
-    |LoggedSimulatedValue| entries covering the |AveragingWindow| log positions
+    |Calc_AveragedResidual_V1| averages the |LoggedObservation| and
+    |LoggedSimulation| entries covering the |AveragingWindow| log positions
     immediately preceding the current forecast run (log position ``0`` already holds
     the current forecast step's own values, so averaging starts at position ``1``)
     and stores their difference in |AveragedResidual|.  It leaves |AveragedResidual|
@@ -1037,8 +1037,8 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         >>> states.forecaststep(0.0)
         >>> states.lowvariability(0.0)
         >>> states.residual(-9.0)
-        >>> logs.loggedsimulatedvalue = 3.0, 2.0, 4.0
-        >>> logs.loggedobservedvalue = nan, 3.0, 5.0
+        >>> logs.loggedsimulation = 3.0, 2.0, 4.0
+        >>> logs.loggedobservation = nan, 3.0, 5.0
         >>> model.calc_averagedresidual_v1()
         >>> states.averagedresidual
         averagedresidual(1.0)
@@ -1046,8 +1046,8 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         On any later forecast step and in `historical` mode, the previously
         determined value remains unchanged, regardless of the current log contents:
 
-        >>> logs.loggedsimulatedvalue = 3.0, 20.0, 40.0
-        >>> logs.loggedobservedvalue = nan, 30.0, 50.0
+        >>> logs.loggedsimulation = 3.0, 20.0, 40.0
+        >>> logs.loggedobservation = nan, 30.0, 50.0
         >>> states.forecaststep(1.0)
         >>> model.calc_averagedresidual_v1()
         >>> states.averagedresidual
@@ -1071,7 +1071,7 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         |Calc_AveragedResidual_V1| fall back to |Residual|:
 
         >>> control.averagingwindow(2)
-        >>> logs.loggedobservedvalue = nan, nan, 50.0
+        >>> logs.loggedobservation = nan, nan, 50.0
         >>> model.calc_averagedresidual_v1()
         >>> states.averagedresidual
         averagedresidual(-9.0)
@@ -1083,7 +1083,7 @@ class Calc_AveragedResidual_V1(modeltools.Method):
 
         >>> control.averagingwindow(0)
         >>> states.lowvariability(1.0)
-        >>> logs.loggedobservedvalue = nan, 30.0, nan
+        >>> logs.loggedobservation = nan, 30.0, nan
         >>> model.calc_averagedresidual_v1()
         >>> states.averagedresidual
         averagedresidual(10.0)
@@ -1096,8 +1096,8 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         statcorr_derived.StationaryAveragingWindow,
     )
     REQUIREDSEQUENCES = (
-        statcorr_logs.LoggedSimulatedValue,
-        statcorr_logs.LoggedObservedValue,
+        statcorr_logs.LoggedSimulation,
+        statcorr_logs.LoggedObservation,
         statcorr_states.LowVariability,
         statcorr_states.ForecastStep,
         statcorr_states.Residual,
@@ -1123,8 +1123,8 @@ class Calc_AveragedResidual_V1(modeltools.Method):
             sum_sim: float = 0.0
             has_nan = False
             for idx in range(1, nmb + 1):
-                obs_value: float = log.loggedobservedvalue[idx]
-                sim_value: float = log.loggedsimulatedvalue[idx]
+                obs_value: float = log.loggedobservation[idx]
+                sim_value: float = log.loggedsimulation[idx]
                 if modelutils.isnan(obs_value) or modelutils.isnan(sim_value):
                     has_nan = True
                     break
@@ -1146,25 +1146,25 @@ class Calc_CorrectedValue_V1(modeltools.Method):
     (:math:`sim_k`, the simulated value at the time the residual was determined),
     with :math:`f_{red}` denoting |ReductionFactor|:
 
-    * If :math:`0 < sim_0 < sim_k`, |Calc_CorrectedValue_V1| shifts :math:`sim_0`
-      *multiplicatively*, expressing the damped residual as a fraction of
-      :math:`sim_k` and capping that fraction at |MaxRelShift|:
+     * If :math:`0 < sim_0 < sim_k`, |Calc_CorrectedValue_V1| shifts :math:`sim_0`
+       *multiplicatively*, expressing the damped residual as a fraction of
+       :math:`sim_k` and capping that fraction at |MaxRelShift|:
 
-        :math:`CorrectedValue = sim_0 \cdot \left(1 + \mathrm{clip}\left(r \cdot f_{red}
-        / sim_k,\ \pm MaxRelShift\right) \right)`
+         :math:`CorrectedValue = sim_0 \cdot \left(1 + \mathrm{clip}\left(r \cdot
+         f_{red} / sim_k,\ \pm MaxRelShift\right) \right)`
 
-      Applying the residual as a fraction rather than a constant offset keeps the
-      correction from overshooting or turning negative while the simulated values
-      recede towards zero.
+       Applying the residual as a fraction rather than a constant offset keeps the
+       correction from overshooting or turning negative while the simulated values
+       recede towards zero.
 
-    * Otherwise (:math:`sim_0 \geq sim_k` or :math:`sim_0 \leq 0`), it shifts
-      :math:`sim_0` *additively*, capping the damped residual at |MaxAbsShift|:
+     * Otherwise (:math:`sim_0 \geq sim_k` or :math:`sim_0 \leq 0`), it shifts
+       :math:`sim_0` *additively*, capping the damped residual at |MaxAbsShift|:
 
-        :math:`CorrectedValue = sim_0 + \mathrm{clip}\left(r \cdot f_{red},\
-        \pm MaxAbsShift\right)`
+         :math:`CorrectedValue = sim_0 + \mathrm{clip}\left(r \cdot f_{red},\
+         \pm MaxAbsShift\right)`
 
-      This includes the `historical` mode whenever the current observation is
-      available, as :math:`sim_k` then equals :math:`sim_0`.
+       This includes the `historical` mode whenever the current observation is
+       available, as :math:`sim_k` then equals :math:`sim_0`.
 
     In `historical` mode (see |Options.simulationmode|), :math:`r` is the pointwise
     |Residual|.  In `forecast` mode, setting |AveragingWindow| to a value greater
@@ -1201,7 +1201,7 @@ class Calc_CorrectedValue_V1(modeltools.Method):
         >>> states.averagedresidual(0.0)
         >>> states.residual(1.0)
         >>> states.residualanchor(5.0)
-        >>> logs.loggedsimulatedvalue = 6.0
+        >>> logs.loggedsimulation = 6.0
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
         correctedvalue(6.0)
@@ -1235,7 +1235,7 @@ class Calc_CorrectedValue_V1(modeltools.Method):
         >>> control.maxabsshift(100.0)
         >>> states.residual(2.0)
         >>> states.residualanchor(10.0)
-        >>> logs.loggedsimulatedvalue = 2.0
+        >>> logs.loggedsimulation = 2.0
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
         correctedvalue(2.4)
@@ -1253,14 +1253,14 @@ class Calc_CorrectedValue_V1(modeltools.Method):
         additively, so |MaxRelShift| has no effect:
 
         >>> control.maxrelshift(0.0)
-        >>> logs.loggedsimulatedvalue = 10.0
+        >>> logs.loggedsimulation = 10.0
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
         correctedvalue(12.0)
 
         The same holds for a non-positive current simulated value:
 
-        >>> logs.loggedsimulatedvalue = 0.0
+        >>> logs.loggedsimulation = 0.0
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
         correctedvalue(2.0)
@@ -1277,7 +1277,7 @@ class Calc_CorrectedValue_V1(modeltools.Method):
         >>> states.residual(1.0)
         >>> states.residualanchor(8.0)
         >>> states.averagedresidual(2.5)
-        >>> logs.loggedsimulatedvalue = 10.0
+        >>> logs.loggedsimulation = 10.0
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
         correctedvalue(11.0)
@@ -1286,7 +1286,7 @@ class Calc_CorrectedValue_V1(modeltools.Method):
         (``1.75``):
 
         >>> states.forecaststep(1.0)
-        >>> logs.loggedsimulatedvalue = 11.0
+        >>> logs.loggedsimulation = 11.0
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
         correctedvalue(12.75)
@@ -1295,7 +1295,7 @@ class Calc_CorrectedValue_V1(modeltools.Method):
         applies:
 
         >>> states.forecaststep(2.0)
-        >>> logs.loggedsimulatedvalue = 12.0
+        >>> logs.loggedsimulation = 12.0
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
         correctedvalue(14.5)
@@ -1336,7 +1336,7 @@ class Calc_CorrectedValue_V1(modeltools.Method):
     )
     REQUIREDSEQUENCES = (
         statcorr_fluxes.IsActive,
-        statcorr_logs.LoggedSimulatedValue,
+        statcorr_logs.LoggedSimulation,
         statcorr_states.ReductionFactor,
         statcorr_states.LowVariability,
         statcorr_states.ForecastStep,
@@ -1352,7 +1352,7 @@ class Calc_CorrectedValue_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         sta = model.sequences.states.fastaccess
-        sim: float = log.loggedsimulatedvalue[0]
+        sim: float = log.loggedsimulation[0]
         if flu.isactive == 0.0:
             flu.correctedvalue = sim
         else:
@@ -1424,18 +1424,18 @@ class Determine_OutputCorrection_V1(modeltools.AutoMethod):
     the current simulation mode directly from |Options.simulationmode| (via
     |Model.runsettings|):
 
-    * |Calc_EvaluatedValue_V1| and |Calc_IsActive_V1| decide whether the submodel
-      is responsible for the current simulated value.
-    * |Calc_Residual_ResidualAnchor_V1| determines the most recent pointwise
-      residual.
-    * |Calc_Stationary_V1| and |Calc_ReductionFactor_V1| dampen the correction under
-      instationary conditions.
-    * |Calc_RelSumDelta_V1|, |Calc_LowVariability_V1|, and
-      |Calc_AveragedResidual_V1| determine the mean-value-based residual for
-      forecast runs.
-    * |Calc_CorrectedValue_V1| applies the resulting residual to the current simulated
-      value.
-    * |Update_ForecastStep_V1| counts the forecast steps.
+     * |Calc_EvaluatedValue_V1| and |Calc_IsActive_V1| decide whether the submodel
+       is responsible for the current simulated value.
+     * |Calc_Residual_ResidualAnchor_V1| determines the most recent pointwise
+       residual.
+     * |Calc_Stationary_V1| and |Calc_ReductionFactor_V1| dampen the correction under
+       instationary conditions.
+     * |Calc_RelSumDelta_V1|, |Calc_LowVariability_V1|, and
+       |Calc_AveragedResidual_V1| determine the mean-value-based residual for
+       forecast runs.
+     * |Calc_CorrectedValue_V1| applies the resulting residual to the current simulated
+       value.
+     * |Update_ForecastStep_V1| counts the forecast steps.
 
     All submethods update the internal states even when the submodel is not
     responsible, so that a submodel taking over responsibility starts with
@@ -1471,8 +1471,8 @@ class Determine_OutputCorrection_V1(modeltools.AutoMethod):
         >>> control.maxrelshift(10.0)
         >>> control.averagingwindow(0)
         >>> control.transitionsteps(0)
-        >>> logs.loggedsimulatedvalue = 5.0, 3.0, 2.0
-        >>> logs.loggedobservedvalue = 6.0, 4.0, 3.0
+        >>> logs.loggedsimulation = 5.0, 3.0, 2.0
+        >>> logs.loggedobservation = 6.0, 4.0, 3.0
         >>> model.determine_outputcorrection_v1()
         >>> fluxes.isactive
         isactive(1.0)
@@ -1481,8 +1481,8 @@ class Determine_OutputCorrection_V1(modeltools.AutoMethod):
 
         In `forecast` mode, the residual of the last `historical` step persists:
 
-        >>> logs.loggedsimulatedvalue = 7.0, 5.0, 3.0
-        >>> logs.loggedobservedvalue = nan, 6.0, 4.0
+        >>> logs.loggedsimulation = 7.0, 5.0, 3.0
+        >>> logs.loggedobservation = nan, 6.0, 4.0
         >>> from hydpy import pub
         >>> with pub.options.simulationmode("forecast"):
         ...     model.determine_outputcorrection_v1()
@@ -1525,8 +1525,8 @@ class Determine_OutputCorrection_V1(modeltools.AutoMethod):
         statcorr_derived.StationaryAveragingWindow,
     )
     REQUIREDSEQUENCES = (
-        statcorr_logs.LoggedSimulatedValue,
-        statcorr_logs.LoggedObservedValue,
+        statcorr_logs.LoggedSimulation,
+        statcorr_logs.LoggedObservation,
     )
     UPDATEDSEQUENCES = (
         statcorr_states.EvaluatedValue,
@@ -1591,7 +1591,7 @@ class Model(modeltools.AdHocModel):
     DOCNAME = modeltools.DocName(short="StatCorr")
     __HYDPY_ROOTMODEL__ = None
 
-    INLET_METHODS = (Pick_Inflow_V1,)
+    INLET_METHODS = (Pick_OriginalQ_V1,)
     OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (Calc_OutputCorr_V1,)
@@ -1629,7 +1629,9 @@ class Main_OutputCorrModel_V1(modeltools.AdHocModel):
     """Base class for |statcorr.DOCNAME.long| models that use submodels that comply
     with the |OutputCorrModel_V1| interface."""
 
-    outputcorrmodels: modeltools.SubmodelsProperty
+    outputcorrmodels: modeltools.SubmodelsProperty[
+        statcorrinterfaces.OutputCorrModel_V1
+    ]
 
     @importtools.prepare_submodel(  # type: ignore[call-overload, untyped-decorator]
         "outputcorrmodels", statcorrinterfaces.OutputCorrModel_V1, dimensionality=1
@@ -1660,8 +1662,8 @@ class Main_OutputCorrModel_V1(modeltools.AdHocModel):
         ...     averagingwindow(0)
         >>> model.outputcorrmodels[0].parameters.derived.nmblogentries
         nmblogentries(4)
-        >>> model.outputcorrmodels[0].sequences.logs.loggedsimulatedvalue
-        loggedsimulatedvalue(nan, nan, nan, nan)
+        >>> model.outputcorrmodels[0].sequences.logs.loggedsimulation
+        loggedsimulation(nan, nan, nan, nan)
         """
 
 

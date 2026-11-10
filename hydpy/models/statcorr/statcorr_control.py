@@ -10,8 +10,8 @@ from hydpy.core.typingtools import *
 class NmbSubmodels(parametertools.NmbParameter):
     """The number of output correction submodels [-].
 
-    Setting |NmbSubmodels| automatically resizes the
-    |Model.outputcorrmodels| submodel slots accordingly:
+    Setting |NmbSubmodels| automatically resizes the |Model.outputcorrmodels| submodel
+    slots accordingly:
 
     >>> from hydpy.models.statcorr import *
     >>> parameterstep()
@@ -22,14 +22,20 @@ class NmbSubmodels(parametertools.NmbParameter):
 
     SPAN = (0, None)
 
+    @overload
+    def __call__(self, *values: CallHook) -> None: ...
+
+    @overload
+    def __call__(self, *, auxfile: str) -> None: ...
+
     def __call__(self, *args: CallHook, **kwargs: Any) -> None:
         super().__call__(*args, **kwargs)
         self.subpars.pars.model.outputcorrmodels.number = self.value
 
 
 class EvaluationWindow(parametertools.Parameter):
-    """The length (in log entries) of the time period for evaluating the current
-    conditions [-]."""
+    """The number of the most recent log entries used to determine the mean simulated
+    value and its variability [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -41,7 +47,8 @@ class MaxNaNSkip(parametertools.Parameter):
     when searching back for the most recently available residual [-].
 
     The search covers the current log entry and the |MaxNaNSkip| preceding ones.
-    A value of zero restricts the search to the current log entry."""
+    A value of zero restricts the search to the current log entry.
+    """
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -50,11 +57,7 @@ class MaxNaNSkip(parametertools.Parameter):
 
 class Active(parametertools.Parameter):
     """Flag determining whether the submodel may correct the simulated values at
-    all [-].
-
-    Even when |Active| is |True|, the submodel only corrects the simulated values
-    while the relevant mean simulated value lies within the range defined by
-    |LowerLimit| and |UpperLimit| (see |Calc_IsActive_V1|)."""
+    all [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
@@ -92,9 +95,6 @@ class CorrectionMode(parametertools.Parameter):
     ...
     ValueError: Parameter `correctionmode` of element `?` supports the options \
 `historical`, `forecast`, and `both`, but `always` is given.
-
-    Regardless of |CorrectionMode|, the submodel keeps updating its log and states
-    in both simulation modes (see |Determine_OutputCorrection_V1|).
     """
 
     NDIM: Final[Literal[0]] = 0
@@ -128,13 +128,16 @@ class LowerLimit(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    SPAN = (0.0, None)
+    SPAN = (None, None)
 
     def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim upper values in accordance with :math:`LowerLimit \leq UpperLimit`.
 
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
+        >>> lowerlimit(3.0)
+        >>> lowerlimit
+        lowerlimit(3.0)
         >>> upperlimit.value = 2.0
         >>> lowerlimit(1.0)
         >>> lowerlimit
@@ -156,15 +159,18 @@ class UpperLimit(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    SPAN = (0.0, None)
+    SPAN = (None, None)
 
     def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim lower values in accordance with :math:`LowerLimit \leq UpperLimit`.
 
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
-        >>> lowerlimit.value = 2.0
+        >>> upperlimit(1.0)
+        >>> upperlimit
+        upperlimit(1.0)
         >>> upperlimit(3.0)
+        >>> lowerlimit.value = 2.0
         >>> upperlimit
         upperlimit(3.0)
         >>> upperlimit(1.0)
@@ -194,14 +200,14 @@ class StationarityCheck(parametertools.SpecialParameter):
     >>> stationaritycheck.verify()
     Traceback (most recent call last):
     ...
-    RuntimeError: For parameter `stationaritycheck` of element `?`, it is still \
-unknown whether the stationarity check is enabled.
+    RuntimeError: For parameter `stationaritycheck` of element `?`, no configuration \
+has been defined so far.  Please pass either `active=False` or `active=True` \
+together with the required keyword arguments.
 
     >>> stationaritycheck(active=False)
     >>> stationaritycheck
     stationaritycheck(active=False)
     >>> stationaritycheck.verify()
-
     >>> stationaritycheck(active=True, window=10, ratiominmax=0.5)
     >>> stationaritycheck
     stationaritycheck(active=True, window=10, ratiominmax=0.5)
@@ -320,11 +326,12 @@ lie between zero and one, but `1.5` is given.
         )
 
     def verify(self) -> None:
-        """Raise a |RuntimeError| if the configuration is still unknown."""
+        """Raise a |RuntimeError| if no configuration has been defined so far."""
         if self._config is None:
             raise RuntimeError(
-                f"For parameter {objecttools.elementphrase(self)}, it is still unknown "
-                f"whether the stationarity check is enabled."
+                f"For parameter {objecttools.elementphrase(self)}, no configuration "
+                f"has been defined so far.  Please pass either `active=False` or "
+                f"`active=True` together with the required keyword arguments."
             )
 
     @property
@@ -369,13 +376,10 @@ class VariabilityCheck(parametertools.SpecialParameter):
     """Configuration of the check of whether the simulated values vary little
     enough to base the correction on a long-term mean residual [-].
 
-    |VariabilityCheck| is a special parameter (see |SpecialParameter|).  Either
-    switch the check off by passing `active=False` or switch it on by passing
+    Either switch the check off by passing `active=False` or switch it on by passing
     `active=True` together with the threshold for the sum of the absolute changes of
-    the simulated values within the |EvaluationWindow| divided by |EvaluatedValue|
-    (`maxrelsumdelta`, see |Calc_LowVariability_V1|) and the length of the averaging
-    period (`averagingwindow`, in log entries) for determining the mean-value-based
-    residual under stationary conditions (see |Calc_AveragedResidual_V1|):
+    the simulated values (`maxrelsumdelta`) and the length of the averaging
+    period (`averagingwindow`):
 
     >>> from hydpy.models.statcorr import *
     >>> parameterstep()
@@ -384,8 +388,9 @@ class VariabilityCheck(parametertools.SpecialParameter):
     >>> variabilitycheck.verify()
     Traceback (most recent call last):
     ...
-    RuntimeError: For parameter `variabilitycheck` of element `?`, it is still \
-unknown whether the variability check is enabled.
+    RuntimeError: For parameter `variabilitycheck` of element `?`, no configuration \
+has been defined so far.  Please pass either `active=False` or `active=True` \
+together with the required keyword arguments.
 
     >>> variabilitycheck(active=False)
     >>> variabilitycheck
@@ -515,11 +520,12 @@ must be a positive integer, but `0` is given.
         )
 
     def verify(self) -> None:
-        """Raise a |RuntimeError| if the configuration is still unknown."""
+        """Raise a |RuntimeError| if no configuration has been defined so far."""
         if self._config is None:
             raise RuntimeError(
-                f"For parameter {objecttools.elementphrase(self)}, it is still unknown "
-                f"whether the variability check is enabled."
+                f"For parameter {objecttools.elementphrase(self)}, no configuration "
+                f"has been defined so far.  Please pass either `active=False` or "
+                f"`active=True` together with the required keyword arguments."
             )
 
     @property
@@ -549,21 +555,21 @@ must be a positive integer, but `0` is given.
 
     @property
     def maxrelsumdelta(self) -> float:
-        """The threshold for the relative sum of the absolute changes of the
-        simulated values (zero if the check is disabled)."""
+        """The threshold for the sum of the absolute changes of the simulated values
+        per time step divided by their mean within the |EvaluationWindow|, which
+        decides whether the forecast is shifted to the observed value at the time of
+        forecast or to the mean of the averaging window."""
         return self._get_config()[1]
 
     @property
     def averagingwindow(self) -> int:
-        """The length of the averaging period under stationary conditions in log
-        entries (zero if the check is disabled)."""
+        """The length of the averaging period (number of log entries) for
+        determining the mean-value-based residual under low variability conditions."""
         return self._get_config()[2]
 
 
 class ReductionSteps(parametertools.Parameter):
-    """Number of timesteps for linearly reducing the ARIMA correction to zero once
-    the stationarity check (see |StationarityCheck|) detects instationary
-    conditions [-]."""
+    """Number of timesteps for linearly reducing the ARIMA correction to zero."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -571,13 +577,7 @@ class ReductionSteps(parametertools.Parameter):
 
 
 class MaxAbsShift(parametertools.Parameter):
-    """The maximum absolute shift applied when the current simulated value is not
-    positive or not below |ResidualAnchor| (the simulated value at the time the
-    residual was determined, see |Calc_CorrectedValue_V1|) [unit of the corrected
-    variable].
-
-    This includes the `historical` mode whenever the current observation is
-    available, as |ResidualAnchor| then equals the current simulated value."""
+    """The maximum absolute shift applied."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
@@ -585,12 +585,11 @@ class MaxAbsShift(parametertools.Parameter):
 
 
 class MaxRelShift(parametertools.Parameter):
-    """The maximum relative shift applied when the current simulated value is
-    positive and below |ResidualAnchor| (the simulated value at the time the residual
-    was determined, see |Calc_CorrectedValue_V1|) [-].
+    """The maximum relative shift applied.
 
-    |MaxRelShift| is a fraction, not a percentage.  For example, a value of
-    ``0.1`` restricts the multiplicative correction to ±10 %."""
+    |MaxRelShift| is a fraction, not a percentage as in LARSIM (compare
+    https://larsim.info/larsimhilfe/html/LARSIM-Einzelparameter/LARSIM_Einzelparameter_065_MAX-ARIMA-NQ_[proz].htm)
+    """
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
@@ -600,9 +599,12 @@ class MaxRelShift(parametertools.Parameter):
 class AveragingWindow(parametertools.Parameter):
     """The length (in log entries) of the averaging period immediately
     preceding the current forecast run, used to determine the mean-value-based
-    ARIMA residual (see |Calc_AveragedResidual_V1|) [-].  Set to zero to
+    ARIMA residual [-].
+
+    Set to zero to
     disable mean-value-based correction and rely on the single most recent
-    (pointwise) residual only."""
+    (pointwise) residual only.
+    """
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -610,10 +612,10 @@ class AveragingWindow(parametertools.Parameter):
 
 
 class TransitionSteps(parametertools.Parameter):
-    """The number of forecast steps over which the applied residual
-    transitions linearly from the single most recent (pointwise) residual to
-    the mean-value-based residual determined via |AveragingWindow|,
-    avoiding an abrupt jump right at the start of the forecast horizon [-]."""
+    """The number of forecast steps over which the applied residual transitions
+    linearly from the single most recent (pointwise) residual to the mean-value-based
+    residual determined via |AveragingWindow|, avoiding an abrupt jump right at the
+    start of the forecast horizon [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -623,7 +625,7 @@ class TransitionSteps(parametertools.Parameter):
 class Propagate(parametertools.Parameter):
     """Flag determining whether the corrected discharge is passed on to the
     downstream network (|True|) or calculated only for local output at the
-    current gauge, while the uncorrected inflow is passed on instead
+    current gauge, while the original discharge is passed on instead
     (|False|) [-]."""
 
     NDIM: Final[Literal[0]] = 0

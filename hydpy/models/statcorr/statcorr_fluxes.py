@@ -4,8 +4,8 @@ from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 
 
-class Inflow(sequencetools.FluxSequence):
-    """Inflow [m³/s]."""
+class OriginalQ(sequencetools.FluxSequence):
+    """Original (uncorrected) discharge [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
 
@@ -24,7 +24,7 @@ class CorrectedValue(sequencetools.FluxSequence):
 
 class IsActive(sequencetools.FluxSequence):
     """Flag (1.0: yes, 0.0: no) telling whether the submodel corrected the simulated
-    value in the current simulation step (see |Calc_IsActive_V1|) [-]."""
+    value in the current simulation step [-]."""
 
     NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, 1.0)

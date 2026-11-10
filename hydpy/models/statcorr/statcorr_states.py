@@ -19,16 +19,7 @@ class ReductionFactor(sequencetools.StateSequence):
 class Stationary(sequencetools.StateSequence):
     """Flag (1.0: yes, 0.0: no) telling whether the observed values behaved in a
     stationary way at the last assessment (1.0: apply |ReductionFactor| unabated;
-    0.0: reduce |ReductionFactor| linearly) [-].
-
-    |statcorr_arima010| only reassesses stationarity while |Options.simulationmode|
-    equals `historical`.  While it equals `forecast`, |Stationary| keeps the value
-    determined at the most recent `historical` assessment, so |ReductionFactor|
-    keeps ramping towards zero (or stays at ``1.0``) throughout the whole forecast
-    horizon instead of jumping back to ``1.0`` once the logged observations run
-    out.  Also in `historical` mode, a |numpy.nan| value within the
-    |StationarityWindow| prevents a new assessment, so |Stationary| keeps its
-    previous value."""
+    0.0: reduce |ReductionFactor| linearly) [-]."""
 
     NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, 1.0)
@@ -38,16 +29,7 @@ class Stationary(sequencetools.StateSequence):
 class EvaluatedValue(sequencetools.StateSequence):
     """The mean of the simulated values over the |EvaluationWindow| most recent log
     entries, as determined at the last `historical` assessment [unit of the
-    corrected variable].
-
-    |Calc_IsActive_V1| compares |EvaluatedValue| with |LowerLimit|
-    and |UpperLimit| to decide whether the submodel is responsible for correcting
-    the simulated values.  Like |Stationary|, |statcorr_arima010| only reassesses
-    |EvaluatedValue| while |Options.simulationmode| equals `historical`.
-    While it equals `forecast`, |EvaluatedValue| keeps the value determined
-    at the most recent `historical` assessment, so the responsible submodel does
-    not change throughout the whole forecast horizon, regardless of how the
-    forecasted values develop."""
+    corrected variable]."""
 
     NDIM: Final[Literal[0]] = 0
     INIT = numpy.nan
@@ -56,23 +38,15 @@ class EvaluatedValue(sequencetools.StateSequence):
 class RelSumDelta(sequencetools.StateSequence):
     """The sum of the absolute changes of the simulated values within the
     |EvaluationWindow| divided by |EvaluatedValue|, as determined at the last
-    `historical` assessment [-].
-
-    Like |Stationary|, |statcorr_arima010| only reassesses |RelSumDelta| while
-    |Options.simulationmode| equals `historical`."""
+    `historical` assessment [-]."""
 
     NDIM: Final[Literal[0]] = 0
     INIT = numpy.nan
 
 
 class LowVariability(sequencetools.StateSequence):
-    """Flag (1.0: yes, 0.0: no) telling whether the variability check (see
-    |VariabilityCheck|) found stationary conditions at the last assessment, so that
-    the mean-value-based residual relies on the |StationaryAveragingWindow| instead
-    of the |AveragingWindow| [-].
-
-    Like |Stationary|, |statcorr_arima010| only reassesses |LowVariability| while
-    |Options.simulationmode| equals `historical`."""
+    """Flag (1.0: yes, 0.0: no) telling whether the variability check found
+    low variability conditions at the last assessment [-]."""
 
     NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, 1.0)
@@ -81,13 +55,7 @@ class LowVariability(sequencetools.StateSequence):
 
 class ForecastStep(sequencetools.StateSequence):
     """The number of elapsed forecast steps since the start of the current
-    forecast run (``0.0`` on the first forecast step), reset to ``0.0``
-    whenever |Options.simulationmode| equals `historical` [-].
-
-    |Calc_CorrectedValue_V1| uses |ForecastStep| to linearly blend the
-    applied residual from the single most recent (pointwise) value towards
-    the mean-value-based residual determined via |AveragingWindow|
-    over |TransitionSteps| forecast steps."""
+    forecast run [-]."""
 
     NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, None)
@@ -95,29 +63,16 @@ class ForecastStep(sequencetools.StateSequence):
 
 
 class AveragedResidual(sequencetools.StateSequence):
-    """The mean-value-based ARIMA residual (mean observed minus mean simulated
-    values over the |AveragingWindow| log entries immediately
-    preceding the current forecast run), determined once at the first
-    forecast step and kept unchanged for the remainder of the forecast
-    horizon [unit of the corrected variable]."""
+    """The mean-value-based residual (mean observed minus mean simulated value)
+    [unit of the corrected variable]."""
 
     NDIM: Final[Literal[0]] = 0
     INIT = 0.0
 
 
 class Residual(sequencetools.StateSequence):
-    """The pointwise ARIMA residual (observed minus simulated values, taken
-    from the most recently logged entry with a non-|numpy.nan| observation,
-    skipping at most |MaxNaNSkip| entries with missing observations)
-    [unit of the corrected variable].
-
-    Like |Stationary|, |statcorr_arima010| only
-    reassesses |Residual| while |Options.simulationmode| equals `historical`.
-    While it equals `forecast`, |Residual| keeps the value determined at the
-    most recent `historical` assessment, so the applied correction persists
-    throughout the whole forecast horizon (subject only to
-    |ReductionFactor|) instead of vanishing as soon as the underlying log
-    entry drops out of the logging window."""
+    """The pointwise residual (observed minus simulated value) [unit of the
+    corrected variable]."""
 
     NDIM: Final[Literal[0]] = 0
     INIT = 0.0
@@ -125,10 +80,7 @@ class Residual(sequencetools.StateSequence):
 
 class ResidualAnchor(sequencetools.StateSequence):
     """The simulated value at the log position from which
-    |Residual| was determined [unit of the corrected variable].
-
-    Frozen together with |Residual| while |Options.simulationmode| equals
-    `forecast`; see |Residual| for details."""
+    |Residual| was determined [unit of the corrected variable]."""
 
     NDIM: Final[Literal[0]] = 0
     INIT = 0.0

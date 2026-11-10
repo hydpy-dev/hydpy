@@ -4,30 +4,30 @@ import abc
 
 from hydpy.core import parametertools
 from hydpy.core import variabletools
-
+# from hydpy.models.statcorr import statcorr_derived  actual import below
 
 class MixinLogEntries(variabletools.Variable, abc.ABC):
     """Mixin class for 1-dimensional log sequences whose shape depends on the value of
     parameter |NmbLogEntries|.
 
-    We take the log sequence |LoggedObservedValue| as an example:
+    We take the log sequence |LoggedObservation| as an example:
 
     >>> from hydpy.models.statcorr import *
     >>> parameterstep()
     >>> derived.nmblogentries(3)
-    >>> logs.loggedobservedvalue
-    loggedobservedvalue(nan, nan, nan)
+    >>> logs.loggedobservation
+    loggedobservation(nan, nan, nan)
 
     To prevent losing information, updating parameter |NmbLogEntries| resets the
     shape only when necessary:
 
-    >>> logs.loggedobservedvalue = 1.0
+    >>> logs.loggedobservation = 1.0
     >>> derived.nmblogentries(3)
-    >>> logs.loggedobservedvalue
-    loggedobservedvalue(1.0, 1.0, 1.0)
+    >>> logs.loggedobservation
+    loggedobservation(1.0, 1.0, 1.0)
     >>> derived.nmblogentries(2)
-    >>> logs.loggedobservedvalue
-    loggedobservedvalue(nan, nan)
+    >>> logs.loggedobservation
+    loggedobservation(nan, nan)
     """
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:

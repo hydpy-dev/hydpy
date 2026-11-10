@@ -1604,10 +1604,8 @@ def _get_regular_parameter_type(type_: Type) -> Type:
 def _get_ndim_and_type(
     context: AttributeContext | MethodContext | MethodSigContext,
 ) -> tuple[int, type] | None:
-    if isinstance(var_inst := context.type, Instance) and (
-        (fullname := var_inst.type.fullname) in VAR_INFO
-    ):
-        return VAR_INFO[fullname]
+    if isinstance(var_inst := context.type, Instance):
+        return _get_inherited_ndim_and_type(var_inst.type)
     return None
 
 
@@ -1786,7 +1784,7 @@ def _get_value_type(
     """
     if not isinstance(inst := get_proper_type(type_), Instance):
         return type_
-    if (ndim_type := VAR_INFO.get(inst.type.fullname)) is not None:
+    if (ndim_type := _get_inherited_ndim_and_type(inst.type)) is not None:
         return _get_vectorlike(
             context=context, ndim=ndim_type[0], type_=ndim_type[1], input_=False
         )
@@ -1821,7 +1819,7 @@ def _get_dimensionality(
     scalar, or vector-like type, if determinable."""
     proper = get_proper_type(type_)
     if isinstance(proper, Instance):
-        if (ndim_type := VAR_INFO.get(proper.type.fullname)) is not None:
+        if (ndim_type := _get_inherited_ndim_and_type(proper.type)) is not None:
             return ndim_type
         if (scalar := SCALAR_TYPES.get(proper.type.fullname)) is not None:
             return 0, scalar
@@ -2076,7 +2074,7 @@ def _check_inplace_result(
         isinstance(api := context.api, TypeChecker)
         and not isinstance(get_proper_type(result), AnyType)
         and isinstance(var_inst := get_proper_type(var_type), Instance)
-        and ((ndim_type := VAR_INFO.get(var_inst.type.fullname)) is not None)
+        and ((ndim_type := _get_inherited_ndim_and_type(var_inst.type)) is not None)
         and (
             (
                 target := _get_vectorlike(
@@ -2108,7 +2106,7 @@ def _apply_unary_operator(
     if (
         not isinstance(api := context.api, TypeChecker)
         or not isinstance(var_inst := get_proper_type(var_type), Instance)
-        or ((ndim_type := VAR_INFO.get(var_inst.type.fullname)) is None)
+        or ((ndim_type := _get_inherited_ndim_and_type(var_inst.type)) is None)
         or ((self_value := _get_value_type(context, var_inst)) is None)
     ):
         return default
@@ -2315,7 +2313,7 @@ def _get_variable_args(context: FunctionContext) -> list[tuple[int, str]]:
     for arg_types in context.arg_types:
         for arg_type in arg_types:
             if isinstance(var_inst := get_proper_type(arg_type), Instance) and (
-                (ndim_type := VAR_INFO.get(var_inst.type.fullname)) is not None
+                (ndim_type := _get_inherited_ndim_and_type(var_inst.type)) is not None
             ):
                 infos.append((ndim_type[0], var_inst.type.name))
     return infos
@@ -3050,8 +3048,7 @@ class MypyPlugin(Plugin):
         """Return the type information of the (base or concrete) subclass of `Variable`
         identified by the given full name, if available."""
         if (
-            fullname.startswith("hydpy.")
-            and ((symbol := self.lookup_fully_qualified(fullname)) is not None)
+            ((symbol := self.lookup_fully_qualified(fullname)) is not None)
             and isinstance(info := symbol.node, TypeInfo)
             and info.has_base("hydpy.core.variabletools.Variable")
         ):

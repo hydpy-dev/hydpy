@@ -1,4 +1,5 @@
 # pylint: disable=missing-module-docstring, used-before-assignment
+# pylint: disable=unnecessary-dunder-call
 # mypy: disable-error-code="no-untyped-call"
 
 if __name__ == "__main__":
@@ -173,8 +174,21 @@ if __name__ == "__main__":
     assert_type(math.ceil(zonearea), typingtools.VectorInt)
     assert_type(math.trunc(area), int)
     assert_type(math.trunc(zonearea), typingtools.VectorInt)
-    assert_type(round(area), float)
+    assert_type(round(area), int)
+    assert_type(round(area, None), int)
+    assert_type(round(area, 1), float)
+    assert_type(area.__round__(), int)
+    assert_type(area.__round__(1), float)
+    assert_type(round(nmbzones), int)
+    assert_type(round(nmbzones, -1), int)
+    assert_type(round(resparea), int)
+    assert_type(round(zonearea), typingtools.VectorFloat)
     assert_type(round(zonearea, 1), typingtools.VectorFloat)
+    assert_type(zonearea.__round__(1), typingtools.VectorFloat)
+    assert_type(round(zonetype), typingtools.VectorInt)
+    assert_type(round(water), typingtools.VectorBool)
+    round(area, "1")  # type: ignore[call-overload]
+    area.__round__("1")  # type: ignore[arg-type]
     assert_type(abs(parameter), Any)
     assert_type(-sim, float)
     assert_type(math.floor(sim), int)

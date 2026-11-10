@@ -4,6 +4,7 @@ potential problems in situations where HydPy relies on runtime behaviour that is
 (and possibly cannot be) expressed via static type hints."""
 
 from calendar import monthrange
+from collections.abc import Sequence
 from configparser import ConfigParser
 from os.path import join, split
 from hashlib import sha256
@@ -2026,7 +2027,10 @@ def _check_inplace_result(
 
 
 def _apply_unary_operator(
-    context: FunctionContext | MethodContext, var_type: Type, method: str
+    context: FunctionContext | MethodContext,
+    var_type: Type,
+    method: str,
+    args: Sequence[Type] = (),
 ) -> Type:
     default = _get_plain_any(context.default_return_type)
     if (
@@ -2048,15 +2052,26 @@ def _apply_unary_operator(
             left=api.named_type("builtins.float"),
             right=self_value,
         )
-    if method == "__round__":
+    if (method == "__round__") and (ndim_type[0] > 0):
+        # `Variable.__round__` preserves the type of multidimensional values
         return self_value
-    return api.expr_checker.check_method_call_by_name(
+    # 0-dimensional variables behave like their values (with `__round__`, this
+    # includes the distinction between passing `ndigits` or not):
+    check = partial(
+        api.expr_checker.check_method_call_by_name,
         method=method,
         base_type=self_value,
-        args=[],
-        arg_kinds=[],
+        args=[TempNode(arg, context=context.context) for arg in args],
+        arg_kinds=[ARG_POS] * len(args),
         context=context.context,
-    )[0]
+    )
+    if not args:
+        return check()[0]
+    # Mypy already checks `ndigits` against the signatures of `Variable.__round__`
+    # and `builtins.round`, so we suppress duplicate errors:
+    with api.msg.filter_errors() as watcher:
+        result = check()[0]
+    return default if watcher.has_new_errors() else result
 
 
 def unary_operator_hook(context: MethodContext, method: str) -> Type:
@@ -2067,7 +2082,10 @@ def unary_operator_hook(context: MethodContext, method: str) -> Type:
     `VariableY.__neg__() -> VectorFloat`
     ...
     """
-    return _apply_unary_operator(context=context, var_type=context.type, method=method)
+    args = context.arg_types[0] if context.arg_types else []
+    return _apply_unary_operator(
+        context=context, var_type=context.type, method=method, args=args
+    )
 
 
 def unary_function_hook(context: FunctionContext, method: str) -> Type:
@@ -2084,8 +2102,9 @@ def unary_function_hook(context: FunctionContext, method: str) -> Type:
         or not _may_refine(arg_types[0][0], method)
     ):
         return _get_plain_any(context.default_return_type)
+    args = arg_types[1] if len(arg_types) > 1 else []
     return _apply_unary_operator(
-        context=context, var_type=arg_types[0][0], method=method
+        context=context, var_type=arg_types[0][0], method=method, args=args
     )
 
 

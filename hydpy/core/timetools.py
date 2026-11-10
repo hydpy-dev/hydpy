@@ -35,6 +35,16 @@ TypeTimegrid = TypeVar("TypeTimegrid", bound="Timegrid")
 TypeTOY = TypeVar("TypeTOY", bound="TOY")  # pylint: disable=invalid-name
 TypeUnit: TypeAlias = Literal["days", "d", "hours", "h", "minutes", "m", "seconds", "s"]
 
+_NUMPYSCALARTYPES = (numpy.integer, numpy.floating, numpy.bool_)
+_SCALARTYPES = (int, float) + _NUMPYSCALARTYPES
+
+
+def _to_pythonscalar(value: ScalarInputFloat) -> float:
+    """Convert |numpy| scalars to the corresponding Python scalars."""
+    if isinstance(value, _NUMPYSCALARTYPES):
+        return value.item()
+    return value
+
 
 class Date:
     """Handles a single date.
@@ -459,7 +469,7 @@ base 10: '0X'
             array = array[:, 0]
         return cls.from_datetime(datetime_.datetime(*array.astype(int)[:6]))
 
-    def to_array(self) -> numpy.ndarray:
+    def to_array(self) -> VectorFloat:
         """Return a 1-dimensional |numpy| |numpy.ndarray|  with six entries defining
         the actual date (year, month, day, hour, minute, second).
 
@@ -1193,6 +1203,25 @@ following error occurred: The supplied argument must be either an instance of \
     >>> period
     Period("2d")
 
+    Multiplication and division also accept |numpy| scalars:
+
+    >>> import numpy
+    >>> period * numpy.int64(2)
+    Period("4d")
+    >>> numpy.float32(0.5) * period
+    Period("1d")
+    >>> period / numpy.int64(2)
+    Period("1d")
+    >>> period / numpy.float32(0.5)
+    Period("4d")
+
+    Strings are not interpreted as numbers:
+
+    >>> period * "2"  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    TypeError: can't multiply sequence by non-int of type ...
+
     Floor division and calculation of the remainder are also supported:
 
     >>> period // "20h"
@@ -1674,14 +1703,14 @@ moment.
         self.timedelta -= type(self)(other).timedelta
         return self
 
-    def __mul__(self: TypePeriod, other: float) -> TypePeriod:
-        return type(self).from_timedelta(self.timedelta * other)
+    def __mul__(self: TypePeriod, other: ScalarInputFloat) -> TypePeriod:
+        return type(self).from_timedelta(self.timedelta * _to_pythonscalar(other))
 
-    def __rmul__(self: TypePeriod, other: float) -> TypePeriod:
+    def __rmul__(self: TypePeriod, other: ScalarInputFloat) -> TypePeriod:
         return self.__mul__(other)
 
-    def __imul__(self: TypePeriod, other: float) -> TypePeriod:
-        self.timedelta *= other
+    def __imul__(self: TypePeriod, other: ScalarInputFloat) -> TypePeriod:
+        self.timedelta *= _to_pythonscalar(other)
         return self
 
     @overload
@@ -1689,26 +1718,26 @@ moment.
         """Divide the |Period| object through another |Period| object."""
 
     @overload
-    def __truediv__(self: TypePeriod, other: float) -> TypePeriod:
+    def __truediv__(self: TypePeriod, other: ScalarInputFloat) -> TypePeriod:
         """Divide the |Period| object through a number object."""
 
     def __truediv__(
-        self: TypePeriod, other: PeriodConstrArg | float
+        self: TypePeriod, other: PeriodConstrArg | ScalarInputFloat
     ) -> TypePeriod | float:
-        if isinstance(other, (float, int)):
-            return type(self).from_timedelta(self.timedelta / other)
+        if isinstance(other, _SCALARTYPES):
+            return type(self).from_timedelta(self.timedelta / _to_pythonscalar(other))
         return self.seconds / type(self)(other).seconds
 
     def __rtruediv__(self, other: PeriodConstrArg) -> float:
         return type(self)(other).seconds / self.seconds
 
     def __itruediv__(  # type: ignore[misc]
-        self: TypePeriod, other: float
+        self: TypePeriod, other: ScalarInputFloat
     ) -> TypePeriod:
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
         # course)
-        self.timedelta /= other
+        self.timedelta /= _to_pythonscalar(other)
         return self
 
     def __floordiv__(self, other: PeriodConstrArg) -> int:
@@ -1819,6 +1848,12 @@ supplied argument must be either an instance of `Period`, `datetime.timedelta`, 
     0
     >>> timegrid["2000-01-06"]
     5
+
+    Integer indices can also be |numpy| integers:
+
+    >>> import numpy
+    >>> timegrid[numpy.int64(5)]
+    Date("2000-01-06 00:00:00")
 
     Indexing beyond the ranges of the actual period is allowed:
 
@@ -2191,7 +2226,7 @@ required, but the given array consists of 12 entries only.
         return cls(firstdate, lastdate, stepsize)
 
     def to_timepoints(
-        self, unit: TypeUnit = "hours", offset: float | PeriodConstrArg = 0.0
+        self, unit: TypeUnit = "hours", offset: ScalarInputFloat | PeriodConstrArg = 0.0
     ) -> numpy.ndarray:
         """Return a |numpy.ndarray| representing the starting time points of the
         |Timegrid| object.
@@ -2210,10 +2245,13 @@ required, but the given array consists of 12 entries only.
         >>> print_vector(timegrid.to_timepoints(unit="d"))
         0.0, 0.25, 0.5, 0.75
 
-        Additionally, one can pass an `offset` that must be of type |int| or a valid
-        |Period| initialisation argument:
+        Additionally, one can pass an `offset` that must be a number (including
+        |numpy| scalars) or a valid |Period| initialisation argument:
 
         >>> print_vector(timegrid.to_timepoints(offset=24))
+        24.0, 30.0, 36.0, 42.0
+        >>> import numpy
+        >>> print_vector(timegrid.to_timepoints(offset=numpy.int64(24)))
         24.0, 30.0, 36.0, 42.0
         >>> print_vector(timegrid.to_timepoints(offset="1d"))
         24.0, 30.0, 36.0, 42.0
@@ -2244,7 +2282,7 @@ required, but the given array consists of 12 entries only.
         1.25, 1.5, 1.75, 2.0
         """
         period = Period.from_cfunits(unit)
-        if not isinstance(offset, (float, int)):
+        if not isinstance(offset, _SCALARTYPES):
             offset = Period(offset) / period
         step = self.stepsize / period
         if not hydpy.pub.options.timestampleft:
@@ -2458,15 +2496,15 @@ the step size `4d`.
         return abs(int((self.lastdate - self.firstdate) / self.stepsize))
 
     @overload
-    def __getitem__(self, key: int) -> Date:
+    def __getitem__(self, key: ScalarInputInt) -> Date:
         """Get the date corresponding to the given index value."""
 
     @overload
     def __getitem__(self, key: DateConstrArg) -> int:
         """Get the index value corresponding to the given date."""
 
-    def __getitem__(self, key: int | DateConstrArg) -> Date | int:
-        if isinstance(key, (int, float)):
+    def __getitem__(self, key: ScalarInputInt | DateConstrArg) -> Date | int:
+        if isinstance(key, _SCALARTYPES):
             return Date(self.firstdate + key * self.stepsize)
         key = Date(key)
         index = (key - self.firstdate) / self.stepsize

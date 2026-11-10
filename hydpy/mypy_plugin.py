@@ -39,11 +39,14 @@ from mypy.nodes import (
     Decorator,
     Expression,
     FuncDef,
+    ListComprehension,
+    ListExpr,
     MemberExpr,
     MypyFile,
     NameExpr,
     OverloadedFuncDef,
     TempNode,
+    TupleExpr,
     TypeAlias,
     TypeInfo,
     Var,
@@ -713,6 +716,34 @@ def trim_hook(context: MethodSigContext) -> FunctionLike:
         return default
     vl_opt = UnionType(items=[vectorlike, NoneType()])
     return default.copy_modified(arg_types=(vl_opt, vl_opt))
+
+
+LITERALS: Final = (ListExpr, TupleExpr, ListComprehension)
+
+
+def _match_literal(
+    api: TypeChecker, expr: Expression, candidates: Type
+) -> tuple[Type | None, Type]:
+    """Return the first of the given candidate types that fits the given container
+    literal (like `[x, y]`), if any, and the literal's type inferred in the context of
+    this candidate (or without context, if no candidate fits).
+
+    Mypy infers container literals based on the type context.  However, contexts like
+    `Any` (unknown) or unions of multiple sequence types (ambiguous) do not help, and
+    mypy falls back to types like `list[Any]` (too wide, so invalid items pass) or
+    `list[object]` (joined, so valid items like `[numpy.int64(1), 2]` fail).  Hence,
+    we try each candidate separately.
+    """
+    proper = get_proper_type(candidates)
+    items = proper.items if isinstance(proper, UnionType) else [candidates]
+    for item in items:
+        with api.msg.filter_errors() as watcher:
+            with api.local_type_map:
+                inferred = api.expr_checker.accept(expr, type_context=item)
+        if not watcher.has_new_errors() and is_subtype(inferred, item):
+            return item, inferred
+    with api.msg.filter_errors(), api.local_type_map:
+        return None, api.expr_checker.accept(expr)
 
 
 def call_hook(context: MethodSigContext) -> FunctionLike:
@@ -2173,13 +2204,22 @@ def setitem_hook(context: MethodContext) -> Type:
     ):
         return context.default_return_type
     key, value = context.arg_types[0][0], context.arg_types[1][0]
+    value_expr = context.args[1][0]
+
+    def _get_value(candidates: Type) -> Type:
+        # `__setitem__` annotates `value` with `Any`, so mypy infers container
+        # literals like `[x, y]` as `list[Any]`, which would let invalid items pass
+        if isinstance(value_expr, LITERALS):
+            return _match_literal(api, value_expr, candidates)[1]
+        return value
+
     if ((ndim_type := _get_ndim_and_type(context)) is None) or (
         (self_value := _get_value_type(context, context.type)) is None
     ):
         # unknown dimensionality or value type: accept all numerical values
         if (
             (anylike := _get_any_vectorlike(context, input_=True)) is not None
-        ) and not is_subtype(value, anylike):
+        ) and not is_subtype(value := _get_value(anylike), anylike):
             api.fail(
                 f"Incompatible value for item assignment (value "
                 f"{format_type(value, api.options)}, variable accepts only numbers "
@@ -2215,9 +2255,10 @@ def setitem_hook(context: MethodContext) -> Type:
         for n in range(ndim + 1)
     ]
     if all(target is not None for target in targets):
+        supertype = UnionType.make_union([t for t in targets if t is not None])
         api.check_subtype(
-            subtype=value,
-            supertype=UnionType.make_union([t for t in targets if t is not None]),
+            subtype=_get_value(supertype),
+            supertype=supertype,
             context=context.context,
             msg=ErrorMessage("Incompatible value for item assignment", code=ASSIGNMENT),
             subtype_label="value",

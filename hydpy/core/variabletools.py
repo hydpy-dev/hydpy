@@ -780,6 +780,32 @@ following error occurred: unsupported operand type(s) for +: 'float' and 'str'
     >>> math.trunc(var)
     2
 
+    Function |round| also treats 0-dimensional variables like their values.  Hence, it
+    returns an |int| if you do not specify the number of digits and a value of the
+    variable's type otherwise:
+
+    >>> round(var)
+    2
+    >>> round(var, None)
+    2
+    >>> round(var, 0)
+    2.0
+    >>> var.value = 1.67
+    >>> round(var, 1)
+    1.7
+    >>> Var.TYPE = int
+    >>> var.value = 15
+    >>> round(var)
+    15
+    >>> round(var, -1)
+    20
+    >>> Var.TYPE = bool
+    >>> var.value = True
+    >>> round(var)
+    1
+    >>> Var.TYPE = float
+    >>> var.value = 2.5
+
     Rounding to integers fails for non-finite values:
 
     >>> from numpy import inf, nan
@@ -795,6 +821,13 @@ following error occurred: cannot convert float NaN to integer
     ...
     OverflowError: While trying to apply function `ceil` on variable `var`, the \
 following error occurred: cannot convert float infinity to integer
+    >>> round(var)
+    Traceback (most recent call last):
+    ...
+    OverflowError: While trying to apply function `round` on variable `var`, the \
+following error occurred: cannot convert float infinity to integer
+    >>> round(var, 1)
+    inf
 
     >>> var.value = 2.5
     >>> bool(var)
@@ -925,6 +958,33 @@ following error occurred: cannot convert float infinity to integer
     >>> var.values = 1.67
     >>> print_vector(round(var, 1))
     1.7, 1.7
+
+    For multidimensional variables, |round| relies on |numpy.round| and so preserves the
+    variable's type, even if you do not specify the number of digits:
+
+    >>> var.values = 2.5, 3.5
+    >>> round(var)
+    array([2., 4.])
+    >>> round(var, 0)
+    array([2., 4.])
+    >>> var.values = 2.5, nan
+    >>> round(var)
+    array([ 2., nan])
+
+    Rounding boolean values changes nothing, so |round| returns them unchanged (as a
+    copy) instead of letting |numpy.round| convert them to floating point numbers:
+
+    >>> Var.TYPE = bool
+    >>> var.values = True, False
+    >>> rounded = round(var)
+    >>> rounded
+    array([ True, False])
+    >>> rounded[0] = False
+    >>> var
+    var(True, False)
+    >>> Var.TYPE = float
+
+    >>> var.values = 1.67
     >>> bool(var)
     True
     >>> int(var)
@@ -2417,8 +2477,19 @@ not a submask of `Soil([ True,  True, False])`.
     def __int__(self) -> int:
         return self._typeconversion(int)
 
-    def __round__(self, ndigits: int = 0) -> GeneralHook:
-        return numpy.round(self.value, ndigits)
+    def __round__(self, ndigits: int | None = None) -> GeneralHook:
+        try:
+            if self.NDIM == 0:
+                return round(self.value, ndigits)
+            values = self.value
+            if values.dtype == bool:
+                return values.copy()
+            return numpy.round(values, ndigits or 0)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to apply function `round` on variable "
+                f"{objecttools.devicephrase(self)}"
+            )
 
     def __array__(  # pylint: disable=redefined-outer-name
         self, dtype: numpy.dtype[Any] | None = None, copy: bool | None = None

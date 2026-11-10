@@ -2190,11 +2190,11 @@ boolean.
 def is_equal(xs: NestedFloat, ys: NestedFloat, /) -> bool:
     """Check if the given nested data objects agree in their structure and values.
 
-    |is_equal| always considers numpy arrays as unequal to lists and tuples and nan
-    values as equal to other nan values.
+    |is_equal| always considers numpy arrays as unequal to lists and tuples and
+    |numpy.nan| values as equal to other |numpy.nan| values.
 
     >>> from hydpy.core.objecttools import is_equal
-    >>> from numpy import array, nan, ones
+    >>> from numpy import array, float32, float64, int64, nan, ones
 
     Scalars:
 
@@ -2204,6 +2204,14 @@ def is_equal(xs: NestedFloat, ys: NestedFloat, /) -> bool:
     >>> assert is_equal(nan, nan)
     >>> assert not is_equal(1, nan)
     >>> assert not is_equal(nan, 2)
+    >>> assert is_equal(int64(1), int64(1))
+    >>> assert is_equal(1, int64(1))
+    >>> assert is_equal(float64(1.0), int64(1))
+    >>> assert is_equal(float32(nan), nan)
+    >>> assert not is_equal(int64(1), [int64(1)])
+    >>> assert not is_equal([int64(1)], int64(1))
+    >>> is_equal(1.0, nan), is_equal(float64(1.0), float64(1.0))
+    (False, True)
 
     Arrays:
 
@@ -2233,10 +2241,11 @@ def is_equal(xs: NestedFloat, ys: NestedFloat, /) -> bool:
     >>> assert is_equal([1, {"a": [2, ones(3)]}], [1, {"a": [2, ones(3)]}])
     >>> assert not is_equal([1, {"a": [2, ones(3)]}], [1, {"a": [2, ones(4)]}])
     """
-    if isinstance(xs, (float, int, bool)):
-        if not isinstance(ys, (float, int, bool)):
+    scalartypes = (int, float, numpy.integer, numpy.floating, numpy.bool_)
+    if isinstance(xs, scalartypes):
+        if not isinstance(ys, scalartypes):
             return False
-        return (xs == ys) or (numpy.isnan(xs) and numpy.isnan(ys))
+        return bool((xs == ys) or (numpy.isnan(xs) and numpy.isnan(ys)))
     if isinstance(xs, numpy.ndarray):
         if not isinstance(ys, numpy.ndarray):
             return False

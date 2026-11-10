@@ -10,8 +10,8 @@ designed for different kinds of variables, and the submodels complying with the
 the currently available application model |statcorr_main| focuses on discharge: it
 reads the simulated discharge from its inlet node(s), passes it through one or more
 |OutputCorrModel_V1| submodels, and delivers the corrected discharge to its outlet
-node.  |statcorr_arima010| is such a submodel; it estimates the correction from an
-ARIMA(0,1,0) error model, following the LARSIM approach.
+node.  |statcorr_arima010| is such a submodel; it estimates the correction with an
+ARIMA(0,1,0) error model, following the LARSIM approach (see https://larsim.info).
 
 Available models:
 

@@ -332,6 +332,13 @@ if __name__ == "__main__":
     sred[0] = [1.0, 2.0]
     sred[0, 0] = 1.0
     sred[:] = [[1.0], [2.0]]
+    sred[0] = [numpy.int64(1), 2.0]
+    sred[:] = [[numpy.int64(1), 2.0], [3.0, 4.0]]
+    sred[0] = ["a", "b"]  # type: ignore[assignment]
+    sred[:] = [["a"], ["b"]]  # type: ignore[assignment]
+    sred[0] = [str(x) for x in range(2)]  # type: ignore[assignment]
+    zonearea[:] = ("a", "b")  # type: ignore[assignment]
+    parameter[0] = ["a"]  # type: ignore[assignment]
     parameter[0] = 1
     parameter[:] = [[1.0, 2.0], [3.0, 4.0]]
     parameter[:] = vector

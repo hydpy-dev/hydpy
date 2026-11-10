@@ -307,6 +307,27 @@ if __name__ == "__main__":
     subfloats_str: list[str] = list(subzonearea)  # type: ignore[arg-type]
     tuple_str: tuple[str, ...] = tuple(zonetype)  # type: ignore[arg-type]
     sorted_str: list[str] = sorted(zonearea)  # type: ignore[arg-type]
+
+    # subclasses of concrete variables inherit all refinements
+    assert_type(subarea + 1.0, float)
+    assert_type(-subarea, float)
+    assert_type(round(subarea), int)
+    assert_type(subarea[0], float)
+    assert_type(float(subarea), float)
+    _ = len(subarea)  # type: ignore[arg-type]
+    assert_type(subzonearea + zonetype, typingtools.VectorFloat)
+    assert_type(subzonearea[0], numpy.float64)
+    assert_type(math.floor(subzonearea), typingtools.VectorInt)
+    assert_type(numpy.sum(subzonearea), numpy.float64)
+    assert_type(numpy.asarray(subzonearea), typingtools.NDArrayFloat)
+    subzonearea += 1.0
+    subzonearea[0] = 1.0
+    subzonearea[0] = "wrong"  # type: ignore[assignment]
+    subzonearea(1.0, 2.0)
+    subzonearea(["wrong"])  # type: ignore[list-item]
+    assert_type(subsred[0], typingtools.VectorFloat)
+    subsred[0] = [numpy.int64(1), 2.0]
+    subsred([[numpy.int64(1), 2.0], [3.0, 4.0]])
     iterable_str: Iterable[str] = zonearea  # type: ignore[assignment]
     rows_float: Iterable[numpy.float64] = sred  # type: ignore[assignment]
     take_strings(zonetype)  # type: ignore[arg-type]

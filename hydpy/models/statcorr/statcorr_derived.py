@@ -210,9 +210,7 @@ class RatioMinMax(parametertools.Parameter):
 
 class MaxRelSumDelta(parametertools.Parameter):
     """The threshold for the sum of the absolute changes of the simulated values
-    within the |EvaluationWindow| divided by their mean (see |RelSumDelta|) of the
-    variability check (zero if the variability check is disabled, see
-    |StationarityCheck|) [-]."""
+    within the |EvaluationWindow| divided by their mean [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
@@ -245,7 +243,7 @@ class MaxRelSumDelta(parametertools.Parameter):
 class StationaryAveragingWindow(parametertools.Parameter):
     """The length of the averaging period for determining the mean-value-based
     residual under low variability conditions in log entries (zero if the
-    variability check is disabled, see |StationarityCheck|) [-]."""
+    variability check is disabled [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int

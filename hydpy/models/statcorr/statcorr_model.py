@@ -90,12 +90,13 @@ class Calc_OutputCorr_V1(modeltools.Method):
          |OutputCorrModel_V1.determine_outputcorrection|.
       3. Each submodel decides for itself, based on its own |Active| flag, its
          |CorrectionMode|, and its |LowerLimit| and |UpperLimit| parameters,
-         whether it is responsible for the current discharge (see
-         |OutputCorrModel_V1.is_active|).  The corrected output of the *last*
-         responsible submodel is taken as |CorrectedQ|.  When no submodel is
-         attached or responsible, |CorrectedQ| equals |OriginalQ|.  Hence, attaching
-         several submodels configured for mutually exclusive discharge ranges lets
-         only the one responsible for the current discharge take effect.
+         whether it is responsible for the current observed discharge (see
+         |EvaluatedValue| and |OutputCorrModel_V1.is_active|).  The corrected
+         output of the *last* responsible submodel is taken as |CorrectedQ|.  When
+         no submodel is attached or responsible, |CorrectedQ| equals |OriginalQ|.
+         Hence, attaching several submodels configured for mutually exclusive
+         discharge ranges lets only the one responsible for the current observed
+         discharge take effect.
 
     Examples:
 
@@ -129,7 +130,6 @@ class Calc_OutputCorr_V1(modeltools.Method):
         ...     submodel.parameters.control.averagingwindow(0)
         ...     submodel.parameters.control.transitionsteps(0)
         ...     submodel.parameters.control.stationaritycheck(active=False)
-        ...     submodel.parameters.control.variabilitycheck(active=False)
         ...     submodel.parameters.control.reductionsteps(1)
 
         >>> nmbsubmodels(1)
@@ -161,27 +161,29 @@ class Calc_OutputCorr_V1(modeltools.Method):
         ... ) as submodel:
         ...     configure(submodel, lowerlimit=3.0)
 
-        For an original discharge of 2.5 m³/s, only the first submodel is responsible.
-        Hence, its corrected output wins, although the second submodel comes
-        later and returns the original discharge:
+        The submodels decide based on the observed discharge.  For an observed
+        discharge of 2.5 m³/s, only the first submodel is responsible, although the
+        original discharge of 3.5 m³/s lies within the range of the second one.
+        Hence, the corrected output of the first submodel wins, although the second
+        submodel comes later and returns the original discharge:
+
+        >>> fluxes.originalq = 3.5
+        >>> inputs.discharge = 2.5
+        >>> model.calc_outputcorr_v1()
+        >>> fluxes.correctedq
+        correctedq(2.5)
+        >>> model.outputcorrmodels[0].sequences.fluxes.isactive
+        isactive(1.0)
+        >>> model.outputcorrmodels[1].sequences.fluxes.isactive
+        isactive(0.0)
+
+        For an observed discharge of 4.0 m³/s, the second submodel takes over:
 
         >>> fluxes.originalq = 2.5
         >>> inputs.discharge = 4.0
         >>> model.calc_outputcorr_v1()
         >>> fluxes.correctedq
         correctedq(4.0)
-        >>> model.outputcorrmodels[0].sequences.fluxes.isactive
-        isactive(1.0)
-        >>> model.outputcorrmodels[1].sequences.fluxes.isactive
-        isactive(0.0)
-
-        For an original discharge of 3.5 m³/s, the second submodel takes over:
-
-        >>> fluxes.originalq = 3.5
-        >>> inputs.discharge = 3.0
-        >>> model.calc_outputcorr_v1()
-        >>> fluxes.correctedq
-        correctedq(3.0)
         >>> model.outputcorrmodels[0].sequences.fluxes.isactive
         isactive(0.0)
         >>> model.outputcorrmodels[1].sequences.fluxes.isactive
@@ -192,7 +194,7 @@ class Calc_OutputCorr_V1(modeltools.Method):
         >>> model.outputcorrmodels[1].parameters.control.active(False)
         >>> model.calc_outputcorr_v1()
         >>> fluxes.correctedq
-        correctedq(3.5)
+        correctedq(2.5)
 
         While |Options.simulationmode| equals ``forecast``, |Calc_OutputCorr_V1|
         ignores the actual value of |Discharge| and passes |numpy.nan| to the
@@ -383,31 +385,51 @@ class Set_ObservedValue_V1(modeltools.Method):
 
 
 class Calc_EvaluatedValue_V1(modeltools.Method):
-    r"""Calculate the mean of the |EvaluationWindow| most recent
-    |LoggedSimulation| values while |Options.simulationmode| is `historical`.
+    r"""Calculate the mean of the available (non-|numpy.nan|) values among the
+    |EvaluationWindow| most recent |LoggedObservation| values while
+    |Options.simulationmode| is `historical`.
 
     Basic equation:
-      :math:`EvaluatedValue = \frac{1}{EvaluationWindow}
-      \sum_{i=0}^{EvaluationWindow-1} LoggedSimulation_i`
+      :math:`EvaluatedValue = \frac{1}{n}
+      \sum_{i=0}^{EvaluationWindow-1} LoggedObservation_i`
+
+    The sum covers only the available values, and :math:`n` is their number.  If all
+    values are |numpy.nan|, |EvaluatedValue| keeps its previous value, so the
+    responsible submodel (see |Calc_IsActive_V1|) does not change during gaps in the
+    observations.
 
     While |Options.simulationmode| is `forecast`, |Calc_EvaluatedValue_V1| keeps the
     value of the most recent `historical` assessment, so the responsible submodel
-    (see |Calc_IsActive_V1|) does not change throughout the forecast horizon.
+    does not change throughout the forecast horizon.
 
     Examples:
 
         |Calc_EvaluatedValue_V1| always relies on the *most recently* logged values
         (index ``0`` upwards) and never on the oldest ones sitting near the end of a
-        larger log (which can well still be |numpy.nan|):
+        larger log:
 
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> from numpy import nan
         >>> control.evaluationwindow(3)
         >>> derived.nmblogentries(5)
-        >>> logs.loggedsimulation = 1.0, 2.0, 6.0, nan, nan
+        >>> logs.loggedobservation = 1.0, 2.0, 6.0, 8.0, 9.0
         >>> from hydpy import pub
         >>> pub.options.simulationmode = "historical"
+        >>> model.calc_evaluatedvalue_v1()
+        >>> states.evaluatedvalue
+        evaluatedvalue(3.0)
+
+        Missing observations are left out:
+
+        >>> logs.loggedobservation = 1.0, nan, 5.0, 8.0, 9.0
+        >>> model.calc_evaluatedvalue_v1()
+        >>> states.evaluatedvalue
+        evaluatedvalue(3.0)
+
+        If no observation is available, |EvaluatedValue| keeps its previous value:
+
+        >>> logs.loggedobservation = nan, nan, nan, 8.0, 9.0
         >>> model.calc_evaluatedvalue_v1()
         >>> states.evaluatedvalue
         evaluatedvalue(3.0)
@@ -415,7 +437,7 @@ class Calc_EvaluatedValue_V1(modeltools.Method):
         In `forecast` mode, |EvaluatedValue| stays frozen:
 
         >>> pub.options.simulationmode = "forecast"
-        >>> logs.loggedsimulation = 10.0, 10.0, 10.0, nan, nan
+        >>> logs.loggedobservation = 10.0, 10.0, 10.0, nan, nan
         >>> model.calc_evaluatedvalue_v1()
         >>> states.evaluatedvalue
         evaluatedvalue(3.0)
@@ -423,7 +445,7 @@ class Calc_EvaluatedValue_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (statcorr_control.EvaluationWindow,)
-    REQUIREDSEQUENCES = (statcorr_logs.LoggedSimulation,)
+    REQUIREDSEQUENCES = (statcorr_logs.LoggedObservation,)
     UPDATEDSEQUENCES = (statcorr_states.EvaluatedValue,)
 
     @staticmethod
@@ -432,10 +454,14 @@ class Calc_EvaluatedValue_V1(modeltools.Method):
         log = model.sequences.logs.fastaccess
         sta = model.sequences.states.fastaccess
         if model.runsettings.simulationmode == modelutils.HISTORICAL:
-            sum_simulated: float = 0.0
+            sum_observed: float = 0.0
+            nmb_observed = 0
             for idx in range(con.evaluationwindow):
-                sum_simulated = sum_simulated + log.loggedsimulation[idx]
-            sta.evaluatedvalue = sum_simulated / con.evaluationwindow
+                if not modelutils.isnan(log.loggedobservation[idx]):
+                    sum_observed = sum_observed + log.loggedobservation[idx]
+                    nmb_observed = nmb_observed + 1
+            if nmb_observed > 0:
+                sta.evaluatedvalue = sum_observed / nmb_observed
 
 
 class Calc_IsActive_V1(modeltools.Method):
@@ -445,10 +471,13 @@ class Calc_IsActive_V1(modeltools.Method):
     Each submodel is responsible for a specific value range only.  It corrects the
     simulated values only while |Active| is |True|, |CorrectionMode| allows a
     correction in the current simulation mode (see |Options.simulationmode|), and
-    |EvaluatedValue| (:math:`\overline{sim}`) lies within the range defined by
+    |EvaluatedValue| (:math:`\overline{obs}`) lies within the range defined by
     |LowerLimit| and |UpperLimit|:
 
-        :math:`LowerLimit \leq \overline{sim} < UpperLimit`
+        :math:`LowerLimit \leq \overline{obs} < UpperLimit`
+
+    As long as |EvaluatedValue| is |numpy.nan| (before the first observation is
+    available), the submodel is not active.
 
     |Calc_IsActive_V1| checks this condition in each simulation step, so changes of
     |Active|, |CorrectionMode|, |LowerLimit|, or |UpperLimit| take effect
@@ -655,9 +684,10 @@ class Calc_Stationary_V1(modeltools.Method):
     conditions instationary (|Stationary| is ``0.0``), otherwise stationary
     (|Stationary| is ``1.0``).  If a |numpy.nan| value within the
     |StationarityWindow| prevents calculating the ratio, |Stationary| keeps the
-    outcome of the previous assessment, so that a single missing observation neither
-    interrupts an ongoing reduction of |ReductionFactor| (see
-    |Calc_ReductionFactor_V1|) nor triggers a new one.
+    outcome of the previous assessment, so that a single missing observation does
+    not change the outcome of the stationarity check (which decides on the
+    reduction of the correction during forecast runs, see
+    |Calc_ReductionFactor_V1|).
 
     While |Options.simulationmode| is `forecast`, |Calc_Stationary_V1| keeps the
     outcome of the most recent `historical` assessment.  Recomputing it would be
@@ -750,70 +780,82 @@ class Calc_Stationary_V1(modeltools.Method):
 
 
 class Calc_ReductionFactor_V1(modeltools.Method):
-    r"""Update the factor for damping the correction based on the outcome of the
-    stationarity check.
+    r"""Calculate the factor for damping the correction during forecast runs based
+    on the outcome of the stationarity check.
 
-    Under instationary conditions (|Stationary| is ``0.0``),
-    |Calc_ReductionFactor_V1| linearly reduces |ReductionFactor| towards zero,
-    taking as many steps as given by |ReductionSteps|.  As soon as the conditions
-    are stationary again, |ReductionFactor| jumps back to ``1.0``, applying the
-    correction unabated again.  With the stationarity check disabled (see
-    |StationarityCheck|), |ReductionFactor| is always ``1.0``.
+    Basic equation (under instationary conditions in `forecast` mode):
+      :math:`ReductionFactor = \max \left( 0, 1 -
+      \frac{ForecastStep}{ReductionSteps} \right)`
 
-    As |Stationary| does not change in `forecast` mode (see |Calc_Stationary_V1|),
-    |ReductionFactor| keeps decreasing towards zero (or stays at ``0.0``) for the
-    entire forecast horizon once a `historical` run has flagged conditions as
-    instationary.
+    |ReductionFactor| is ``1.0`` while |Options.simulationmode| is `historical`, so
+    the stationarity check never dampens the correction of `historical` runs.  In
+    `forecast` mode, instationary conditions (|Stationary| is ``0.0``, as determined
+    at the last `historical` step, see |Calc_Stationary_V1|) let |ReductionFactor|
+    decrease linearly from ``1.0`` in the first forecast step to zero after
+    |ReductionSteps| forecast steps (counted by |ForecastStep|).  Hence, the forecast
+    starts with the unabated correction, avoiding a jump right at the start of the
+    forecast horizon.  With stationary conditions or the stationarity check
+    disabled (see |StationarityCheck|), |ReductionFactor| is always ``1.0``.
 
     Examples:
 
-        Sustained instationary conditions reduce |ReductionFactor| to zero within
-        the two steps given by |ReductionSteps|:
+        In `historical` mode, |ReductionFactor| is ``1.0``, even under instationary
+        conditions:
 
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
         >>> control.reductionsteps(2)
         >>> derived.stationaritywindow(3)
         >>> states.stationary(0.0)
-        >>> states.reductionfactor(1.0)
+        >>> states.forecaststep(0.0)
+        >>> from hydpy import pub
+        >>> pub.options.simulationmode = "historical"
         >>> model.calc_reductionfactor_v1()
         >>> states.reductionfactor
-        reductionfactor(0.5)
-        >>> model.calc_reductionfactor_v1()
-        >>> states.reductionfactor
-        reductionfactor(0.0)
+        reductionfactor(1.0)
+
+        In `forecast` mode, |ReductionFactor| decreases to zero within the two
+        steps given by |ReductionSteps|:
+
+        >>> pub.options.simulationmode = "forecast"
+        >>> for forecaststep in range(4):
+        ...     states.forecaststep(forecaststep)
+        ...     model.calc_reductionfactor_v1()
+        ...     print(forecaststep, states.reductionfactor.value)
+        0 1.0
+        1 0.5
+        2 0.0
+        3 0.0
+
+        Setting |ReductionSteps| to zero reduces |ReductionFactor| to zero
+        immediately:
+
+        >>> control.reductionsteps(0)
+        >>> states.forecaststep(0.0)
         >>> model.calc_reductionfactor_v1()
         >>> states.reductionfactor
         reductionfactor(0.0)
 
-        Stationary conditions reset |ReductionFactor| to ``1.0`` immediately:
+        Stationary conditions result in a |ReductionFactor| of ``1.0``:
 
         >>> states.stationary(1.0)
         >>> model.calc_reductionfactor_v1()
         >>> states.reductionfactor
         reductionfactor(1.0)
 
-        Setting |ReductionSteps| to zero reduces |ReductionFactor| to zero
-        immediately once instationary conditions occur:
+        The same holds when the stationarity check is disabled:
 
-        >>> control.reductionsteps(0)
         >>> states.stationary(0.0)
-        >>> model.calc_reductionfactor_v1()
-        >>> states.reductionfactor
-        reductionfactor(0.0)
-
-        Disabling the stationarity check resets |ReductionFactor| to ``1.0``
-        regardless of |Stationary|:
-
         >>> derived.stationaritywindow(0)
         >>> model.calc_reductionfactor_v1()
         >>> states.reductionfactor
         reductionfactor(1.0)
+        >>> del pub.options.simulationmode
     """
 
     CONTROLPARAMETERS = (statcorr_control.ReductionSteps,)
     DERIVEDPARAMETERS = (statcorr_derived.StationarityWindow,)
-    REQUIREDSEQUENCES = (statcorr_states.Stationary,)
+    REQUIREDSEQUENCES = (statcorr_states.Stationary, statcorr_states.ForecastStep)
     UPDATEDSEQUENCES = (statcorr_states.ReductionFactor,)
 
     @staticmethod
@@ -821,29 +863,37 @@ class Calc_ReductionFactor_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
-        if (der.stationaritywindow <= 0) or (sta.stationary == 1.0):
+        if (
+            (model.runsettings.simulationmode == modelutils.HISTORICAL)
+            or (der.stationaritywindow <= 0)
+            or (sta.stationary == 1.0)
+        ):
             sta.reductionfactor = 1.0
         elif con.reductionsteps <= 0:
             sta.reductionfactor = 0.0
         else:
-            sta.reductionfactor = max(
-                0.0, sta.reductionfactor - 1.0 / con.reductionsteps
-            )
+            sta.reductionfactor = max(0.0, 1.0 - sta.forecaststep / con.reductionsteps)
 
 
 class Calc_RelSumDelta_V1(modeltools.Method):
     r"""Calculate the relative sum of the absolute changes between successive
     simulated values while the variability check is enabled (see
-    |VariabilityCheck|) and |Options.simulationmode| is `historical`.
+    |StationarityCheck|) and |Options.simulationmode| is `historical`.
 
     Basic equation:
-      :math:`RelSumDelta = \frac{1}{EvaluatedValue}
+      :math:`RelSumDelta = \frac{1}{\overline{sim}}
       \sum_{i=0}^{EvaluationWindow-2}
       |LoggedSimulation_i - LoggedSimulation_{i+1}|`
 
-    For a non-positive |EvaluatedValue|, |RelSumDelta| is |numpy.nan|.  While
-    |Options.simulationmode| is `forecast`, |Calc_RelSumDelta_V1| keeps the value of
-    the most recent `historical` assessment.
+      :math:`\overline{sim} = \frac{1}{EvaluationWindow}
+      \sum_{i=0}^{EvaluationWindow-1} LoggedSimulation_i`
+
+    The variability check assesses the simulated values only, so it relates their
+    changes to their own mean (:math:`\overline{sim}`) within the |EvaluationWindow|.
+    For a non-positive or missing :math:`\overline{sim}`, |RelSumDelta| is
+    |numpy.nan|.  While |Options.simulationmode| is `forecast`,
+    |Calc_RelSumDelta_V1| keeps the value of the most recent `historical`
+    assessment.
 
     Examples:
 
@@ -855,12 +905,11 @@ class Calc_RelSumDelta_V1(modeltools.Method):
         >>> from hydpy import pub
         >>> pub.options.simulationmode = "historical"
         >>> logs.loggedsimulation = 9.0, 10.0, 11.0
-        >>> states.evaluatedvalue(10.0)
         >>> model.calc_relsumdelta_v1()
         >>> states.relsumdelta
         relsumdelta(0.2)
 
-        >>> states.evaluatedvalue(0.0)
+        >>> logs.loggedsimulation = 0.0, 0.0, 0.0
         >>> model.calc_relsumdelta_v1()
         >>> states.relsumdelta
         relsumdelta(nan)
@@ -868,7 +917,7 @@ class Calc_RelSumDelta_V1(modeltools.Method):
         In `forecast` mode or with the variability check disabled, |RelSumDelta|
         stays unchanged:
 
-        >>> states.evaluatedvalue(10.0)
+        >>> logs.loggedsimulation = 9.0, 10.0, 11.0
         >>> pub.options.simulationmode = "forecast"
         >>> model.calc_relsumdelta_v1()
         >>> states.relsumdelta
@@ -883,7 +932,7 @@ class Calc_RelSumDelta_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (statcorr_control.EvaluationWindow,)
     DERIVEDPARAMETERS = (statcorr_derived.StationaryAveragingWindow,)
-    REQUIREDSEQUENCES = (statcorr_logs.LoggedSimulation, statcorr_states.EvaluatedValue)
+    REQUIREDSEQUENCES = (statcorr_logs.LoggedSimulation,)
     UPDATEDSEQUENCES = (statcorr_states.RelSumDelta,)
 
     @staticmethod
@@ -900,8 +949,12 @@ class Calc_RelSumDelta_V1(modeltools.Method):
                 sumdelta = sumdelta + modelutils.fabs(
                     log.loggedsimulation[idx] - log.loggedsimulation[idx + 1]
                 )
-            if sta.evaluatedvalue > 0.0:
-                sta.relsumdelta = sumdelta / sta.evaluatedvalue
+            sumsim: float = 0.0
+            for idx in range(con.evaluationwindow):
+                sumsim = sumsim + log.loggedsimulation[idx]
+            meansim: float = sumsim / con.evaluationwindow
+            if meansim > 0.0:
+                sta.relsumdelta = sumdelta / meansim
             else:
                 sta.relsumdelta = modelutils.nan
 
@@ -911,15 +964,16 @@ class Calc_LowVariability_V1(modeltools.Method):
     |StationaryAveragingWindow| instead of the |AveragingWindow| (see
     |Calc_AveragedResidual_V1|).
 
-    If the variability check is enabled (see |VariabilityCheck|),
-    |Calc_LowVariability_V1| considers the conditions stationary (|LowVariability|
-    is ``1.0``) if |RelSumDelta| does not exceed |MaxRelSumDelta| and the
-    stationarity check (see |Calc_Stationary_V1|) is either disabled or also detects
-    stationary conditions.  Hence, the variability check never interferes with the
-    linear reduction of the correction (see |Calc_ReductionFactor_V1|).  A
-    |numpy.nan| value of |RelSumDelta| results in |LowVariability| being ``0.0``.
-    Like |Calc_RelSumDelta_V1|, |Calc_LowVariability_V1| reassesses
-    |LowVariability| only while |Options.simulationmode| is `historical`.  With the
+    The variability check is only meaningful under stationary conditions.  Hence,
+    it is part of the stationarity check (see |StationarityCheck|).  If enabled,
+    |Calc_LowVariability_V1| considers the variability low (|LowVariability| is
+    ``1.0``) if the stationarity check (see |Calc_Stationary_V1|) detects stationary
+    conditions and |RelSumDelta| does not exceed |MaxRelSumDelta|.  Hence, the
+    variability check never interferes with the linear reduction of the correction
+    (see |Calc_ReductionFactor_V1|).  A |numpy.nan| value of |RelSumDelta| results
+    in |LowVariability| being ``0.0``.  Like |Calc_RelSumDelta_V1|,
+    |Calc_LowVariability_V1| reassesses |LowVariability| only while
+    |Options.simulationmode| is `historical`.  With the stationarity check or the
     variability check disabled, |LowVariability| is always ``0.0``.
 
     Examples:
@@ -949,8 +1003,7 @@ class Calc_LowVariability_V1(modeltools.Method):
         lowvariability(0.0)
 
         Instationary conditions according to the stationarity check prevent the
-        variability check from detecting stationary conditions, unless the
-        stationarity check is disabled:
+        variability check from detecting low variability:
 
         >>> states.relsumdelta(0.2)
         >>> states.stationary(0.0)
@@ -958,23 +1011,29 @@ class Calc_LowVariability_V1(modeltools.Method):
         >>> states.lowvariability
         lowvariability(0.0)
 
-        >>> derived.stationaritywindow(0)
+        In `forecast` mode, |LowVariability| stays frozen:
+
+        >>> states.stationary(1.0)
         >>> model.calc_lowvariability_v1()
         >>> states.lowvariability
         lowvariability(1.0)
-
-        In `forecast` mode, |LowVariability| stays frozen:
-
         >>> pub.options.simulationmode = "forecast"
         >>> states.relsumdelta(0.4)
         >>> model.calc_lowvariability_v1()
         >>> states.lowvariability
         lowvariability(1.0)
 
-        Disabling the variability check resets |LowVariability| to ``0.0``, even in
-        `forecast` mode:
+        Disabling the variability check or the stationarity check resets
+        |LowVariability| to ``0.0``, even in `forecast` mode:
 
         >>> derived.stationaryaveragingwindow(0)
+        >>> model.calc_lowvariability_v1()
+        >>> states.lowvariability
+        lowvariability(0.0)
+
+        >>> derived.stationaryaveragingwindow(3)
+        >>> states.lowvariability(1.0)
+        >>> derived.stationaritywindow(0)
         >>> model.calc_lowvariability_v1()
         >>> states.lowvariability
         lowvariability(0.0)
@@ -993,12 +1052,10 @@ class Calc_LowVariability_V1(modeltools.Method):
     def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
-        if der.stationaryaveragingwindow <= 0:
+        if (der.stationaritywindow <= 0) or (der.stationaryaveragingwindow <= 0):
             sta.lowvariability = 0.0
         elif model.runsettings.simulationmode == modelutils.HISTORICAL:
-            if ((der.stationaritywindow <= 0) or (sta.stationary == 1.0)) and (
-                sta.relsumdelta <= der.maxrelsumdelta
-            ):
+            if (sta.stationary == 1.0) and (sta.relsumdelta <= der.maxrelsumdelta):
                 sta.lowvariability = 1.0
             else:
                 sta.lowvariability = 0.0
@@ -1017,8 +1074,8 @@ class Calc_AveragedResidual_V1(modeltools.Method):
     not zero (i.e., beyond the first forecast step), or |AveragingWindow| is zero
     (mean-value-based correction disabled).  When the averaging window contains a
     |numpy.nan| value, it falls back to the pointwise |Residual| (see
-    |Calc_Residual_ResidualAnchor_V1|).  While |LowVariability| is ``1.0``
-    (stationary conditions according to |VariabilityCheck|), the
+    |Calc_Residual_ResidualAnchor_V1|).  While |LowVariability| is ``1.0`` (low
+    variability according to the variability check, see |StationarityCheck|), the
     |StationaryAveragingWindow| replaces the |AveragingWindow|.
 
     Examples:
@@ -1076,7 +1133,7 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         >>> states.averagedresidual
         averagedresidual(-9.0)
 
-        Under stationary conditions according to |VariabilityCheck|, the averaging
+        Under low variability conditions (see |Calc_LowVariability_V1|), the averaging
         period covers the single log position ``1`` given by
         |StationaryAveragingWindow| (``30.0 - 20.0``), even if |AveragingWindow| is
         zero:
@@ -1309,8 +1366,8 @@ class Calc_CorrectedValue_V1(modeltools.Method):
         >>> fluxes.correctedvalue
         correctedvalue(14.5)
 
-        Under stationary conditions according to |VariabilityCheck| (see
-        |Calc_LowVariability_V1|), the mean-value-based residual applies even if
+        Under low variability conditions, the
+        mean-value-based residual applies even if
         |AveragingWindow| is zero:
 
         >>> control.averagingwindow(0)
@@ -1462,7 +1519,6 @@ class Determine_OutputCorrection_V1(modeltools.AutoMethod):
         >>> control.stationaritycheck(active=False)
         >>> derived.stationaritywindow.update()
         >>> derived.ratiominmax.update()
-        >>> control.variabilitycheck(active=False)
         >>> derived.maxrelsumdelta.update()
         >>> derived.stationaryaveragingwindow.update()
         >>> control.reductionsteps(2)
@@ -1657,7 +1713,6 @@ class Main_OutputCorrModel_V1(modeltools.AdHocModel):
         >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0):
         ...     evaluationwindow(2)
         ...     stationaritycheck(active=True, window=4, ratiominmax=0.5)
-        ...     variabilitycheck(active=False)
         ...     maxnanskip(2)
         ...     averagingwindow(0)
         >>> model.outputcorrmodels[0].parameters.derived.nmblogentries

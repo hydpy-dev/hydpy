@@ -7,9 +7,9 @@ from hydpy.core.typingtools import *
 
 
 class ReductionFactor(sequencetools.StateSequence):
-    """Factor for linearly reducing the ARIMA correction to zero under instationary
-    conditions (1.0: apply the correction unabated; 0.0: apply no correction at
-    all) [-]."""
+    """Factor for linearly reducing the ARIMA correction to zero during forecast runs
+    under instationary conditions (1.0: apply the correction unabated; 0.0: apply no
+    correction at all) [-]."""
 
     NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, 1.0)
@@ -27,9 +27,9 @@ class Stationary(sequencetools.StateSequence):
 
 
 class EvaluatedValue(sequencetools.StateSequence):
-    """The mean of the simulated values over the |EvaluationWindow| most recent log
-    entries, as determined at the last `historical` assessment [unit of the
-    corrected variable]."""
+    """The mean of the available observed values over the |EvaluationWindow| most
+    recent log entries, as determined at the last `historical` assessment [unit of
+    the corrected variable]."""
 
     NDIM: Final[Literal[0]] = 0
     INIT = numpy.nan
@@ -37,8 +37,8 @@ class EvaluatedValue(sequencetools.StateSequence):
 
 class RelSumDelta(sequencetools.StateSequence):
     """The sum of the absolute changes of the simulated values within the
-    |EvaluationWindow| divided by |EvaluatedValue|, as determined at the last
-    `historical` assessment [-]."""
+    |EvaluationWindow| divided by their mean, as determined at the last `historical`
+    assessment [-]."""
 
     NDIM: Final[Literal[0]] = 0
     INIT = numpy.nan

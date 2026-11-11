@@ -25,14 +25,14 @@ Integration tests
     >>> element.model = model
     >>> propagate(True)
     >>> test = IntegrationTest(element)
-    >>> test.dateformat = "%d/%m"
+    >>> test.dateformat = "%Y-%d-%m"
 
     The following function configures a |statcorr_arima010| submodel with the
     settings shared by all examples.  It makes the submodel responsible for all
     discharges (its |EvaluationWindow| of one step means it assesses its
-    responsibility based on the current simulated discharge only) and disables the
-    stationarity check via |StationarityCheck|, the variability check via
-    |VariabilityCheck|, and the mean-value-based residual via |AveragingWindow|, so
+    responsibility based on the current observed discharge only) and disables the
+    stationarity check (including the variability check) via |StationarityCheck|
+    and the mean-value-based residual via |AveragingWindow|, so
     the ARIMA correction always applies unabated.  The individual examples
     override some of these settings:
 
@@ -50,7 +50,6 @@ Integration tests
     ...     control.averagingwindow(0)
     ...     control.transitionsteps(0)
     ...     control.stationaritycheck(active=False)
-    ...     control.variabilitycheck(active=False)
     ...     control.reductionsteps(1)
 
     The inlet provides the simulated discharge; |Discharge| carries the
@@ -186,10 +185,11 @@ __________________
     Next, we enable the stationarity check with a window of three days and a
     |RatioMinMax| of ``0.5``, and set |ReductionSteps| to four.  The simulated
     discharge is constant.  On day five, the observations of days three to five
-    (``5.5``, ``8.0``, and ``3.0``) become instationary (``3.0 / 8.0 < 0.5``), so
-    |ReductionFactor| starts to decrease linearly.  It continues to do so during the
-    `forecast` run, which reuses the assessment of the `historical` run, until the
-    correction vanishes completely:
+    (``5.5``, ``8.0``, and ``3.0``) become instationary (``3.0 / 8.0 < 0.5``).  This
+    does not affect the `historical` run.  The `forecast` run reuses the assessment
+    of the last `historical` step, so |ReductionFactor| decreases linearly from
+    ``1.0`` in the first forecast step until the correction vanishes completely
+    after four steps:
 
     >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0) as sub:
     ...     configure(sub)
@@ -208,22 +208,27 @@ __________________
     | 02/01 |       5.5 |       5.0 |        5.5 |   5.0 |    5.5 |
     | 03/01 |       5.5 |       5.0 |        5.5 |   5.0 |    5.5 |
     | 04/01 |       8.0 |       5.0 |        8.0 |   5.0 |    8.0 |
-    | 05/01 |       3.0 |       5.0 |        3.5 |   5.0 |    3.5 |
-    | 06/01 |       nan |       5.0 |        4.0 |   5.0 |    4.0 |
-    | 07/01 |       nan |       5.0 |        4.5 |   5.0 |    4.5 |
-    | 08/01 |       nan |       5.0 |        5.0 |   5.0 |    5.0 |
-    | 09/01 |       nan |       5.0 |        5.0 |   5.0 |    5.0 |
+    | 05/01 |       3.0 |       5.0 |        3.0 |   5.0 |    3.0 |
+    | 06/01 |       nan |       5.0 |        3.0 |   5.0 |    3.0 |
+    | 07/01 |       nan |       5.0 |        3.5 |   5.0 |    3.5 |
+    | 08/01 |       nan |       5.0 |        4.0 |   5.0 |    4.0 |
+    | 09/01 |       nan |       5.0 |        4.5 |   5.0 |    4.5 |
     | 10/01 |       nan |       5.0 |        5.0 |   5.0 |    5.0 |
 
 Variability check
 _________________
 
-    Now, we enable the variability check instead, with a |MaxRelSumDelta| of
-    ``0.1`` and an averaging period of four days, and set |EvaluationWindow| to
-    three and |AveragingWindow| to one.  During the first two days, the
-    |EvaluationWindow| still contains missing values, so the submodel does not
-    consider itself responsible.  As the simulated discharge is constant, the
-    variability check detects stationary conditions, so the mean-value-based
+    Now, we enable the variability check, which is only meaningful under stationary
+    conditions and thus part of the stationarity check.  We use the same
+    stationarity settings as above, a |MaxRelSumDelta| of ``0.1``, and an averaging
+    period of four days, and set |EvaluationWindow| to three and |AveragingWindow|
+    to one.  The observations of the last three `historical` days (``6.0``,
+    ``7.0``, and ``6.0``) are stationary (``6.0 / 7.0 >= 0.5``), so there is no
+    reduction of the correction.  During the first two days, the
+    |EvaluationWindow| still contains missing values, but the submodel considers
+    itself responsible, as it relies on the available observations only (see
+    |EvaluatedValue|).  As the simulated discharge is constant, the
+    variability check detects low variability, so the mean-value-based
     residual relies on the four days preceding the forecast (mean observed
     ``6.25``, mean simulated ``5.0``) instead of on the single day given by
     |AveragingWindow| (which would result in ``1.0``):
@@ -232,7 +237,10 @@ _________________
     ...     configure(sub)
     ...     evaluationwindow(3)
     ...     averagingwindow(1)
-    ...     variabilitycheck(active=True, maxrelsumdelta=0.1, averagingwindow=4)
+    ...     stationaritycheck(
+    ...         active=True, window=3, ratiominmax=0.5, maxrelsumdelta=0.1,
+    ...         averagingwindow=4
+    ...     )
     >>> with pub.options.checkseries(False):
     ...     inputs.discharge.series = 6.0, 6.0, 6.0, 7.0, 6.0, nan, nan, nan, nan, nan
 
@@ -241,8 +249,8 @@ _________________
     >>> forecast_test("2000-01-06")
     |  date | discharge | originalq | correctedq | inlet | outlet |
     ---------------------------------------------------------------
-    | 01/01 |       6.0 |       5.0 |        5.0 |   5.0 |    5.0 |
-    | 02/01 |       6.0 |       5.0 |        5.0 |   5.0 |    5.0 |
+    | 01/01 |       6.0 |       5.0 |        6.0 |   5.0 |    6.0 |
+    | 02/01 |       6.0 |       5.0 |        6.0 |   5.0 |    6.0 |
     | 03/01 |       6.0 |       5.0 |        6.0 |   5.0 |    6.0 |
     | 04/01 |       7.0 |       5.0 |        7.0 |   5.0 |    7.0 |
     | 05/01 |       6.0 |       5.0 |        6.0 |   5.0 |    6.0 |
@@ -256,7 +264,7 @@ Multiple submodels
 __________________
 
     Finally, we attach two submodels responsible for different discharge ranges.
-    The first one handles simulated discharges below ``5.0`` and the second one all
+    The first one handles observed discharges below ``5.0`` and the second one all
     others.  The second one restricts the relative shift to 5 % and the absolute
     shift to ``0.25``:
 

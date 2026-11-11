@@ -30,7 +30,6 @@ class NmbLogEntries(parametertools.NmbParameter):
     CONTROLPARAMETERS = (
         statcorr_control.EvaluationWindow,
         statcorr_control.StationarityCheck,
-        statcorr_control.VariabilityCheck,
         statcorr_control.MaxNaNSkip,
         statcorr_control.AveragingWindow,
     )
@@ -48,7 +47,6 @@ class NmbLogEntries(parametertools.NmbParameter):
         >>> parameterstep()
         >>> evaluationwindow(3)
         >>> stationaritycheck(active=True, window=4, ratiominmax=0.5)
-        >>> variabilitycheck(active=False)
         >>> maxnanskip(1)
         >>> derived.nmblogentries.update()
         Traceback (most recent call last):
@@ -66,15 +64,17 @@ no value has been defined so far.
         Here, the averaging window of the variability check (plus one) is the
         largest value:
 
-        >>> stationaritycheck(active=False)
-        >>> variabilitycheck(active=True, maxrelsumdelta=0.2, averagingwindow=5)
+        >>> stationaritycheck(
+        ...     active=True, window=4, ratiominmax=0.5, maxrelsumdelta=0.2,
+        ...     averagingwindow=5
+        ... )
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
         nmblogentries(6)
 
         Here, |MaxNaNSkip| (plus one) is the largest value:
 
-        >>> variabilitycheck(active=False)
+        >>> stationaritycheck(active=False)
         >>> maxnanskip(6)
         >>> derived.nmblogentries.update()
         >>> derived.nmblogentries
@@ -131,13 +131,12 @@ no value has been defined so far.
         """
         control = self.subpars.pars.control
         stationaritycheck = control.stationaritycheck
-        variabilitycheck = control.variabilitycheck
         nmb = max(
             control.evaluationwindow.value,
             stationaritycheck.window,
             control.maxnanskip.value + 1,
             control.averagingwindow.value + 1,
-            variabilitycheck.averagingwindow + 1,
+            stationaritycheck.averagingwindow + 1,
         )
         self(nmb)
 
@@ -211,59 +210,66 @@ class RatioMinMax(parametertools.Parameter):
 
 class MaxRelSumDelta(parametertools.Parameter):
     """The threshold for the sum of the absolute changes of the simulated values
-    within the |EvaluationWindow| divided by |EvaluatedValue| of the variability
-    check (zero if the check is disabled) [-]."""
+    within the |EvaluationWindow| divided by their mean (see |RelSumDelta|) of the
+    variability check (zero if the variability check is disabled, see
+    |StationarityCheck|) [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     SPAN = (0.0, None)
-    CONTROLPARAMETERS = (statcorr_control.VariabilityCheck,)
+    CONTROLPARAMETERS = (statcorr_control.StationarityCheck,)
 
     def update(self) -> None:
-        """Take the threshold from parameter |VariabilityCheck|.
+        """Take the threshold from parameter |StationarityCheck|.
 
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
 
-        >>> variabilitycheck(active=True, maxrelsumdelta=0.2, averagingwindow=24)
+        >>> stationaritycheck(
+        ...     active=True, window=4, ratiominmax=0.5, maxrelsumdelta=0.2,
+        ...     averagingwindow=24
+        ... )
         >>> derived.maxrelsumdelta.update()
         >>> derived.maxrelsumdelta
         maxrelsumdelta(0.2)
 
-        >>> variabilitycheck(active=False)
+        >>> stationaritycheck(active=True, window=4, ratiominmax=0.5)
         >>> derived.maxrelsumdelta.update()
         >>> derived.maxrelsumdelta
         maxrelsumdelta(0.0)
         """
-        variabilitycheck = self.subpars.pars.control.variabilitycheck
-        self(variabilitycheck.maxrelsumdelta)
+        stationaritycheck = self.subpars.pars.control.stationaritycheck
+        self(stationaritycheck.maxrelsumdelta)
 
 
 class StationaryAveragingWindow(parametertools.Parameter):
     """The length of the averaging period for determining the mean-value-based
-    residual under stationary conditions in log entries (zero if the variability
-    check is disabled) [-]."""
+    residual under low variability conditions in log entries (zero if the
+    variability check is disabled, see |StationarityCheck|) [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
     SPAN = (0, None)
-    CONTROLPARAMETERS = (statcorr_control.VariabilityCheck,)
+    CONTROLPARAMETERS = (statcorr_control.StationarityCheck,)
 
     def update(self) -> None:
-        """Take the averaging period from parameter |VariabilityCheck|.
+        """Take the averaging period from parameter |StationarityCheck|.
 
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
 
-        >>> variabilitycheck(active=True, maxrelsumdelta=0.2, averagingwindow=24)
+        >>> stationaritycheck(
+        ...     active=True, window=4, ratiominmax=0.5, maxrelsumdelta=0.2,
+        ...     averagingwindow=24
+        ... )
         >>> derived.stationaryaveragingwindow.update()
         >>> derived.stationaryaveragingwindow
         stationaryaveragingwindow(24)
 
-        >>> variabilitycheck(active=False)
+        >>> stationaritycheck(active=True, window=4, ratiominmax=0.5)
         >>> derived.stationaryaveragingwindow.update()
         >>> derived.stationaryaveragingwindow
         stationaryaveragingwindow(0)
         """
-        variabilitycheck = self.subpars.pars.control.variabilitycheck
-        self(variabilitycheck.averagingwindow)
+        stationaritycheck = self.subpars.pars.control.stationaritycheck
+        self(stationaritycheck.averagingwindow)

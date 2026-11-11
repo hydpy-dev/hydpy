@@ -10,9 +10,6 @@ from hydpy.core.typingtools import *
 class NmbSubmodels(parametertools.NmbParameter):
     """The number of output correction submodels [-].
 
-    Setting |NmbSubmodels| automatically resizes the |Model.outputcorrmodels| submodel
-    slots accordingly:
-
     >>> from hydpy.models.statcorr import *
     >>> parameterstep()
     >>> nmbsubmodels(3)
@@ -34,9 +31,8 @@ class NmbSubmodels(parametertools.NmbParameter):
 
 
 class EvaluationWindow(parametertools.Parameter):
-    """The number of the most recent log entries used to determine the mean observed
-    value (see |EvaluatedValue|) and the relative variability of the simulated values
-    (see |RelSumDelta|) [-]."""
+    """The number of time steps the submodels use for evaluating parameters
+    based on logged values [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -44,12 +40,8 @@ class EvaluationWindow(parametertools.Parameter):
 
 
 class MaxNaNSkip(parametertools.Parameter):
-    """The maximum number of log entries with missing observed values to skip
-    when searching back for the most recently available residual [-].
-
-    The search covers the current log entry and the |MaxNaNSkip| preceding ones.
-    A value of zero restricts the search to the current log entry.
-    """
+    """The maximum number of log entries with NaN values to skip
+    when evaluating logged parameters [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -189,12 +181,10 @@ class StationarityCheck(parametertools.SpecialParameter):
     values vary little enough to base the correction on a long-term mean residual
     [-].
 
-    |StationarityCheck| is a special parameter (see |SpecialParameter|).  Either
-    switch the check off by passing `active=False` or switch it on by passing
+    Either switch the check off by passing `active=False` or switch it on by passing
     `active=True` together with the length of the assessment period (`window`, in log
     entries) and the threshold for the ratio of the minimum and the maximum observed
-    values within this period (`ratiominmax`), below which |Calc_Stationary_V1|
-    considers the conditions instationary:
+    values within this period (`ratiominmax`):
 
     >>> from hydpy.models.statcorr import *
     >>> parameterstep()
@@ -220,12 +210,10 @@ together with the required keyword arguments.
     >>> round_(stationaritycheck.ratiominmax)
     0.5
 
-    The variability check is only meaningful under stationary conditions.  Hence, it
-    is part of the stationarity check.  Enable it by additionally passing the
+    Optionally, a variability check may switched on by additionally passing the
     threshold for the relative sum of the absolute changes of the simulated values
     (`maxrelsumdelta`) and the length of the averaging period (`averagingwindow`, in
-    log entries) used under low variability conditions (see
-    |Calc_LowVariability_V1|):
+    log entries):
 
     >>> stationaritycheck.variabilitycheck
     False
@@ -480,10 +468,7 @@ averagingwindow=24)
     @property
     def maxrelsumdelta(self) -> float:
         """The threshold for the sum of the absolute changes of the simulated values
-        per time step divided by their mean within the |EvaluationWindow| (see
-        |RelSumDelta|), which decides whether the forecast is shifted to the observed
-        value at the time of forecast or to the mean of the averaging window (zero if
-        the variability check is disabled)."""
+        per time step divided by their mean."""
         return self._get_config()[3]
 
     @property
@@ -495,8 +480,7 @@ averagingwindow=24)
 
 
 class ReductionSteps(parametertools.Parameter):
-    """Number of forecast steps for linearly reducing the ARIMA correction to zero
-    under instationary conditions [-]."""
+    """Number of forecast steps for linearly reducing the correction to zero [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -504,7 +488,7 @@ class ReductionSteps(parametertools.Parameter):
 
 
 class MaxAbsShift(parametertools.Parameter):
-    """The maximum absolute shift applied."""
+    """The maximum absolute shift applied [unit of the corrected variable]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
@@ -512,7 +496,7 @@ class MaxAbsShift(parametertools.Parameter):
 
 
 class MaxRelShift(parametertools.Parameter):
-    """The maximum relative shift applied.
+    """The maximum relative shift applied [-].
 
     |MaxRelShift| is a fraction, not a percentage as in LARSIM (compare
     https://larsim.info/larsimhilfe/html/LARSIM-Einzelparameter/LARSIM_Einzelparameter_065_MAX-ARIMA-NQ_[proz].htm)
@@ -525,8 +509,8 @@ class MaxRelShift(parametertools.Parameter):
 
 class AveragingWindow(parametertools.Parameter):
     """The length (in log entries) of the averaging period immediately
-    preceding the current forecast run, used to determine the mean-value-based
-    ARIMA residual [-].
+    preceding the current time step, used to determine the mean-value-based
+    residual [-].
 
     Set to zero to disable mean-value-based correction and rely on the single most
     recent (pointwise) residual only.
@@ -540,8 +524,7 @@ class AveragingWindow(parametertools.Parameter):
 class TransitionSteps(parametertools.Parameter):
     """The number of forecast steps over which the applied residual transitions
     linearly from the single most recent (pointwise) residual to the mean-value-based
-    residual determined via |AveragingWindow|, avoiding an abrupt jump right at the
-    start of the forecast horizon [-]."""
+    residual [-]."""
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
@@ -549,9 +532,9 @@ class TransitionSteps(parametertools.Parameter):
 
 
 class Propagate(parametertools.Parameter):
-    """Flag determining whether the corrected discharge is passed on to the
+    """Flag determining whether the corrected value is passed on to the
     downstream network (|True|) or calculated only for local output at the
-    current gauge, while the original discharge is passed on instead
+    current gauge, while the original value is passed on instead
     (|False|) [-]."""
 
     NDIM: Final[Literal[0]] = 0

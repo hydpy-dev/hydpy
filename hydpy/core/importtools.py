@@ -122,7 +122,7 @@ def parameterstep(timestep: timetools.PeriodConstrArg | None = None) -> None:
 
 
 def _add_locals_to_namespace(
-    model: modeltools.Model, namespace: dict[str, Any]
+    model: modeltools.Model, namespace: MutableMapping[str, Any]
 ) -> None:
     new_locals: dict[str, Any] = namespace.get("CONSTANTS", {}).copy()
     new_locals["model"] = model
@@ -144,7 +144,7 @@ def _add_locals_to_namespace(
 
 
 def prepare_parameters(
-    dict_: dict[str, Any],
+    dict_: Mapping[str, Any],
 ) -> parametertools.Parameters[modeltools.Model]:
     """Prepare a |Parameters| object based on the given dictionary
     information and return it."""
@@ -160,7 +160,7 @@ def prepare_parameters(
 
 
 def prepare_sequences(
-    dict_: dict[str, Any],
+    dict_: Mapping[str, Any],
 ) -> sequencetools.Sequences[modeltools.Model]:
     """Prepare a |Sequences| object based on the given dictionary
     information and return it."""
@@ -653,7 +653,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
     _model: TM_contra
     _submodel: modeltools.SubmodelInterface
     _update: bool
-    _namespace: dict[str, Any]
+    _namespace: MutableMapping[str, Any]
     _old_locals: dict[str, Any]
 
     @overload

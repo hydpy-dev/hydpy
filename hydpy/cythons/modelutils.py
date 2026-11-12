@@ -689,10 +689,10 @@ class Cythonizer:
         >>> cythonizer._cymodule = None
         >>> from unittest import mock
         >>> with mock.patch.object(Cythonizer, "cythonize") as mock:
-        ...     cythonizer.cymodule
+        ...     cythonizer.cymodule  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ModuleNotFoundError: No module named 'hydpy.cythons.autogen.wrong'
+        ModuleNotFoundError: No module named 'hydpy.cythons.autogen.wrong'...
         >>> mock.call_args_list
         [call()]
 

@@ -215,8 +215,6 @@ def _check_unsafe_usage_currentdir(wrapped: Callable[P_, None]) -> Callable[P_, 
             )
         return wrapped(*args, **kwargs)
 
-    wrapper.__doc__ = None  # circumvent a Python 3.11 doctest bug
-
     return wrapper
 
 

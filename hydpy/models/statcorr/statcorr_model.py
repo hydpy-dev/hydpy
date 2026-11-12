@@ -72,110 +72,53 @@ class Calc_OutputCorr_OutputCorrModel_V1(modeltools.Method):
 
 
 class Calc_OutputCorr_V1(modeltools.Method):
-    """Apply each |OutputCorrModel_V1| submodel to the current simulated and observed
-    discharge and combine their results into the corrected discharge.
+    """Let all |OutputCorrModel_V1| submodels correct the current simulated
+    discharge and take the result of the last responsible one.
 
-    This method orchestrates one or more submodels of identical interface type:
-
-      1. The current simulated discharge (|OriginalQ|) and observed discharge
-         (|Discharge|) are passed to each attached |OutputCorrModel_V1| submodel
-         via |OutputCorrModel_V1.set_simulatedvalue| and
-         |OutputCorrModel_V1.set_observedvalue|.  While |Options.simulationmode|
-         equals `forecast`, |Calc_OutputCorr_V1| passes |numpy.nan| instead of the
-         actual value of |Discharge|, regardless of whether an observation is
-         available.  This relies on the assumption that a previous `historical`
-         simulation run already logged all relevant past observations and
-         simulations (read in as conditions).
-      2. Each submodel computes its corrected discharge via
-         |OutputCorrModel_V1.determine_outputcorrection|.
-      3. Each submodel decides for itself, based on its own |Active| flag, its
-         |CorrectionMode|, and its |LowerLimit| and |UpperLimit| parameters,
-         whether it is responsible for the current observed discharge (see
-         |EvaluatedValue| and |OutputCorrModel_V1.is_active|).  The corrected
-         output of the *last* responsible submodel is taken as |CorrectedQ|.  When
-         no submodel is attached or responsible, |CorrectedQ| equals |OriginalQ|.
-         Hence, attaching several submodels configured for mutually exclusive
-         discharge ranges lets only the one responsible for the current observed
-         discharge take effect.
+    Each submodel decides on its own whether it is responsible (see
+    |OutputCorrModel_V1.is_active|).  If none is, |CorrectedQ| equals |OriginalQ|.
+    In `forecast` mode (see |Options.simulationmode|), |Calc_OutputCorr_V1| passes
+    |numpy.nan| instead of |Discharge| to the submodels, which then rely on the
+    information logged during the preceding `historical` run (see |statcorr_main|).
 
     Examples:
 
-        Without any attached submodel, the corrected discharge equals the original
-        discharge:
+        Without any submodel, |CorrectedQ| equals |OriginalQ|:
 
         >>> from hydpy.models.statcorr_main import *
         >>> parameterstep()
-        >>> fluxes.originalq = 2.0
-        >>> inputs.discharge = 3.0
-        >>> model.calc_outputcorr_v1()
-        >>> fluxes.correctedq
-        correctedq(2.0)
-
-        With a single attached |statcorr_arima010| submodel, the corrected
-        discharge is the original discharge plus the most recent residual (here:
-        ``3.0 - 2.0 = 1.0``, applied to the new original discharge ``2.5``).  By
-        default, we make the submodel responsible for all discharges and disable
-        the stationarity check so that it never suppresses the correction:
-
-        >>> from numpy import inf
-        >>> def configure(submodel, lowerlimit=0.0, upperlimit=inf):
-        ...     submodel.parameters.control.active(True)
-        ...     submodel.parameters.control.correctionmode(option="both")
-        ...     submodel.parameters.control.lowerlimit(lowerlimit)
-        ...     submodel.parameters.control.upperlimit(upperlimit)
-        ...     submodel.parameters.control.evaluationwindow(1)
-        ...     submodel.parameters.control.maxnanskip(2)
-        ...     submodel.parameters.control.maxabsshift(100.0)
-        ...     submodel.parameters.control.maxrelshift(10.0)
-        ...     submodel.parameters.control.averagingwindow(0)
-        ...     submodel.parameters.control.transitionsteps(0)
-        ...     submodel.parameters.control.stationaritycheck(active=False)
-        ...     submodel.parameters.control.reductionsteps(1)
-
-        >>> nmbsubmodels(1)
-        >>> with model.add_outputcorrmodel_v1(
-        ...     "statcorr_arima010", position=0
-        ... ) as submodel:
-        ...     configure(submodel)
-        >>> model.calc_outputcorr_v1()
-        >>> fluxes.correctedq
-        correctedq(3.0)
-        >>> from numpy import nan
-        >>> fluxes.originalq = 2.5
-        >>> inputs.discharge = nan
-        >>> model.calc_outputcorr_v1()
-        >>> fluxes.correctedq
-        correctedq(3.5)
-
-        We now attach two submodels responsible for different discharge ranges.
-        The first one covers discharges below 3 m³/s, the second one all
-        discharges from 3 m³/s upwards:
-
-        >>> nmbsubmodels(2)
-        >>> with model.add_outputcorrmodel_v1(
-        ...     "statcorr_arima010", position=0
-        ... ) as submodel:
-        ...     configure(submodel, upperlimit=3.0)
-        >>> with model.add_outputcorrmodel_v1(
-        ...     "statcorr_arima010", position=1
-        ... ) as submodel:
-        ...     configure(submodel, lowerlimit=3.0)
-
-        The submodels decide based on the observed discharge.  For an observed
-        discharge of 2.5 m³/s, only the first submodel is responsible, although the
-        original discharge of 3.5 m³/s lies within the range of the second one.
-        Hence, the corrected output of the first submodel wins, although the second
-        submodel comes later and returns the original discharge:
-
         >>> fluxes.originalq = 3.5
         >>> inputs.discharge = 2.5
         >>> model.calc_outputcorr_v1()
         >>> fluxes.correctedq
+        correctedq(3.5)
+
+        We attach two |statcorr_arima010| submodels responsible for observed
+        discharges below and above 3 m³/s, respectively:
+
+        >>> from numpy import inf
+        >>> nmbsubmodels(2)
+        >>> for i, limits in enumerate(((0.0, 3.0), (3.0, inf))):
+        ...     with model.add_outputcorrmodel_v1("statcorr_arima010", position=i):
+        ...         active(True)
+        ...         correctionmode(option="both")
+        ...         lowerlimit(limits[0])
+        ...         upperlimit(limits[1])
+        ...         evaluationwindow(1)
+        ...         maxnanskip(2)
+        ...         maxabsshift(100.0)
+        ...         maxrelshift(10.0)
+        ...         averagingwindow(0)
+        ...         transitionsteps(0)
+        ...         stationaritycheck(active=False)
+        ...         reductionsteps(1)
+
+        For an observed discharge of 2.5 m³/s, only the first submodel is
+        responsible.  The second one does not overwrite its result:
+
+        >>> model.calc_outputcorr_v1()
+        >>> fluxes.correctedq
         correctedq(2.5)
-        >>> model.outputcorrmodels[0].sequences.fluxes.isactive
-        isactive(1.0)
-        >>> model.outputcorrmodels[1].sequences.fluxes.isactive
-        isactive(0.0)
 
         For an observed discharge of 4.0 m³/s, the second submodel takes over:
 
@@ -184,84 +127,17 @@ class Calc_OutputCorr_V1(modeltools.Method):
         >>> model.calc_outputcorr_v1()
         >>> fluxes.correctedq
         correctedq(4.0)
-        >>> model.outputcorrmodels[0].sequences.fluxes.isactive
-        isactive(0.0)
-        >>> model.outputcorrmodels[1].sequences.fluxes.isactive
-        isactive(1.0)
 
-        If no submodel is responsible, |CorrectedQ| equals |OriginalQ|:
-
-        >>> model.outputcorrmodels[1].parameters.control.active(False)
-        >>> model.calc_outputcorr_v1()
-        >>> fluxes.correctedq
-        correctedq(2.5)
-
-        While |Options.simulationmode| equals ``forecast``, |Calc_OutputCorr_V1|
-        ignores the actual value of |Discharge| and passes |numpy.nan| to the
-        submodels instead, relying on their logic to
-        keep applying the most recently logged residual (see |statcorr_arima010|
-        for the mechanism and the module docstring of |statcorr_main| for the
-        assumed workflow of a preceding `historical` run).  The main model and
-        its submodels read the current simulation mode at runtime via
-        |Model.runsettings|, so changing |Options.simulationmode| takes effect
-        immediately without updating any parameters:
-
-        >>> nmbsubmodels(1)
-        >>> with model.add_outputcorrmodel_v1(
-        ...     "statcorr_arima010", position=0
-        ... ) as submodel:
-        ...     configure(submodel)
-        >>> model.parameters.update()
-
-        Two `historical` steps establish a residual of ``0.5``:
-
-        >>> fluxes.originalq = 1.0
-        >>> inputs.discharge = 1.5
-        >>> model.calc_outputcorr_v1()
-        >>> fluxes.correctedq
-        correctedq(1.5)
-        >>> fluxes.originalq = 2.0
-        >>> inputs.discharge = 2.5
-        >>> model.calc_outputcorr_v1()
-        >>> fluxes.correctedq
-        correctedq(2.5)
-
-        Switching to `forecast` mode and feeding an implausible |Discharge|
-        value (``999.0``, which would dominate the result if it were not
-        ignored) still reproduces the persisted residual of ``0.5``:
+        In `forecast` mode, the actual |Discharge| value is ignored, and the
+        responsible submodel applies its last residual:
 
         >>> from hydpy import pub
+        >>> fluxes.originalq = 3.0
+        >>> inputs.discharge = 999.0
         >>> with pub.options.simulationmode("forecast"):
-        ...     fluxes.originalq = 3.0
-        ...     inputs.discharge = 999.0
-        ...     model.calc_outputcorr_v1()
-        >>> fluxes.correctedq
-        correctedq(3.5)
-        >>> with pub.options.simulationmode("forecast"):
-        ...     fluxes.originalq = 4.0
-        ...     inputs.discharge = 999.0
         ...     model.calc_outputcorr_v1()
         >>> fluxes.correctedq
         correctedq(4.5)
-
-        Even once the last real observation drops out of the submodel's log
-        (the current entry plus the two preceding ones due to |MaxNaNSkip|), the
-        persisted residual keeps applying without limit -- only |ReductionFactor|
-        (via |StationarityCheck| and |ReductionSteps|, disabled here) could still
-        fade it out:
-
-        >>> with pub.options.simulationmode("forecast"):
-        ...     fluxes.originalq = 5.0
-        ...     inputs.discharge = 999.0
-        ...     model.calc_outputcorr_v1()
-        >>> fluxes.correctedq
-        correctedq(5.5)
-        >>> with pub.options.simulationmode("forecast"):
-        ...     fluxes.originalq = 6.0
-        ...     inputs.discharge = 999.0
-        ...     model.calc_outputcorr_v1()
-        >>> fluxes.correctedq
-        correctedq(6.5)
     """
 
     SUBMODELINTERFACES = (statcorrinterfaces.OutputCorrModel_V1,)
@@ -289,7 +165,7 @@ class Pass_CorrectedQ_V1(modeltools.Method):
     """Pass the corrected discharge on to the outlet link sequence, unless
     |Propagate| is |False|, in which case the original discharge is
     passed on instead.  Either way, |CorrectedQ| remains available for local
-    output at the current gauge.
+    output.
 
     Basic equation:
         :math:`Q_{outlets} = CorrectedQ` (if |Propagate|) or
@@ -405,7 +281,7 @@ class Calc_EvaluatedValue_V1(modeltools.Method):
     Examples:
 
         |Calc_EvaluatedValue_V1| always relies on the *most recently* logged values
-        (index ``0`` upwards) and never on the oldest ones sitting near the end of a
+        (index `0` upwards) and never on the oldest ones sitting near the end of a
         larger log:
 
         >>> from hydpy.models.statcorr import *
@@ -595,9 +471,7 @@ class Calc_Residual_ResidualAnchor_V1(modeltools.Method):
 
     While |Options.simulationmode| is `forecast`, |Calc_Residual_ResidualAnchor_V1|
     does not repeat the search and keeps both values of the most recent `historical`
-    assessment.  Hence, the correction persists for the entire forecast horizon
-    instead of vanishing as soon as the underlying log entry drops out of the
-    logging window.
+    assessment.
 
     Examples:
 
@@ -681,23 +555,18 @@ class Calc_Stationary_V1(modeltools.Method):
     |Calc_Stationary_V1| takes the ratio of the minimum and the maximum
     |LoggedObservation| value within the most recent |StationarityWindow| log
     entries.  Whenever this ratio falls below |RatioMinMax|, it considers the
-    conditions instationary (|Stationary| is ``0.0``), otherwise stationary
-    (|Stationary| is ``1.0``).  If a |numpy.nan| value within the
+    conditions instationary (|Stationary| is `0.0`), otherwise stationary
+    (|Stationary| is `1.0`).  If a |numpy.nan| value within the
     |StationarityWindow| prevents calculating the ratio, |Stationary| keeps the
     outcome of the previous assessment, so that a single missing observation does
-    not change the outcome of the stationarity check (which decides on the
-    reduction of the correction during forecast runs, see
-    |Calc_ReductionFactor_V1|).
+    not change the outcome of the stationarity check.
 
     While |Options.simulationmode| is `forecast`, |Calc_Stationary_V1| keeps the
-    outcome of the most recent `historical` assessment.  Recomputing it would be
-    unreliable, as |LoggedObservation| keeps receiving |numpy.nan| values
-    throughout the forecast (see |Calc_OutputCorr_V1|), which would prevent any new
-    assessment as soon as the first of them enters the |StationarityWindow|.
+    outcome of the most recent `historical` assessment.
 
     Examples:
 
-        The ratio ``4.0 / 5.0 = 0.8`` is not below |RatioMinMax|:
+        The ratio `4.0 / 5.0 = 0.8` is not below |RatioMinMax|:
 
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
@@ -713,7 +582,7 @@ class Calc_Stationary_V1(modeltools.Method):
         >>> states.stationary
         stationary(1.0)
 
-        The ratio ``0.5 / 5.0 = 0.1`` is:
+        The ratio `0.5 / 5.0 = 0.1` is:
 
         >>> logs.loggedobservation = 0.5, 5.0, 5.0
         >>> model.calc_stationary_v1()
@@ -787,19 +656,18 @@ class Calc_ReductionFactor_V1(modeltools.Method):
       :math:`ReductionFactor = \max \left( 0, 1 -
       \frac{ForecastStep}{ReductionSteps} \right)`
 
-    |ReductionFactor| is ``1.0`` while |Options.simulationmode| is `historical`, so
+    |ReductionFactor| is `1.0` while |Options.simulationmode| is `historical`, so
     the stationarity check never dampens the correction of `historical` runs.  In
-    `forecast` mode, instationary conditions (|Stationary| is ``0.0``, as determined
+    `forecast` mode, instationary conditions (|Stationary| is `0.0`, as determined
     at the last `historical` step, see |Calc_Stationary_V1|) let |ReductionFactor|
-    decrease linearly from ``1.0`` in the first forecast step to zero after
-    |ReductionSteps| forecast steps (counted by |ForecastStep|).  Hence, the forecast
-    starts with the unabated correction, avoiding a jump right at the start of the
-    forecast horizon.  With stationary conditions or the stationarity check
-    disabled (see |StationarityCheck|), |ReductionFactor| is always ``1.0``.
+    decrease linearly from `1.0` in the first forecast step to zero after
+    |ReductionSteps| forecast steps (counted by |ForecastStep|). With stationary
+    conditions or the stationarity check disabled (see |StationarityCheck|),
+    |ReductionFactor| is always `1.0`.
 
     Examples:
 
-        In `historical` mode, |ReductionFactor| is ``1.0``, even under instationary
+        In `historical` mode, |ReductionFactor| is `1.0`, even under instationary
         conditions:
 
         >>> from hydpy.models.statcorr import *
@@ -836,7 +704,7 @@ class Calc_ReductionFactor_V1(modeltools.Method):
         >>> states.reductionfactor
         reductionfactor(0.0)
 
-        Stationary conditions result in a |ReductionFactor| of ``1.0``:
+        Stationary conditions result in a |ReductionFactor| of `1.0`:
 
         >>> states.stationary(1.0)
         >>> model.calc_reductionfactor_v1()
@@ -964,17 +832,16 @@ class Calc_LowVariability_V1(modeltools.Method):
     |StationaryAveragingWindow| instead of the |AveragingWindow| (see
     |Calc_AveragedResidual_V1|).
 
-    The variability check is only meaningful under stationary conditions.  Hence,
-    it is part of the stationarity check (see |StationarityCheck|).  If enabled,
+    The variability check is only meaningful under stationary conditions. If enabled,
     |Calc_LowVariability_V1| considers the variability low (|LowVariability| is
-    ``1.0``) if the stationarity check (see |Calc_Stationary_V1|) detects stationary
+    `1.0`) if the stationarity check (see |Calc_Stationary_V1|) detects stationary
     conditions and |RelSumDelta| does not exceed |MaxRelSumDelta|.  Hence, the
     variability check never interferes with the linear reduction of the correction
     (see |Calc_ReductionFactor_V1|).  A |numpy.nan| value of |RelSumDelta| results
-    in |LowVariability| being ``0.0``.  Like |Calc_RelSumDelta_V1|,
+    in |LowVariability| being `0.0`.  Like |Calc_RelSumDelta_V1|,
     |Calc_LowVariability_V1| reassesses |LowVariability| only while
     |Options.simulationmode| is `historical`.  With the stationarity check or the
-    variability check disabled, |LowVariability| is always ``0.0``.
+    variability check disabled, |LowVariability| is always `0.0`.
 
     Examples:
 
@@ -1024,7 +891,7 @@ class Calc_LowVariability_V1(modeltools.Method):
         lowvariability(1.0)
 
         Disabling the variability check or the stationarity check resets
-        |LowVariability| to ``0.0``, even in `forecast` mode:
+        |LowVariability| to `0.0`, even in `forecast` mode:
 
         >>> derived.stationaryaveragingwindow(0)
         >>> model.calc_lowvariability_v1()
@@ -1067,21 +934,21 @@ class Calc_AveragedResidual_V1(modeltools.Method):
 
     |Calc_AveragedResidual_V1| averages the |LoggedObservation| and
     |LoggedSimulation| entries covering the |AveragingWindow| log positions
-    immediately preceding the current forecast run (log position ``0`` already holds
-    the current forecast step's own values, so averaging starts at position ``1``)
+    immediately preceding the current forecast run (log position `0` already holds
+    the current forecast step's own values, so averaging starts at position `1`)
     and stores their difference in |AveragedResidual|.  It leaves |AveragedResidual|
     unchanged whenever |Options.simulationmode| is `historical`, |ForecastStep| is
     not zero (i.e., beyond the first forecast step), or |AveragingWindow| is zero
     (mean-value-based correction disabled).  When the averaging window contains a
     |numpy.nan| value, it falls back to the pointwise |Residual| (see
-    |Calc_Residual_ResidualAnchor_V1|).  While |LowVariability| is ``1.0`` (low
+    |Calc_Residual_ResidualAnchor_V1|).  While |LowVariability| is `1.0` (low
     variability according to the variability check, see |StationarityCheck|), the
     |StationaryAveragingWindow| replaces the |AveragingWindow|.
 
     Examples:
 
-        On the first forecast step, the average is taken from log positions ``1``
-        and ``2`` (mean observed ``4.0``, mean simulated ``3.0``):
+        On the first forecast step, the average is taken from log positions `1`
+        and `2` (mean observed `4.0`, mean simulated `3.0`):
 
         >>> from hydpy.models.statcorr import *
         >>> parameterstep()
@@ -1134,8 +1001,8 @@ class Calc_AveragedResidual_V1(modeltools.Method):
         averagedresidual(-9.0)
 
         Under low variability conditions (see |Calc_LowVariability_V1|), the averaging
-        period covers the single log position ``1`` given by
-        |StationaryAveragingWindow| (``30.0 - 20.0``), even if |AveragingWindow| is
+        period covers the single log position `1` given by
+        |StationaryAveragingWindow| (`30.0 - 20.0`), even if |AveragingWindow| is
         zero:
 
         >>> control.averagingwindow(0)
@@ -1197,46 +1064,30 @@ class Calc_CorrectedValue_V1(modeltools.Method):
     r"""Calculate the corrected value by shifting the current simulated value based
     on the (damped) residual.
 
-    If the submodel is not responsible (|IsActive| is ``0.0``), the corrected value
-    equals the current simulated value (:math:`sim_0`).  Otherwise, how the residual
-    (:math:`r`) applies depends on how :math:`sim_0` compares to |ResidualAnchor|
-    (:math:`sim_k`, the simulated value at the time the residual was determined),
-    with :math:`f_{red}` denoting |ReductionFactor|:
+    If the submodel is not responsible (|IsActive| is `0.0`), the corrected value
+    equals the current simulated value (:math:`sim_0`).  Otherwise, the residual
+    (:math:`r`), damped by |ReductionFactor| (:math:`f_{red}`), applies
+    multiplicatively if :math:`sim_0` recedes below |ResidualAnchor|
+    (:math:`sim_k`) and additively otherwise.  The multiplicative variant keeps the
+    correction from overshooting or turning negative while the simulated values
+    recede towards zero.
 
-     * If :math:`0 < sim_0 < sim_k`, |Calc_CorrectedValue_V1| shifts :math:`sim_0`
-       *multiplicatively*, expressing the damped residual as a fraction of
-       :math:`sim_k` and capping that fraction at |MaxRelShift|:
+    Basic equations:
+      :math:`CorrectedValue = sim_0 \cdot \left(1 + \mathrm{clip}\left(r \cdot
+      f_{red} / sim_k,\ \pm MaxRelShift\right) \right) \quad | \quad 0 < sim_0 <
+      sim_k`
 
-         :math:`CorrectedValue = sim_0 \cdot \left(1 + \mathrm{clip}\left(r \cdot
-         f_{red} / sim_k,\ \pm MaxRelShift\right) \right)`
-
-       Applying the residual as a fraction rather than a constant offset keeps the
-       correction from overshooting or turning negative while the simulated values
-       recede towards zero.
-
-     * Otherwise (:math:`sim_0 \geq sim_k` or :math:`sim_0 \leq 0`), it shifts
-       :math:`sim_0` *additively*, capping the damped residual at |MaxAbsShift|:
-
-         :math:`CorrectedValue = sim_0 + \mathrm{clip}\left(r \cdot f_{red},\
-         \pm MaxAbsShift\right)`
-
-       This includes the `historical` mode whenever the current observation is
-       available, as :math:`sim_k` then equals :math:`sim_0`.
+      :math:`CorrectedValue = sim_0 + \mathrm{clip}\left(r \cdot f_{red},\
+      \pm MaxAbsShift\right) \quad | \quad else`
 
     In `historical` mode (see |Options.simulationmode|), :math:`r` is the pointwise
-    |Residual|.  In `forecast` mode, setting |AveragingWindow| to a value greater
-    than zero (or |LowVariability| being ``1.0``) switches to the mean-value-based
-    |AveragedResidual| (see |Calc_AveragedResidual_V1|).  Since it generally does
-    not equal the pointwise residual at the forecast's start, switching to it
-    abruptly would cause a jump in the corrected value right where the forecast
-    begins.  To avoid this, |Calc_CorrectedValue_V1| starts every forecast run with the
-    pointwise residual (so the corrected value picks up smoothly where the last
-    measurement left off) and then linearly blends it towards the mean-value-based
-    residual over |TransitionSteps| forecast steps (counted by |ForecastStep|),
-    applying the mean-value-based residual unabated from then on:
+    |Residual|.  In `forecast` mode, a positive |AveragingWindow| (or |LowVariability|
+    being `1.0`) lets :math:`r` blend linearly from |Residual| to |AveragedResidual|
+    over |TransitionSteps| forecast steps, which avoids a jump at the forecast's
+    start:
 
-        :math:`r = Residual + \min\left(1, \frac{ForecastStep}{TransitionSteps}
-        \right) \cdot (AveragedResidual - Residual)`
+      :math:`r = Residual + \min\left(1, \frac{ForecastStep}{TransitionSteps}
+      \right) \cdot (AveragedResidual - Residual)`
 
     Examples:
 
@@ -1252,7 +1103,7 @@ class Calc_CorrectedValue_V1(modeltools.Method):
         >>> from hydpy import pub
         >>> pub.options.simulationmode = "historical"
         >>> fluxes.isactive = 0.0
-        >>> states.reductionfactor(1.0)
+        >>> states.reductionfactor(0.5)
         >>> states.lowvariability(0.0)
         >>> states.forecaststep(0.0)
         >>> states.averagedresidual(0.0)
@@ -1263,126 +1114,66 @@ class Calc_CorrectedValue_V1(modeltools.Method):
         >>> fluxes.correctedvalue
         correctedvalue(6.0)
 
-        The current simulated value exceeds |ResidualAnchor|, so the residual
-        applies additively:
+        The current simulated value exceeds |ResidualAnchor|, so the damped
+        residual applies additively, capped by |MaxAbsShift|:
 
         >>> fluxes.isactive = 1.0
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
-        correctedvalue(7.0)
-
-        |ReductionFactor| dampens the residual:
-
-        >>> states.reductionfactor(0.5)
-        >>> model.calc_correctedvalue_v1()
-        >>> fluxes.correctedvalue
         correctedvalue(6.5)
-
-        |MaxAbsShift| caps the additive shift:
-
-        >>> states.reductionfactor(1.0)
         >>> control.maxabsshift(0.2)
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
         correctedvalue(6.2)
 
-        For a *receding* simulation (the current simulated value is below
-        |ResidualAnchor|), the residual applies multiplicatively:
+        For a receding simulation, the residual applies multiplicatively, capped by
+        |MaxRelShift|:
 
-        >>> control.maxabsshift(100.0)
+        >>> states.reductionfactor(1.0)
         >>> states.residual(2.0)
         >>> states.residualanchor(10.0)
         >>> logs.loggedsimulation = 2.0
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
         correctedvalue(2.4)
-
-        Limiting |MaxRelShift| to ``0.1`` caps that fraction at 10 % before it is
-        converted back into an absolute shift:
-
         >>> control.maxrelshift(0.1)
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
         correctedvalue(2.2)
 
-        If the current simulated value equals |ResidualAnchor| (as in `historical`
-        mode whenever the current observation is available), the residual applies
-        additively, so |MaxRelShift| has no effect:
+        Halfway through a forecast transition from the pointwise residual (`1.0`)
+        to the mean-value-based residual (`2.5`), their average (`1.75`) applies:
 
-        >>> control.maxrelshift(0.0)
-        >>> logs.loggedsimulation = 10.0
-        >>> model.calc_correctedvalue_v1()
-        >>> fluxes.correctedvalue
-        correctedvalue(12.0)
-
-        The same holds for a non-positive current simulated value:
-
-        >>> logs.loggedsimulation = 0.0
-        >>> model.calc_correctedvalue_v1()
-        >>> fluxes.correctedvalue
-        correctedvalue(2.0)
-        >>> control.maxrelshift(10.0)
-
-        Now, we demonstrate the transition from the pointwise residual (``1.0``)
-        to the mean-value-based residual (``2.5``) over two forecast steps.  On the
-        first forecast step, |Calc_CorrectedValue_V1| applies the pointwise residual
-        unabated:
-
+        >>> control.maxabsshift(100.0)
         >>> control.averagingwindow(2)
         >>> control.transitionsteps(2)
         >>> pub.options.simulationmode = "forecast"
         >>> states.residual(1.0)
         >>> states.residualanchor(8.0)
         >>> states.averagedresidual(2.5)
-        >>> logs.loggedsimulation = 10.0
-        >>> model.calc_correctedvalue_v1()
-        >>> fluxes.correctedvalue
-        correctedvalue(11.0)
-
-        Halfway through the transition, the applied residual is the average of both
-        (``1.75``):
-
         >>> states.forecaststep(1.0)
         >>> logs.loggedsimulation = 11.0
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
         correctedvalue(12.75)
 
-        Once the transition period has elapsed, the full mean-value-based residual
-        applies:
-
-        >>> states.forecaststep(2.0)
-        >>> logs.loggedsimulation = 12.0
-        >>> model.calc_correctedvalue_v1()
-        >>> fluxes.correctedvalue
-        correctedvalue(14.5)
-
-        Setting |TransitionSteps| to zero applies the mean-value-based residual
-        immediately:
-
-        >>> control.transitionsteps(0)
-        >>> states.forecaststep(0.0)
-        >>> model.calc_correctedvalue_v1()
-        >>> fluxes.correctedvalue
-        correctedvalue(14.5)
-
-        Under low variability conditions, the
-        mean-value-based residual applies even if
-        |AveragingWindow| is zero:
+        Under low variability conditions, the mean-value-based residual also
+        applies for a zero |AveragingWindow|, and without delay for zero
+        |TransitionSteps|:
 
         >>> control.averagingwindow(0)
+        >>> control.transitionsteps(0)
         >>> states.lowvariability(1.0)
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
-        correctedvalue(14.5)
+        correctedvalue(13.5)
 
-        In `historical` mode, |Calc_CorrectedValue_V1| always relies on the pointwise
-        residual, so that the corrected value reproduces the current observation:
+        In `historical` mode, only the pointwise residual counts:
 
         >>> pub.options.simulationmode = "historical"
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
-        correctedvalue(13.0)
+        correctedvalue(12.0)
     """
 
     CONTROLPARAMETERS = (

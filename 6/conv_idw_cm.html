@@ -1,0 +1,611 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>conv_idw_cm &#8212; HydPy 6.5.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=72aa22fa" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=7f64e455"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/toctree.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="HydPy-Exch" href="HydPy-Exch.html" />
+    <link rel="prev" title="conv_idw_ed" href="conv_idw_ed.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HydPy-Exch.html" title="HydPy-Exch"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="conv_idw_ed.html" title="conv_idw_ed"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.5.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Conv.html" accesskey="U">HydPy-Conv</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">conv_idw_cm</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="conv.html">conv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="conv_nn.html">conv_nn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="conv_idw.html">conv_idw</a></li>
+<li class="toctree-l4"><a class="reference internal" href="conv_idw_ed.html">conv_idw_ed</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">conv_idw_cm</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#integration-tests">Integration tests</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#equal-averages">equal averages</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#restricted-inputs">restricted inputs</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#different-averages">different averages</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#shared-location">shared location</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#other-units">other units</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#zero-averages">zero averages</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#nearest-station">nearest station</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#monthly-averages">monthly averages</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#method-features">Method features</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.conv_idw_cm.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.conv_idw_cm.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">DOCNAME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.conv_idw_cm.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#parameter-features">Parameter features</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.conv_idw_cm.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.conv_idw_cm.DerivedParameters"><code class="docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#sequence-features">Sequence features</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.conv_idw_cm.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.conv_idw_cm.InletSequences"><code class="docutils literal notranslate"><span class="pre">InletSequences</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.conv_idw_cm.OutletSequences"><code class="docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Manager.html">HydPy-Manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="conv_idw_ed.html"
+                          title="previous chapter">conv_idw_ed</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="HydPy-Exch.html"
+                          title="next chapter">HydPy-Exch</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/conv_idw_cm.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/conv_idw_cm.html">6</a></li>
+<li><a href="../master/conv_idw_cm.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="conv-idw-cm">
+<span id="id1"></span><h1>HydPy-Conv-IDW-CM (inverse distance weighted interpolation with multiplicative climatological adjustment)<a class="headerlink" href="#conv-idw-cm" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.conv_idw_cm"><a class="reference internal" href="#module-hydpy.models.conv_idw_cm" title="hydpy.models.conv_idw_cm"><code class="xref py py-mod docutils literal notranslate"><span class="pre">conv_idw_cm</span></code></a> extends <a class="reference internal" href="conv_idw.html#module-hydpy.models.conv_idw" title="hydpy.models.conv_idw"><code class="xref py py-mod docutils literal notranslate"><span class="pre">conv_idw</span></code></a> by taking long-term averages at the input and output
+nodes into account.  Ratios of the current input values to their long-term averages are
+IDW-interpolated to the output nodes, and then multiplied by the long-term averages at
+the output nodes.  This approach brings climatological knowledge into the interpolation
+results.  Because of the multiplicative adjustment, it suits intermittent variables
+that are often zero, like precipitation.</p>
+<p>You need to estimate the long-term averages in advance, in whatever way seems
+appropriate.  One example is the REGNIE method of the Deutscher Wetterdienst, which
+<span class="bibtex-citation" id="id2"><a class="reference internal" href="zbibliography.html#id62" title="Monika Rauthe, Heiko Steiner, Ulf Riediger, Alex Mazurkiewicz, and Annegret Gratzki. A central european precipitation climatology – part i: generation and validation of a high-resolution gridded daily data set (hyras). Meteorologische Zeitschrift, 22(3):235–256, 2013. doi:10.1127/0941-2948/2013/0436.">Rauthe <em>et al.</em> (2013)</a></span> use to generate the HYRAS precipitation data set.  For this
+purpose, they preprocess monthly long-term averages using external information such as
+elevation.  Their interpolation of daily precipitation values relies on the four
+closest stations, weighted with an exponent of two.</p>
+<p>You can define the averages in arbitrary units; for example, mm/month and m/year would
+be equally fine, as long as you apply them consistently to the input and output
+locations.</p>
+<section id="integration-tests">
+<h2>Integration tests<a class="headerlink" href="#integration-tests" title="Link to this heading">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When new to <em>HydPy</em>, consider reading section <a class="reference internal" href="how_to_read_the_reference_manual.html#integration-tests"><span class="std std-ref">Integration Tests</span></a> first.</p>
+</div>
+<p>We begin by repeating the examples documented for application model <a class="reference internal" href="conv_idw.html#module-hydpy.models.conv_idw" title="hydpy.models.conv_idw"><code class="xref py py-mod docutils literal notranslate"><span class="pre">conv_idw</span></code></a>.  We
+first define identical test settings (see the documentation on application model
+<a class="reference internal" href="conv_idw.html#module-hydpy.models.conv_idw" title="hydpy.models.conv_idw"><code class="xref py py-mod docutils literal notranslate"><span class="pre">conv_idw</span></code></a> for more information):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">"2000-01-01"</span><span class="p">,</span> <span class="s2">"2000-01-04"</span><span class="p">,</span> <span class="s2">"1d"</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.conv_idw_cm</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">,</span> <span class="n">in3</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="s2">"in1"</span><span class="p">),</span> <span class="n">Node</span><span class="p">(</span><span class="s2">"in2"</span><span class="p">),</span> <span class="n">Node</span><span class="p">(</span><span class="s2">"in3"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">"conv"</span><span class="p">,</span>
+<span class="gp">... </span>                  <span class="n">inlets</span><span class="o">=</span><span class="p">(</span><span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">,</span> <span class="n">in3</span><span class="p">),</span>
+<span class="gp">... </span>                  <span class="n">outlets</span><span class="o">=</span><span class="p">[</span><span class="s2">"out1"</span><span class="p">,</span> <span class="s2">"out2"</span><span class="p">,</span> <span class="s2">"out3"</span><span class="p">,</span> <span class="s2">"out4"</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputcoordinates</span><span class="p">(</span><span class="n">in1</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span>
+<span class="gp">... </span>                 <span class="n">in2</span><span class="o">=</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">),</span>
+<span class="gp">... </span>                 <span class="n">in3</span><span class="o">=</span><span class="p">(</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputcoordinates</span><span class="p">(</span><span class="n">out1</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span>
+<span class="gp">... </span>                  <span class="n">out2</span><span class="o">=</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="gp">... </span>                  <span class="n">out3</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span>
+<span class="gp">... </span>                  <span class="n">out4</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">power</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">maxnmbinputs</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntegrationTest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2">"</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">checkseries</span><span class="p">(</span><span class="kc">False</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">in1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">nan</span><span class="p">,</span> <span class="n">nan</span>
+<span class="gp">... </span>    <span class="n">in2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="n">nan</span>
+<span class="gp">... </span>    <span class="n">in3</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span> <span class="n">nan</span><span class="p">,</span> <span class="n">nan</span>
+</pre></div>
+</div>
+<section id="equal-averages">
+<span id="conv-idw-cm-equal-averages"></span><h3>equal averages<a class="headerlink" href="#equal-averages" title="Link to this heading">¶</a></h3>
+<p>If all input and output nodes have the same long-term average, all adjustments cancel
+out, and <a class="reference internal" href="#module-hydpy.models.conv_idw_cm" title="hydpy.models.conv_idw_cm"><code class="xref py py-mod docutils literal notranslate"><span class="pre">conv_idw_cm</span></code></a> reproduces the results of the <a class="reference internal" href="conv_idw.html#conv-idw-all-inputs"><span class="std std-ref">all inputs</span></a> example
+of application model <a class="reference internal" href="conv_idw.html#module-hydpy.models.conv_idw" title="hydpy.models.conv_idw"><code class="xref py py-mod docutils literal notranslate"><span class="pre">conv_idw</span></code></a> precisely:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputaverages</span><span class="p">(</span><span class="n">in1</span><span class="o">=</span><span class="mf">800.0</span><span class="p">,</span> <span class="n">in2</span><span class="o">=</span><span class="mf">800.0</span><span class="p">,</span> <span class="n">in3</span><span class="o">=</span><span class="mf">800.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputaverages</span><span class="p">(</span><span class="n">out1</span><span class="o">=</span><span class="mf">800.0</span><span class="p">,</span> <span class="n">out2</span><span class="o">=</span><span class="mf">800.0</span><span class="p">,</span> <span class="n">out3</span><span class="o">=</span><span class="mf">800.0</span><span class="p">,</span> <span class="n">out4</span><span class="o">=</span><span class="mf">800.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_9__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_9__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|       date |           inputs |               currentinputaverages |                      currentoutputaverages |                   inputratios |                             outputratios |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 | out4 |</span>
+<span class="go">----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2000-01-01 | 1.0  3.0     4.0 | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 | 0.00125  0.00375        0.005 | 0.00125  0.00375  0.002188         0.003 | 1.0  3.0  1.75      2.4 | 1.0 | 3.0 | 4.0 |  1.0 |  3.0 | 1.75 |  2.4 |</span>
+<span class="go">| 2000-01-02 | nan  2.0     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan   0.0025          nan |  0.0025   0.0025    0.0025        0.0025 | 2.0  2.0   2.0      2.0 | nan | 2.0 | nan |  2.0 |  2.0 |  2.0 |  2.0 |</span>
+<span class="go">| 2000-01-03 | nan  nan     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan      nan          nan |     nan      nan       nan           nan | nan  nan   nan      nan | nan | nan | nan |  nan |  nan |  nan |  nan |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="restricted-inputs">
+<span id="conv-idw-cm-restricted-inputs"></span><h3>restricted inputs<a class="headerlink" href="#restricted-inputs" title="Link to this heading">¶</a></h3>
+<p>The same holds for the <a class="reference internal" href="conv_idw.html#conv-idw-restricted-inputs"><span class="std std-ref">restricted inputs</span></a> example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">maxnmbinputs</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_10__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_10__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|       date |           inputs |               currentinputaverages |                      currentoutputaverages |                   inputratios |                              outputratios |                          outputs | in1 | in2 | in3 | out1 |     out2 |     out3 | out4 |</span>
+<span class="go">----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2000-01-01 | 1.0  3.0     4.0 | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 | 0.00125  0.00375        0.005 | 0.00125  0.003882  0.001932        0.0025 | 1.0  3.105263  1.545455      2.0 | 1.0 | 3.0 | 4.0 |  1.0 | 3.105263 | 1.545455 |  2.0 |</span>
+<span class="go">| 2000-01-02 | nan  2.0     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan   0.0025          nan |     nan    0.0025       nan        0.0025 | nan       2.0       nan      2.0 | nan | 2.0 | nan |  nan |      2.0 |      nan |  2.0 |</span>
+<span class="go">| 2000-01-03 | nan  nan     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan      nan          nan |     nan       nan       nan           nan | nan       nan       nan      nan | nan | nan | nan |  nan |      nan |      nan |  nan |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="different-averages">
+<span id="conv-idw-cm-different-averages"></span><h3>different averages<a class="headerlink" href="#different-averages" title="Link to this heading">¶</a></h3>
+<p>Now we define different averages.  Output node <cite>out1</cite> lies at the same location as input
+node <cite>in1</cite> and has the same average.  Hence, it receives the original value of <cite>in1</cite>, if
+available.  The other output nodes’ values reflect their averages:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">maxnmbinputs</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputaverages</span><span class="p">(</span><span class="n">in1</span><span class="o">=</span><span class="mf">800.0</span><span class="p">,</span> <span class="n">in2</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">in3</span><span class="o">=</span><span class="mf">600.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputaverages</span><span class="p">(</span><span class="n">out1</span><span class="o">=</span><span class="mf">800.0</span><span class="p">,</span> <span class="n">out2</span><span class="o">=</span><span class="mf">900.0</span><span class="p">,</span> <span class="n">out3</span><span class="o">=</span><span class="mf">700.0</span><span class="p">,</span> <span class="n">out4</span><span class="o">=</span><span class="mf">650.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_11__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_11__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|       date |           inputs |                currentinputaverages |                      currentoutputaverages |                 inputratios |                              outputratios |                          outputs | in1 | in2 | in3 | out1 |    out2 |     out3 |     out4 |</span>
+<span class="go">------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2000-01-01 | 1.0  3.0     4.0 | 800.0  1000.0                 600.0 | 800.0  900.0  700.0                  650.0 | 0.00125  0.003     0.006667 | 0.00125  0.003279  0.002342      0.003033 | 1.0  2.95125  1.639714  1.971667 | 1.0 | 3.0 | 4.0 |  1.0 | 2.95125 | 1.639714 | 1.971667 |</span>
+<span class="go">| 2000-01-02 | nan  2.0     nan | 800.0  1000.0                 600.0 | 800.0  900.0  700.0                  650.0 |     nan  0.002          nan |   0.002     0.002     0.002         0.002 | 1.6      1.8       1.4       1.3 | nan | 2.0 | nan |  1.6 |     1.8 |      1.4 |      1.3 |</span>
+<span class="go">| 2000-01-03 | nan  nan     nan | 800.0  1000.0                 600.0 | 800.0  900.0  700.0                  650.0 |     nan    nan          nan |     nan       nan       nan           nan | nan      nan       nan       nan | nan | nan | nan |  nan |     nan |      nan |      nan |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="shared-location">
+<span id="conv-idw-cm-shared-location"></span><h3>shared location<a class="headerlink" href="#shared-location" title="Link to this heading">¶</a></h3>
+<p>If an input and an output node share the same location, their averages can still differ.
+We show this for inlet node <cite>in1</cite> and outlet node <cite>out1</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">outputaverages</span><span class="p">(</span><span class="n">out1</span><span class="o">=</span><span class="mf">1200.0</span><span class="p">,</span> <span class="n">out2</span><span class="o">=</span><span class="mf">900.0</span><span class="p">,</span> <span class="n">out3</span><span class="o">=</span><span class="mf">700.0</span><span class="p">,</span> <span class="n">out4</span><span class="o">=</span><span class="mf">650.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_12__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_12__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|       date |           inputs |                currentinputaverages |                       currentoutputaverages |                 inputratios |                              outputratios |                          outputs | in1 | in2 | in3 | out1 |    out2 |     out3 |     out4 |</span>
+<span class="go">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2000-01-01 | 1.0  3.0     4.0 | 800.0  1000.0                 600.0 | 1200.0  900.0  700.0                  650.0 | 0.00125  0.003     0.006667 | 0.00125  0.003279  0.002342      0.003033 | 1.5  2.95125  1.639714  1.971667 | 1.0 | 3.0 | 4.0 |  1.5 | 2.95125 | 1.639714 | 1.971667 |</span>
+<span class="go">| 2000-01-02 | nan  2.0     nan | 800.0  1000.0                 600.0 | 1200.0  900.0  700.0                  650.0 |     nan  0.002          nan |   0.002     0.002     0.002         0.002 | 2.4      1.8       1.4       1.3 | nan | 2.0 | nan |  2.4 |     1.8 |      1.4 |      1.3 |</span>
+<span class="go">| 2000-01-03 | nan  nan     nan | 800.0  1000.0                 600.0 | 1200.0  900.0  700.0                  650.0 |     nan    nan          nan |     nan       nan       nan           nan | nan      nan       nan       nan | nan | nan | nan |  nan |     nan |      nan |      nan |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="other-units">
+<span id="conv-idw-cm-other-units"></span><h3>other units<a class="headerlink" href="#other-units" title="Link to this heading">¶</a></h3>
+<p>Only the relationships between the input and output averages matter.  Hence, using
+other units (here, daily instead of annual values) changes the ratios but not the final
+results of the <a class="reference internal" href="#conv-idw-cm-shared-location"><span class="std std-ref">shared location</span></a> example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputaverages</span><span class="p">(</span><span class="n">in1</span><span class="o">=</span><span class="mf">800.0</span> <span class="o">/</span> <span class="mf">366.0</span><span class="p">,</span> <span class="n">in2</span><span class="o">=</span><span class="mf">1000.0</span> <span class="o">/</span> <span class="mf">366.0</span><span class="p">,</span> <span class="n">in3</span><span class="o">=</span><span class="mf">600.0</span> <span class="o">/</span> <span class="mf">366.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputaverages</span><span class="p">(</span><span class="n">out1</span><span class="o">=</span><span class="mf">1200.0</span> <span class="o">/</span> <span class="mf">366.0</span><span class="p">,</span>
+<span class="gp">... </span>               <span class="n">out2</span><span class="o">=</span><span class="mf">900.0</span> <span class="o">/</span> <span class="mf">366.0</span><span class="p">,</span>
+<span class="gp">... </span>               <span class="n">out3</span><span class="o">=</span><span class="mf">700.0</span> <span class="o">/</span> <span class="mf">366.0</span><span class="p">,</span>
+<span class="gp">... </span>               <span class="n">out4</span><span class="o">=</span><span class="mf">650.0</span> <span class="o">/</span> <span class="mf">366.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_13__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_13__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|       date |           inputs |                    currentinputaverages |                               currentoutputaverages |                inputratios |                             outputratios |                          outputs | in1 | in2 | in3 | out1 |    out2 |     out3 |     out4 |</span>
+<span class="go">-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2000-01-01 | 1.0  3.0     4.0 | 2.185792  2.73224              1.639344 | 3.278689  2.459016  1.912568               1.775956 | 0.4575  1.098         2.44 | 0.4575  1.200175  0.857336        1.1102 | 1.5  2.95125  1.639714  1.971667 | 1.0 | 3.0 | 4.0 |  1.5 | 2.95125 | 1.639714 | 1.971667 |</span>
+<span class="go">| 2000-01-02 | nan  2.0     nan | 2.185792  2.73224              1.639344 | 3.278689  2.459016  1.912568               1.775956 |    nan  0.732          nan |  0.732     0.732     0.732         0.732 | 2.4      1.8       1.4       1.3 | nan | 2.0 | nan |  2.4 |     1.8 |      1.4 |      1.3 |</span>
+<span class="go">| 2000-01-03 | nan  nan     nan | 2.185792  2.73224              1.639344 | 3.278689  2.459016  1.912568               1.775956 |    nan    nan          nan |    nan       nan       nan           nan | nan      nan       nan       nan | nan | nan | nan |  nan |     nan |      nan |      nan |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="zero-averages">
+<span id="conv-idw-cm-zero-averages"></span><h3>zero averages<a class="headerlink" href="#zero-averages" title="Link to this heading">¶</a></h3>
+<p>Stations with zero averages do not contribute to the interpolation (see station <cite>in2</cite>).
+Target points with zero averages receive zero values (see node <cite>out2</cite>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputaverages</span><span class="p">(</span><span class="n">in1</span><span class="o">=</span><span class="mf">800.0</span><span class="p">,</span> <span class="n">in2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">in3</span><span class="o">=</span><span class="mf">600.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputaverages</span><span class="p">(</span><span class="n">out1</span><span class="o">=</span><span class="mf">800.0</span><span class="p">,</span> <span class="n">out2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">out3</span><span class="o">=</span><span class="mf">700.0</span><span class="p">,</span> <span class="n">out4</span><span class="o">=</span><span class="mf">650.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_14__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_14__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|       date |           inputs |             currentinputaverages |                    currentoutputaverages |               inputratios |                              outputratios |                      outputs | in1 | in2 | in3 | out1 | out2 |     out3 |     out4 |</span>
+<span class="go">----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2000-01-01 | 1.0  3.0     4.0 | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 | 0.00125  nan     0.006667 | 0.00125  0.004861  0.002235      0.003056 | 1.0  0.0  1.564394  1.986111 | 1.0 | 3.0 | 4.0 |  1.0 |  0.0 | 1.564394 | 1.986111 |</span>
+<span class="go">| 2000-01-02 | nan  2.0     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan       nan       nan           nan | nan  nan       nan       nan | nan | 2.0 | nan |  nan |  nan |      nan |      nan |</span>
+<span class="go">| 2000-01-03 | nan  nan     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan       nan       nan           nan | nan  nan       nan       nan | nan | nan | nan |  nan |  nan |      nan |      nan |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="nearest-station">
+<span id="conv-idw-cm-nearest-station"></span><h3>nearest station<a class="headerlink" href="#nearest-station" title="Link to this heading">¶</a></h3>
+<p>Stations with zero averages still count as one of the <a class="reference internal" href="conv.html#hydpy.models.conv.conv_control.MaxNmbInputs" title="hydpy.models.conv.conv_control.MaxNmbInputs"><code class="xref py py-class docutils literal notranslate"><span class="pre">MaxNmbInputs</span></code></a> nearest stations
+and are not replaced by more distant ones, just like stations with missing input values
+(see the <a class="reference internal" href="conv_idw.html#conv-idw-restricted-inputs"><span class="std std-ref">restricted inputs</span></a> example of <a class="reference internal" href="conv_idw.html#module-hydpy.models.conv_idw" title="hydpy.models.conv_idw"><code class="xref py py-mod docutils literal notranslate"><span class="pre">conv_idw</span></code></a>).  If we only consider
+the nearest station, <cite>out2</cite> receives <code class="xref py py-const docutils literal notranslate"><span class="pre">nan</span></code> values, despite its zero average,
+because station <cite>in2</cite> is its nearest station:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">maxnmbinputs</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_15__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_15__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|       date |           inputs |             currentinputaverages |                    currentoutputaverages |               inputratios |                        outputratios |                  outputs | in1 | in2 | in3 | out1 | out2 |  out3 |   out4 |</span>
+<span class="go">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2000-01-01 | 1.0  3.0     4.0 | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 | 0.00125  nan     0.006667 | 0.00125  nan  0.00125       0.00125 | 1.0  nan  0.875   0.8125 | 1.0 | 3.0 | 4.0 |  1.0 |  nan | 0.875 | 0.8125 |</span>
+<span class="go">| 2000-01-02 | nan  2.0     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan  nan      nan           nan | nan  nan    nan      nan | nan | 2.0 | nan |  nan |  nan |   nan |    nan |</span>
+<span class="go">| 2000-01-03 | nan  nan     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan  nan      nan           nan | nan  nan    nan      nan | nan | nan | nan |  nan |  nan |   nan |    nan |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="monthly-averages">
+<span id="conv-idw-cm-monthly-averages"></span><h3>monthly averages<a class="headerlink" href="#monthly-averages" title="Link to this heading">¶</a></h3>
+<p>Finally, we demonstrate the application of monthly averages.  We shift the simulation
+period to the January-February transition and define averages for two nodes that differ
+between the months.  The results change from the second to the third simulation step,
+even though the input values stay the same:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">"2000-01-30"</span><span class="p">,</span> <span class="s2">"2000-02-02"</span><span class="p">,</span> <span class="s2">"1d"</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">prepare_allseries</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2">"</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputaverages</span><span class="p">(</span><span class="n">in1</span><span class="o">=</span><span class="p">[</span><span class="mf">80.0</span><span class="p">,</span> <span class="mf">40.0</span><span class="p">,</span> <span class="mf">80.0</span><span class="p">,</span> <span class="mf">80.0</span><span class="p">,</span> <span class="mf">80.0</span><span class="p">,</span> <span class="mf">80.0</span><span class="p">,</span>
+<span class="gp">... </span>                   <span class="mf">80.0</span><span class="p">,</span> <span class="mf">80.0</span><span class="p">,</span> <span class="mf">80.0</span><span class="p">,</span> <span class="mf">80.0</span><span class="p">,</span> <span class="mf">80.0</span><span class="p">,</span> <span class="mf">80.0</span><span class="p">],</span>
+<span class="gp">... </span>              <span class="n">in2</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span>
+<span class="gp">... </span>              <span class="n">in3</span><span class="o">=</span><span class="mf">60.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outputaverages</span><span class="p">(</span><span class="n">out1</span><span class="o">=</span><span class="mf">80.0</span><span class="p">,</span>
+<span class="gp">... </span>               <span class="n">out2</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span>
+<span class="gp">... </span>               <span class="n">out3</span><span class="o">=</span><span class="p">[</span><span class="mf">70.0</span><span class="p">,</span> <span class="mf">140.0</span><span class="p">,</span> <span class="mf">70.0</span><span class="p">,</span> <span class="mf">70.0</span><span class="p">,</span> <span class="mf">70.0</span><span class="p">,</span> <span class="mf">70.0</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">70.0</span><span class="p">,</span> <span class="mf">70.0</span><span class="p">,</span> <span class="mf">70.0</span><span class="p">,</span> <span class="mf">70.0</span><span class="p">,</span> <span class="mf">70.0</span><span class="p">,</span> <span class="mf">70.0</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">out4</span><span class="o">=</span><span class="mf">65.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">in1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">in2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">in3</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_16__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_16__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|       date |           inputs |              currentinputaverages |                    currentoutputaverages |              inputratios |                     outputratios |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 |  out4 |</span>
+<span class="go">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2000-01-30 | 2.0  3.0     4.0 | 80.0  100.0                  60.0 | 80.0  90.0   70.0                   65.0 | 0.025  0.03     0.066667 | 0.025  0.03  0.025         0.025 | 2.0  2.7  1.75    1.625 | 2.0 | 3.0 | 4.0 |  2.0 |  2.7 | 1.75 | 1.625 |</span>
+<span class="go">| 2000-01-31 | 2.0  3.0     4.0 | 80.0  100.0                  60.0 | 80.0  90.0   70.0                   65.0 | 0.025  0.03     0.066667 | 0.025  0.03  0.025         0.025 | 2.0  2.7  1.75    1.625 | 2.0 | 3.0 | 4.0 |  2.0 |  2.7 | 1.75 | 1.625 |</span>
+<span class="go">| 2000-02-01 | 2.0  3.0     4.0 | 40.0  100.0                  60.0 | 80.0  90.0  140.0                   65.0 |  0.05  0.03     0.066667 |  0.05  0.03   0.05          0.05 | 4.0  2.7   7.0     3.25 | 2.0 | 3.0 | 4.0 |  4.0 |  2.7 |  7.0 |  3.25 |</span>
+</pre></div></div></div></pre></div></div></section>
+</section>
+<section id="method-features">
+<h2>Method features<a class="headerlink" href="#method-features" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.conv_idw_cm.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.conv_idw_cm.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/conv_idw_cm.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.conv_idw_cm.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="conv.html#hydpy.models.conv.conv_model.BaseModel" title="hydpy.models.conv.conv_model.BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a></p>
+<p>HydPy-Conv-IDW-CM (inverse distance weighted interpolation with multiplicative climatological adjustment).</p>
+<dl class="simple">
+<dt>The following “inlet update methods” are called in the given sequence at the beginning of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_model.Pick_Inputs_V1" title="hydpy.models.conv.conv_model.Pick_Inputs_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_Inputs_V1</span></code></a> Pick the input from all inlet nodes.</p></li>
+</ul>
+</dd>
+<dt>The following “run methods” are called in the given sequence during each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_model.Calc_CurrentInputAverages_V1" title="hydpy.models.conv.conv_model.Calc_CurrentInputAverages_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_CurrentInputAverages_V1</span></code></a> Take the long-term averages of the input nodes for the current month.</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_model.Calc_CurrentOutputAverages_V1" title="hydpy.models.conv.conv_model.Calc_CurrentOutputAverages_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_CurrentOutputAverages_V1</span></code></a> Take the long-term averages of the output nodes for the current month.</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_model.Calc_InputRatios_V1" title="hydpy.models.conv.conv_model.Calc_InputRatios_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_InputRatios_V1</span></code></a> Calculate the ratios between the values of the input nodes and their long-term averages for the current month.</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_model.Calc_OutputRatios_V1" title="hydpy.models.conv.conv_model.Calc_OutputRatios_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_OutputRatios_V1</span></code></a> Perform a simple inverse distance weighted interpolation based on the ratios previously determined for the input nodes.</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_model.Calc_Outputs_V4" title="hydpy.models.conv.conv_model.Calc_Outputs_V4"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Outputs_V4</span></code></a> Calculate the values of the output nodes by multiplying their long-term averages for the current month with the interpolated ratios.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence at the end of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_model.Pass_Outputs_V1" title="hydpy.models.conv.conv_model.Pass_Outputs_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Outputs_V1</span></code></a> Pass the output to all outlet nodes.</p></li>
+</ul>
+</dd>
+<dt>The following “additional methods” might be called by one or more of the other methods or are meant to be directly called by the user:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_model.Interpolate_InverseDistance_V1" title="hydpy.models.conv.conv_model.Interpolate_InverseDistance_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Interpolate_InverseDistance_V1</span></code></a> Perform a simple inverse distance weighted interpolation.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.conv_idw_cm.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('Conv-IDW-CM',</span> <span class="pre">'inverse</span> <span class="pre">distance</span> <span class="pre">weighted</span> <span class="pre">interpolation</span> <span class="pre">with</span> <span class="pre">multiplicative</span> <span class="pre">climatological</span> <span class="pre">adjustment')</span></span><a class="headerlink" href="#hydpy.models.conv_idw_cm.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.conv_idw_cm.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.conv_idw_cm.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="parameter-features">
+<h2>Parameter features<a class="headerlink" href="#parameter-features" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.conv_idw_cm.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.conv_idw_cm.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TM_co</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.15)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.conv_idw_cm.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.ControlParameters" title="hydpy.core.parametertools.ControlParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></p>
+<p>Control parameters of model conv_idw_cm.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_control.InputCoordinates" title="hydpy.models.conv.conv_control.InputCoordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputCoordinates</span></code></a> Coordinates of the inlet nodes [?].</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_control.OutputCoordinates" title="hydpy.models.conv.conv_control.OutputCoordinates"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutputCoordinates</span></code></a> Coordinates of the outlet nodes [?].</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_control.InputAverages" title="hydpy.models.conv.conv_control.InputAverages"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputAverages</span></code></a> The long-term averages of the input nodes for each month of the year [?].</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_control.OutputAverages" title="hydpy.models.conv.conv_control.OutputAverages"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutputAverages</span></code></a> The long-term averages of the output nodes for each month of the year [?].</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_control.MaxNmbInputs" title="hydpy.models.conv.conv_control.MaxNmbInputs"><code class="xref py py-class docutils literal notranslate"><span class="pre">MaxNmbInputs</span></code></a> The maximum number of input locations to be taken into account for interpolating the values of a specific output location [-].</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_control.Power" title="hydpy.models.conv.conv_control.Power"><code class="xref py py-class docutils literal notranslate"><span class="pre">Power</span></code></a> Power parameter for calculating inverse distance weights [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.conv_idw_cm.DerivedParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.conv_idw_cm.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TM_co</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.15)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.conv_idw_cm.DerivedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.DerivedParameters" title="hydpy.core.parametertools.DerivedParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></p>
+<p>Derived parameters of model conv_idw_cm.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_derived.MOY" title="hydpy.models.conv.conv_derived.MOY"><code class="xref py py-class docutils literal notranslate"><span class="pre">MOY</span></code></a> References the “global” month of the year index array [-].</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_derived.NmbInputs" title="hydpy.models.conv.conv_derived.NmbInputs"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbInputs</span></code></a> The number of inlet nodes [-]</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_derived.NmbOutputs" title="hydpy.models.conv.conv_derived.NmbOutputs"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbOutputs</span></code></a> The number of outlet nodes [-]</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_derived.Distances" title="hydpy.models.conv.conv_derived.Distances"><code class="xref py py-class docutils literal notranslate"><span class="pre">Distances</span></code></a> Distances of the inlet nodes to each outlet node [?].</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_derived.ProximityOrder" title="hydpy.models.conv.conv_derived.ProximityOrder"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProximityOrder</span></code></a> Indices of the inlet nodes in the order of their proximity to each outlet node [-].</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_derived.Weights" title="hydpy.models.conv.conv_derived.Weights"><code class="xref py py-class docutils literal notranslate"><span class="pre">Weights</span></code></a> Weighting coefficients of the inlet nodes corresponding to their proximity to each outlet node and parameter <a class="reference internal" href="conv.html#hydpy.models.conv.conv_control.Power" title="hydpy.models.conv.conv_control.Power"><code class="xref py py-class docutils literal notranslate"><span class="pre">Power</span></code></a> [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="sequence-features">
+<h2>Sequence features<a class="headerlink" href="#sequence-features" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.conv_idw_cm.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.conv_idw_cm.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TM_co</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.15)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.conv_idw_cm.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model conv_idw_cm.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_fluxes.Inputs" title="hydpy.models.conv.conv_fluxes.Inputs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inputs</span></code></a> The (unmodified) values supplied by the input nodes [?].</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_fluxes.CurrentInputAverages" title="hydpy.models.conv.conv_fluxes.CurrentInputAverages"><code class="xref py py-class docutils literal notranslate"><span class="pre">CurrentInputAverages</span></code></a> The long-term averages of the input nodes for the current month [?].</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_fluxes.CurrentOutputAverages" title="hydpy.models.conv.conv_fluxes.CurrentOutputAverages"><code class="xref py py-class docutils literal notranslate"><span class="pre">CurrentOutputAverages</span></code></a> The long-term averages of the output nodes for the current month [?].</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_fluxes.InputRatios" title="hydpy.models.conv.conv_fluxes.InputRatios"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputRatios</span></code></a> The ratios between the current values supplied by the input nodes and their long-term averages for the current month [-].</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_fluxes.OutputRatios" title="hydpy.models.conv.conv_fluxes.OutputRatios"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutputRatios</span></code></a> The ratios between the final results and the long-term averages for the current month, interpolated for the output nodes [-].</p></li>
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_fluxes.Outputs" title="hydpy.models.conv.conv_fluxes.Outputs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Outputs</span></code></a> The final interpolation results estimated for the output nodes [?].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.conv_idw_cm.InletSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.conv_idw_cm.</span></span><span class="sig-name descname"><span class="pre">InletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TM_co</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.15)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.conv_idw_cm.InletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InletSequences" title="hydpy.core.sequencetools.InletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequences</span></code></a></p>
+<p>Inlet sequences of model conv_idw_cm.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_inlets.Inputs" title="hydpy.models.conv.conv_inlets.Inputs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inputs</span></code></a> Inputs [?].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.conv_idw_cm.OutletSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.conv_idw_cm.</span></span><span class="sig-name descname"><span class="pre">OutletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TM_co</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#type" title="(in Python v3.15)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.conv_idw_cm.OutletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></p>
+<p>Outlet sequences of model conv_idw_cm.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="conv.html#hydpy.models.conv.conv_outlets.Outputs" title="hydpy.models.conv.conv_outlets.Outputs"><code class="xref py py-class docutils literal notranslate"><span class="pre">Outputs</span></code></a> Outputs [?].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HydPy-Exch.html" title="HydPy-Exch"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="conv_idw_ed.html" title="conv_idw_ed"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.5.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Conv.html" >HydPy-Conv</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">conv_idw_cm</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

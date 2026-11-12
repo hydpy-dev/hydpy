@@ -1,0 +1,805 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.conv.conv_model &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.conv.conv_model</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.conv.conv_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+
+<span class="c1"># imports...</span>
+<span class="c1"># ...from site-packages</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">devicetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core.typingtools</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">hydpy.cythons</span> <span class="kn">import</span> <span class="n">modelutils</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.conv</span> <span class="kn">import</span> <span class="n">conv_control</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.conv</span> <span class="kn">import</span> <span class="n">conv_derived</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.conv</span> <span class="kn">import</span> <span class="n">conv_fluxes</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.conv</span> <span class="kn">import</span> <span class="n">conv_inlets</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.conv</span> <span class="kn">import</span> <span class="n">conv_outlets</span>
+
+
+<div class="viewcode-block" id="Pick_Inputs_V1"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Pick_Inputs_V1">[docs]</a><span class="k">class</span> <span class="nc">Pick_Inputs_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Pick the input from all inlet nodes.&quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbInputs</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_inlets</span><span class="o">.</span><span class="n">Inputs</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_fluxes</span><span class="o">.</span><span class="n">Inputs</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">inl</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmbinputs</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">inl</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Calc_Outputs_V1"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Calc_Outputs_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_Outputs_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform a simple proximity-based interpolation.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        With complete input data, method |Calc_Outputs_V1| performs the</span>
+<span class="sd">        most simple nearest-neighbour approach:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; maxnmbinputs.value = 1</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmboutputs(3)</span>
+<span class="sd">        &gt;&gt;&gt; derived.proximityorder.shape = (3, 1)</span>
+<span class="sd">        &gt;&gt;&gt; derived.proximityorder([[0], [1], [0]])</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inputs.shape = 2</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inputs = 1.0, 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outputs_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs</span>
+<span class="sd">        outputs(1.0, 2.0, 1.0)</span>
+
+<span class="sd">        With incomplete data, it subsequently checks the second-nearest</span>
+<span class="sd">        location, the third-nearest location, and so on, until it finds</span>
+<span class="sd">        an actual value.  Parameter |MaxNmbInputs| defines the maximum</span>
+<span class="sd">        number of considered locations:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.inputs = 1.0, nan</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outputs_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs</span>
+<span class="sd">        outputs(1.0, nan, 1.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; maxnmbinputs.value = 2</span>
+<span class="sd">        &gt;&gt;&gt; derived.proximityorder.shape = (3, 2)</span>
+<span class="sd">        &gt;&gt;&gt; derived.proximityorder([[0, 1], [1, 0], [0, 1]])</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outputs_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs</span>
+<span class="sd">        outputs(1.0, 1.0, 1.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_control</span><span class="o">.</span><span class="n">MaxNmbInputs</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbOutputs</span><span class="p">,</span>
+        <span class="n">conv_derived</span><span class="o">.</span><span class="n">ProximityOrder</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_fluxes</span><span class="o">.</span><span class="n">Inputs</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_fluxes</span><span class="o">.</span><span class="n">Outputs</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">idx_out</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmboutputs</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">idx_try</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">maxnmbinputs</span><span class="p">):</span>
+                <span class="n">idx_in</span> <span class="o">=</span> <span class="n">der</span><span class="o">.</span><span class="n">proximityorder</span><span class="p">[</span><span class="n">idx_out</span><span class="p">,</span> <span class="n">idx_try</span><span class="p">]</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="n">idx_out</span><span class="p">]</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx_in</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="n">idx_out</span><span class="p">]):</span>
+                    <span class="k">break</span></div>
+
+
+<div class="viewcode-block" id="Return_Mean_V1"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Return_Mean_V1">[docs]</a><span class="k">class</span> <span class="nc">Return_Mean_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the arithmetic mean value for the given vector.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Method |Return_Mean_V1| requires two vectors and one integer value.  The</span>
+<span class="sd">        first vector (in the following examples: |conv_fluxes.Inputs|)  handles the</span>
+<span class="sd">        data to be averaged.  The second vector (|conv_fluxes.Outputs|) serves as</span>
+<span class="sd">        a mask.  Method |Return_Mean_V1| takes only those vector positions into</span>
+<span class="sd">        account, where the value of the mask vector is not |numpy.nan|. The integer</span>
+<span class="sd">        value defines the length of both vectors:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inputs.shape = 3</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs.shape = 3</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inputs = 0.0, 1.0, 5.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs = 9.9, 9.9, 9.9</span>
+<span class="sd">        &gt;&gt;&gt; model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3)</span>
+<span class="sd">        2.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs = nan, 9.9, nan</span>
+<span class="sd">        &gt;&gt;&gt; model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3)</span>
+<span class="sd">        1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs = nan, nan, nan</span>
+<span class="sd">        &gt;&gt;&gt; model.return_mean_v1(fluxes.inputs.values, fluxes.outputs.values, 3)</span>
+<span class="sd">        nan</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span>
+        <span class="n">values</span><span class="p">:</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+        <span class="n">mask</span><span class="p">:</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+        <span class="n">number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">d_result</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="n">idx</span><span class="p">]):</span>
+                <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">d_result</span> <span class="o">+=</span> <span class="n">values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">counter</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">d_result</span> <span class="o">/</span> <span class="n">counter</span>
+        <span class="k">return</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">nan</span></div>
+
+
+<div class="viewcode-block" id="Calc_ActualConstant_ActualFactor_V1"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Calc_ActualConstant_ActualFactor_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_ActualConstant_ActualFactor_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the linear regression coefficients |ActualConstant| and</span>
+<span class="sd">    |ActualFactor| for modelling the relationship between |conv_fluxes.Inputs|</span>
+<span class="sd">    (dependent variable) and |Heights| (independent variable).</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        First, we calculate both regression coefficients for a small data set</span>
+<span class="sd">        consisting of only three data points:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; inputheights.shape = 3</span>
+<span class="sd">        &gt;&gt;&gt; inputheights.values = 1.0, 2.0, 3.0</span>
+<span class="sd">        &gt;&gt;&gt; minnmbinputs(3)</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbinputs(3)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inputs = 2.0, 3.0, 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_actualconstant_actualfactor_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualconstant</span>
+<span class="sd">        actualconstant(0.333333)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualfactor</span>
+<span class="sd">        actualfactor(1.5)</span>
+
+<span class="sd">        In the last example, the required number of data points (|MinNmbInputs|)</span>
+<span class="sd">        exactly agrees with the available number of data points.  In the next</span>
+<span class="sd">        example, we insert a |numpy.nan| value into the |conv_fluxes.Inputs|</span>
+<span class="sd">        array to reduce the number of available data points to two.  Then,</span>
+<span class="sd">        |Calc_ActualConstant_ActualFactor_V1| falls back to the default values</span>
+<span class="sd">        provided by the control parameters |DefaultConstant| and |DefaultFactor|:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.inputs = 2.0, nan, 5.0</span>
+<span class="sd">        &gt;&gt;&gt; defaultconstant(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; defaultfactor(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_actualconstant_actualfactor_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualconstant</span>
+<span class="sd">        actualconstant(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualfactor</span>
+<span class="sd">        actualfactor(1.0)</span>
+
+<span class="sd">        If we lower our data requirements, method |Calc_ActualConstant_ActualFactor_V1|</span>
+<span class="sd">        uses the remaining two data points to calculate the coefficients:</span>
+
+<span class="sd">        &gt;&gt;&gt; minnmbinputs(2)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_actualconstant_actualfactor_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualconstant</span>
+<span class="sd">        actualconstant(0.5)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualfactor</span>
+<span class="sd">        actualfactor(1.5)</span>
+
+<span class="sd">        The following two examples deal with a perfect and a non-existing linear</span>
+<span class="sd">        relationship:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.inputs = 2.0, 4.0, 6.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_actualconstant_actualfactor_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualconstant</span>
+<span class="sd">        actualconstant(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualfactor</span>
+<span class="sd">        actualfactor(2.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.inputs = 1.0, 4.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_actualconstant_actualfactor_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualconstant</span>
+<span class="sd">        actualconstant(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualfactor</span>
+<span class="sd">        actualfactor(0.0)</span>
+
+<span class="sd">        In case all values of the independent variable are the same, method</span>
+<span class="sd">        |Calc_ActualConstant_ActualFactor_V1| again uses the provided default values:</span>
+
+<span class="sd">        &gt;&gt;&gt; inputheights.values = 1.0, 1.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_actualconstant_actualfactor_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualconstant</span>
+<span class="sd">        actualconstant(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualfactor</span>
+<span class="sd">        actualfactor(1.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">conv_control</span><span class="o">.</span><span class="n">InputHeights</span><span class="p">,</span>
+        <span class="n">conv_control</span><span class="o">.</span><span class="n">MinNmbInputs</span><span class="p">,</span>
+        <span class="n">conv_control</span><span class="o">.</span><span class="n">DefaultConstant</span><span class="p">,</span>
+        <span class="n">conv_control</span><span class="o">.</span><span class="n">DefaultFactor</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbInputs</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_fluxes</span><span class="o">.</span><span class="n">Inputs</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">conv_fluxes</span><span class="o">.</span><span class="n">ActualConstant</span><span class="p">,</span>
+        <span class="n">conv_fluxes</span><span class="o">.</span><span class="n">ActualFactor</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmbinputs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx</span><span class="p">]):</span>
+                <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="n">con</span><span class="o">.</span><span class="n">minnmbinputs</span><span class="p">:</span>
+                    <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">actualfactor</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">defaultfactor</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">actualconstant</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">defaultconstant</span>
+            <span class="k">return</span>
+        <span class="n">d_mean_height</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">return_mean_v1</span><span class="p">(</span>
+            <span class="n">con</span><span class="o">.</span><span class="n">inputheights</span><span class="p">,</span> <span class="n">flu</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span> <span class="n">der</span><span class="o">.</span><span class="n">nmbinputs</span>
+        <span class="p">)</span>
+        <span class="n">d_mean_inputs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">return_mean_v1</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span> <span class="n">flu</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span> <span class="n">der</span><span class="o">.</span><span class="n">nmbinputs</span><span class="p">)</span>
+        <span class="n">d_nominator</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">d_denominator</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmbinputs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx</span><span class="p">]):</span>
+                <span class="n">d_temp</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">inputheights</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">d_mean_height</span>
+                <span class="n">d_nominator</span> <span class="o">+=</span> <span class="n">d_temp</span> <span class="o">*</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">d_mean_inputs</span><span class="p">)</span>
+                <span class="n">d_denominator</span> <span class="o">+=</span> <span class="n">d_temp</span> <span class="o">*</span> <span class="n">d_temp</span>
+        <span class="k">if</span> <span class="n">d_denominator</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">actualfactor</span> <span class="o">=</span> <span class="n">d_nominator</span> <span class="o">/</span> <span class="n">d_denominator</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">actualconstant</span> <span class="o">=</span> <span class="n">d_mean_inputs</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">actualfactor</span> <span class="o">*</span> <span class="n">d_mean_height</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">actualfactor</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">defaultfactor</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">actualconstant</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">defaultconstant</span>
+        <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="Calc_InputPredictions_V1"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Calc_InputPredictions_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_InputPredictions_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Predict the values of the input nodes based on a linear model.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">       :math:`InputPredictions = ActualConstant + ActualFactor \cdot InputHeights`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; inputheights.shape = 2</span>
+<span class="sd">        &gt;&gt;&gt; inputheights.values = 1.0, 2.0</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbinputs(2)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualconstant(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualfactor(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_inputpredictions_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inputpredictions</span>
+<span class="sd">        inputpredictions(3.0, 5.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_control</span><span class="o">.</span><span class="n">InputHeights</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbInputs</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">conv_fluxes</span><span class="o">.</span><span class="n">ActualConstant</span><span class="p">,</span>
+        <span class="n">conv_fluxes</span><span class="o">.</span><span class="n">ActualFactor</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_fluxes</span><span class="o">.</span><span class="n">InputPredictions</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmbinputs</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">inputpredictions</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">actualconstant</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">actualfactor</span> <span class="o">*</span> <span class="n">con</span><span class="o">.</span><span class="n">inputheights</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_OutputPredictions_V1"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Calc_OutputPredictions_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_OutputPredictions_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Predict the values of the output nodes based on a linear model.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">       :math:`OutputPredictions = ActualConstant + ActualFactor \cdot OutputHeights`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; outputheights.shape = 2</span>
+<span class="sd">        &gt;&gt;&gt; outputheights.values = 1.0, 2.0</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmboutputs(2)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualconstant(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.actualfactor(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outputpredictions_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputpredictions</span>
+<span class="sd">        outputpredictions(3.0, 5.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_control</span><span class="o">.</span><span class="n">OutputHeights</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbOutputs</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">conv_fluxes</span><span class="o">.</span><span class="n">ActualConstant</span><span class="p">,</span>
+        <span class="n">conv_fluxes</span><span class="o">.</span><span class="n">ActualFactor</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_fluxes</span><span class="o">.</span><span class="n">OutputPredictions</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmboutputs</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">outputpredictions</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">actualconstant</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">actualfactor</span> <span class="o">*</span> <span class="n">con</span><span class="o">.</span><span class="n">outputheights</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_InputResiduals_V1"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Calc_InputResiduals_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_InputResiduals_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Determine the residuals at the input nodes.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">       :math:`InputResiduals = Inputs - InputPredictions`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbinputs(2)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inputs = 1.0, 2.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inputpredictions = 0.0, 4.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_inputresiduals_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inputresiduals</span>
+<span class="sd">        inputresiduals(1.0, -2.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbInputs</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">conv_fluxes</span><span class="o">.</span><span class="n">Inputs</span><span class="p">,</span>
+        <span class="n">conv_fluxes</span><span class="o">.</span><span class="n">InputPredictions</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_fluxes</span><span class="o">.</span><span class="n">InputResiduals</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmbinputs</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">inputresiduals</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">inputpredictions</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Interpolate_InverseDistance_V1"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Interpolate_InverseDistance_V1">[docs]</a><span class="k">class</span> <span class="nc">Interpolate_InverseDistance_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform a simple inverse distance weighted interpolation.</span>
+
+<span class="sd">    See the documentation on method |Calc_Outputs_V2| for further information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_control</span><span class="o">.</span><span class="n">MaxNmbInputs</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbOutputs</span><span class="p">,</span>
+        <span class="n">conv_derived</span><span class="o">.</span><span class="n">ProximityOrder</span><span class="p">,</span>
+        <span class="n">conv_derived</span><span class="o">.</span><span class="n">Weights</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Vector</span><span class="p">,</span> <span class="n">outputs</span><span class="p">:</span> <span class="n">Vector</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">idx_out</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmboutputs</span><span class="p">):</span>
+            <span class="n">d_sumweights</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">d_sumvalues</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">d_sumvalues_inf</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">counter_inf</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">idx_try</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">maxnmbinputs</span><span class="p">):</span>
+                <span class="n">idx_in</span> <span class="o">=</span> <span class="n">der</span><span class="o">.</span><span class="n">proximityorder</span><span class="p">[</span><span class="n">idx_out</span><span class="p">,</span> <span class="n">idx_try</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx_in</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">idx_out</span><span class="p">,</span> <span class="n">idx_try</span><span class="p">]):</span>
+                        <span class="n">d_sumvalues_inf</span> <span class="o">+=</span> <span class="n">inputs</span><span class="p">[</span><span class="n">idx_in</span><span class="p">]</span>
+                        <span class="n">counter_inf</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">d_sumweights</span> <span class="o">+=</span> <span class="n">der</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">idx_out</span><span class="p">,</span> <span class="n">idx_try</span><span class="p">]</span>
+                        <span class="n">d_sumvalues</span> <span class="o">+=</span> <span class="n">der</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">idx_out</span><span class="p">,</span> <span class="n">idx_try</span><span class="p">]</span> <span class="o">*</span> <span class="n">inputs</span><span class="p">[</span><span class="n">idx_in</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">counter_inf</span><span class="p">:</span>
+                <span class="n">outputs</span><span class="p">[</span><span class="n">idx_out</span><span class="p">]</span> <span class="o">=</span> <span class="n">d_sumvalues_inf</span> <span class="o">/</span> <span class="n">counter_inf</span>
+            <span class="k">elif</span> <span class="n">d_sumweights</span><span class="p">:</span>
+                <span class="n">outputs</span><span class="p">[</span><span class="n">idx_out</span><span class="p">]</span> <span class="o">=</span> <span class="n">d_sumvalues</span> <span class="o">/</span> <span class="n">d_sumweights</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">outputs</span><span class="p">[</span><span class="n">idx_out</span><span class="p">]</span> <span class="o">=</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">nan</span></div>
+
+
+<div class="viewcode-block" id="Calc_Outputs_V2"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Calc_Outputs_V2">[docs]</a><span class="k">class</span> <span class="nc">Calc_Outputs_V2</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform a simple inverse distance weighted interpolation based on the original</span>
+<span class="sd">    data supplied by the input nodes.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        With complete input data, method |Calc_Outputs_V2| performs the</span>
+<span class="sd">        most simple inverse distance weighted approach:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">        &gt;&gt;&gt; maxnmbinputs.value = 4</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmboutputs(3)</span>
+<span class="sd">        &gt;&gt;&gt; derived.proximityorder.shape = 3, 4</span>
+<span class="sd">        &gt;&gt;&gt; derived.proximityorder([[0, 2, 1, 3],</span>
+<span class="sd">        ...                         [1, 0, 2, 3],</span>
+<span class="sd">        ...                         [0, 2, 1, 3]])</span>
+<span class="sd">        &gt;&gt;&gt; derived.weights.shape = 3, 4</span>
+<span class="sd">        &gt;&gt;&gt; derived.weights([[inf, inf, 0.05, 0.000053],</span>
+<span class="sd">        ...                  [0.5, 0.029412, 0.029412, 0.000052],</span>
+<span class="sd">        ...                  [0.5, 0.5, 0.1, 0.000053]])</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.inputs.shape = 4</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inputs = 1.0, 5.0, 3.0, 6.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outputs_v2()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs</span>
+<span class="sd">        outputs(2.0, 4.684331, 2.272907)</span>
+
+<span class="sd">        With incomplete data, it subsequently skips all missing values.</span>
+<span class="sd">        Parameter |MaxNmbInputs| defines the maximum number of considered</span>
+<span class="sd">        locations:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.inputs = nan, 5.0, nan, 6.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outputs_v2()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs</span>
+<span class="sd">        outputs(5.001059, 5.000104, 5.00053)</span>
+
+<span class="sd">        With just one considered location, method |Calc_Outputs_V2|</span>
+<span class="sd">        calculates the same results as the nearest-neighbour approach</span>
+<span class="sd">        implemented by method |Calc_Outputs_V1|:</span>
+
+<span class="sd">        &gt;&gt;&gt; maxnmbinputs.value = 1</span>
+<span class="sd">        &gt;&gt;&gt; derived.proximityorder.shape = 3, 1</span>
+<span class="sd">        &gt;&gt;&gt; derived.proximityorder([[0],</span>
+<span class="sd">        ...                         [1],</span>
+<span class="sd">        ...                         [0]])</span>
+<span class="sd">        &gt;&gt;&gt; derived.weights.shape = 3, 1</span>
+<span class="sd">        &gt;&gt;&gt; derived.weights([[inf],</span>
+<span class="sd">        ...                  [0.5],</span>
+<span class="sd">        ...                  [0.5]])</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outputs_v2()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs</span>
+<span class="sd">        outputs(nan, 5.0, nan)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_control</span><span class="o">.</span><span class="n">MaxNmbInputs</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbOutputs</span><span class="p">,</span>
+        <span class="n">conv_derived</span><span class="o">.</span><span class="n">ProximityOrder</span><span class="p">,</span>
+        <span class="n">conv_derived</span><span class="o">.</span><span class="n">Weights</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_fluxes</span><span class="o">.</span><span class="n">Inputs</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_fluxes</span><span class="o">.</span><span class="n">Outputs</span><span class="p">,)</span>
+    <span class="n">SUBMETHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Interpolate_InverseDistance_V1</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">interpolate_inversedistance_v1</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span> <span class="n">flu</span><span class="o">.</span><span class="n">outputs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_OutputResiduals_V1"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Calc_OutputResiduals_V1">[docs]</a><span class="k">class</span> <span class="nc">Calc_OutputResiduals_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform a simple inverse distance weighted interpolation based on the</span>
+<span class="sd">    residuals previously determined for the input nodes.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        See the documentation on method |Calc_Outputs_V2| for further information,</span>
+<span class="sd">        from which we take the following (first) example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">        &gt;&gt;&gt; maxnmbinputs.value = 4</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmboutputs(3)</span>
+<span class="sd">        &gt;&gt;&gt; derived.proximityorder.shape = 3, 4</span>
+<span class="sd">        &gt;&gt;&gt; derived.proximityorder([[0, 2, 1, 3],</span>
+<span class="sd">        ...                         [1, 0, 2, 3],</span>
+<span class="sd">        ...                         [0, 2, 1, 3]])</span>
+<span class="sd">        &gt;&gt;&gt; derived.weights.shape = 3, 4</span>
+<span class="sd">        &gt;&gt;&gt; derived.weights([[inf, inf, 0.05, 0.000053],</span>
+<span class="sd">        ...                  [0.5, 0.029412, 0.029412, 0.000052],</span>
+<span class="sd">        ...                  [0.5, 0.5, 0.1, 0.000053]])</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.inputresiduals.shape = 4</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inputresiduals = 1.0, 5.0, 3.0, 6.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outputresiduals_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputresiduals</span>
+<span class="sd">        outputresiduals(2.0, 4.684331, 2.272907)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_control</span><span class="o">.</span><span class="n">MaxNmbInputs</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbOutputs</span><span class="p">,</span>
+        <span class="n">conv_derived</span><span class="o">.</span><span class="n">ProximityOrder</span><span class="p">,</span>
+        <span class="n">conv_derived</span><span class="o">.</span><span class="n">Weights</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_fluxes</span><span class="o">.</span><span class="n">InputResiduals</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_fluxes</span><span class="o">.</span><span class="n">OutputResiduals</span><span class="p">,)</span>
+    <span class="n">SUBMETHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Interpolate_InverseDistance_V1</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">interpolate_inversedistance_v1</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">inputresiduals</span><span class="p">,</span> <span class="n">flu</span><span class="o">.</span><span class="n">outputresiduals</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Calc_Outputs_V3"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Calc_Outputs_V3">[docs]</a><span class="k">class</span> <span class="nc">Calc_Outputs_V3</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the values of the output nodes by combining the initial predictions</span>
+<span class="sd">    with the interpolated residuals.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">       :math:`Outputs = OutputPredictions - OutputResiduals`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmboutputs(2)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputpredictions = 1.0, 2.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputresiduals = 3.0, -4.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outputs_v3()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outputs</span>
+<span class="sd">        outputs(4.0, -2.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbOutputs</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">conv_fluxes</span><span class="o">.</span><span class="n">OutputPredictions</span><span class="p">,</span>
+        <span class="n">conv_fluxes</span><span class="o">.</span><span class="n">OutputResiduals</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_fluxes</span><span class="o">.</span><span class="n">Outputs</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmboutputs</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">outputpredictions</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">outputresiduals</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Pass_Outputs_V1"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Pass_Outputs_V1">[docs]</a><span class="k">class</span> <span class="nc">Pass_Outputs_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Pass the output to all outlet nodes.&quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbOutputs</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_fluxes</span><span class="o">.</span><span class="n">Outputs</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_outlets</span><span class="o">.</span><span class="n">Outputs</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">nmboutputs</span><span class="p">):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The HydPy-Conv model.&quot;&quot;&quot;</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Pick_Inputs_V1</span><span class="p">,)</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Calc_ActualConstant_ActualFactor_V1</span><span class="p">,</span>
+        <span class="n">Calc_InputPredictions_V1</span><span class="p">,</span>
+        <span class="n">Calc_OutputPredictions_V1</span><span class="p">,</span>
+        <span class="n">Calc_InputResiduals_V1</span><span class="p">,</span>
+        <span class="n">Calc_Outputs_V1</span><span class="p">,</span>
+        <span class="n">Calc_Outputs_V2</span><span class="p">,</span>
+        <span class="n">Calc_OutputResiduals_V1</span><span class="p">,</span>
+        <span class="n">Calc_Outputs_V3</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Return_Mean_V1</span><span class="p">,</span>
+        <span class="n">Interpolate_InverseDistance_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Pass_Outputs_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span>
+
+<div class="viewcode-block" id="Model.connect"><a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_model.Model.connect">[docs]</a>    <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Connect the |InletSequence| and |OutletSequence| objects of</span>
+<span class="sd">        the actual model to the |NodeSequence| objects handled by an</span>
+<span class="sd">        arbitrary number of inlet and outlet nodes.</span>
+
+<span class="sd">        To application models derived from |conv_model.Model|, you first</span>
+<span class="sd">        need to define an |Element| connected with an arbitrary number of</span>
+<span class="sd">        inlet and outlet nodes:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Element</span>
+<span class="sd">        &gt;&gt;&gt; conv = Element(&quot;conv&quot;,</span>
+<span class="sd">        ...                inlets=[&quot;in1&quot;, &quot;in2&quot;],</span>
+<span class="sd">        ...                outlets=[&quot;out1&quot;, &quot;out2&quot;, &quot;out3&quot;])</span>
+
+<span class="sd">        Second, you must define the inlet and outlet nodes&#39; coordinates via</span>
+<span class="sd">        parameter |InputCoordinates| and |OutputCoordinates|, respectively.</span>
+<span class="sd">        In both cases, use the names of the |Node| objects as keyword arguments</span>
+<span class="sd">        to pass the corresponding coordinates:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.conv_v001 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; inputcoordinates(</span>
+<span class="sd">        ...     in1=(0.0, 3.0),</span>
+<span class="sd">        ...     in2=(2.0, -1.0))</span>
+<span class="sd">        &gt;&gt;&gt; outputcoordinates(</span>
+<span class="sd">        ...     out1=(0.0, 3.0),</span>
+<span class="sd">        ...     out2=(3.0, -2.0),</span>
+<span class="sd">        ...     out3=(1.0, 2.0))</span>
+<span class="sd">        &gt;&gt;&gt; maxnmbinputs()</span>
+<span class="sd">        &gt;&gt;&gt; parameters.update()</span>
+
+<span class="sd">        |conv| passes the current values of the inlet nodes correctly to</span>
+<span class="sd">        the outlet nodes (note that node `in1` works with simulated values</span>
+<span class="sd">        while node `in2` works with observed values, as we set its</span>
+<span class="sd">        |Node.deploymode| to `obs`):</span>
+
+<span class="sd">        &gt;&gt;&gt; conv.model = model</span>
+<span class="sd">        &gt;&gt;&gt; conv.inlets.in1.sequences.sim = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; conv.inlets.in2.deploymode = &quot;obs&quot;</span>
+<span class="sd">        &gt;&gt;&gt; conv.inlets.in2.sequences.obs = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.simulate(0)</span>
+<span class="sd">        &gt;&gt;&gt; conv.outlets.out1.sequences.sim</span>
+<span class="sd">        sim(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; conv.outlets.out2.sequences.sim</span>
+<span class="sd">        sim(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; conv.outlets.out3.sequences.sim</span>
+<span class="sd">        sim(1.0)</span>
+
+<span class="sd">        When you forget a node (or misspell its name), you get the</span>
+<span class="sd">        following error message:</span>
+
+<span class="sd">        &gt;&gt;&gt; outputcoordinates(</span>
+<span class="sd">        ...     out1=(0.0, 3.0),</span>
+<span class="sd">        ...     out2=(3.0, -2.0))</span>
+<span class="sd">        &gt;&gt;&gt; maxnmbinputs()</span>
+<span class="sd">        &gt;&gt;&gt; parameters.update()</span>
+<span class="sd">        &gt;&gt;&gt; conv.model = model</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to connect model `conv_v001` of element \</span>
+<span class="sd">`conv`, the following error occurred: The node handled by control parameter \</span>
+<span class="sd">outputcoordinates (out1 and out2) are not the same as the outlet nodes \</span>
+<span class="sd">handled by element conv (out1, out2, and out3).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">sequence</span><span class="p">,</span> <span class="n">nodes</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">inputcoordinates</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">inlets</span><span class="p">,</span>
+                <span class="p">),</span>
+                <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">outputcoordinates</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">outputs</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">outlets</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">):</span>
+                <span class="k">if</span> <span class="n">nodes</span> <span class="o">==</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">nodes</span><span class="p">):</span>
+                    <span class="n">sequence</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">nodes</span><span class="p">):</span>
+                        <span class="n">sequence</span><span class="o">.</span><span class="n">set_pointer</span><span class="p">(</span>
+                            <span class="n">node</span><span class="o">.</span><span class="n">get_double</span><span class="p">(</span><span class="n">sequence</span><span class="o">.</span><span class="n">subseqs</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">idx</span>
+                        <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">parameternodes</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
+                    <span class="n">elementnodes</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;The node handled by control parameter &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">coordinates</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">parameternodes</span><span class="si">}</span><span class="s2">) are not the &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;same as the </span><span class="si">{</span><span class="n">sequence</span><span class="o">.</span><span class="n">subseqs</span><span class="o">.</span><span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> nodes &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;handled by element </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">elementnodes</span><span class="si">}</span><span class="s2">).&quot;</span>
+                    <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to connect model &quot;</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.conv.conv_model</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

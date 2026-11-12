@@ -1,0 +1,312 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>replacetools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="servertools" href="servertools.html" />
+    <link rel="prev" title="modelimports" href="modelimports.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="servertools.html" title="servertools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="modelimports.html" title="modelimports"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="execution.html" accesskey="U">Execution Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">replacetools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="replacetools">
+<span id="id1"></span><h1>replacetools<a class="headerlink" href="#replacetools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.exe.replacetools"></span><p>This module implements tools for file related string substitutions.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.exe.replacetools" title="hydpy.exe.replacetools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">replacetools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.exe.replacetools.xml_replace" title="hydpy.exe.replacetools.xml_replace"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_replace()</span></code></a> Read the content of an XML template file (XMLT), apply the given <cite>replacements</cite> to its substitution markers, and write the result into an XML file with the same name but ending with <cite>xml</cite> instead of <cite>xmlt</cite>.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py function">
+<dt id="hydpy.exe.replacetools.xml_replace">
+<code class="sig-prename descclassname"><span class="pre">hydpy.exe.replacetools.</span></code><code class="sig-name descname"><span class="pre">xml_replace</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">printflag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">replacements</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/exe/replacetools.html#xml_replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.exe.replacetools.xml_replace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the content of an XML template file (XMLT), apply the given
+<cite>replacements</cite> to its substitution  markers, and write the result into
+an XML file with the same name but ending with <cite>xml</cite> instead of <cite>xmlt</cite>.</p>
+<p>First, we write an XMLT file, containing a regular HTML comment, a
+readily defined element <cite>e1</cite>, and some other elements with
+substitutions markers.  Substitution markers are HTML comments
+starting and ending with the <cite>|</cite> character:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">xml_replace</span><span class="p">,</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;test1.xmlt&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">templatefile</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">templatefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+<span class="gp">... </span>            <span class="s2">&quot;&lt;!--a normal comment--&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="gp">... </span>            <span class="s2">&quot;&lt;e1&gt;element 1&lt;/e1&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="gp">... </span>            <span class="s2">&quot;&lt;e2&gt;&lt;!--|e2|--&gt;&lt;/e2&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="gp">... </span>            <span class="s2">&quot;&lt;e3&gt;&lt;!--|e3_|--&gt;&lt;/e3&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="gp">... </span>            <span class="s2">&quot;&lt;e4&gt;&lt;!--|e4=element 4|--&gt;&lt;/e4&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="gp">... </span>            <span class="s2">&quot;&lt;e2&gt;&lt;!--|e2|--&gt;&lt;/e2&gt;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Function <a class="reference internal" href="#hydpy.exe.replacetools.xml_replace" title="hydpy.exe.replacetools.xml_replace"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_replace()</span></code></a> can both be called within a Python session and
+from a command line.  We start with the first type of application.</p>
+<p>Each substitution marker must be met by a keyword argument unless
+it holds a default value (<cite>e4</cite>).  All arguments are converted to
+a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> object (<cite>e3</cite>).  Template files can use the same substitution
+marker multiple times (<cite>e2</cite>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">xml_replace</span><span class="p">(</span><span class="s2">&quot;test1&quot;</span><span class="p">,</span> <span class="n">e2</span><span class="o">=</span><span class="s2">&quot;E2&quot;</span><span class="p">,</span> <span class="n">e3_</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">e4</span><span class="o">=</span><span class="s2">&quot;ELEMENT 4&quot;</span><span class="p">)</span>
+<span class="go">template file: test1.xmlt</span>
+<span class="go">target file: test1.xml</span>
+<span class="go">replacements:</span>
+<span class="go">  e2 --&gt; E2 (given argument)</span>
+<span class="go">  e3_ --&gt; 3 (given argument)</span>
+<span class="go">  e4 --&gt; ELEMENT 4 (given argument)</span>
+<span class="go">  e2 --&gt; E2 (given argument)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;test1.xml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">targetfile</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="n">targetfile</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+<span class="go">&lt;!--a normal comment--&gt;</span>
+<span class="go">&lt;e1&gt;element 1&lt;/e1&gt;</span>
+<span class="go">&lt;e2&gt;E2&lt;/e2&gt;</span>
+<span class="go">&lt;e3&gt;3&lt;/e3&gt;</span>
+<span class="go">&lt;e4&gt;ELEMENT 4&lt;/e4&gt;</span>
+<span class="go">&lt;e2&gt;E2&lt;/e2&gt;</span>
+</pre></div>
+</div>
+<p>Without custom values, <a class="reference internal" href="#hydpy.exe.replacetools.xml_replace" title="hydpy.exe.replacetools.xml_replace"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_replace()</span></code></a> applies predefined default
+values, if available (<cite>e4</cite>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">xml_replace</span><span class="p">(</span><span class="s2">&quot;test1&quot;</span><span class="p">,</span> <span class="n">e2</span><span class="o">=</span><span class="s2">&quot;E2&quot;</span><span class="p">,</span> <span class="n">e3_</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>    
+<span class="go">template file: test1.xmlt</span>
+<span class="go">target file: test1.xml</span>
+<span class="go">replacements:</span>
+<span class="go">  e2 --&gt; E2 (given argument)</span>
+<span class="go">  e3_ --&gt; 3 (given argument)</span>
+<span class="go">  e4 --&gt; element 4 (default argument)</span>
+<span class="go">  e2 --&gt; E2 (given argument)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;test1.xml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">targetfile</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="n">targetfile</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+<span class="go">&lt;!--a normal comment--&gt;</span>
+<span class="go">&lt;e1&gt;element 1&lt;/e1&gt;</span>
+<span class="go">&lt;e2&gt;E2&lt;/e2&gt;</span>
+<span class="go">&lt;e3&gt;3&lt;/e3&gt;</span>
+<span class="go">&lt;e4&gt;element 4&lt;/e4&gt;</span>
+<span class="go">&lt;e2&gt;E2&lt;/e2&gt;</span>
+</pre></div>
+</div>
+<p>Missing and useless keyword arguments result in errors:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">xml_replace</span><span class="p">(</span><span class="s2">&quot;test1&quot;</span><span class="p">,</span> <span class="n">e2</span><span class="o">=</span><span class="s2">&quot;E2&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to replace the markers `e2, e3_, and e4` of the XML template file `test1.xmlt` with the available keywords `e2`, the following error occurred: Marker `e3_` cannot be replaced.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">xml_replace</span><span class="p">(</span><span class="s2">&quot;test1&quot;</span><span class="p">,</span> <span class="n">e2</span><span class="o">=</span><span class="s2">&quot;e2&quot;</span><span class="p">,</span> <span class="n">e3_</span><span class="o">=</span><span class="s2">&quot;E3&quot;</span><span class="p">,</span> <span class="n">e4</span><span class="o">=</span><span class="s2">&quot;e4&quot;</span><span class="p">,</span> <span class="n">e5</span><span class="o">=</span><span class="s2">&quot;e5&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to replace the markers `e2, e3_, and e4` of the XML template file `test1.xmlt` with the available keywords `e2, e3_, e4, and e5`, the following error occurred: Keyword(s) `e5` cannot be used.</span>
+</pre></div>
+</div>
+<p>Using different default values for the same substitution marker
+is not allowed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span><span class="p">,</span> <span class="n">xml_replace</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;test2.xmlt&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">templatefile</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">templatefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+<span class="gp">... </span>            <span class="s2">&quot;&lt;e4&gt;&lt;!--|e4=element 4|--&gt;&lt;/e4&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="gp">... </span>            <span class="s2">&quot;&lt;e4&gt;&lt;!--|e4=ELEMENT 4|--&gt;&lt;/e4&gt;&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">xml_replace</span><span class="p">(</span><span class="s2">&quot;test2&quot;</span><span class="p">,</span> <span class="n">e4</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="go">template file: test2.xmlt</span>
+<span class="go">target file: test2.xml</span>
+<span class="go">replacements:</span>
+<span class="go">  e4 --&gt; 4 (given argument)</span>
+<span class="go">  e4 --&gt; 4 (given argument)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;test2.xml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">targetfile</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="n">targetfile</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+<span class="go">&lt;e4&gt;4&lt;/e4&gt;</span>
+<span class="go">&lt;e4&gt;4&lt;/e4&gt;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">xml_replace</span><span class="p">(</span><span class="s2">&quot;test2&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">Template file `test2.xmlt` defines different default values for marker `e4`.</span>
+</pre></div>
+</div>
+<p>As mentioned above, function <a class="reference internal" href="#hydpy.exe.replacetools.xml_replace" title="hydpy.exe.replacetools.xml_replace"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_replace()</span></code></a> is registered as a “script
+function” and can thus be used via command line:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">scriptfunctions</span><span class="p">[</span><span class="s2">&quot;xml_replace&quot;</span><span class="p">]</span><span class="o">.</span><span class="vm">__name__</span>
+<span class="go">&#39;xml_replace&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">scriptfunctions</span><span class="p">[</span><span class="s2">&quot;xml_replace&quot;</span><span class="p">]</span><span class="o">.</span><span class="vm">__module__</span>
+<span class="go">&#39;hydpy.exe.replacetools&#39;</span>
+</pre></div>
+</div>
+<p>Use script <a class="reference internal" href="hyd.html#module-hydpy.exe.hyd" title="hydpy.exe.hyd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hyd</span></code></a> to execute function <a class="reference internal" href="#hydpy.exe.replacetools.xml_replace" title="hydpy.exe.replacetools.xml_replace"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_replace()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">run_subprocess</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">result</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="s1">&#39;hyd.py xml_replace test1 e2=&quot;Element 2&quot; e3_=3&#39;</span><span class="p">)</span>
+<span class="go">template file: test1.xmlt</span>
+<span class="go">target file: test1.xml</span>
+<span class="go">replacements:</span>
+<span class="go">  e2 --&gt; Element 2 (given argument)</span>
+<span class="go">  e3_ --&gt; 3 (given argument)</span>
+<span class="go">  e4 --&gt; element 4 (default argument)</span>
+<span class="go">  e2 --&gt; Element 2 (given argument)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;test1.xml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">targetfile</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="n">targetfile</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+<span class="go">&lt;!--a normal comment--&gt;</span>
+<span class="go">&lt;e1&gt;element 1&lt;/e1&gt;</span>
+<span class="go">&lt;e2&gt;Element 2&lt;/e2&gt;</span>
+<span class="go">&lt;e3&gt;3&lt;/e3&gt;</span>
+<span class="go">&lt;e4&gt;element 4&lt;/e4&gt;</span>
+<span class="go">&lt;e2&gt;Element 2&lt;/e2&gt;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="execution.html">Execution Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="commandtools.html">commandtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hyd.html">hyd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modelimports.html">modelimports</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">replacetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="servertools.html">servertools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="modelimports.html"
+                        title="previous chapter">modelimports</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="servertools.html"
+                        title="next chapter">servertools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/replacetools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/replacetools.html">6</a></li>
+<li><a href="../5.0/replacetools.html">5.0</a></li>
+<li><a href="../4.0/replacetools.html">4.0</a></li>
+<li><a href="../master/replacetools.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="servertools.html" title="servertools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="modelimports.html" title="modelimports"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="execution.html" >Execution Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">replacetools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

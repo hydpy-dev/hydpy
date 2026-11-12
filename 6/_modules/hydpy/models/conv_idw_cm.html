@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.conv_idw_cm &#8212; HydPy 6.5.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=72aa22fa" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=7f64e455"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/toctree.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.5.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.conv_idw_cm</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.conv_idw_cm</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=line-too-long, unused-wildcard-import</span>
+<span class="sd">"""</span>
+<span class="sd">|conv_idw_cm| extends |conv_idw| by taking long-term averages at the input and output</span>
+<span class="sd">nodes into account.  Ratios of the current input values to their long-term averages are</span>
+<span class="sd">IDW-interpolated to the output nodes, and then multiplied by the long-term averages at</span>
+<span class="sd">the output nodes.  This approach brings climatological knowledge into the interpolation</span>
+<span class="sd">results.  Because of the multiplicative adjustment, it suits intermittent variables</span>
+<span class="sd">that are often zero, like precipitation.</span>
+
+<span class="sd">You need to estimate the long-term averages in advance, in whatever way seems</span>
+<span class="sd">appropriate.  One example is the REGNIE method of the Deutscher Wetterdienst, which</span>
+<span class="sd">:cite:t:`ref-Rauthe2013` use to generate the HYRAS precipitation data set.  For this</span>
+<span class="sd">purpose, they preprocess monthly long-term averages using external information such as</span>
+<span class="sd">elevation.  Their interpolation of daily precipitation values relies on the four</span>
+<span class="sd">closest stations, weighted with an exponent of two.</span>
+
+<span class="sd">You can define the averages in arbitrary units; for example, mm/month and m/year would</span>
+<span class="sd">be equally fine, as long as you apply them consistently to the input and output</span>
+<span class="sd">locations.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">We begin by repeating the examples documented for application model |conv_idw|.  We</span>
+<span class="sd">first define identical test settings (see the documentation on application model</span>
+<span class="sd">|conv_idw| for more information):</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import Element, Node, pub</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = "2000-01-01", "2000-01-04", "1d"</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models.conv_idw_cm import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">&gt;&gt;&gt; in1, in2, in3 = Node("in1"), Node("in2"), Node("in3")</span>
+<span class="sd">&gt;&gt;&gt; element = Element("conv",</span>
+<span class="sd">...                   inlets=(in1, in2, in3),</span>
+<span class="sd">...                   outlets=["out1", "out2", "out3", "out4"])</span>
+
+<span class="sd">&gt;&gt;&gt; inputcoordinates(in1=(0.0, 3.0),</span>
+<span class="sd">...                  in2=(2.0, -1.0),</span>
+<span class="sd">...                  in3=(4.0, 2.0))</span>
+<span class="sd">&gt;&gt;&gt; outputcoordinates(out1=(0.0, 3.0),</span>
+<span class="sd">...                   out2=(3.0, -2.0),</span>
+<span class="sd">...                   out3=(1.0, 2.0),</span>
+<span class="sd">...                   out4=(1.0, 1.0))</span>
+<span class="sd">&gt;&gt;&gt; power(2.0)</span>
+<span class="sd">&gt;&gt;&gt; maxnmbinputs(3)</span>
+
+<span class="sd">&gt;&gt;&gt; element.model = model</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import IntegrationTest</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(element)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = "%Y-%m-%d"</span>
+<span class="sd">&gt;&gt;&gt; with pub.options.checkseries(False):</span>
+<span class="sd">...     in1.sequences.sim.series = 1.0, nan, nan</span>
+<span class="sd">...     in2.sequences.sim.series = 3.0, 2.0, nan</span>
+<span class="sd">...     in3.sequences.sim.series = 4.0, nan, nan</span>
+
+<span class="sd">.. _conv_idw_cm_equal_averages:</span>
+
+<span class="sd">equal averages</span>
+<span class="sd">______________</span>
+
+<span class="sd">If all input and output nodes have the same long-term average, all adjustments cancel</span>
+<span class="sd">out, and |conv_idw_cm| reproduces the results of the :ref:`conv_idw_all_inputs` example</span>
+<span class="sd">of application model |conv_idw| precisely:</span>
+
+<span class="sd">&gt;&gt;&gt; inputaverages(in1=800.0, in2=800.0, in3=800.0)</span>
+<span class="sd">&gt;&gt;&gt; outputaverages(out1=800.0, out2=800.0, out3=800.0, out4=800.0)</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |       date |           inputs |               currentinputaverages |                      currentoutputaverages |                   inputratios |                             outputratios |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 | out4 |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 | 1.0  3.0     4.0 | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 | 0.00125  0.00375        0.005 | 0.00125  0.00375  0.002188         0.003 | 1.0  3.0  1.75      2.4 | 1.0 | 3.0 | 4.0 |  1.0 |  3.0 | 1.75 |  2.4 |</span>
+<span class="sd">    | 2000-01-02 | nan  2.0     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan   0.0025          nan |  0.0025   0.0025    0.0025        0.0025 | 2.0  2.0   2.0      2.0 | nan | 2.0 | nan |  2.0 |  2.0 |  2.0 |  2.0 |</span>
+<span class="sd">    | 2000-01-03 | nan  nan     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan      nan          nan |     nan      nan       nan           nan | nan  nan   nan      nan | nan | nan | nan |  nan |  nan |  nan |  nan |</span>
+
+<span class="sd">.. _conv_idw_cm_restricted_inputs:</span>
+
+<span class="sd">restricted inputs</span>
+<span class="sd">_________________</span>
+
+<span class="sd">The same holds for the :ref:`conv_idw_restricted_inputs` example:</span>
+
+<span class="sd">&gt;&gt;&gt; maxnmbinputs(2)</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |       date |           inputs |               currentinputaverages |                      currentoutputaverages |                   inputratios |                              outputratios |                          outputs | in1 | in2 | in3 | out1 |     out2 |     out3 | out4 |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 | 1.0  3.0     4.0 | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 | 0.00125  0.00375        0.005 | 0.00125  0.003882  0.001932        0.0025 | 1.0  3.105263  1.545455      2.0 | 1.0 | 3.0 | 4.0 |  1.0 | 3.105263 | 1.545455 |  2.0 |</span>
+<span class="sd">    | 2000-01-02 | nan  2.0     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan   0.0025          nan |     nan    0.0025       nan        0.0025 | nan       2.0       nan      2.0 | nan | 2.0 | nan |  nan |      2.0 |      nan |  2.0 |</span>
+<span class="sd">    | 2000-01-03 | nan  nan     nan | 800.0  800.0                 800.0 | 800.0  800.0  800.0                  800.0 |     nan      nan          nan |     nan       nan       nan           nan | nan       nan       nan      nan | nan | nan | nan |  nan |      nan |      nan |  nan |</span>
+
+<span class="sd">.. _conv_idw_cm_different_averages:</span>
+
+<span class="sd">different averages</span>
+<span class="sd">__________________</span>
+
+<span class="sd">Now we define different averages.  Output node `out1` lies at the same location as input</span>
+<span class="sd">node `in1` and has the same average.  Hence, it receives the original value of `in1`, if</span>
+<span class="sd">available.  The other output nodes' values reflect their averages:</span>
+
+<span class="sd">&gt;&gt;&gt; maxnmbinputs(3)</span>
+<span class="sd">&gt;&gt;&gt; inputaverages(in1=800.0, in2=1000.0, in3=600.0)</span>
+<span class="sd">&gt;&gt;&gt; outputaverages(out1=800.0, out2=900.0, out3=700.0, out4=650.0)</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |       date |           inputs |                currentinputaverages |                      currentoutputaverages |                 inputratios |                              outputratios |                          outputs | in1 | in2 | in3 | out1 |    out2 |     out3 |     out4 |</span>
+<span class="sd">    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 | 1.0  3.0     4.0 | 800.0  1000.0                 600.0 | 800.0  900.0  700.0                  650.0 | 0.00125  0.003     0.006667 | 0.00125  0.003279  0.002342      0.003033 | 1.0  2.95125  1.639714  1.971667 | 1.0 | 3.0 | 4.0 |  1.0 | 2.95125 | 1.639714 | 1.971667 |</span>
+<span class="sd">    | 2000-01-02 | nan  2.0     nan | 800.0  1000.0                 600.0 | 800.0  900.0  700.0                  650.0 |     nan  0.002          nan |   0.002     0.002     0.002         0.002 | 1.6      1.8       1.4       1.3 | nan | 2.0 | nan |  1.6 |     1.8 |      1.4 |      1.3 |</span>
+<span class="sd">    | 2000-01-03 | nan  nan     nan | 800.0  1000.0                 600.0 | 800.0  900.0  700.0                  650.0 |     nan    nan          nan |     nan       nan       nan           nan | nan      nan       nan       nan | nan | nan | nan |  nan |     nan |      nan |      nan |</span>
+
+<span class="sd">.. _conv_idw_cm_shared_location:</span>
+
+<span class="sd">shared location</span>
+<span class="sd">_______________</span>
+
+<span class="sd">If an input and an output node share the same location, their averages can still differ.</span>
+<span class="sd">We show this for inlet node `in1` and outlet node `out1`:</span>
+
+<span class="sd">&gt;&gt;&gt; outputaverages(out1=1200.0, out2=900.0, out3=700.0, out4=650.0)</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |       date |           inputs |                currentinputaverages |                       currentoutputaverages |                 inputratios |                              outputratios |                          outputs | in1 | in2 | in3 | out1 |    out2 |     out3 |     out4 |</span>
+<span class="sd">    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 | 1.0  3.0     4.0 | 800.0  1000.0                 600.0 | 1200.0  900.0  700.0                  650.0 | 0.00125  0.003     0.006667 | 0.00125  0.003279  0.002342      0.003033 | 1.5  2.95125  1.639714  1.971667 | 1.0 | 3.0 | 4.0 |  1.5 | 2.95125 | 1.639714 | 1.971667 |</span>
+<span class="sd">    | 2000-01-02 | nan  2.0     nan | 800.0  1000.0                 600.0 | 1200.0  900.0  700.0                  650.0 |     nan  0.002          nan |   0.002     0.002     0.002         0.002 | 2.4      1.8       1.4       1.3 | nan | 2.0 | nan |  2.4 |     1.8 |      1.4 |      1.3 |</span>
+<span class="sd">    | 2000-01-03 | nan  nan     nan | 800.0  1000.0                 600.0 | 1200.0  900.0  700.0                  650.0 |     nan    nan          nan |     nan       nan       nan           nan | nan      nan       nan       nan | nan | nan | nan |  nan |     nan |      nan |      nan |</span>
+
+<span class="sd">.. _conv_idw_cm_other_units:</span>
+
+<span class="sd">other units</span>
+<span class="sd">___________</span>
+
+<span class="sd">Only the relationships between the input and output averages matter.  Hence, using</span>
+<span class="sd">other units (here, daily instead of annual values) changes the ratios but not the final</span>
+<span class="sd">results of the :ref:`conv_idw_cm_shared_location` example:</span>
+
+<span class="sd">&gt;&gt;&gt; inputaverages(in1=800.0 / 366.0, in2=1000.0 / 366.0, in3=600.0 / 366.0)</span>
+<span class="sd">&gt;&gt;&gt; outputaverages(out1=1200.0 / 366.0,</span>
+<span class="sd">...                out2=900.0 / 366.0,</span>
+<span class="sd">...                out3=700.0 / 366.0,</span>
+<span class="sd">...                out4=650.0 / 366.0)</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |       date |           inputs |                    currentinputaverages |                               currentoutputaverages |                inputratios |                             outputratios |                          outputs | in1 | in2 | in3 | out1 |    out2 |     out3 |     out4 |</span>
+<span class="sd">    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 | 1.0  3.0     4.0 | 2.185792  2.73224              1.639344 | 3.278689  2.459016  1.912568               1.775956 | 0.4575  1.098         2.44 | 0.4575  1.200175  0.857336        1.1102 | 1.5  2.95125  1.639714  1.971667 | 1.0 | 3.0 | 4.0 |  1.5 | 2.95125 | 1.639714 | 1.971667 |</span>
+<span class="sd">    | 2000-01-02 | nan  2.0     nan | 2.185792  2.73224              1.639344 | 3.278689  2.459016  1.912568               1.775956 |    nan  0.732          nan |  0.732     0.732     0.732         0.732 | 2.4      1.8       1.4       1.3 | nan | 2.0 | nan |  2.4 |     1.8 |      1.4 |      1.3 |</span>
+<span class="sd">    | 2000-01-03 | nan  nan     nan | 2.185792  2.73224              1.639344 | 3.278689  2.459016  1.912568               1.775956 |    nan    nan          nan |    nan       nan       nan           nan | nan      nan       nan       nan | nan | nan | nan |  nan |     nan |      nan |      nan |</span>
+
+<span class="sd">.. _conv_idw_cm_zero_averages:</span>
+
+<span class="sd">zero averages</span>
+<span class="sd">_____________</span>
+
+<span class="sd">Stations with zero averages do not contribute to the interpolation (see station `in2`).</span>
+<span class="sd">Target points with zero averages receive zero values (see node `out2`):</span>
+
+<span class="sd">&gt;&gt;&gt; inputaverages(in1=800.0, in2=0.0, in3=600.0)</span>
+<span class="sd">&gt;&gt;&gt; outputaverages(out1=800.0, out2=0.0, out3=700.0, out4=650.0)</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |       date |           inputs |             currentinputaverages |                    currentoutputaverages |               inputratios |                              outputratios |                      outputs | in1 | in2 | in3 | out1 | out2 |     out3 |     out4 |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 | 1.0  3.0     4.0 | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 | 0.00125  nan     0.006667 | 0.00125  0.004861  0.002235      0.003056 | 1.0  0.0  1.564394  1.986111 | 1.0 | 3.0 | 4.0 |  1.0 |  0.0 | 1.564394 | 1.986111 |</span>
+<span class="sd">    | 2000-01-02 | nan  2.0     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan       nan       nan           nan | nan  nan       nan       nan | nan | 2.0 | nan |  nan |  nan |      nan |      nan |</span>
+<span class="sd">    | 2000-01-03 | nan  nan     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan       nan       nan           nan | nan  nan       nan       nan | nan | nan | nan |  nan |  nan |      nan |      nan |</span>
+
+<span class="sd">.. _conv_idw_cm_nearest_station:</span>
+
+<span class="sd">nearest station</span>
+<span class="sd">_______________</span>
+
+<span class="sd">Stations with zero averages still count as one of the |MaxNmbInputs| nearest stations</span>
+<span class="sd">and are not replaced by more distant ones, just like stations with missing input values</span>
+<span class="sd">(see the :ref:`conv_idw_restricted_inputs` example of |conv_idw|).  If we only consider</span>
+<span class="sd">the nearest station, `out2` receives |numpy.nan| values, despite its zero average,</span>
+<span class="sd">because station `in2` is its nearest station:</span>
+
+<span class="sd">&gt;&gt;&gt; maxnmbinputs(1)</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |       date |           inputs |             currentinputaverages |                    currentoutputaverages |               inputratios |                        outputratios |                  outputs | in1 | in2 | in3 | out1 | out2 |  out3 |   out4 |</span>
+<span class="sd">    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 | 1.0  3.0     4.0 | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 | 0.00125  nan     0.006667 | 0.00125  nan  0.00125       0.00125 | 1.0  nan  0.875   0.8125 | 1.0 | 3.0 | 4.0 |  1.0 |  nan | 0.875 | 0.8125 |</span>
+<span class="sd">    | 2000-01-02 | nan  2.0     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan  nan      nan           nan | nan  nan    nan      nan | nan | 2.0 | nan |  nan |  nan |   nan |    nan |</span>
+<span class="sd">    | 2000-01-03 | nan  nan     nan | 800.0  0.0                 600.0 | 800.0  0.0  700.0                  650.0 |     nan  nan          nan |     nan  nan      nan           nan | nan  nan    nan      nan | nan | nan | nan |  nan |  nan |   nan |    nan |</span>
+
+<span class="sd">.. _conv_idw_cm_monthly_averages:</span>
+
+<span class="sd">monthly averages</span>
+<span class="sd">________________</span>
+
+<span class="sd">Finally, we demonstrate the application of monthly averages.  We shift the simulation</span>
+<span class="sd">period to the January-February transition and define averages for two nodes that differ</span>
+<span class="sd">between the months.  The results change from the second to the third simulation step,</span>
+<span class="sd">even though the input values stay the same:</span>
+
+<span class="sd">&gt;&gt;&gt; pub.timegrids = "2000-01-30", "2000-02-02", "1d"</span>
+<span class="sd">&gt;&gt;&gt; element.prepare_allseries()</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(element)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = "%Y-%m-%d"</span>
+<span class="sd">&gt;&gt;&gt; inputaverages(in1=[80.0, 40.0, 80.0, 80.0, 80.0, 80.0,</span>
+<span class="sd">...                    80.0, 80.0, 80.0, 80.0, 80.0, 80.0],</span>
+<span class="sd">...               in2=100.0,</span>
+<span class="sd">...               in3=60.0)</span>
+<span class="sd">&gt;&gt;&gt; outputaverages(out1=80.0,</span>
+<span class="sd">...                out2=90.0,</span>
+<span class="sd">...                out3=[70.0, 140.0, 70.0, 70.0, 70.0, 70.0,</span>
+<span class="sd">...                      70.0, 70.0, 70.0, 70.0, 70.0, 70.0],</span>
+<span class="sd">...                out4=65.0)</span>
+<span class="sd">&gt;&gt;&gt; in1.sequences.sim.series = 2.0, 2.0, 2.0</span>
+<span class="sd">&gt;&gt;&gt; in2.sequences.sim.series = 3.0, 3.0, 3.0</span>
+<span class="sd">&gt;&gt;&gt; in3.sequences.sim.series = 4.0, 4.0, 4.0</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |       date |           inputs |              currentinputaverages |                    currentoutputaverages |              inputratios |                     outputratios |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 |  out4 |</span>
+<span class="sd">    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-30 | 2.0  3.0     4.0 | 80.0  100.0                  60.0 | 80.0  90.0   70.0                   65.0 | 0.025  0.03     0.066667 | 0.025  0.03  0.025         0.025 | 2.0  2.7  1.75    1.625 | 2.0 | 3.0 | 4.0 |  2.0 |  2.7 | 1.75 | 1.625 |</span>
+<span class="sd">    | 2000-01-31 | 2.0  3.0     4.0 | 80.0  100.0                  60.0 | 80.0  90.0   70.0                   65.0 | 0.025  0.03     0.066667 | 0.025  0.03  0.025         0.025 | 2.0  2.7  1.75    1.625 | 2.0 | 3.0 | 4.0 |  2.0 |  2.7 | 1.75 | 1.625 |</span>
+<span class="sd">    | 2000-02-01 | 2.0  3.0     4.0 | 40.0  100.0                  60.0 | 80.0  90.0  140.0                   65.0 |  0.05  0.03     0.066667 |  0.05  0.03   0.05          0.05 | 4.0  2.7   7.0     3.25 | 2.0 | 3.0 | 4.0 |  4.0 |  2.7 |  7.0 |  3.25 |</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.conv</span><span class="w"> </span><span class="kn">import</span> <span class="n">conv_model</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../conv_idw_cm.html#hydpy.models.conv_idw_cm.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">conv_model</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""|conv_idw_cm.DOCNAME.complete|."""</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">"Conv-IDW-CM"</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"inverse distance weighted interpolation with multiplicative "</span>
+        <span class="s2">"climatological adjustment"</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_model</span><span class="o">.</span><span class="n">Pick_Inputs_V1</span><span class="p">,)</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_model</span><span class="o">.</span><span class="n">Interpolate_InverseDistance_V1</span><span class="p">,)</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">conv_model</span><span class="o">.</span><span class="n">Calc_CurrentInputAverages_V1</span><span class="p">,</span>
+        <span class="n">conv_model</span><span class="o">.</span><span class="n">Calc_CurrentOutputAverages_V1</span><span class="p">,</span>
+        <span class="n">conv_model</span><span class="o">.</span><span class="n">Calc_InputRatios_V1</span><span class="p">,</span>
+        <span class="n">conv_model</span><span class="o">.</span><span class="n">Calc_OutputRatios_V1</span><span class="p">,</span>
+        <span class="n">conv_model</span><span class="o">.</span><span class="n">Calc_Outputs_V4</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_model</span><span class="o">.</span><span class="n">Pass_Outputs_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.5.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.conv_idw_cm</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

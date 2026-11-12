@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.wland.wland_parameters &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.wland.wland_parameters</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.wland.wland_parameters</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.wland</span> <span class="kn">import</span> <span class="n">wland_constants</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.wland</span> <span class="kn">import</span> <span class="n">wland_masks</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">variabletools</span>
+
+
+<div class="viewcode-block" id="SoilParameter">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_parameters.SoilParameter">[docs]</a>
+<span class="k">class</span> <span class="nc">SoilParameter</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for parameters related to the soil character.</span>
+
+<span class="sd">    Some parameters of *HydPy-W-Land* are strongly related to the soil character</span>
+<span class="sd">    and come with default values. To apply these default values, use the `soil`</span>
+<span class="sd">    keyword in combination with one of the available soil constants (see</span>
+<span class="sd">    |SOIL_CONSTANTS|).</span>
+
+<span class="sd">    We take parameter |B| and the soil character |SAND| as an example,</span>
+<span class="sd">    which has the default value `4.05`:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.wland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; b(soil=SAND)</span>
+<span class="sd">    &gt;&gt;&gt; b</span>
+<span class="sd">    b(soil=SAND)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(b.value)</span>
+<span class="sd">    4.05</span>
+
+<span class="sd">    You are free to ignore the default values and to set anything you like:</span>
+
+<span class="sd">    &gt;&gt;&gt; b.value = 3.0</span>
+<span class="sd">    &gt;&gt;&gt; b</span>
+<span class="sd">    b(3.0)</span>
+
+<span class="sd">    The string representation relies on the `soil` keyword only when used to</span>
+<span class="sd">    define the value directly beforehand:</span>
+
+<span class="sd">    &gt;&gt;&gt; b(4.05)</span>
+<span class="sd">    &gt;&gt;&gt; b</span>
+<span class="sd">    b(4.05)</span>
+
+<span class="sd">    For a list of the available defaults, see the respective parameter&#39;s</span>
+<span class="sd">    documentation or the error message that class |SoilParameter|  raises if</span>
+<span class="sd">    one passes a wrong value:</span>
+
+<span class="sd">    &gt;&gt;&gt; b(soil=0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying the set the value of parameter `b` of element \</span>
+<span class="sd">`?`, the following error occurred: The given soil constant `0` is not among \</span>
+<span class="sd">the available ones.  Please use one of the following constants: SAND (1), \</span>
+<span class="sd">LOAMY_SAND (2), SANDY_LOAM (3), SILT_LOAM (4), LOAM (5), SANDY_CLAY_LOAM (6), \</span>
+<span class="sd">SILT_CLAY_LOAM (7), CLAY_LOAM (8), SANDY_CLAY (9), SILTY_CLAY (10), and \</span>
+<span class="sd">CLAY (11).</span>
+
+<span class="sd">    It is not allowed to combine the `soil` keyword with other keywords:</span>
+
+<span class="sd">    &gt;&gt;&gt; b(soil=SAND, landuse=&#39;acre&#39;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying the set the value of parameter `b` of element `?`, \</span>
+<span class="sd">the following error occurred: It is not allowed to combine keyword `soil` with \</span>
+<span class="sd">other keywords, but the following ones are also used: landuse.</span>
+
+<span class="sd">    &gt;&gt;&gt; b(landuse=&#39;acre&#39;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    NotImplementedError: While trying the set the value of parameter `b` of \</span>
+<span class="sd">element `?`, the following error occurred: The value(s) of parameter `b` of \</span>
+<span class="sd">element `?` could not be set based on the given keyword arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_SOIL2VALUE</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="n">_soil</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subvars</span><span class="p">:</span> <span class="s2">&quot;variabletools.SubgroupType&quot;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">subvars</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_soil</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_soil</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">NotImplementedError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">soil</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;soil&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">soil</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">exc</span>
+                <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;It is not allowed to combine keyword `soil` with &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;other keywords, but the following ones are also &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;used: </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="p">)</span> <span class="kn">from</span> <span class="kc">None</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_SOIL2VALUE</span><span class="p">[</span><span class="n">soil</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_soil</span> <span class="o">=</span> <span class="n">soil</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">value2name</span> <span class="o">=</span> <span class="n">wland_constants</span><span class="o">.</span><span class="n">CONSTANTS</span><span class="o">.</span><span class="n">value2name</span>
+                    <span class="n">names</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">value2name</span><span class="p">[</span><span class="n">value</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">)&quot;</span>
+                        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SOIL2VALUE</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                    <span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;The given soil constant `</span><span class="si">{</span><span class="n">soil</span><span class="si">}</span><span class="s2">` is not among the &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;available ones.  Please use one of the following &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;constants: </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                    <span class="p">)</span> <span class="kn">from</span> <span class="kc">None</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;While trying the set the value of parameter &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+<div class="viewcode-block" id="SoilParameter.print_defaults">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_parameters.SoilParameter.print_defaults">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">print_defaults</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print the soil-related default values of the parameter.</span>
+
+<span class="sd">        See the documentation on class |B| for an example.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">value2name</span> <span class="o">=</span> <span class="n">wland_constants</span><span class="o">.</span><span class="n">CONSTANTS</span><span class="o">.</span><span class="n">value2name</span>
+        <span class="k">for</span> <span class="n">constant</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_SOIL2VALUE</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">value2name</span><span class="p">[</span><span class="n">constant</span><span class="p">],</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;: &quot;</span><span class="p">)</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">round_</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">soil</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_soil</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="n">soil</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_SOIL2VALUE</span><span class="p">[</span><span class="n">soil</span><span class="p">]</span> <span class="o">==</span> <span class="n">value</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">wland_constants</span><span class="o">.</span><span class="n">SOIL_CONSTANTS</span><span class="o">.</span><span class="n">value2name</span><span class="p">[</span><span class="n">soil</span><span class="p">]</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(soil=</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="LanduseParameter">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_parameters.LanduseParameter">[docs]</a>
+<span class="k">class</span> <span class="nc">LanduseParameter</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">ZipParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional parameters relevant for all types</span>
+<span class="sd">    of land-use.</span>
+
+<span class="sd">    We take the parameter |DDT| as an example.  You can define its values by using</span>
+<span class="sd">    the names of all land use-related constants in lower-case as keywords:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.wland import *</span>
+<span class="sd">    &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nu(12)</span>
+<span class="sd">    &gt;&gt;&gt; lt(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND,</span>
+<span class="sd">    ...    TREES, CONIFER, DECIDIOUS, MIXED, SEALED)</span>
+<span class="sd">    &gt;&gt;&gt; ddf(sealed=0.0, field=1.0, wine=2.0, orchard=3.0, soil=4.0, pasture=5.0,</span>
+<span class="sd">    ...     wetland=6.0, trees=7.0, conifer=8.0, decidious=9.0, mixed=10.0)</span>
+<span class="sd">    &gt;&gt;&gt; ddf</span>
+<span class="sd">    ddf(conifer=8.0, decidious=9.0, field=1.0, mixed=10.0, orchard=3.0,</span>
+<span class="sd">        pasture=5.0, sealed=0.0, soil=4.0, trees=7.0, wetland=6.0,</span>
+<span class="sd">        wine=2.0)</span>
+<span class="sd">    &gt;&gt;&gt; ddf.values</span>
+<span class="sd">    array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.,  9., 10.,  0.])</span>
+
+<span class="sd">    You can average the current values with regard to the hydrological</span>
+<span class="sd">    response area fractions, defined via parameter |AUR|:</span>
+
+<span class="sd">    &gt;&gt;&gt; aur(0.01, 0.02, 0.04, 0.05, 0.06, 0.08, 0.09, 0.1, 0.12, 0.13, 0.14, 0.16)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(ddf.average_values())</span>
+<span class="sd">    5.66</span>
+
+<span class="sd">    You can query or change the values related to specific land use types</span>
+<span class="sd">    via attribute access:</span>
+
+<span class="sd">    &gt;&gt;&gt; ddf.sealed</span>
+<span class="sd">    array([0., 0.])</span>
+<span class="sd">    &gt;&gt;&gt; ddf.sealed = 11.0, 12.0</span>
+<span class="sd">    &gt;&gt;&gt; ddf</span>
+<span class="sd">    ddf(11.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0)</span>
+<span class="sd">    &gt;&gt;&gt; ddf.sealed = 12.0</span>
+<span class="sd">    &gt;&gt;&gt; ddf</span>
+<span class="sd">    ddf(conifer=8.0, decidious=9.0, field=1.0, mixed=10.0, orchard=3.0,</span>
+<span class="sd">        pasture=5.0, sealed=12.0, soil=4.0, trees=7.0, wetland=6.0,</span>
+<span class="sd">        wine=2.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">MODEL_CONSTANTS</span> <span class="o">=</span> <span class="n">wland_constants</span><span class="o">.</span><span class="n">LANDUSE_CONSTANTS</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">wland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">refweights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias for the associated instance of |AUR| for calculating</span>
+<span class="sd">        areal mean values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">aur</span></div>
+
+
+
+<div class="viewcode-block" id="LanduseMonthParameter">
+<a class="viewcode-back" href="../../../../wland.html#hydpy.models.wland.wland_parameters.LanduseMonthParameter">[docs]</a>
+<span class="k">class</span> <span class="nc">LanduseMonthParameter</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordParameter2D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for parameters which values depend both on the actual month and</span>
+<span class="sd">    land-use type.&quot;&quot;&quot;</span>
+
+    <span class="n">COLNAMES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;jan&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;feb&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mar&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;apr&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;may&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;jun&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;jul&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;aug&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sep&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;oct&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;nov&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;dec&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ROWNAMES</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+        <span class="n">key</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">value</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">wland_constants</span><span class="o">.</span><span class="n">LANDUSE_CONSTANTS</span><span class="o">.</span><span class="n">value2name</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.wland.wland_parameters</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

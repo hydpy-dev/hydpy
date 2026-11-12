@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>aliastools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="autodoctools" href="autodoctools.html" />
+    <link rel="prev" title="Core Tools" href="core.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="autodoctools.html" title="autodoctools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="core.html" title="Core Tools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">aliastools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">aliastools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.core.aliastools.LazyInOutSequenceImport"><code class="docutils literal notranslate"><span class="pre">LazyInOutSequenceImport</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.core.aliastools.write_sequencealiases"><code class="docutils literal notranslate"><span class="pre">write_sequencealiases()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="core.html"
+                          title="previous chapter">Core Tools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="autodoctools.html"
+                          title="next chapter">autodoctools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/aliastools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="aliastools">
+<span id="id1"></span><h1>aliastools<a class="headerlink" href="#aliastools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.core.aliastools">This module provides tools for the efficient handling of input and output
+sequence aliases.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.aliastools" title="hydpy.core.aliastools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">aliastools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.aliastools.LazyInOutSequenceImport" title="hydpy.core.aliastools.LazyInOutSequenceImport"><code class="xref py py-class docutils literal notranslate"><span class="pre">LazyInOutSequenceImport</span></code></a> Import the input or output sequence the alias is referring to only when required.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.aliastools.write_sequencealiases" title="hydpy.core.aliastools.write_sequencealiases"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_sequencealiases()</span></code></a> Write the alias modules <cite>inputs</cite> and <cite>outputs</cite>.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.aliastools.LazyInOutSequenceImport">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.core.aliastools.</span></span><span class="sig-name descname"><span class="pre">LazyInOutSequenceImport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modulename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">classname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alias</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">namespace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.11)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.11)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/aliastools.html#LazyInOutSequenceImport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.aliastools.LazyInOutSequenceImport" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Import the input or output sequence the alias is referring to only when required.</p>
+<p>Importing all input and output sequences costs a significant amount of
+initialisation time, and one typically uses at most a few of them within a
+specific project.  Hence, we implemented class <a class="reference internal" href="#hydpy.core.aliastools.LazyInOutSequenceImport" title="hydpy.core.aliastools.LazyInOutSequenceImport"><code class="xref py py-class docutils literal notranslate"><span class="pre">LazyInOutSequenceImport</span></code></a> for
+postponing the imports of the sequences available by modules <cite>inputs</cite> and
+<cite>outputs</cite>.  We hope we could catch all exceptional cases so that a user will
+never realise to work with a <a class="reference internal" href="#hydpy.core.aliastools.LazyInOutSequenceImport" title="hydpy.core.aliastools.LazyInOutSequenceImport"><code class="xref py py-class docutils literal notranslate"><span class="pre">LazyInOutSequenceImport</span></code></a> object instead with an
+input or output class object (except when directly asking for it with function
+<a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code></a>).</p>
+<p>Directly after importing, the alias is of type <a class="reference internal" href="#hydpy.core.aliastools.LazyInOutSequenceImport" title="hydpy.core.aliastools.LazyInOutSequenceImport"><code class="xref py py-class docutils literal notranslate"><span class="pre">LazyInOutSequenceImport</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.aliastools</span> <span class="kn">import</span> <span class="n">LazyInOutSequenceImport</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">get_example_alias</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">LazyInOutSequenceImport</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">modulename</span><span class="o">=</span><span class="s2">&quot;hydpy.models.hland.hland_inputs&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">classname</span><span class="o">=</span><span class="s2">&quot;T&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">alias</span><span class="o">=</span><span class="s2">&quot;hland_T&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">namespace</span><span class="o">=</span><span class="nb">locals</span><span class="p">(),</span>
+<span class="gp">... </span>    <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hland_T</span> <span class="o">=</span> <span class="n">get_example_alias</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">hland_T</span><span class="p">)</span>
+<span class="go">&lt;class &#39;hydpy.core.aliastools.LazyInOutSequenceImport&#39;&gt;</span>
+</pre></div>
+</div>
+<p>After accessing an attribute, its type changed to <a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code></a>, which is the meta-class
+of all input and output sequences:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hland_T</span><span class="o">.</span><span class="vm">__name__</span>
+<span class="go">&#39;T&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">hland_T</span><span class="p">)</span>
+<span class="go">&lt;class &#39;type&#39;&gt;</span>
+</pre></div>
+</div>
+<p>Due to Python’s <a class="reference external" href="https://docs.python.org/reference/datamodel.html#special-lookup#pylint:disable=line-too-long">special method lookup</a>, we must explicitly define the relevant
+ones.  The following examples list all considered methods:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hland_T</span> <span class="o">=</span> <span class="n">get_example_alias</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.hland.hland_inputs</span> <span class="kn">import</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">hash</span><span class="p">(</span><span class="n">hland_T</span><span class="p">)</span> <span class="o">==</span> <span class="nb">hash</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hland_T</span> <span class="o">=</span> <span class="n">get_example_alias</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hland_T</span> <span class="o">==</span> <span class="n">T</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hland_T</span> <span class="o">=</span> <span class="n">get_example_alias</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T</span> <span class="o">==</span> <span class="n">hland_T</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hland_T</span> <span class="o">=</span> <span class="n">get_example_alias</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hland_T</span> <span class="o">!=</span> <span class="n">P</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hland_T</span> <span class="o">=</span> <span class="n">get_example_alias</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">P</span> <span class="o">!=</span> <span class="n">hland_T</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hland_T</span> <span class="o">=</span> <span class="n">get_example_alias</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">str</span><span class="p">(</span><span class="n">hland_T</span><span class="p">)</span>
+<span class="go">&quot;&lt;class &#39;hydpy.models.hland.hland_inputs.T&#39;&gt;&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hland_T</span> <span class="o">=</span> <span class="n">get_example_alias</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">repr</span><span class="p">(</span><span class="n">hland_T</span><span class="p">)</span>
+<span class="go">&quot;&lt;class &#39;hydpy.models.hland.hland_inputs.T&#39;&gt;&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hland_T</span> <span class="o">=</span> <span class="n">get_example_alias</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dir</span><span class="p">(</span><span class="n">hland_T</span><span class="p">)</span>   
+<span class="go">[&#39;INIT&#39;, &#39;NDIM&#39;, ...]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.core.aliastools.write_sequencealiases">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.aliastools.</span></span><span class="sig-name descname"><span class="pre">write_sequencealiases</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/aliastools.html#write_sequencealiases"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.aliastools.write_sequencealiases" title="Link to this definition">¶</a></dt>
+<dd><p>Write the alias modules <cite>inputs</cite> and <cite>outputs</cite>.</p>
+<p>After extending a model or adding a new one, you can update both modules by
+calling <a class="reference internal" href="#hydpy.core.aliastools.write_sequencealiases" title="hydpy.core.aliastools.write_sequencealiases"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_sequencealiases()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.aliastools</span> <span class="kn">import</span> <span class="n">write_sequencealiases</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">write_sequencealiases</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="autodoctools.html" title="autodoctools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="core.html" title="Core Tools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">aliastools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

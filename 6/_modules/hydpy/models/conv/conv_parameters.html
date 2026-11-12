@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.conv.conv_parameters &#8212; HydPy 6.5.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=72aa22fa" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=7f64e455"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/toctree.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.5.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.conv.conv_parameters</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.conv.conv_parameters</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">abc</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">devicetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="Coordinates">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_parameters.Coordinates">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Coordinates</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SpecialParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Base class for |InputCoordinates| and |OutputCoordinates| [?].</span>
+
+<span class="sd">    |Coordinates| is a special parameter (see |SpecialParameter|) that handles the</span>
+<span class="sd">    names of the relevant input or output nodes together with their coordinates.  We</span>
+<span class="sd">    use the derived class |InputCoordinates| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">    Initially, neither the nodes nor their coordinates are known:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates</span>
+<span class="sd">    inputcoordinates(?)</span>
+<span class="sd">    &gt;&gt;&gt; inputcoordinates.nodes</span>
+<span class="sd">    ()</span>
+<span class="sd">    &gt;&gt;&gt; len(inputcoordinates)</span>
+<span class="sd">    0</span>
+<span class="sd">    &gt;&gt;&gt; inputcoordinates.coordinates</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: The coordinates of parameter \</span>
+<span class="sd">`inputcoordinates` of element `?` have not been defined so far.</span>
+<span class="sd">    &gt;&gt;&gt; inputcoordinates.verify()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: The coordinates of parameter \</span>
+<span class="sd">`inputcoordinates` of element `?` have not been defined so far.</span>
+
+<span class="sd">    Use keyword arguments to define the names of the relevant input nodes as well as</span>
+<span class="sd">    their coordinates:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates(in1=(1.0, 3.0))</span>
+<span class="sd">    &gt;&gt;&gt; inputcoordinates</span>
+<span class="sd">    inputcoordinates(in1=(1.0, 3.0))</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import print_matrix</span>
+<span class="sd">    &gt;&gt;&gt; print_matrix(inputcoordinates.coordinates)</span>
+<span class="sd">    | 1.0, 3.0 |</span>
+<span class="sd">    &gt;&gt;&gt; inputcoordinates.verify()</span>
+
+<span class="sd">    Defining new coordinates removes the old ones:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates(in2=(2.0, 4.0),</span>
+<span class="sd">    ...                  in0=(3.0, 5.0),</span>
+<span class="sd">    ...                  in3=(4.0, 6.0))</span>
+<span class="sd">    &gt;&gt;&gt; inputcoordinates</span>
+<span class="sd">    inputcoordinates(in2=(2.0, 4.0),</span>
+<span class="sd">                     in0=(3.0, 5.0),</span>
+<span class="sd">                     in3=(4.0, 6.0))</span>
+<span class="sd">    &gt;&gt;&gt; print_matrix(inputcoordinates.coordinates)</span>
+<span class="sd">    | 2.0, 4.0 |</span>
+<span class="sd">    | 3.0, 5.0 |</span>
+<span class="sd">    | 4.0, 6.0 |</span>
+<span class="sd">    &gt;&gt;&gt; len(inputcoordinates)</span>
+<span class="sd">    3</span>
+
+<span class="sd">    You are free to change individual coordinate values (the rows of the matrix contain</span>
+<span class="sd">    the different value pairs; the row order corresponds to the definition order when</span>
+<span class="sd">    "calling" the parameter):</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates.coordinates[1, 0] = 9.0</span>
+<span class="sd">    &gt;&gt;&gt; inputcoordinates</span>
+<span class="sd">    inputcoordinates(in2=(2.0, 4.0),</span>
+<span class="sd">                     in0=(9.0, 5.0),</span>
+<span class="sd">                     in3=(4.0, 6.0))</span>
+
+<span class="sd">    The attribute |Coordinates.nodes| stores the correctly ordered nodes:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates.nodes</span>
+<span class="sd">    (Node("in2", variable="Q"), Node("in0", variable="Q"), \</span>
+<span class="sd">Node("in3", variable="Q"))</span>
+
+<span class="sd">    You must define the coordinates of at least one node, and each node requires exactly</span>
+<span class="sd">    two coordinates.  In case of errors, the previous definitions remain unchanged:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: Parameter `inputcoordinates` of element `?` requires the coordinates \</span>
+<span class="sd">of at least one node, but none are given.</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates(in1=(1.0, 3.0), in2=(1.0, 2.0, 3.0))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: Parameter `inputcoordinates` of element `?` requires exactly two \</span>
+<span class="sd">coordinates for each node, but for node `in2`, `(1.0, 2.0, 3.0)` is given.</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates(in1="wrong")</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: Parameter `inputcoordinates` of element `?` requires exactly two \</span>
+<span class="sd">coordinates for each node, but for node `in1`, `wrong` is given.</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates</span>
+<span class="sd">    inputcoordinates(in2=(2.0, 4.0),</span>
+<span class="sd">                     in0=(9.0, 5.0),</span>
+<span class="sd">                     in3=(4.0, 6.0))</span>
+
+<span class="sd">    Positional arguments are not supported:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates((1.0, 3.0))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: Coordinates.__call__() takes 1 positional argument but 2 were given</span>
+<span class="sd">    """</span>
+
+    <span class="n">nodes</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">"""The relevant input or output nodes."""</span>
+
+    <span class="n">_coordinates</span><span class="p">:</span> <span class="n">MatrixFloat</span> <span class="o">|</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subvars</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">SubParameters</span><span class="p">[</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">]):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">subvars</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coordinates</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">coordinates</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">coordinates</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> requires the coordinates "</span>
+                <span class="sa">f</span><span class="s2">"of at least one node, but none are given."</span>
+            <span class="p">)</span>
+        <span class="n">matrix</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">coordinates</span><span class="p">),</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">NP_FLOAT</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coordinates</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">matrix</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">values</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"Parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> requires exactly "</span>
+                    <span class="sa">f</span><span class="s2">"two coordinates for each node, but for node `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">`, "</span>
+                    <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">` is given."</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coordinates</span> <span class="o">=</span> <span class="n">matrix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_number_of_nodes</span><span class="p">()</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_number_of_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Set the derived parameter that gives the number of nodes."""</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MatrixFloat</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The coordinates of all nodes (one row per node, in the order of</span>
+<span class="sd">        |Coordinates.nodes|)."""</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">coordinates</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coordinates</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"The coordinates of parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> have "</span>
+                <span class="sa">f</span><span class="s2">"not been defined so far."</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">coordinates</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">("</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">coordinates</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coordinates</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">?)"</span>
+        <span class="n">blanks</span> <span class="o">=</span> <span class="s2">" "</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">):</span>
+            <span class="n">entry</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_tuple</span><span class="p">(</span><span class="n">coordinates</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="w"> </span><span class="p">:])</span><span class="si">}</span><span class="s2">"</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">blanks</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">prefix</span><span class="si">}{</span><span class="n">entry</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s2">","</span> <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">")"</span>
+        <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Coordinates.verify">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_parameters.Coordinates.verify">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Raise an |AttributeNotReady| error if the coordinates are still undefined."""</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NodeParameter">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_parameters.NodeParameter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NodeParameter</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Base class for parameters with node-specific values.</span>
+
+<span class="sd">    See the documentation on the subclasses |Heights| and |Averages| for examples.</span>
+<span class="sd">    """</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Coordinates</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The |Coordinates| parameter that defines the relevant nodes."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sort_keywordvalues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Return the given keyword values in the order of the relevant nodes or raise</span>
+<span class="sd">        an error if the keywords do not agree with the node names."""</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">unknown</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">missing</span> <span class="ow">or</span> <span class="n">unknown</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">Inflect</span>
+            <span class="n">problems</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+                <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"the </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">listing</span><span class="p">(</span><span class="s1">'name'</span><span class="p">,</span><span class="w"> </span><span class="nb">sorted</span><span class="p">(</span><span class="n">missing</span><span class="p">),</span><span class="w"> </span><span class="s1">'is missing'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+                <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"the </span><span class="si">{</span><span class="n">i</span><span class="o">.</span><span class="n">listing</span><span class="p">(</span><span class="s1">'name'</span><span class="p">,</span><span class="w"> </span><span class="nb">sorted</span><span class="p">(</span><span class="n">unknown</span><span class="p">),</span><span class="w"> </span><span class="s1">'is unknown'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"The keyword arguments of parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
+                <span class="sa">f</span><span class="s2">"must agree with the node names defined by parameter "</span>
+                <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">`, but </span><span class="si">{</span><span class="s1">' and '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">problems</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_make_keywordbased_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entries</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">("</span>
+        <span class="n">blanks</span> <span class="o">=</span> <span class="s2">" "</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="s2">",</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">blanks</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">idx</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">prefix</span><span class="si">}{</span><span class="n">entry</span><span class="si">}</span><span class="s2">"</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="o">+</span> <span class="s2">")"</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Heights">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_parameters.Heights">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Heights</span><span class="p">(</span><span class="n">NodeParameter</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Base class for |InputHeights| and |OutputHeights| [?].</span>
+
+<span class="sd">    |Heights| subclasses are 1-dimensional parameters that provide one height value</span>
+<span class="sd">    for each node defined by the corresponding |Coordinates| parameter.  We use the</span>
+<span class="sd">    derived class |InputHeights| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; inputheights</span>
+<span class="sd">    inputheights(?)</span>
+
+<span class="sd">    Defining the input coordinates also sets the derived parameter |NmbInputs| and</span>
+<span class="sd">    thereby determines the shape of |InputHeights|:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates(in2=(2.0, 4.0),</span>
+<span class="sd">    ...                  in0=(3.0, 5.0),</span>
+<span class="sd">    ...                  in3=(4.0, 6.0))</span>
+<span class="sd">    &gt;&gt;&gt; derived.nmbinputs</span>
+<span class="sd">    nmbinputs(3)</span>
+<span class="sd">    &gt;&gt;&gt; inputheights.shape</span>
+<span class="sd">    (3,)</span>
+
+<span class="sd">    You can pass the heights in the order of the coordinates' nodes, like the values</span>
+<span class="sd">    of other 1-dimensional parameters:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputheights(2.0, 3.0, 4.0)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import print_vector</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(inputheights.values)</span>
+<span class="sd">    2.0, 3.0, 4.0</span>
+
+<span class="sd">    However, the string representation relies on the node names:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputheights</span>
+<span class="sd">    inputheights(in2=2.0,</span>
+<span class="sd">                 in0=3.0,</span>
+<span class="sd">                 in3=4.0)</span>
+
+<span class="sd">    Preferably, you should use the node names as keywords.  Then, the order does not</span>
+<span class="sd">    matter:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputheights(in3=6.0, in2=7.0, in0=8.0)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(inputheights.values)</span>
+<span class="sd">    7.0, 8.0, 6.0</span>
+
+<span class="sd">    The given node names must agree with the ones defined via |InputCoordinates|:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputheights(in2=1.0, in0=2.0, in4=3.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The keyword arguments of parameter `inputheights` of element `?` must \</span>
+<span class="sd">agree with the node names defined by parameter `inputcoordinates`, but the name `in3` \</span>
+<span class="sd">is missing and the name `in4` is unknown.</span>
+
+<span class="sd">    &gt;&gt;&gt; inputheights(in2=1.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The keyword arguments of parameter `inputheights` of element `?` must \</span>
+<span class="sd">agree with the node names defined by parameter `inputcoordinates`, but the names `in0` \</span>
+<span class="sd">and `in3` are missing.</span>
+
+<span class="sd">    &gt;&gt;&gt; inputheights</span>
+<span class="sd">    inputheights(in2=7.0,</span>
+<span class="sd">                 in0=8.0,</span>
+<span class="sd">                 in3=6.0)</span>
+
+<span class="sd">    Mixing positional and keyword arguments is not allowed:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputheights(1.0, in0=2.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: For parameter `inputheights` of element `?` both positional and \</span>
+<span class="sd">keyword arguments are given, which is ambiguous.</span>
+
+<span class="sd">    Reading the heights from auxiliary control files works as usual:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import TestIO</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO(clear_own=True):</span>
+<span class="sd">    ...     with open("heights_aux.py", "w", encoding="utf-8") as file_:</span>
+<span class="sd">    ...         for line in (</span>
+<span class="sd">    ...             "from hydpy.models.conv import *",</span>
+<span class="sd">    ...             "parameterstep()",</span>
+<span class="sd">    ...             "inputheights(in3=1.0, in2=2.0, in0=3.0)",</span>
+<span class="sd">    ...         ):</span>
+<span class="sd">    ...             print(line, file=file_)</span>
+<span class="sd">    ...     inputheights(auxfile="heights_aux")</span>
+<span class="sd">    &gt;&gt;&gt; inputheights</span>
+<span class="sd">    inputheights(in2=2.0,</span>
+<span class="sd">                 in0=3.0,</span>
+<span class="sd">                 in3=1.0)</span>
+<span class="sd">    &gt;&gt;&gt; inputheights(in3=6.0, in2=7.0, in0=8.0)</span>
+
+<span class="sd">    Redefining the coordinates of the same number of nodes keeps the heights, while</span>
+<span class="sd">    changing the number of nodes discards them:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates(a=(2.0, 4.0), b=(3.0, 5.0), c=(4.0, 6.0))</span>
+<span class="sd">    &gt;&gt;&gt; inputheights</span>
+<span class="sd">    inputheights(a=7.0,</span>
+<span class="sd">                 b=8.0,</span>
+<span class="sd">                 c=6.0)</span>
+<span class="sd">    &gt;&gt;&gt; inputcoordinates(a=(2.0, 4.0), b=(3.0, 5.0))</span>
+<span class="sd">    &gt;&gt;&gt; inputheights</span>
+<span class="sd">    inputheights(?)</span>
+
+<span class="sd">    The string representation falls back to the usual format if the numbers of heights</span>
+<span class="sd">    and nodes differ:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputheights.shape = 3</span>
+<span class="sd">    &gt;&gt;&gt; inputheights(1.0, 2.0, 3.0)</span>
+<span class="sd">    &gt;&gt;&gt; inputheights</span>
+<span class="sd">    inputheights(1.0, 2.0, 3.0)</span>
+<span class="sd">    """</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">CallHook</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">auxfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">heights</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">CallHook</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">"auxfile"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">):</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_raise_args_and_kwargs_error</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_sort_keywordvalues</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">nodes</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"values"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_keywordbased_repr</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Averages">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_parameters.Averages">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Averages</span><span class="p">(</span><span class="n">NodeParameter</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Base class for |InputAverages| and |OutputAverages| [?].</span>
+
+<span class="sd">    |Averages| subclasses are 2-dimensional parameters that provide twelve long-term</span>
+<span class="sd">    average values (one for each month of the year) for each node defined by the</span>
+<span class="sd">    corresponding |Coordinates| parameter.  The values can have any unit as long as</span>
+<span class="sd">    the input and the output averages agree in this regard, so that one can, for</span>
+<span class="sd">    example, use annual sums, monthly sums, or daily means.  We use the derived class</span>
+<span class="sd">    |InputAverages| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; inputaverages</span>
+<span class="sd">    inputaverages(?)</span>
+
+<span class="sd">    Defining the input coordinates also sets the derived parameter |NmbInputs| and</span>
+<span class="sd">    thereby determines the shape of |InputAverages|:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates(in2=(2.0, 4.0),</span>
+<span class="sd">    ...                  in0=(3.0, 5.0),</span>
+<span class="sd">    ...                  in3=(4.0, 6.0))</span>
+<span class="sd">    &gt;&gt;&gt; derived.nmbinputs</span>
+<span class="sd">    nmbinputs(3)</span>
+<span class="sd">    &gt;&gt;&gt; inputaverages.shape</span>
+<span class="sd">    (3, 12)</span>
+
+<span class="sd">    The safest way to define the averages is to use the node names as keywords, where</span>
+<span class="sd">    the order does not matter.  One value is valid for all months of the year, while</span>
+<span class="sd">    twelve values define individual averages for January to December.  You can mix both</span>
+<span class="sd">    options freely:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputaverages(in3=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0,</span>
+<span class="sd">    ...                    7.0, 8.0, 9.0, 10.0, 11.0, 12.0],</span>
+<span class="sd">    ...               in2=800.0,</span>
+<span class="sd">    ...               in0=600.0)</span>
+<span class="sd">    &gt;&gt;&gt; inputaverages</span>
+<span class="sd">    inputaverages(in2=800.0,</span>
+<span class="sd">                  in0=600.0,</span>
+<span class="sd">                  in3=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0,</span>
+<span class="sd">                       12.0])</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import print_vector</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(inputaverages.values[:, 0])</span>
+<span class="sd">    800.0, 600.0, 1.0</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(inputaverages.values[:, 11])</span>
+<span class="sd">    800.0, 600.0, 12.0</span>
+
+<span class="sd">    Any other number of values and values that are not numbers result in errors:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputaverages(in2=[800.0, 700.0], in0=600.0, in3=700.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: Parameter `inputaverages` of element `?` requires either one value or \</span>
+<span class="sd">twelve values for each node, but for node `in2`, `[800.0, 700.0]` is given.</span>
+
+<span class="sd">    &gt;&gt;&gt; inputaverages(in2="wrong", in0=600.0, in3=700.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: Parameter `inputaverages` of element `?` requires either one value or \</span>
+<span class="sd">twelve values for each node, but for node `in2`, `wrong` is given.</span>
+
+<span class="sd">    The given node names must agree with the ones defined via |InputCoordinates|:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputaverages(in2=1.0, in0=2.0, in4=3.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The keyword arguments of parameter `inputaverages` of element `?` must \</span>
+<span class="sd">agree with the node names defined by parameter `inputcoordinates`, but the name `in3` \</span>
+<span class="sd">is missing and the name `in4` is unknown.</span>
+
+<span class="sd">    Mixing positional and keyword arguments is not allowed:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputaverages(1.0, in0=2.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: For parameter `inputaverages` of element `?` both positional and \</span>
+<span class="sd">keyword arguments are given, which is ambiguous.</span>
+
+<span class="sd">    Negative averages are not allowed, but zero averages are:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputaverages(in2=-1.0, in0=0.0, in3=1.0)</span>
+<span class="sd">    &gt;&gt;&gt; inputaverages</span>
+<span class="sd">    inputaverages(in2=0.0,</span>
+<span class="sd">                  in0=0.0,</span>
+<span class="sd">                  in3=1.0)</span>
+
+<span class="sd">    A single scalar value applies to all nodes and months:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputaverages(5.0)</span>
+<span class="sd">    &gt;&gt;&gt; inputaverages</span>
+<span class="sd">    inputaverages(in2=5.0,</span>
+<span class="sd">                  in0=5.0,</span>
+<span class="sd">                  in3=5.0)</span>
+
+<span class="sd">    A given matrix must contain one row per node and one column per month:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy</span>
+<span class="sd">    &gt;&gt;&gt; inputaverages(numpy.arange(1.0, 37.0).reshape(3, 12))</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(inputaverages.values[:, 11])</span>
+<span class="sd">    12.0, 24.0, 36.0</span>
+
+<span class="sd">    Be careful with vectors.  Their entries always relate to the months, not to the</span>
+<span class="sd">    nodes, which is why vectors with a length other than twelve are invalid:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputaverages(1.0, 2.0, 3.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to set the value(s) of variable `inputaverages`, the \</span>
+<span class="sd">following error occurred: While trying to convert the value(s) `[1. 2. 3.]` to a numpy \</span>
+<span class="sd">ndarray with shape `(3, 12)` and type `float`, the following error occurred: could not \</span>
+<span class="sd">broadcast input array from shape (3,) into shape (3,12)</span>
+
+<span class="sd">    Reading the averages from auxiliary control files works as usual:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates(in2=(2.0, 4.0),</span>
+<span class="sd">    ...                  in0=(3.0, 5.0),</span>
+<span class="sd">    ...                  in3=(4.0, 6.0))</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import TestIO</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO(clear_own=True):</span>
+<span class="sd">    ...     with open("averages_aux.py", "w", encoding="utf-8") as file_:</span>
+<span class="sd">    ...         for line in (</span>
+<span class="sd">    ...             "from hydpy.models.conv import *",</span>
+<span class="sd">    ...             "parameterstep()",</span>
+<span class="sd">    ...             "inputaverages(in3=1.0, in2=2.0, in0=3.0)",</span>
+<span class="sd">    ...         ):</span>
+<span class="sd">    ...             print(line, file=file_)</span>
+<span class="sd">    ...     inputaverages(auxfile="averages_aux")</span>
+<span class="sd">    &gt;&gt;&gt; inputaverages</span>
+<span class="sd">    inputaverages(in2=2.0,</span>
+<span class="sd">                  in0=3.0,</span>
+<span class="sd">                  in3=1.0)</span>
+
+<span class="sd">    Redefining the coordinates of the same number of nodes keeps the averages, while</span>
+<span class="sd">    changing the number of nodes discards them:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputcoordinates(a=(2.0, 4.0), b=(3.0, 5.0), c=(4.0, 6.0))</span>
+<span class="sd">    &gt;&gt;&gt; inputaverages</span>
+<span class="sd">    inputaverages(a=2.0,</span>
+<span class="sd">                  b=3.0,</span>
+<span class="sd">                  c=1.0)</span>
+
+<span class="sd">    The string representation falls back to the usual format if the numbers of rows and</span>
+<span class="sd">    nodes differ:</span>
+
+<span class="sd">    &gt;&gt;&gt; inputaverages.shape = (1, 12)</span>
+<span class="sd">    &gt;&gt;&gt; inputaverages(1.0)</span>
+<span class="sd">    &gt;&gt;&gt; inputaverages</span>
+<span class="sd">    inputaverages(1.0)</span>
+<span class="sd">    """</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">CallHook</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">auxfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">averages</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">VectorFloat</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">CallHook</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">"auxfile"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">):</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_raise_args_and_kwargs_error</span><span class="p">()</span>
+        <span class="n">sortedvalues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sort_keywordvalues</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">matrix</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">sortedvalues</span><span class="p">),</span> <span class="mi">12</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">NP_FLOAT</span><span class="p">)</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">nodes</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">sortedvalues</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">array</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="s2">"iuf"</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span>
+                <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">shape</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">((),</span> <span class="p">(</span><span class="mi">12</span><span class="p">,)):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="nb">type</span><span class="p">(</span><span class="n">exc</span><span class="p">)(</span>
+                    <span class="sa">f</span><span class="s2">"Parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> requires either one "</span>
+                    <span class="sa">f</span><span class="s2">"value or twelve values for each node, but for node "</span>
+                    <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">`, `</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">` is given."</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+            <span class="n">matrix</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">array</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">nodes</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"values"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">("</span>
+        <span class="n">blanks</span> <span class="o">=</span> <span class="s2">" "</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="n">entries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+            <span class="n">subprefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">blanks</span><span class="si">}{</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">="</span>
+            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">row</span><span class="p">)</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">75</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">subprefix</span><span class="p">)</span> <span class="o">+</span> <span class="mi">20</span><span class="p">)</span>
+                <span class="n">entry</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_list</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">subprefix</span><span class="p">,</span> <span class="n">width</span><span class="p">)</span>
+                <span class="n">entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">blanks</span><span class="p">)</span> <span class="p">:])</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_keywordbased_repr</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.5.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.conv.conv_parameters</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

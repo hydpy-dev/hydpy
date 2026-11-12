@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.conv.conv_control &#8212; HydPy 6.5.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=72aa22fa" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=7f64e455"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/toctree.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.5.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.conv.conv_control</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.conv.conv_control</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.conv</span><span class="w"> </span><span class="kn">import</span> <span class="n">conv_parameters</span>
+
+
+<div class="viewcode-block" id="InputCoordinates">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_control.InputCoordinates">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InputCoordinates</span><span class="p">(</span><span class="n">conv_parameters</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Coordinates of the inlet nodes [?]."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_number_of_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">nmbinputs</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="OutputCoordinates">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_control.OutputCoordinates">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OutputCoordinates</span><span class="p">(</span><span class="n">conv_parameters</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Coordinates of the outlet nodes [?]."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_number_of_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">nmboutputs</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="InputHeights">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_control.InputHeights">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InputHeights</span><span class="p">(</span><span class="n">conv_parameters</span><span class="o">.</span><span class="n">Heights</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The height (above sea level or anything else) of the input nodes [?]."""</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InputCoordinates</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The |InputCoordinates| parameter."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">inputcoordinates</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__hydpy__let_par_set_shape__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">NmbParameter</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># pylint: disable=import-outside-toplevel</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.conv</span><span class="w"> </span><span class="kn">import</span> <span class="n">conv_derived</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbInputs</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__hydpy__change_shape_if_necessary__</span><span class="p">((</span><span class="n">p</span><span class="o">.</span><span class="n">value</span><span class="p">,))</span></div>
+
+
+
+<div class="viewcode-block" id="OutputHeights">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_control.OutputHeights">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OutputHeights</span><span class="p">(</span><span class="n">conv_parameters</span><span class="o">.</span><span class="n">Heights</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The height (above sea level or anything else) of the output nodes [?]."""</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OutputCoordinates</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The |OutputCoordinates| parameter."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">outputcoordinates</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__hydpy__let_par_set_shape__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">NmbParameter</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># pylint: disable=import-outside-toplevel</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.conv</span><span class="w"> </span><span class="kn">import</span> <span class="n">conv_derived</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbOutputs</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__hydpy__change_shape_if_necessary__</span><span class="p">((</span><span class="n">p</span><span class="o">.</span><span class="n">value</span><span class="p">,))</span></div>
+
+
+
+<div class="viewcode-block" id="InputAverages">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_control.InputAverages">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InputAverages</span><span class="p">(</span><span class="n">conv_parameters</span><span class="o">.</span><span class="n">Averages</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The long-term averages of the input nodes for each month of the year [?]."""</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InputCoordinates</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The |InputCoordinates| parameter."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">inputcoordinates</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__hydpy__let_par_set_shape__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">NmbParameter</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># pylint: disable=import-outside-toplevel</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.conv</span><span class="w"> </span><span class="kn">import</span> <span class="n">conv_derived</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbInputs</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__hydpy__change_shape_if_necessary__</span><span class="p">((</span><span class="n">p</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="OutputAverages">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_control.OutputAverages">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OutputAverages</span><span class="p">(</span><span class="n">conv_parameters</span><span class="o">.</span><span class="n">Averages</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The long-term averages of the output nodes for each month of the year [?]."""</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OutputCoordinates</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The |OutputCoordinates| parameter."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">outputcoordinates</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__hydpy__let_par_set_shape__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">NmbParameter</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># pylint: disable=import-outside-toplevel</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.conv</span><span class="w"> </span><span class="kn">import</span> <span class="n">conv_derived</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">conv_derived</span><span class="o">.</span><span class="n">NmbOutputs</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__hydpy__change_shape_if_necessary__</span><span class="p">((</span><span class="n">p</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="MaxNmbInputs">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_control.MaxNmbInputs">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MaxNmbInputs</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The maximum number of input locations to be taken into account for</span>
+<span class="sd">    interpolating the values of a specific output location [-].</span>
+
+<span class="sd">    When passing no value, parameter |MaxNmbInputs| queries it from the shape</span>
+<span class="sd">    of parameter |InputCoordinates|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; inputcoordinates(in2=(2.0, 4.0),</span>
+<span class="sd">    ...                  in0=(3.0, 5.0),</span>
+<span class="sd">    ...                  in3=(4.0, 6.0))</span>
+<span class="sd">    &gt;&gt;&gt; maxnmbinputs()</span>
+<span class="sd">    &gt;&gt;&gt; maxnmbinputs</span>
+<span class="sd">    maxnmbinputs(3)</span>
+
+<span class="sd">    You can define alternative values manually:</span>
+
+<span class="sd">    &gt;&gt;&gt; maxnmbinputs(2)</span>
+<span class="sd">    &gt;&gt;&gt; maxnmbinputs</span>
+<span class="sd">    maxnmbinputs(2)</span>
+<span class="sd">    """</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">int</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">:</span> <span class="n">CallHook</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">auxfile</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">CallHook</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">inputcoordinates</span><span class="o">.</span><span class="n">coordinates</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MaxNmbInputs.trim">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_control.MaxNmbInputs.trim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="p">:</span> <span class="n">TrimHook</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="p">:</span> <span class="n">TrimHook</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Assure that the value of |MaxNmbInputs| does not exceed the</span>
+<span class="sd">        number of available input locations.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.conv import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; inputcoordinates(in2=(2.0, 4.0),</span>
+<span class="sd">        ...                  in0=(3.0, 5.0),</span>
+<span class="sd">        ...                  in3=(4.0, 6.0))</span>
+<span class="sd">        &gt;&gt;&gt; maxnmbinputs(0)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        ValueError: The value `0` of parameter `maxnmbinputs` of \</span>
+<span class="sd">element `?` is not valid.</span>
+<span class="sd">        &gt;&gt;&gt; maxnmbinputs(4)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        ValueError: The value `4` of parameter `maxnmbinputs` of \</span>
+<span class="sd">element `?` is not valid.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">upper</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">upper</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">inputcoordinates</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MinNmbInputs">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_control.MinNmbInputs">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MinNmbInputs</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The minimum number of inputs for performing a statistical analysis [-]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">int</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="DefaultConstant">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_control.DefaultConstant">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DefaultConstant</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Default or fallback value for the constant of the linear regression model [?]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span></div>
+
+
+
+<div class="viewcode-block" id="DefaultFactor">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_control.DefaultFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DefaultFactor</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Default or fallback value for the factor of the linear regression model [?]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Power">
+<a class="viewcode-back" href="../../../../conv.html#hydpy.models.conv.conv_control.Power">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Power</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Power parameter for calculating inverse distance weights [-]."""</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.5.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.conv.conv_control</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
+    </div>
+  </body>
+</html>

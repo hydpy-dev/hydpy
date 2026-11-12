@@ -1,0 +1,63 @@
+.. |AbsErrorMax| replace:: :class:`~hydpy.models.dam.dam_solver.AbsErrorMax`
+.. |AllowedWaterLevelDrop| replace:: :class:`~hydpy.models.dam.dam_control.AllowedWaterLevelDrop`
+.. |A| replace:: :class:`~hydpy.models.dam.dam_observers.A`
+.. |CatchmentArea| replace:: :class:`~hydpy.models.dam.dam_control.CatchmentArea`
+.. |Commission| replace:: :class:`~hydpy.models.dam.dam_control.Commission`
+.. |DischargeTolerance| replace:: :class:`~hydpy.models.dam.dam_control.DischargeTolerance`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |Exchange| replace:: :class:`~hydpy.models.dam.dam_fluxes.Exchange`
+.. |E| replace:: :class:`~hydpy.models.dam.dam_inlets.E`
+.. |False| replace:: :const:`False`
+.. |FloodDischarge| replace:: :class:`~hydpy.models.dam.dam_fluxes.FloodDischarge`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |Inflow| replace:: :class:`~hydpy.models.dam.dam_fluxes.Inflow`
+.. |InterpAlgorithm| replace:: :class:`~hydpy.auxs.interptools.InterpAlgorithm`
+.. |LoggedAdjustedEvaporation| replace:: :class:`~hydpy.models.dam.dam_logs.LoggedAdjustedEvaporation`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.dam_llake.Model.check_waterbalance`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PPoly| replace:: :class:`~hydpy.auxs.ppolytools.PPoly`
+.. |PrecipModel_V2| replace:: :class:`~hydpy.interfaces.precipinterfaces.PrecipModel_V2`
+.. |SeasonalInterpolator| replace:: :class:`~hydpy.auxs.interptools.SeasonalInterpolator`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |ThresholdEvaporation| replace:: :class:`~hydpy.models.dam.dam_control.ThresholdEvaporation`
+.. |ToleranceEvaporation| replace:: :class:`~hydpy.models.dam.dam_control.ToleranceEvaporation`
+.. |TransferModel_V1| replace:: :class:`~hydpy.interfaces.transferinterfaces.TransferModel_V1`
+.. |True| replace:: :const:`True`
+.. |WaterLevel2FloodDischarge| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevel2FloodDischarge`
+.. |WaterLevel| replace:: :class:`~hydpy.models.dam.dam_factors.WaterLevel`
+.. |WaterVolume2WaterLevel| replace:: :class:`~hydpy.models.dam.dam_control.WaterVolume2WaterLevel`
+.. |WaterVolume| replace:: :class:`~hydpy.models.dam.dam_states.WaterVolume`
+.. |WeightEvaporation| replace:: :class:`~hydpy.models.dam.dam_control.WeightEvaporation`
+.. |dam.DOCNAME.long| replace:: HydPy-Dam
+.. |dam_llake.DOCNAME.complete| replace:: HydPy-Dam-L-Lake (controlled lake model adopted from LARSIM)
+.. |dam_llake| replace:: :mod:`~hydpy.models.dam_llake`
+.. |dam_v001| replace:: :mod:`~hydpy.models.dam_v001`
+.. |evap_ret_io| replace:: :mod:`~hydpy.models.evap_ret_io`
+.. |exch_water_transfer_io| replace:: :mod:`~hydpy.models.exch_water_transfer_io`
+.. |exch_weir_hbv96| replace:: :mod:`~hydpy.models.exch_weir_hbv96`
+.. |manager_lwc| replace:: :mod:`~hydpy.models.manager_lwc`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |smooth_max1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_max1`
+.. |smooth_min1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_min1`
+.. |dam_aides.SurfaceArea| replace:: :class:`~hydpy.models.dam.dam_aides.SurfaceArea`
+.. |dam_control.SurfaceArea| replace:: :class:`~hydpy.models.dam.dam_control.SurfaceArea`
+.. |dam_outlets.Q| replace:: :class:`~hydpy.models.dam.dam_outlets.Q`
+.. |exch_control.KeepWaterBalance| replace:: :class:`~hydpy.models.exch.exch_control.KeepWaterBalance`
+.. |exch_control.MaxVol| replace:: :class:`~hydpy.models.exch.exch_control.MaxVol`
+.. |exch_control.MinVol| replace:: :class:`~hydpy.models.exch.exch_control.MinVol`
+.. |exch_control.QTol| replace:: :class:`~hydpy.models.exch.exch_control.QTol`
+.. |exch_control.VolTol| replace:: :class:`~hydpy.models.exch.exch_control.VolTol`
+.. |numpy.inf| replace:: :const:`~numpy.inf`
+
+.. _dam_llake:
+
+dam_llake
+=========
+
+.. automodule:: hydpy.models.dam_llake
+    :members:
+    :show-inheritance:
+    :exclude-members: ADD_METHODS, AbstractSet, AideSequences, Annotated, Any, AnyStr, AsyncContextManager, AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, BinaryIO, Buffer, ByteString, CLASSES, CONTROLPARAMETERS, Callable, CapsuleType, ChainMap, ClassVar, Collection, Concatenate, Container, ContextManager, ControlParameters, Coroutine, Counter, DERIVEDPARAMETERS, DefaultDict, Deque, DerivedParameters, Dict, Doc, FIXEDPARAMETERS, FULL_ODE_METHODS, FactorSequences, Final, FluxSequences, Format, ForwardRef, FrozenSet, Generator, Generic, Hashable, INLET_METHODS, INTERFACE_METHODS, IO, InletSequences, InputSequences, IntVar, ItemsView, Iterable, Iterator, KeysView, List, Literal, LiteralString, LogSequences, Mapping, MappingView, Match, Model, MutableMapping, MutableSequence, MutableSet, NamedTuple, Never, NewType, NoDefault, NoExtraItems, NoReturn, NotRequired, OBSERVER_METHODS, OUTLET_METHODS, ObserverSequences, Optional, OrderedDict, OutletSequences, PART_ODE_METHODS, POST_ODE_METHODS, ParamSpec, ParamSpecArgs, ParamSpecKwargs, Pattern, Protocol, RECEIVER_METHODS, REQUIREDSEQUENCES, RESULTSEQUENCES, RUN_METHODS, ReadOnly, Reader, ReceiverSequences, Required, Reversible, SENDER_METHODS, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELINTERFACES, SUBMODELS, Self, SenderSequences, Sentinel, Sequence, Set, Sized, SolverParameters, StateSequences, SupportsAbs, SupportsBytes, SupportsComplex, SupportsFloat, SupportsIndex, SupportsInt, SupportsRound, TYPE_CHECKING, Text, TextIO, Tuple, Type, TypeAlias, TypeAliasType, TypeForm, TypeGuard, TypeIs, TypeVar, TypeVarTuple, TypedDict, UPDATEDSEQUENCES, Union, Unpack, ValuesView, Writer, assert_never, assert_type, cast, clear_overloads, dataclass_transform, deprecated, disjoint_base, evaluate_forward_ref, fastaccess, fastaccess_new, fastaccess_old, final, get_annotations, get_args, get_origin, get_original_bases, get_overloads, get_protocol_members, get_type_hints, is_protocol, is_typeddict, no_type_check, no_type_check_decorator, overload, override, pars, reveal_type, runtime, runtime_checkable, sentinel, seqs, subpars, subseqs, subvars, type_repr

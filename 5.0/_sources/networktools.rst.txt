@@ -1,0 +1,21 @@
+.. |Elements| replace:: :class:`~hydpy.core.devicetools.Elements`
+.. |False| replace:: :const:`False`
+.. |Nodes| replace:: :class:`~hydpy.core.devicetools.Nodes`
+.. |None| replace:: :const:`None`
+.. |RiverBasinNumbers2Selection.router_elements| replace:: :const:`~hydpy.auxs.networktools.RiverBasinNumbers2Selection.router_elements`
+.. |RiverBasinNumbers2Selection.supplier_elements| replace:: :const:`~hydpy.auxs.networktools.RiverBasinNumbers2Selection.supplier_elements`
+.. |RiverBasinNumbers2Selection| replace:: :class:`~hydpy.auxs.networktools.RiverBasinNumbers2Selection`
+.. |RiverBasinNumbers| replace:: :class:`~hydpy.auxs.networktools.RiverBasinNumbers`
+.. |RiverBasinNumber| replace:: :class:`~hydpy.auxs.networktools.RiverBasinNumber`
+.. |Selection| replace:: :class:`~hydpy.core.selectiontools.Selection`
+.. |tuple| replace:: :class:`tuple`
+
+.. _networktools:
+
+networktools
+============
+
+.. automodule:: hydpy.auxs.networktools
+    :members:
+    :show-inheritance:
+    :exclude-members: Self, Reversible, Generic, Sized, Awaitable, IntVar, clear_overloads, TypeAlias, Sequence, Hashable, SUBMETHODS, SupportsAbs, AnyStr, assert_never, reveal_type, CLASSES, REQUIREDSEQUENCES, ItemsView, Union, SupportsFloat, get_overloads, get_origin, OUTLET_METHODS, NoReturn, no_type_check, Type, Final, PART_ODE_METHODS, RECEIVER_METHODS, Tuple, AbstractSet, ByteString, MappingView, subpars, MutableSequence, MutableSet, SupportsRound, CONTROLPARAMETERS, INLET_METHODS, get_protocol_members, SOLVERSEQUENCES, FrozenSet, no_type_check_decorator, fastaccess_old, Mapping, FIXEDPARAMETERS, seqs, KeysView, SUBMODELS, Protocol, SupportsComplex, SENDER_METHODS, ContextManager, deprecated, SupportsBytes, get_original_bases, Iterator, is_protocol, TypeGuard, DefaultDict, LiteralString, Required, TextIO, TYPE_CHECKING, AsyncContextManager, fastaccess_new, FULL_ODE_METHODS, SOLVERPARAMETERS, BinaryIO, fastaccess, runtime, IO, Text, TypeVarTuple, ValuesView, AsyncIterable, Generator, Optional, assert_type, Literal, dataclass_transform, subvars, pars, get_args, ParamSpec, Annotated, cast, final, subseqs, ClassVar, Any, Unpack, Coroutine, is_typeddict, Counter, UPDATEDSEQUENCES, Callable, Dict, NamedTuple, overload, OrderedDict, Set, ADD_METHODS, Collection, Pattern, List, get_type_hints, Concatenate, ParamSpecKwargs, DERIVEDPARAMETERS, AsyncGenerator, override, Container, RUN_METHODS, NotRequired, NewType, RESULTSEQUENCES, SupportsInt, Buffer, Iterable, TypeVar, SupportsIndex, MutableMapping, ChainMap, ForwardRef, TypeAliasType, AsyncIterator, Never, ParamSpecArgs, Match, Deque, TypedDict, runtime_checkable

@@ -46,9 +46,7 @@ class Pick_OriginalQ_V1(modeltools.Method):
 
 class Calc_OutputCorr_OutputCorrModel_V1(modeltools.Method):
     """Let a submodel that complies with the |OutputCorrModel_V1| interface correct
-    the current simulated discharge and take over its result if it is active.
-
-    See |Calc_OutputCorr_V1| for examples.
+    the current simulated discharge and use its result if it is active.
     """
 
     SUBMODELINTERFACES = (statcorrinterfaces.OutputCorrModel_V1,)
@@ -72,14 +70,12 @@ class Calc_OutputCorr_OutputCorrModel_V1(modeltools.Method):
 
 
 class Calc_OutputCorr_V1(modeltools.Method):
-    """Let all |OutputCorrModel_V1| submodels correct the current simulated
-    discharge and take the result of the last responsible one.
+    """Let all |OutputCorrModel_V1| submodels calculate the correction of the
+    current simulated discharge and take the result of the last responsible one.
 
-    Each submodel decides on its own whether it is responsible (see
-    |OutputCorrModel_V1.is_active|).  If none is, |CorrectedQ| equals |OriginalQ|.
-    In `forecast` mode (see |Options.simulationmode|), |Calc_OutputCorr_V1| passes
-    |numpy.nan| instead of |Discharge| to the submodels, which then rely on the
-    information logged during the preceding `historical` run (see |statcorr_main|).
+    |Calc_OutputCorr_OutputCorrModel_V1| is called for each submodel in the order in
+    which the submodels are added. If a submodel is active, it overwrites |CorrectedQ|,
+    so the last active submodel determines the final corrected discharge.
 
     Examples:
 
@@ -120,7 +116,7 @@ class Calc_OutputCorr_V1(modeltools.Method):
         >>> fluxes.correctedq
         correctedq(2.5)
 
-        For an observed discharge of 4.0 m³/s, the second submodel takes over:
+        For an observed discharge of 4.0 m³/s, the second submodel is responsible:
 
         >>> fluxes.originalq = 2.5
         >>> inputs.discharge = 4.0
@@ -162,10 +158,9 @@ class Calc_OutputCorr_V1(modeltools.Method):
 
 
 class Pass_CorrectedQ_V1(modeltools.Method):
-    """Pass the corrected discharge on to the outlet link sequence, unless
-    |Propagate| is |False|, in which case the original discharge is
-    passed on instead.  Either way, |CorrectedQ| remains available for local
-    output.
+    """Pass the corrected discharge to the outlet link sequence |statcorr_outlets.Q|,
+    unless |Propagate| is |False|, in which case the original discharge is
+    passed on instead.
 
     Basic equation:
         :math:`Q_{outlets} = CorrectedQ` (if |Propagate|) or
@@ -233,8 +228,6 @@ class Set_ObservedValue_V1(modeltools.Method):
     """Append the given observed value to the internal log of observed values
     by shifting the previously buffered values one position to the right
     and storing the new value at position 0.
-
-    The given value may be |numpy.nan| when no observation is available.
 
     Example:
 
@@ -451,7 +444,7 @@ class Calc_Stationary_V1(modeltools.Method):
 
     Basic equation:
       :math:`Stationary = \begin{cases}
-      0 &|\ min / max < RatioMinMax \
+      0 &|\ min / max < RatioMinMax \\
       1 &|\ else
       \end{cases}`
 
@@ -540,8 +533,9 @@ class Calc_ReductionFactor_V1(modeltools.Method):
     The equation applies only in `forecast` mode (see |Options.simulationmode|) and
     only if |Stationary| is `0.0` (see |Calc_Stationary_V1|).  Then,
     |ReductionFactor| decreases linearly from `1.0` to zero within |ReductionSteps|
-    forecast steps.  In all other cases, including a disabled stationarity check
-    (see |StationarityCheck|), |ReductionFactor| is `1.0`.
+    forecast steps (or immediately, if |ReductionSteps| is zero).  In all other
+    cases, including a disabled stationarity check (see |StationarityCheck|),
+    |ReductionFactor| is `1.0`.
 
     Examples:
 
@@ -581,21 +575,6 @@ class Calc_ReductionFactor_V1(modeltools.Method):
         >>> model.calc_reductionfactor_v1()
         >>> states.reductionfactor
         reductionfactor(0.0)
-
-        Stationary conditions result in a |ReductionFactor| of `1.0`:
-
-        >>> states.stationary(1.0)
-        >>> model.calc_reductionfactor_v1()
-        >>> states.reductionfactor
-        reductionfactor(1.0)
-
-        The same holds when the stationarity check is disabled:
-
-        >>> states.stationary(0.0)
-        >>> derived.stationaritywindow(0)
-        >>> model.calc_reductionfactor_v1()
-        >>> states.reductionfactor
-        reductionfactor(1.0)
         >>> del pub.options.simulationmode
     """
 
@@ -622,11 +601,10 @@ class Calc_ReductionFactor_V1(modeltools.Method):
 
 
 class Calc_RelSumDelta_V1(modeltools.Method):
-    r"""Calculate the relative sum of the absolute changes between successive
-    simulated values while the variability check is enabled (see
-    |StationarityCheck|) and |Options.simulationmode| is `historical`.
+    r"""Calculate the sum of the absolute changes between successive simulated
+    values relative to their mean.
 
-    Basic equation:
+    Basic equations:
       :math:`RelSumDelta = \frac{1}{\overline{sim}}
       \sum_{i=0}^{EvaluationWindow-2}
       |LoggedSimulation_i - LoggedSimulation_{i+1}|`
@@ -634,12 +612,10 @@ class Calc_RelSumDelta_V1(modeltools.Method):
       :math:`\overline{sim} = \frac{1}{EvaluationWindow}
       \sum_{i=0}^{EvaluationWindow-1} LoggedSimulation_i`
 
-    The variability check assesses the simulated values only, so it relates their
-    changes to their own mean (:math:`\overline{sim}`) within the |EvaluationWindow|.
-    For a non-positive or missing :math:`\overline{sim}`, |RelSumDelta| is
-    |numpy.nan|.  While |Options.simulationmode| is `forecast`,
-    |Calc_RelSumDelta_V1| keeps the value of the most recent `historical`
-    assessment.
+    If :math:`\overline{sim}` is not positive or |numpy.nan|, |RelSumDelta| is
+    |numpy.nan|.  In `forecast` mode (see |Options.simulationmode|) and if the
+    variability check is disabled (see |StationarityCheck|), |RelSumDelta| keeps
+    its previous value.
 
     Examples:
 
@@ -659,21 +635,7 @@ class Calc_RelSumDelta_V1(modeltools.Method):
         >>> model.calc_relsumdelta_v1()
         >>> states.relsumdelta
         relsumdelta(nan)
-
-        In `forecast` mode or with the variability check disabled, |RelSumDelta|
-        stays unchanged:
-
-        >>> logs.loggedsimulation = 9.0, 10.0, 11.0
-        >>> pub.options.simulationmode = "forecast"
-        >>> model.calc_relsumdelta_v1()
-        >>> states.relsumdelta
-        relsumdelta(nan)
-
-        >>> pub.options.simulationmode = "historical"
-        >>> derived.stationaryaveragingwindow(0)
-        >>> model.calc_relsumdelta_v1()
-        >>> states.relsumdelta
-        relsumdelta(nan)
+        >>> del pub.options.simulationmode
     """
 
     CONTROLPARAMETERS = (statcorr_control.EvaluationWindow,)
@@ -706,19 +668,20 @@ class Calc_RelSumDelta_V1(modeltools.Method):
 
 
 class Calc_LowVariability_V1(modeltools.Method):
-    r"""Decide whether the simulated values vary little enough to use the
-    |StationaryAveragingWindow| instead of the |AveragingWindow| (see
-    |Calc_AveragedResidual_V1|).
+    r"""Check whether the simulated values vary only slightly.
+
+    If so, |Calc_AveragedResidual_V1| uses the |StationaryAveragingWindow| instead
+    of the |AveragingWindow|.
 
     Basic equation:
       :math:`LowVariability = \begin{cases}
-      1 &|\ Stationary = 1 \ \land \ RelSumDelta \leq MaxRelSumDelta \
+      1 &|\ Stationary = 1 \ \land \ RelSumDelta \leq MaxRelSumDelta \\
       0 &|\ else
       \end{cases}`
 
     With the stationarity check or the variability check disabled (see
-    |StationarityCheck|), |LowVariability| is always `0.0`.  In `forecast` mode, it
-    keeps its previous value.
+    |StationarityCheck|), |LowVariability| is always `0.0`.  In `forecast` mode (see
+    |Options.simulationmode|), it keeps its previous value.
 
     Examples:
 

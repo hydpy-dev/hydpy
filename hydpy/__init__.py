@@ -111,7 +111,7 @@ from hydpy.exe.replacetools import xml_replace
 from hydpy.exe.servertools import await_server, start_server
 from hydpy.exe.xmltools import XMLInterface, run_simulation, xml_validate
 
-__version__ = "6.5dev1"
+__version__ = "6.5.0"
 
 pub.scriptfunctions["await_server"] = await_server
 pub.scriptfunctions["exec_commands"] = exec_commands

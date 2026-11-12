@@ -1,5 +1,5 @@
 
-version: 6.5dev1.{build}
+version: 6.5.0.{build}
 
 image: Visual Studio 2019
 

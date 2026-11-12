@@ -10,6 +10,11 @@ Integration tests
 
     .. how_to_understand_integration_tests::
 
+    he exact functionality of the submodels is illustrated in their integration tests.
+    The main model, `statcorr_main`, serves as a container for the submodels. This
+    section demonstrates how submodels with different parameterizations can be combined
+    using the main model.
+
     We prepare a simulation period of ten days:
 
     >>> from hydpy import pub
@@ -25,22 +30,20 @@ Integration tests
     >>> element.model = model
     >>> propagate(True)
     >>> test = IntegrationTest(element)
-    >>> test.dateformat = "%Y-%d-%m"
+    >>> test.dateformat = "%Y-%m-%d"
 
-    The following function configures a |statcorr_arima010| submodel with the
-    settings shared by all examples.  It makes the submodel responsible for all
-    discharges (its |EvaluationWindow| of one step means it assesses its
-    responsibility based on the current observed discharge only) and disables the
-    stationarity check (including the variability check) via |StationarityCheck|
-    and the mean-value-based residual via |AveragingWindow|, so
-    the ARIMA correction always applies unabated.  The individual examples
-    override some of these settings:
+    We attach a two submodels to the main model. For both submodels, `lowerlimit` is
+    `0.0` and `upperlimit` is `inf`, so the correction should take place for any
+    observed discharge. Both submodels should correct the discharge only in forecast
+    mode. For the second submodel, we limit th ecorrection by setting |MaxAbsShift| to
+    `0.5` and |MaxRelShift| to `0.05`.
 
     >>> from numpy import inf, nan
-    >>> def configure(submodel):
-    ...     control = submodel.parameters.control
+    >>> nmbsubmodels(2)
+    >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0) as sub:
+    ...     control = sub.parameters.control
     ...     control.active(True)
-    ...     control.correctionmode(option="both")
+    ...     control.correctionmode(option="forecast")
     ...     control.lowerlimit(0.0)
     ...     control.upperlimit(inf)
     ...     control.evaluationwindow(1)
@@ -51,51 +54,33 @@ Integration tests
     ...     control.transitionsteps(0)
     ...     control.stationaritycheck(active=False)
     ...     control.reductionsteps(1)
+    >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=1) as sub:
+    ...     control = sub.parameters.control
+    ...     control.active(True)
+    ...     control.correctionmode(option="forecast")
+    ...     control.lowerlimit(0.0)
+    ...     control.upperlimit(inf)
+    ...     control.evaluationwindow(1)
+    ...     control.maxnanskip(2)
+    ...     control.maxabsshift(0.5)
+    ...     control.maxrelshift(0.05)
+    ...     control.averagingwindow(0)
+    ...     control.transitionsteps(0)
+    ...     control.stationaritycheck(active=False)
+    ...     control.reductionsteps(1)
 
-    The inlet provides the simulated discharge; |Discharge| carries the
-    observations.
+    We specify a time series with simulated values for the entire period and a
+    time series with observations for the first five time steps.
 
-Historical simulation
-_____________________
-
-    We attach a single submodel:
-
-    >>> nmbsubmodels(1)
-    >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0) as sub:
-    ...     configure(sub)
-
-    In the first example, the complete simulation period runs in `historical`
-    mode.  Observations are available for the first two days only:
-
-    >>> element.inlets.inlet.sequences.sim.series = range(1, 11)
+    >>> element.inlets.inlet.sequences.sim.series = (
+    ...     8.0, 9.0, 10.0, 10.0, 10.0, 11.0, 12.0, 9.0, 6.0, 3.0
+    ... )
     >>> with pub.options.checkseries(False):
-    ...     inputs.discharge.series = 1.5, 2.5, nan, nan, nan, nan, nan, nan, nan, nan
+    ...     model.sequences.inputs.discharge.series = (
+    ...         [9.6, 10.8, 12.6, 12.0, 12.0] + 5 * [nan]
+    ...     )
 
-    During the first two steps the correction is based on the concurrent residual
-    (``0.5``).  Afterwards, the model falls back to the most recent available
-    residual, which stays at ``0.5`` until it lies more than |MaxNaNSkip| entries
-    back on day five, after which no correction is applied:
-
-.. integration-test::
-
-    >>> test()
-    |  date | discharge | originalq | correctedq | inlet | outlet |
-    ---------------------------------------------------------------
-    | 01/01 |       1.5 |       1.0 |        1.5 |   1.0 |    1.5 |
-    | 02/01 |       2.5 |       2.0 |        2.5 |   2.0 |    2.5 |
-    | 03/01 |       nan |       3.0 |        3.5 |   3.0 |    3.5 |
-    | 04/01 |       nan |       4.0 |        4.5 |   4.0 |    4.5 |
-    | 05/01 |       nan |       5.0 |        5.0 |   5.0 |    5.0 |
-    | 06/01 |       nan |       6.0 |        6.0 |   6.0 |    6.0 |
-    | 07/01 |       nan |       7.0 |        7.0 |   7.0 |    7.0 |
-    | 08/01 |       nan |       8.0 |        8.0 |   8.0 |    8.0 |
-    | 09/01 |       nan |       9.0 |        9.0 |   9.0 |    9.0 |
-    | 10/01 |       nan |      10.0 |       10.0 |  10.0 |   10.0 |
-
-Forecast simulation
-___________________
-
-    In operational use, a forecast consists of two separate simulation runs.  First,
+     In operational use, a forecast consists of two separate simulation runs.  First,
     a `historical` run covers the period with observations and ends with saving the
     current conditions (the states and logs of all submodels).  Second, a
     `forecast` run starts from these conditions and covers the forecast horizon.
@@ -117,195 +102,69 @@ ___________________
     ...     pub.timegrids.sim.dates = first, last
     ...     test.print_table()
 
-    We replace the submodel of the previous example with a fresh one and let the
-    forecast start on day six.  In contrast to the previous example, observations
-    are available for all days.  However, |Calc_OutputCorr_V1| ignores them during
-    the `forecast` run.  Instead, the submodel keeps applying the residual
-    determined at the end of the `historical` run (``6.0 - 5.0 = 1.0``) throughout
-    the whole forecast horizon, even after it lies more than |MaxNaNSkip| entries
-    back:
-
-    >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0) as sub:
-    ...     configure(sub)
-    >>> with pub.options.checkseries(False):
-    ...     inputs.discharge.series = 1.5, 2.5, 3.5, 4.5, 6.0, 9.0, 9.0, 9.0, 9.0, 9.0
+    Since the last submodel, which would perform a correction, is given priority, the
+    correction is limited according to the parameters of the second submodel:
 
 .. integration-test::
 
     >>> forecast_test("2000-01-06")
-    |  date | discharge | originalq | correctedq | inlet | outlet |
-    ---------------------------------------------------------------
-    | 01/01 |       1.5 |       1.0 |        1.5 |   1.0 |    1.5 |
-    | 02/01 |       2.5 |       2.0 |        2.5 |   2.0 |    2.5 |
-    | 03/01 |       3.5 |       3.0 |        3.5 |   3.0 |    3.5 |
-    | 04/01 |       4.5 |       4.0 |        4.5 |   4.0 |    4.5 |
-    | 05/01 |       6.0 |       5.0 |        6.0 |   5.0 |    6.0 |
-    | 06/01 |       9.0 |       6.0 |        7.0 |   6.0 |    7.0 |
-    | 07/01 |       9.0 |       7.0 |        8.0 |   7.0 |    8.0 |
-    | 08/01 |       9.0 |       8.0 |        9.0 |   8.0 |    9.0 |
-    | 09/01 |       9.0 |       9.0 |       10.0 |   9.0 |   10.0 |
-    | 10/01 |       9.0 |      10.0 |       11.0 |  10.0 |   11.0 |
+    |       date | discharge | originalq | correctedq | inlet | outlet |
+    --------------------------------------------------------------------
+    | 2000-01-01 |       9.6 |       8.0 |        8.0 |   8.0 |    8.0 |
+    | 2000-01-02 |      10.8 |       9.0 |        9.0 |   9.0 |    9.0 |
+    | 2000-01-03 |      12.6 |      10.0 |       10.0 |  10.0 |   10.0 |
+    | 2000-01-04 |      12.0 |      10.0 |       10.0 |  10.0 |   10.0 |
+    | 2000-01-05 |      12.0 |      10.0 |       10.0 |  10.0 |   10.0 |
+    | 2000-01-06 |       nan |      11.0 |       11.5 |  11.0 |   11.5 |
+    | 2000-01-07 |       nan |      12.0 |       12.5 |  12.0 |   12.5 |
+    | 2000-01-08 |       nan |       9.0 |       9.45 |   9.0 |   9.45 |
+    | 2000-01-09 |       nan |       6.0 |        6.3 |   6.0 |    6.3 |
+    | 2000-01-10 |       nan |       3.0 |       3.15 |   3.0 |   3.15 |
 
-Mean-value-based residual
-_________________________
+    Now we change the correction mode for the first submodel to "both". We see
+    that in historical mode, the first submodel now does the correction, while in
+    forecast mode, the second submodel still has priority:
 
-    Setting |AveragingWindow| to two makes the submodel determine a mean-value-based
-    residual from the two days preceding the forecast (days four and five, mean
-    observed ``5.0``, mean simulated ``4.5``, hence ``0.5``).  Setting
-    |TransitionSteps| to two makes the applied residual change linearly from the
-    pointwise residual (``1.0``) to the mean-value-based residual over the first two
-    forecast steps:
-
-    >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0) as sub:
-    ...     configure(sub)
-    ...     averagingwindow(2)
-    ...     transitionsteps(2)
-    >>> with pub.options.checkseries(False):
-    ...     inputs.discharge.series = 1.5, 2.5, 3.5, 4.0, 6.0, nan, nan, nan, nan, nan
+    >>> model.outputcorrmodels[0].parameters.control.correctionmode(option="both")
 
 .. integration-test::
 
     >>> forecast_test("2000-01-06")
-    |  date | discharge | originalq | correctedq | inlet | outlet |
-    ---------------------------------------------------------------
-    | 01/01 |       1.5 |       1.0 |        1.5 |   1.0 |    1.5 |
-    | 02/01 |       2.5 |       2.0 |        2.5 |   2.0 |    2.5 |
-    | 03/01 |       3.5 |       3.0 |        3.5 |   3.0 |    3.5 |
-    | 04/01 |       4.0 |       4.0 |        4.0 |   4.0 |    4.0 |
-    | 05/01 |       6.0 |       5.0 |        6.0 |   5.0 |    6.0 |
-    | 06/01 |       nan |       6.0 |        7.0 |   6.0 |    7.0 |
-    | 07/01 |       nan |       7.0 |       7.75 |   7.0 |   7.75 |
-    | 08/01 |       nan |       8.0 |        8.5 |   8.0 |    8.5 |
-    | 09/01 |       nan |       9.0 |        9.5 |   9.0 |    9.5 |
-    | 10/01 |       nan |      10.0 |       10.5 |  10.0 |   10.5 |
+    |       date | discharge | originalq | correctedq | inlet | outlet |
+    --------------------------------------------------------------------
+    | 2000-01-01 |       9.6 |       8.0 |        9.6 |   8.0 |    9.6 |
+    | 2000-01-02 |      10.8 |       9.0 |       10.8 |   9.0 |   10.8 |
+    | 2000-01-03 |      12.6 |      10.0 |       12.6 |  10.0 |   12.6 |
+    | 2000-01-04 |      12.0 |      10.0 |       12.0 |  10.0 |   12.0 |
+    | 2000-01-05 |      12.0 |      10.0 |       12.0 |  10.0 |   12.0 |
+    | 2000-01-06 |       nan |      11.0 |       11.5 |  11.0 |   11.5 |
+    | 2000-01-07 |       nan |      12.0 |       12.5 |  12.0 |   12.5 |
+    | 2000-01-08 |       nan |       9.0 |       9.45 |   9.0 |   9.45 |
+    | 2000-01-09 |       nan |       6.0 |        6.3 |   6.0 |    6.3 |
+    | 2000-01-10 |       nan |       3.0 |       3.15 |   3.0 |   3.15 |
 
-Stationarity check
-__________________
+    Increasing the |LowerLimit| of the second submodel to `15.0` means that
+    the correction is now performed by the first submodel even in prediction mode.
 
-    Next, we enable the stationarity check with a window of three days and a
-    |RatioMinMax| of ``0.5``, and set |ReductionSteps| to four.  The simulated
-    discharge is constant.  On day five, the observations of days three to five
-    (``5.5``, ``8.0``, and ``3.0``) become instationary (``3.0 / 8.0 < 0.5``).  This
-    does not affect the `historical` run.  The `forecast` run reuses the assessment
-    of the last `historical` step, so |ReductionFactor| decreases linearly from
-    ``1.0`` in the first forecast step until the correction vanishes completely
-    after four steps:
-
-    >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0) as sub:
-    ...     configure(sub)
-    ...     stationaritycheck(active=True, window=3, ratiominmax=0.5)
-    ...     reductionsteps(4)
-    >>> element.inlets.inlet.sequences.sim.series = 5.0
-    >>> with pub.options.checkseries(False):
-    ...     inputs.discharge.series = 5.5, 5.5, 5.5, 8.0, 3.0, nan, nan, nan, nan, nan
+    >>> model.outputcorrmodels[0].parameters.control.lowerlimit(15.0)
 
 .. integration-test::
 
     >>> forecast_test("2000-01-06")
-    |  date | discharge | originalq | correctedq | inlet | outlet |
-    ---------------------------------------------------------------
-    | 01/01 |       5.5 |       5.0 |        5.5 |   5.0 |    5.5 |
-    | 02/01 |       5.5 |       5.0 |        5.5 |   5.0 |    5.5 |
-    | 03/01 |       5.5 |       5.0 |        5.5 |   5.0 |    5.5 |
-    | 04/01 |       8.0 |       5.0 |        8.0 |   5.0 |    8.0 |
-    | 05/01 |       3.0 |       5.0 |        3.0 |   5.0 |    3.0 |
-    | 06/01 |       nan |       5.0 |        3.0 |   5.0 |    3.0 |
-    | 07/01 |       nan |       5.0 |        3.5 |   5.0 |    3.5 |
-    | 08/01 |       nan |       5.0 |        4.0 |   5.0 |    4.0 |
-    | 09/01 |       nan |       5.0 |        4.5 |   5.0 |    4.5 |
-    | 10/01 |       nan |       5.0 |        5.0 |   5.0 |    5.0 |
+    |       date | discharge | originalq | correctedq | inlet | outlet |
+    --------------------------------------------------------------------
+    | 2000-01-01 |       9.6 |       8.0 |        8.0 |   8.0 |    8.0 |
+    | 2000-01-02 |      10.8 |       9.0 |        9.0 |   9.0 |    9.0 |
+    | 2000-01-03 |      12.6 |      10.0 |       10.0 |  10.0 |   10.0 |
+    | 2000-01-04 |      12.0 |      10.0 |       10.0 |  10.0 |   10.0 |
+    | 2000-01-05 |      12.0 |      10.0 |       10.0 |  10.0 |   10.0 |
+    | 2000-01-06 |       nan |      11.0 |       11.5 |  11.0 |   11.5 |
+    | 2000-01-07 |       nan |      12.0 |       12.5 |  12.0 |   12.5 |
+    | 2000-01-08 |       nan |       9.0 |       9.45 |   9.0 |   9.45 |
+    | 2000-01-09 |       nan |       6.0 |        6.3 |   6.0 |    6.3 |
+    | 2000-01-10 |       nan |       3.0 |       3.15 |   3.0 |   3.15 |
 
-Variability check
-_________________
 
-    Now, we enable the variability check, which is only meaningful under stationary
-    conditions and thus part of the stationarity check.  We use the same
-    stationarity settings as above, a |MaxRelSumDelta| of ``0.1``, and an averaging
-    period of four days, and set |EvaluationWindow| to three and |AveragingWindow|
-    to one.  The observations of the last three `historical` days (``6.0``,
-    ``7.0``, and ``6.0``) are stationary (``6.0 / 7.0 >= 0.5``), so there is no
-    reduction of the correction.  During the first two days, the
-    |EvaluationWindow| still contains missing values, but the submodel considers
-    itself responsible, as it relies on the available observations only (see
-    |EvaluatedValue|).  As the simulated discharge is constant, the
-    variability check detects low variability, so the mean-value-based
-    residual relies on the four days preceding the forecast (mean observed
-    ``6.25``, mean simulated ``5.0``) instead of on the single day given by
-    |AveragingWindow| (which would result in ``1.0``):
-
-    >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0) as sub:
-    ...     configure(sub)
-    ...     evaluationwindow(3)
-    ...     averagingwindow(1)
-    ...     stationaritycheck(
-    ...         active=True, window=3, ratiominmax=0.5, maxrelsumdelta=0.1,
-    ...         averagingwindow=4
-    ...     )
-    >>> with pub.options.checkseries(False):
-    ...     inputs.discharge.series = 6.0, 6.0, 6.0, 7.0, 6.0, nan, nan, nan, nan, nan
-
-.. integration-test::
-
-    >>> forecast_test("2000-01-06")
-    |  date | discharge | originalq | correctedq | inlet | outlet |
-    ---------------------------------------------------------------
-    | 01/01 |       6.0 |       5.0 |        6.0 |   5.0 |    6.0 |
-    | 02/01 |       6.0 |       5.0 |        6.0 |   5.0 |    6.0 |
-    | 03/01 |       6.0 |       5.0 |        6.0 |   5.0 |    6.0 |
-    | 04/01 |       7.0 |       5.0 |        7.0 |   5.0 |    7.0 |
-    | 05/01 |       6.0 |       5.0 |        6.0 |   5.0 |    6.0 |
-    | 06/01 |       nan |       5.0 |       6.25 |   5.0 |   6.25 |
-    | 07/01 |       nan |       5.0 |       6.25 |   5.0 |   6.25 |
-    | 08/01 |       nan |       5.0 |       6.25 |   5.0 |   6.25 |
-    | 09/01 |       nan |       5.0 |       6.25 |   5.0 |   6.25 |
-    | 10/01 |       nan |       5.0 |       6.25 |   5.0 |   6.25 |
-
-Multiple submodels
-__________________
-
-    Finally, we attach two submodels responsible for different discharge ranges.
-    The first one handles observed discharges below ``5.0`` and the second one all
-    others.  The second one restricts the relative shift to 5 % and the absolute
-    shift to ``0.25``:
-
-    >>> nmbsubmodels(2)
-    >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=0) as sub:
-    ...     configure(sub)
-    ...     upperlimit(5.0)
-    >>> with model.add_outputcorrmodel_v1("statcorr_arima010", position=1) as sub:
-    ...     configure(sub)
-    ...     lowerlimit(5.0)
-    ...     maxrelshift(0.05)
-    ...     maxabsshift(0.25)
-    >>> element.inlets.inlet.sequences.sim.series = (
-    ...     1.0, 2.0, 6.0, 7.0, 3.0, 4.0, 6.0, 8.0, 4.0, 3.0
-    ... )
-    >>> with pub.options.checkseries(False):
-    ...     inputs.discharge.series = 1.5, 2.5, 8.0, 9.0, 3.5, nan, nan, nan, nan, nan
-
-    During the `historical` run, the second submodel takes over on days three and
-    four, where its restricted absolute shift prevents reproducing the observations
-    (the relative shift does not apply, as the current observation is available,
-    see |Calc_CorrectedValue_V1|).  During the `forecast` run, the responsible submodel
-    does not change (see |EvaluatedValue|).  Hence, the first submodel, which was
-    responsible at the end of the `historical` run, keeps applying the residual of
-    ``0.5`` unrestricted, even when the forecasted discharge exceeds ``5.0``:
-
-.. integration-test::
-
-    >>> forecast_test("2000-01-06")
-    |  date | discharge | originalq | correctedq | inlet | outlet |
-    ---------------------------------------------------------------
-    | 01/01 |       1.5 |       1.0 |        1.5 |   1.0 |    1.5 |
-    | 02/01 |       2.5 |       2.0 |        2.5 |   2.0 |    2.5 |
-    | 03/01 |       8.0 |       6.0 |       6.25 |   6.0 |   6.25 |
-    | 04/01 |       9.0 |       7.0 |       7.25 |   7.0 |   7.25 |
-    | 05/01 |       3.5 |       3.0 |        3.5 |   3.0 |    3.5 |
-    | 06/01 |       nan |       4.0 |        4.5 |   4.0 |    4.5 |
-    | 07/01 |       nan |       6.0 |        6.5 |   6.0 |    6.5 |
-    | 08/01 |       nan |       8.0 |        8.5 |   8.0 |    8.5 |
-    | 09/01 |       nan |       4.0 |        4.5 |   4.0 |    4.5 |
-    | 10/01 |       nan |       3.0 |        3.5 |   3.0 |    3.5 |
 """
 
 from hydpy.core import modeltools

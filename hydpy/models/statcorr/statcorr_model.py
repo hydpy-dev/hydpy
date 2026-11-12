@@ -932,18 +932,11 @@ class Calc_AveragedResidual_V1(modeltools.Method):
     r"""Determine the mean-value-based residual once, at the first forecast step,
     and freeze it for the remainder of the current forecast horizon.
 
-    |Calc_AveragedResidual_V1| averages the |LoggedObservation| and
-    |LoggedSimulation| entries covering the |AveragingWindow| log positions
-    immediately preceding the current forecast run (log position `0` already holds
-    the current forecast step's own values, so averaging starts at position `1`)
-    and stores their difference in |AveragedResidual|.  It leaves |AveragedResidual|
-    unchanged whenever |Options.simulationmode| is `historical`, |ForecastStep| is
-    not zero (i.e., beyond the first forecast step), or |AveragingWindow| is zero
-    (mean-value-based correction disabled).  When the averaging window contains a
-    |numpy.nan| value, it falls back to the pointwise |Residual| (see
-    |Calc_Residual_ResidualAnchor_V1|).  While |LowVariability| is `1.0` (low
-    variability according to the variability check, see |StationarityCheck|), the
-    |StationaryAveragingWindow| replaces the |AveragingWindow|.
+    This method averages |LoggedObservation| and |LoggedSimulation| over the
+    |AveragingWindow| and stores the difference in |AveragedResidual|.
+    If |Options.simulationmode| is `historical`, or |ForecastStep| is
+    not zero, |AveragedResidual| is unchanged. When the averaging window contains a
+    |numpy.nan| value, it falls back to the pointwise |Residual|.
 
     Examples:
 
@@ -1265,79 +1258,8 @@ class Update_ForecastStep_V1(modeltools.Method):
 
 
 class Determine_OutputCorrection_V1(modeltools.AutoMethod):
-    r"""Interface method that calculates the corrected value using an
-    ARIMA(0,1,0) error model.
-
-    |Determine_OutputCorrection_V1| executes the following submethods, which take
-    the current simulation mode directly from |Options.simulationmode| (via
-    |Model.runsettings|):
-
-     * |Calc_EvaluatedValue_V1| and |Calc_IsActive_V1| decide whether the submodel
-       is responsible for the current simulated value.
-     * |Calc_Residual_ResidualAnchor_V1| determines the most recent pointwise
-       residual.
-     * |Calc_Stationary_V1| and |Calc_ReductionFactor_V1| dampen the correction under
-       instationary conditions.
-     * |Calc_RelSumDelta_V1|, |Calc_LowVariability_V1|, and
-       |Calc_AveragedResidual_V1| determine the mean-value-based residual for
-       forecast runs.
-     * |Calc_CorrectedValue_V1| applies the resulting residual to the current simulated
-       value.
-     * |Update_ForecastStep_V1| counts the forecast steps.
-
-    All submethods update the internal states even when the submodel is not
-    responsible, so that a submodel taking over responsibility starts with
-    up-to-date information.  While |Options.simulationmode| is `forecast`, they keep
-    the outcomes of the most recent `historical` assessment (the responsibility, the
-    pointwise residual, and the stationarity and variability assessments), so that
-    only |ReductionFactor| and, if configured, the blend towards |AveragedResidual|
-    can still change the correction once a forecast run is underway.
-
-    Example:
-
-        In `historical` mode, the correction reproduces the most recent
-        observation:
-
-        >>> from hydpy.models.statcorr import *
-        >>> parameterstep()
-        >>> from numpy import inf, nan
-        >>> derived.nmblogentries(3)
-        >>> control.evaluationwindow(3)
-        >>> control.active(True)
-        >>> control.correctionmode(option="both")
-        >>> control.lowerlimit(0.0)
-        >>> control.upperlimit(inf)
-        >>> control.stationaritycheck(active=False)
-        >>> derived.stationaritywindow.update()
-        >>> derived.ratiominmax.update()
-        >>> derived.maxrelsumdelta.update()
-        >>> derived.stationaryaveragingwindow.update()
-        >>> control.reductionsteps(2)
-        >>> control.maxnanskip(2)
-        >>> control.maxabsshift(100.0)
-        >>> control.maxrelshift(10.0)
-        >>> control.averagingwindow(0)
-        >>> control.transitionsteps(0)
-        >>> logs.loggedsimulation = 5.0, 3.0, 2.0
-        >>> logs.loggedobservation = 6.0, 4.0, 3.0
-        >>> model.determine_outputcorrection_v1()
-        >>> fluxes.isactive
-        isactive(1.0)
-        >>> fluxes.correctedvalue
-        correctedvalue(6.0)
-
-        In `forecast` mode, the residual of the last `historical` step persists:
-
-        >>> logs.loggedsimulation = 7.0, 5.0, 3.0
-        >>> logs.loggedobservation = nan, 6.0, 4.0
-        >>> from hydpy import pub
-        >>> with pub.options.simulationmode("forecast"):
-        ...     model.determine_outputcorrection_v1()
-        >>> fluxes.correctedvalue
-        correctedvalue(8.0)
-        >>> states.forecaststep
-        forecaststep(1.0)
-    """
+    """Determine the corrected value based on the residuals between the observed and
+    the simulated values."""
 
     SUBMETHODS = (
         Calc_EvaluatedValue_V1,

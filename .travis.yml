@@ -2,7 +2,7 @@ language: python
 
 os: linux
 
-dist: jammy
+dist: noble
 
 matrix:
   include:

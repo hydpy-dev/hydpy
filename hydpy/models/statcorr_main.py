@@ -50,6 +50,8 @@ Integration tests
     ...     control.maxnanskip(2)
     ...     control.maxabsshift(100.0)
     ...     control.maxrelshift(10.0)
+    ...     control.minvalue(-inf)
+    ...     control.maxvalue(inf)
     ...     control.averagingwindow(0)
     ...     control.transitionsteps(0)
     ...     control.stationaritycheck(active=False)
@@ -64,6 +66,8 @@ Integration tests
     ...     control.maxnanskip(2)
     ...     control.maxabsshift(0.5)
     ...     control.maxrelshift(0.05)
+    ...     control.minvalue(-inf)
+    ...     control.maxvalue(inf)
     ...     control.averagingwindow(0)
     ...     control.transitionsteps(0)
     ...     control.stationaritycheck(active=False)
@@ -80,7 +84,7 @@ Integration tests
     ...         [9.6, 10.8, 12.6, 12.0, 12.0] + 5 * [nan]
     ...     )
 
-     In operational use, a forecast consists of two separate simulation runs.  First,
+    In operational use, a forecast consists of two separate simulation runs.  First,
     a `historical` run covers the period with observations and ends with saving the
     current conditions (the states and logs of all submodels).  Second, a
     `forecast` run starts from these conditions and covers the forecast horizon.

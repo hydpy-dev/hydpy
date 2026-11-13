@@ -61,6 +61,8 @@ Integration tests
     ...     maxnanskip(2)
     ...     maxabsshift(100.0)
     ...     maxrelshift(1.0)
+    ...     minvalue(-inf)
+    ...     maxvalue(inf)
     ...     averagingwindow(0)
     ...     transitionsteps(0)
     ...     stationaritycheck(active=False)
@@ -260,7 +262,7 @@ ______________________________
 Skipping NaN-Values
 ___________________
 
-    When calculating the residual, NaN values can be skipped (up to |MaxNanSkip|
+    When calculating the residual, NaN values can be skipped (up to |MaxNaNSkip|
     time steps). We demonstrate this by setting the last three observations in
     the historical period to `nan` and using `maxnanskip(3)`. We see that the last
     residual (`1.8`) is used because three steps without observations are skipped.

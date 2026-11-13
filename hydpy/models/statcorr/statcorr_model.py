@@ -104,6 +104,8 @@ class Calc_OutputCorr_V1(modeltools.Method):
         ...         maxnanskip(2)
         ...         maxabsshift(100.0)
         ...         maxrelshift(10.0)
+        ...         minvalue(-inf)
+        ...         maxvalue(inf)
         ...         averagingwindow(0)
         ...         transitionsteps(0)
         ...         stationaritycheck(active=False)
@@ -845,7 +847,7 @@ class Calc_CorrectedValue_V1(modeltools.Method):
     multiplicatively if :math:`sim_0` recedes below |ResidualAnchor|
     (:math:`sim_k`) and additively otherwise.  The multiplicative variant keeps the
     correction from overshooting or turning negative while the simulated values
-    recede towards zero.
+    recede towards zero. Finally, |MinValue| and |MaxValue| limit the corrected value.
 
     Basic equations:
       :math:`CorrectedValue = sim_0 \cdot \left(1 + \mathrm{clip}\left(r \cdot
@@ -854,6 +856,9 @@ class Calc_CorrectedValue_V1(modeltools.Method):
 
       :math:`CorrectedValue = sim_0 + \mathrm{clip}\left(r \cdot f_{red},\
       \pm MaxAbsShift\right) \quad | \quad else`
+
+      :math:`CorrectedValue_{new} = \min \left( MaxValue, \max \left( MinValue,
+      CorrectedValue_{old} \right) \right)`
 
     In `historical` mode (see |Options.simulationmode|), :math:`r` is the pointwise
     |Residual|.  In `forecast` mode, a positive |AveragingWindow| (or |LowVariability|
@@ -872,6 +877,9 @@ class Calc_CorrectedValue_V1(modeltools.Method):
         >>> parameterstep()
         >>> control.maxabsshift(100.0)
         >>> control.maxrelshift(10.0)
+        >>> from numpy import inf
+        >>> control.minvalue(-inf)
+        >>> control.maxvalue(inf)
         >>> control.averagingwindow(0)
         >>> control.transitionsteps(0)
         >>> derived.nmblogentries(1)
@@ -949,11 +957,26 @@ class Calc_CorrectedValue_V1(modeltools.Method):
         >>> model.calc_correctedvalue_v1()
         >>> fluxes.correctedvalue
         correctedvalue(12.0)
+
+        |MaxValue| and |MinValue| limit the corrected value:
+
+        >>> control.maxvalue(11.5)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(11.5)
+        >>> control.minvalue(0.0)
+        >>> states.residual(-20.0)
+        >>> model.calc_correctedvalue_v1()
+        >>> fluxes.correctedvalue
+        correctedvalue(0.0)
+        >>> del pub.options.simulationmode
     """
 
     CONTROLPARAMETERS = (
         statcorr_control.MaxAbsShift,
         statcorr_control.MaxRelShift,
+        statcorr_control.MinValue,
+        statcorr_control.MaxValue,
         statcorr_control.AveragingWindow,
         statcorr_control.TransitionSteps,
     )
@@ -997,6 +1020,9 @@ class Calc_CorrectedValue_V1(modeltools.Method):
                 flu.correctedvalue = sim + min(
                     con.maxabsshift, max(-con.maxabsshift, residual)
                 )
+            flu.correctedvalue = min(
+                max(flu.correctedvalue, con.minvalue), con.maxvalue
+            )
 
 
 class Update_ForecastStep_V1(modeltools.Method):

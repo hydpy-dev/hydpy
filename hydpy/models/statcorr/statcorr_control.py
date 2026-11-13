@@ -1,5 +1,7 @@
 # pylint: disable=missing-module-docstring
 
+import numpy
+
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -505,6 +507,26 @@ class MaxRelShift(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     SPAN = (0.0, None)
+
+
+class MinValue(parametertools.Parameter):
+    """The minimum value after a correction is applied [unit of the corrected
+    variable]."""
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (None, None)
+    INIT = -numpy.inf
+
+
+class MaxValue(parametertools.Parameter):
+    """The maximum value after a correction is applied [unit of the corrected
+    variable]."""
+
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (None, None)
+    INIT = numpy.inf
 
 
 class AveragingWindow(parametertools.Parameter):

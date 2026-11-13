@@ -4,7 +4,9 @@ import abc
 
 from hydpy.core import parametertools
 from hydpy.core import variabletools
+
 # from hydpy.models.statcorr import statcorr_derived  actual import below
+
 
 class MixinLogEntries(variabletools.Variable, abc.ABC):
     """Mixin class for 1-dimensional log sequences whose shape depends on the value of

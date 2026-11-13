@@ -7,6 +7,7 @@
         <checkseries>true</checkseries>
         <parameterstep>1d</parameterstep>
         <reprdigits>6</reprdigits>
+        <simulationmode>historical</simulationmode>
         <usecython>true</usecython>
         <usedefaultvalues>false</usedefaultvalues>
         <utcoffset>60</utcoffset>
